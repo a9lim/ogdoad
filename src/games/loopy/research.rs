@@ -9,10 +9,8 @@ use crate::forms::{fit_f2_quadratic, QuadricFit};
 use super::graph::LoopyGraph;
 
 /// Given a move rule on positions `0..n` (cycles allowed), return its
-/// `(loss_set, draw_set)` — the P-positions and the loopy Draw positions. The
-/// acyclic analogue (`examples/interactive_kernel.rs`) discards the Draw count;
-/// here both sets are first-class, which is the point: a cyclic rule can carve a
-/// non-XOR-linear Draw-set.
+/// `(loss_set, draw_set)`: the P-positions and loopy Draw positions. Both sets
+/// are returned because a cyclic rule can have a non-XOR-linear Draw set.
 pub fn loopy_decision_sets<F: Fn(usize) -> Vec<usize>>(
     n: usize,
     moves: F,

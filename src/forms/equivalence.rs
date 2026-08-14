@@ -5,7 +5,8 @@
 //! complete invariant of that field's leg of the trichotomy: the full signature
 //! over the exact-square `Surreal` subdomain, the rank over the exact-square
 //! `Surcomplex` subdomain, `(dim, discriminant)` over a finite odd-characteristic
-//! field, and the characteristic-2 Arf/radical data over a nim-field. Each
+//! field, and characteristic-two Arf/radical data over the supported finite
+//! backends. Each
 //! `isometric_*` here is exactly that comparison, run on the diagonalized form so
 //! it accepts arbitrary (non-diagonal) metrics.
 //!
@@ -145,7 +146,7 @@ pub struct RealWittDecomp {
 }
 
 impl RealWittDecomp {
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -194,7 +195,7 @@ pub struct OddWittDecomp {
 }
 
 impl OddWittDecomp {
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }

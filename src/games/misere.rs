@@ -11,6 +11,10 @@ use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::hash::Hash;
 
+// Historical module path retained for the already-public move generator; the
+// normal-play sequence and certificate machinery live in `games::octal`.
+pub use crate::games::octal::octal_moves;
+
 fn misere_is_n_inner<P, F>(
     pos: &P,
     moves: &F,
@@ -136,6 +140,7 @@ pub fn misere_nim_p_predicted(heaps: &[u128]) -> bool {
 /// under disjunctive sum, with no moves); positions `1..moves.len()` carry option
 /// index-lists `moves[p]` (each option is a position index; 0 = move to empty).
 pub struct AbstractGame {
+    /// Adjacency lists; position `0` is the empty game.
     pub moves: Vec<Vec<usize>>,
 }
 
@@ -236,6 +241,7 @@ impl Quotient {
         self.class_rep.len()
     }
 
+    /// Product class for `a + b`, when the bounded table contains it.
     pub fn class_product(&self, a: usize, b: usize) -> Option<usize> {
         self.multiplication
             .as_ref()
@@ -256,7 +262,7 @@ impl Quotient {
         self.signatures.get(element_index).map(Vec::as_slice)
     }
 
-    /// `display()` alias kept for Python callers.
+    /// Python-visible rendering alias.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -424,56 +430,6 @@ pub fn misere_quotient(
     let tests = multisets(&atoms_sorted, test_bound);
     let mut memo: HashMap<Vec<usize>, bool> = HashMap::new();
     build_quotient(elements, &tests, |g| game.misere_outcome(g, &mut memo))
-}
-
-// ---------------------------------------------------------------------------
-// Octal games — the wild hunting ground for a quadric P-set
-// ---------------------------------------------------------------------------
-
-/// Moves of an octal game `0.d₁d₂…` (`code[k-1] = dₖ`) on a heap-multiset. From a
-/// heap of size n, remove k tokens (1 ≤ k ≤ n): leaving the heap empty needs
-/// `dₖ & 1`; leaving one nonempty heap `n−k` needs `dₖ & 2`; splitting `n−k` into
-/// two nonempty heaps needs `dₖ & 4`. (Nim is `0.333…`; Dawson's chess is the
-/// octal game `0.137` — Berlekamp-Conway-Guy, *Winning Ways*.)
-pub fn octal_moves(code: &[u128], pos: &[u128]) -> Vec<Vec<u128>> {
-    let mut out = Vec::new();
-    for idx in 0..pos.len() {
-        let n = pos[idx];
-        let base: Vec<u128> = pos
-            .iter()
-            .enumerate()
-            .filter(|&(i, _)| i != idx)
-            .map(|(_, &h)| h)
-            .collect();
-        for k in 1..=n {
-            let d = *code.get((k - 1) as usize).unwrap_or(&0);
-            let rem = n - k;
-            if rem == 0 {
-                if d & 1 != 0 {
-                    let mut p = base.clone();
-                    p.sort_unstable();
-                    out.push(p);
-                }
-            } else {
-                if d & 2 != 0 {
-                    let mut p = base.clone();
-                    p.push(rem);
-                    p.sort_unstable();
-                    out.push(p);
-                }
-                if d & 4 != 0 {
-                    for a in 1..=rem / 2 {
-                        let mut p = base.clone();
-                        p.push(a);
-                        p.push(rem - a);
-                        p.sort_unstable();
-                        out.push(p);
-                    }
-                }
-            }
-        }
-    }
-    out
 }
 
 /// The bounded misère quotient of an octal game, over single heaps of size
@@ -650,7 +606,6 @@ mod tests {
     #[test]
     fn cyclic_abstract_game_returns_none_not_panic() {
         // A cyclic move graph: position 1 has a self-loop (1 → 1).
-        // Before the fix this panicked with expect(). Now it returns None.
         let game = AbstractGame {
             moves: vec![vec![], vec![1]], // pos 1 self-loops — cyclic
         };
@@ -664,10 +619,7 @@ mod tests {
 
     #[test]
     fn cyclic_abstract_game_quotient_builder_returns_none_not_panic() {
-        // Same cyclic AbstractGame as `cyclic_abstract_game_returns_none_not_panic`,
-        // but threaded through the *quotient builder* rather than `misere_outcome`
-        // directly. Before the fix `misere_quotient` called `.expect()` on this same
-        // partial primitive and panicked; now it returns None.
+        // The quotient builder propagates the same checked cyclic result.
         let game = AbstractGame {
             moves: vec![vec![], vec![1]], // pos 1 self-loops — cyclic
         };

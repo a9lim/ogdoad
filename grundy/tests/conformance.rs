@@ -18,7 +18,7 @@ fn grundy_conformance_corpus() {
 // conformance.txt is the single authoritative corpus.
 
 #[test]
-fn stage_b_atoms_and_containers_round_trip_through_canonical_syntax() {
+fn atoms_and_containers_round_trip_through_canonical_syntax() {
     for input in [
         "#2",
         "#(1 + 2)",
@@ -114,7 +114,7 @@ fn trailing_nonterminal_tokens_drive_file_continuation() {
 }
 
 #[test]
-fn stage_e_outcome_syntax_round_trips_and_underscore_stays_contextual() {
+fn outcome_syntax_round_trips_and_underscore_stays_contextual() {
     for (input, canonical) in [
         ("1 >> 0", "1 >> 0"),
         ("1 >_ 0", "1 >‿ 0"),
@@ -148,7 +148,7 @@ fn stage_e_outcome_syntax_round_trips_and_underscore_stays_contextual() {
 }
 
 #[test]
-fn stage_e_nine_cells_are_exact_and_obey_rotation_swap_and_hasdraw_union() {
+fn nine_cells_are_exact_and_obey_rotation_swap_and_hasdraw_union() {
     let mut session = GrundySession::new("game").expect("game world");
     for definition in [
         "on =: {on |}",
@@ -222,7 +222,7 @@ fn stage_e_nine_cells_are_exact_and_obey_rotation_swap_and_hasdraw_union() {
 }
 
 #[test]
-fn stage_e_budget_witness_and_wrong_world_errors_are_distinct() {
+fn budget_witness_and_wrong_world_errors_are_distinct() {
     let mut materialization = GrundySession::new("game").expect("game world");
     materialization.set_graph_budget(0);
     let definition_budget = materialization
@@ -348,7 +348,7 @@ fn wrong_world_teaching_lives_in_hint_fields() {
     assert_eq!(canon.message, "`canon` is not defined on loopy games");
     assert_eq!(
         canon.hint.as_deref(),
-        Some("graph fusion is not yet in the envelope")
+        Some("graph fusion is outside the supported envelope")
     );
 }
 
@@ -397,7 +397,7 @@ fn eval_language_bool(session: &mut GrundySession, input: &str) -> bool {
 }
 
 #[test]
-fn stage_b_parse_guidance_is_carried_by_hints() {
+fn parse_guidance_is_carried_by_hints() {
     let mut poly = GrundySession::new("poly5").expect("poly5 world");
     let product = poly
         .eval_line("t * t")
@@ -626,7 +626,7 @@ fn error_kind_codes_are_stable() {
 }
 
 #[test]
-fn stage_f_world_menu_and_literal_guidance_are_actionable() {
+fn world_menu_and_literal_guidance_are_actionable() {
     let mut session = GrundySession::new("integer 0").expect("integer world");
     let close = session
         .set_world("gme")
@@ -658,7 +658,7 @@ fn stage_f_world_menu_and_literal_guidance_are_actionable() {
 }
 
 #[test]
-fn stage_g_world_spellings_aliases_and_dim_zero_shorthand_are_canonical() {
+fn world_spellings_aliases_and_dim_zero_shorthand_are_canonical() {
     for (decl, summary) in [
         ("polyint", "integer[t]"),
         ("poly2", "fp2[t]"),
@@ -971,16 +971,13 @@ fn cyclic_form_equality_uses_unordered_bisimulation() {
 }
 
 #[test]
-fn drawn_rename_guidance_uses_the_hint_field() {
+fn drawn_guidance_uses_the_hint_field() {
     let mut session = GrundySession::new("game").expect("game world");
     let err = session
         .eval_line("drawn(0)")
-        .expect_err("the old draw predicate name was removed");
+        .expect_err("drawn is not a function");
     assert_eq!(err.kind, GrundyErrorKind::UnknownFn);
-    assert_eq!(
-        err.hint.as_deref(),
-        Some("`drawn` was renamed to `hasdraw`")
-    );
+    assert_eq!(err.hint.as_deref(), Some("use `hasdraw`"));
     assert!(!err.message.contains("hasdraw"));
 }
 

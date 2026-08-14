@@ -36,6 +36,7 @@ pub trait FiniteOddField: ExactFieldScalar + Copy {
     /// Square-class test in the field. `0` counts as a square.
     fn is_square_value(x: Self) -> bool;
 
+    /// Return `Some(())` exactly for supported odd finite fields.
     fn ensure_supported() -> Option<()> {
         Self::is_supported_odd_field().then_some(())
     }

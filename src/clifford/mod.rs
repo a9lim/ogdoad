@@ -3,8 +3,8 @@
 //! Two layers, deliberately separated:
 //!
 //!   * [`engine`] — the associative-algebra core: the `Metric` (carrying the
-//!     quadratic form `q`, the alternating polar form `b`, and the optional
-//!     asymmetric contraction `a` independently), the `Multivector` /
+//!     quadratic form `q`, polar form `b`, and possibly nonzero asymmetric
+//!     contraction `a` independently), the `Multivector` /
 //!     `CliffordAlgebra` types, and the geometric product itself. This is the
 //!     "associative algebra from a general bilinear form" primitive.
 //!   * [`versor`] — the geometry built on top: versors and the Pin sandwich
@@ -18,10 +18,9 @@
 //! [`cga`] (conformal & projective GA), and [`spinor`] (concrete left-ideal /
 //! left-regular spinor modules).
 //!
-//! Everything is re-exported flat, so downstream code reads `clifford::Metric`,
-//! `clifford::coproduct`, `clifford::up`, … regardless of which sub-module an
-//! item lives in (`sandwich` is an inherent `CliffordAlgebra` method, called as
-//! `alg.sandwich(…)`).
+//! Public types and free functions are re-exported from this module. Inherent
+//! operations remain methods on their context types, such as
+//! `alg.sandwich(…)` and `cga.up(…)`.
 
 pub mod blade;
 pub mod cga;

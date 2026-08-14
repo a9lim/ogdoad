@@ -1,21 +1,17 @@
 //! The **global rational function field** `F_q(t)` — the equal-characteristic
 //! mirror of `ℚ` as a global field.
 //!
-//! This is the char-`p` analogue of the (field, ring-of-integers) pairing `ℚ ⊃ ℤ`:
-//! the place-organized table's finite/function-field row gets a genuine global
-//! **field** `F_q(t)` whose ring of integers is the polynomial ring `F_q[t]`. Its
-//! completions are the local fields the rest of the crate already carries —
-//! [`Laurent`](crate::scalar::Laurent) `= F_q((t))` at each monic irreducible place,
-//! and `F_q((1/t))` at the degree place `∞` — and its arithmetic feeds the
+//! It is a global **field** whose ring regular away from infinity is `F_q[t]`.
+//! At a monic irreducible place `π`, its completion is isomorphic to a Laurent
+//! field over the residue extension `F_{q^deg π}`; at infinity it is
+//! `F_q((1/t))`. Its arithmetic feeds the
 //! local–global form layer [`forms::function_field`](crate::forms) (Hilbert
 //! reciprocity `∏_v (a,b)_v = +1` and Hasse–Minkowski over `F_q(t)`), the exact
 //! char-`p` mirror of [`forms::padic`](crate::forms)/[`forms::adelic`](crate::forms).
 //!
 //! ## Exact, unlike the local precision models
 //!
-//! Every other function-field-adjacent backend (`Laurent`, `Ramified`, `Gauss`,
-//! `Qp`, `Adele`) is a **capped-relative precision model** and is excluded from the
-//! exact-ring fuzz. `RationalFunction` is **exact**: a genuine commutative field
+//! `RationalFunction` is **exact** over an exact finite base: a genuine commutative field
 //! over an exact finite base, so it *joins* the fuzz suite. The product formula it
 //! ultimately witnesses — `deg(zeros) = deg(poles)` — is combinatorial and exact,
 //! the cleaner mirror of the `ℚ`-adele's archimedean absolute value.
@@ -117,7 +113,7 @@ impl<S: ExactFieldScalar> fmt::Display for RationalFunction<S> {
         if self.den == Poly::one() {
             write!(f, "{}", self.num)
         } else {
-            // Display v4: `(num)/(den)` with each polynomial side canonical.
+            // Fractions render as `(num)/(den)` with each polynomial side canonical.
             write!(f, "({})/({})", self.num, self.den)
         }
     }
@@ -259,8 +255,8 @@ mod tests {
     }
 
     #[test]
-    fn display_v4_uses_paren_fraction() {
-        // Display v4: `(num)/(den)`; `[…]` is reserved for vectors.
+    fn display_uses_parenthesized_fraction() {
+        // Fractions use `(num)/(den)`; `[…]` is reserved for vectors.
         let frac = rf(&[1], &[0, 1]); // 1/t
         assert_eq!(frac.to_string(), "(1)/(t)");
         // den == 1 prints the numerator alone, unchanged.

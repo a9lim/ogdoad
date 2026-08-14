@@ -35,13 +35,16 @@ pub struct HermitianForm<S: Scalar> {
 /// the surcomplex field.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct HermitianSignature {
+    /// Number of positive diagonal entries.
     pub pos: usize,
+    /// Number of negative diagonal entries.
     pub neg: usize,
+    /// Dimension of the radical.
     pub radical: usize,
 }
 
 impl HermitianSignature {
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -76,17 +79,24 @@ pub struct FiniteHermitianForm<F: FiniteField> {
 /// `|F_{2^128}| = 2^128`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct FiniteHermitianInvariants {
+    /// Rank of the Hermitian form.
     pub rank: usize,
+    /// Dimension of its radical.
     pub radical_dim: usize,
+    /// Characteristic of the finite field.
     pub characteristic: u128,
+    /// Degree of the fixed field over the prime field.
     pub base_degree: usize,
+    /// Degree of the coefficient field over the prime field.
     pub extension_degree: usize,
+    /// Order of the fixed field, when it fits `u128`.
     pub base_field_order: Option<u128>,
+    /// Order of the coefficient field, when it fits `u128`.
     pub extension_field_order: Option<u128>,
 }
 
 impl FiniteHermitianInvariants {
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -173,10 +183,12 @@ impl<F: FiniteField> FiniteHermitianForm<F> {
         Self::from_gram(gram)
     }
 
+    /// Dimension of the form.
     pub fn dim(&self) -> usize {
         self.gram.len()
     }
 
+    /// Hermitian Gram matrix.
     pub fn gram(&self) -> &[Vec<F>] {
         &self.gram
     }
@@ -343,10 +355,12 @@ impl<S: Scalar> HermitianForm<S> {
         HermitianForm { gram }
     }
 
+    /// Dimension of the form.
     pub fn dim(&self) -> usize {
         self.gram.len()
     }
 
+    /// Hermitian Gram matrix.
     pub fn gram(&self) -> &[Vec<Surcomplex<S>>] {
         &self.gram
     }

@@ -53,7 +53,7 @@ fn main() {
         named.left_stop(),
         named.right_stop(),
     );
-    // The whole point: the named-tropical thermograph equals the golden one.
+    // The named-tropical and direct thermographs agree exactly.
     let same_mast = golden.mast == named.mast;
     let same_temp = golden.temperature == named.temperature;
     let same_walls = golden.left_wall.points() == named.left_wall.points()

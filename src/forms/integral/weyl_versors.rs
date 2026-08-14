@@ -22,19 +22,28 @@ use std::fmt;
 /// The Clifford/Weyl report for one irreducible ADE component.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct WeylVersorInvariants {
+    /// Irreducible ADE type.
     pub kind: NiemeierComponentKind,
+    /// Rank of the root system.
     pub rank: usize,
+    /// Order of its Weyl group.
     pub weyl_group_order: u128,
+    /// Coxeter number.
     pub coxeter_number: u128,
+    /// Whether Clifford and Cartan reflection matrices agree.
     pub simple_reflections_match_cartan: bool,
+    /// Whether every simple reflection has determinant `-1`.
     pub simple_reflection_determinants_are_minus_one: bool,
+    /// Computed order of the Coxeter versor action.
     pub coxeter_versor_order: u128,
+    /// Whether that order equals the Coxeter number.
     pub coxeter_order_matches: bool,
+    /// Grade parity of the Coxeter versor when defined.
     pub coxeter_versor_grade_parity: Option<u128>,
 }
 
 impl WeylVersorInvariants {
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }

@@ -1,53 +1,31 @@
-//! Transfinite **nimber-valued** (impartial) games carried by their ordinal
-//! Grundy value — the characteristic-2 mirror of
-//! [`number_game`](crate::games::number_game).
+//! Represented transfinite Nim heaps carried by ordinal Grundy values.
 //!
-//! This closes the project's central **`No ↔ On₂`** symmetry at the *games* layer.
-//! That mirror already lives at the scalar layer — [`Surreal`](crate::scalar::Surreal)
-//! (the char-0 field `No`) and [`Ordinal`] (the char-2
-//! algebraically-closed field `On₂`) share one Cantor-normal-form core
-//! ([`big::cnf`](crate::scalar::big)) — but the games column was lopsided: surreal
-//! numbers had [`NumberGame`](crate::games::NumberGame) (transfinite games carried
-//! by a surreal value), while the impartial side had only the *finite*
-//! [`Game::nim_heap`](crate::games::Game::nim_heap). `NimberGame` is the missing
-//! half: a transfinite Nim heap `⋆α`, carried by its ordinal Grundy value.
+//! [`NimberGame`] is the impartial analogue of
+//! [`NumberGame`](crate::games::NumberGame): it stores the value of `⋆α`
+//! instead of materializing its transfinite option set. Disjunctive sum is
+//! ordinal nim-addition, negation is the identity, and Turning Corners is
+//! ordinal nim-multiplication.
 //!
-//! The mirror is exact. The Grundy value of the Nim heap of ordinal size `α` is `α`
-//! itself, so — exactly as a number game needs no materialized option tree because
-//! [`Surreal`](crate::scalar::Surreal) carries everything — a single [`Ordinal`] (the `On₂` backend) carries
-//! the Grundy value, the disjunctive sum (Sprague–Grundy XOR = nim-addition), and
-//! the Turning-Corners product (nim-multiplication). Where `NumberGame` delegates to
-//! `Surreal`, `NimberGame` delegates to `Ordinal`; the two differ exactly where `No`
-//! and `On₂` differ — the order vs. the coefficient merge (`+` vs. `XOR`) — which is
-//! why this is a parallel *view*, not a shared type. The finite [`Game`] engine is
-//! untouched.
-//!
-//! The one genuine asymmetry is honest and structural: in characteristic 2 every
-//! impartial game is its own additive inverse (`G + G = 0`), so [`neg`](NimberGame::neg)
-//! is the identity, and the product is a *separate* game (Turning-Corners), not the
-//! disjunctive sum — whereas surreal addition and multiplication are both there in
-//! the field. That mismatch is the `+`-vs-`XOR` / field-vs-nonfield content of the
-//! `No ↔ On₂` mirror, not a gap.
+//! The [`Ordinal`] backend represents a checked initial region of Conway's
+//! nimbers, not the full algebraically closed class `On₂`. Addition is total on
+//! represented values; multiplication returns `None` when it leaves the
+//! supported Kummer tower.
 
 use crate::games::Game;
 use crate::scalar::Ordinal;
 use std::cmp::Ordering;
 use std::fmt;
 
-/// A transfinite **nimber-valued** (impartial) game — the Nim heap `⋆α` — carried
-/// by its ordinal Grundy value rather than a (necessarily infinite) option set. The
-/// char-2 mirror of [`NumberGame`](crate::games::NumberGame): that one carries a
-/// [`Surreal`](crate::scalar::Surreal) (`No`, char 0), this carries an
-/// [`Ordinal`] (`On₂`, char 2), the two sharing one CNF core.
+/// A represented transfinite Nim heap `⋆α`, carried by its ordinal Grundy
+/// value rather than an infinite option set.
 #[derive(Clone, Debug, PartialEq)]
 pub struct NimberGame {
     grundy: Ordinal,
 }
 
 impl NimberGame {
-    /// The transfinite Nim heap `⋆α` of a given ordinal Grundy value (always
-    /// succeeds — no options built). The char-2 mirror of
-    /// [`NumberGame::from_surreal`](crate::games::NumberGame::from_surreal).
+    /// Construct `⋆α` from its represented ordinal Grundy value. No option
+    /// tree is built.
     pub fn from_ordinal(o: &Ordinal) -> NimberGame {
         NimberGame { grundy: o.clone() }
     }
@@ -59,51 +37,37 @@ impl NimberGame {
         }
     }
 
-    /// The exact Grundy value (a transfinite nimber). The char-2 mirror of
-    /// [`NumberGame::value`](crate::games::NumberGame::value); the game is a
-    /// P-position (previous-player win) iff this is `0`.
+    /// The represented ordinal Grundy value. The game is a P-position iff this
+    /// value is zero.
     pub fn grundy(&self) -> &Ordinal {
         &self.grundy
     }
 
-    /// Disjunctive sum: the Sprague–Grundy XOR of the Grundy values
-    /// (nim-addition on `On₂`). Always defined — nim-addition is complete on the
-    /// represented CNF (`⋆α + ⋆α = 0`, `⋆ω + ⋆1 = ⋆(ω+1)`). The mirror of
-    /// [`NumberGame::add`](crate::games::NumberGame::add) (surreal addition).
+    /// Disjunctive sum, computed by ordinal nim-addition. It is total on the
+    /// represented CNF values (`⋆α + ⋆α = 0`, `⋆ω + ⋆1 = ⋆(ω+1)`).
     pub fn add(&self, other: &NimberGame) -> NimberGame {
         NimberGame {
             grundy: self.grundy.nim_add(&other.grundy),
         }
     }
 
-    /// Negation — the **identity**. Every impartial game is its own additive inverse
-    /// (`G + G = 0`; in char 2, `−α = α`). The mirror of
-    /// [`NumberGame::neg`](crate::games::NumberGame::neg), trivial on this leg by the
-    /// char-2 structure.
+    /// Negation, which is the identity for impartial games.
     pub fn neg(&self) -> NimberGame {
         self.clone()
     }
 
-    /// The **Turning-Corners product**: Conway's coin game realizing
-    /// nim-multiplication (the transfinite extension of
-    /// [`coin_turning::nim_mul_mex`](crate::games::nim_mul_mex)). Defined across the
-    /// `On₂` prime-power tower, including the non-scalar Kummer branching (`α_7 = ω+1`,
-    /// …); `None` only when a Kummer carry needs a prime `> 727` (past the 126 OEIS
-    /// rows plus the locally certified 719 and 727 rows) or at `≥ ⋆ω^(ω^ω)` (see
-    /// [`big::ordinal`](crate::scalar::big)).
-    /// Unlike the surreal leg — where the product is field multiplication — for nimbers
-    /// the product is a *separate* game from the disjunctive sum; this is the seam where
-    /// the game pillar meets the nimber field (`⋆ω ⊗ ⋆ω ⊗ ⋆ω = ⋆2`, Conway's `ω³ = 2`).
+    /// Conway's Turning-Corners product, computed by ordinal nim-multiplication.
+    /// Returns `None` when a Kummer carry lies outside the supported table or
+    /// the result reaches the `ω^(ω^ω)` representation boundary. This is a
+    /// separate game operation from disjunctive sum.
     pub fn turning_corners(&self, other: &NimberGame) -> Option<NimberGame> {
         self.grundy
             .nim_mul(&other.grundy)
             .map(|grundy| NimberGame { grundy })
     }
 
-    /// The **heap-size order** (the ordinal order on Grundy values). The mirror of
-    /// [`NumberGame::cmp`](crate::games::NumberGame::cmp). Note this is the *ordinal*
-    /// order, deliberately distinct from the nim-value structure (`On₂` as a field is
-    /// unordered) — see [`Ordinal::cmp`](crate::scalar::Ordinal::cmp).
+    /// The heap-size order: ordinal order on the stored Grundy values. This is
+    /// not a field order on nimbers.
     // Inherent value-order, kept off `std::cmp::Ord` to mirror `Ordinal::cmp` and
     // the partial `Game` order (see AGENTS.md).
     #[allow(clippy::should_implement_trait)]
@@ -111,11 +75,8 @@ impl NimberGame {
         self.grundy.cmp(&other.grundy)
     }
 
-    /// Bridge to the finite engine: `Some(Game::nim_heap(n))` iff the Grundy value
-    /// is finite (`< ω`); `None` for genuinely transfinite heaps, which have no
-    /// finite option tree. The char-2 mirror of
-    /// [`NumberGame::to_finite_game`](crate::games::NumberGame::to_finite_game)
-    /// (`Some` iff dyadic). On finite heaps the finite game's value agrees.
+    /// Convert a finite heap to the short-game engine. Returns `None` for a
+    /// genuinely transfinite heap.
     pub fn to_finite_game(&self) -> Option<Game> {
         self.grundy.as_finite().map(Game::nim_heap)
     }
@@ -193,14 +154,14 @@ mod tests {
             .unwrap();
         assert_eq!(w3.grundy(), &Ordinal::from_u128(2));
 
-        // ⋆ω^ω is now the degree-5 generator χ_5: ⋆ω^ω ⊗ ⋆ω^ω = ⋆ω^(ω·2) (was staged
-        // under the old ω^ω boundary).
+        // The supported degree-5 generator satisfies
+        // ⋆ω^ω ⊗ ⋆ω^ω = ⋆ω^(ω·2).
         let ww = NimberGame::from_ordinal(&Ordinal::omega_pow(Ordinal::omega()));
         assert_eq!(
             ww.turning_corners(&ww).unwrap().grundy(),
             &Ordinal::omega_pow(Ordinal::monomial(Ordinal::from_u128(1), 2))
         );
-        // the staged boundary is now the non-scalar Kummer carry: ⋆ω^(ω^ω) is None.
+        // The non-scalar Kummer carry at ⋆ω^(ω^ω) is outside the representation.
         let www =
             NimberGame::from_ordinal(&Ordinal::omega_pow(Ordinal::omega_pow(Ordinal::omega())));
         assert!(www.turning_corners(&www).is_none());

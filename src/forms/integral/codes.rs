@@ -20,9 +20,9 @@
 //! Odd-prime codes use [`PrimeCode`]. Their Construction A is the direct
 //! `p`-ary analogue `(1/sqrt(p)){x in Z^n : x mod p in C}`; it is an
 //! integer lattice exactly on the Euclidean self-orthogonal boundary. The
-//! ternary Golay code gives the honest odd unimodular rank-12 `Z`-lattice
-//! attached to this construction. The Coxeter-Todd `K12` lattice needs the
-//! Eisenstein-integer Construction A and stays with the CM-lattice continuation.
+//! ternary Golay code gives the odd unimodular rank-12 `Z`-lattice attached to
+//! this construction. This module does not implement the Eisenstein-integer
+//! Construction A needed for the Coxeter--Todd `K12` lattice.
 
 use super::lattice::IntegralForm;
 use crate::linalg::integer::normalize_relation_rows;
@@ -35,8 +35,7 @@ pub const D16_PLUS_AUT_ORDER: u128 = 685_597_979_049_984_000;
 /// Codeword enumeration is exponential in the code dimension `k` (`2^k` binary
 /// words, `P^k` over [`PrimeCode`]). Enumeration is capped at this many codewords
 /// rather than silently overflowing a `usize` mask or running unbounded — the
-/// same budget-`None` shape as the lattice wing's `AUTO_NODE_BUDGET`. Every code
-/// shipped in this module sits far under the cap.
+/// same budget-`None` shape as the lattice wing's `AUTO_NODE_BUDGET`.
 pub const CODEWORD_ENUMERATION_BUDGET: usize = 2_000_000;
 
 /// A binary linear code, stored as a row-reduced F2 generator matrix.
@@ -448,8 +447,7 @@ impl BinaryCode {
     /// The Hamming weight enumerator coefficients:
     /// `out[w] = #{c in C : wt(c) = w}`.
     ///
-    /// Every code shipped in this module sits far under
-    /// [`CODEWORD_ENUMERATION_BUDGET`]; a code dimension past the budget panics
+    /// A code dimension past [`CODEWORD_ENUMERATION_BUDGET`] panics
     /// rather than silently truncating the enumerator.
     pub fn weight_enumerator(&self) -> Vec<i128> {
         let mut out = vec![0i128; self.n + 1];
@@ -775,8 +773,7 @@ impl<const P: u128> PrimeCode<P> {
     /// The Hamming weight enumerator coefficients:
     /// `out[w] = #{c in C : wt(c) = w}`.
     ///
-    /// Every code shipped in this module sits far under
-    /// [`CODEWORD_ENUMERATION_BUDGET`]; a code dimension past the budget panics
+    /// A code dimension past [`CODEWORD_ENUMERATION_BUDGET`] panics
     /// rather than silently truncating the enumerator.
     pub fn weight_enumerator(&self) -> Vec<i128> {
         let mut out = vec![0i128; self.n + 1];

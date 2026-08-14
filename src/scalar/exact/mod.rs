@@ -1,14 +1,9 @@
-//! **Exact base** — the Archimedean char-0 anchor of the number table: the field
-//! ℚ and its ring of integers ℤ.
+//! Fixed-width exact characteristic-zero scalars.
 //!
-//! Neither is a game backend. [`Rational`] (ℚ over `i128`) is
-//! the char-0 yardstick that validates the geometric product against the known
-//! `Cl(p,q)` classification before the exotic backends are trusted;
-//! [`Integer`] (ℤ) is the coefficient ring of the exterior
-//! algebra of the game group (games are a ℤ-module). They are the (field, ring of
-//! integers) pair every other place in the table mirrors — `(No, Oz)`,
-//! `(Q_p, Z_p)`, and the unramified mixed-characteristic pair
-//! `(Q_q, W_n(F_q))`.
+//! [`Rational`] represents reduced fractions over `i128`; [`Integer`] represents
+//! `i128` integers. Both use checked arithmetic and panic when a result leaves
+//! the carrier. They form the standard fraction-field pair `ℤ ⊂ ℚ` used by the
+//! generic algebra and forms layers.
 
 pub mod integer;
 pub mod rational;

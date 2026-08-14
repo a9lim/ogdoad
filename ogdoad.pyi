@@ -89,7 +89,9 @@ class AdeleAlgebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -108,7 +110,9 @@ class AdeleAlgebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -117,8 +121,8 @@ class AdeleAlgebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -133,15 +137,17 @@ class AdeleAlgebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> AdeleMV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -150,11 +156,9 @@ class AdeleAlgebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -162,7 +166,7 @@ class AdeleAlgebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -188,8 +192,9 @@ class AdeleAlgebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -215,13 +220,15 @@ class AdeleCga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> AdeleAlgebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -229,8 +236,10 @@ class AdeleCga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -240,7 +249,9 @@ class AdeleCga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class AdeleDividedPowerAlgebra:
@@ -324,16 +335,19 @@ class AdeleMV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -349,9 +363,10 @@ class AdeleMV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -376,22 +391,32 @@ class AdeleMV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -400,7 +425,10 @@ class AdeleMV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -643,6 +671,44 @@ class BrownInvariants:
     def radical_dim(self) -> Any: ...
     @property
     def rank(self) -> Any: ...
+    def __repr__(self) -> builtins.str: ...
+
+class BrownSelector:
+    """The intrinsic four-outcome Brown selector `{A_(Q+ell)(x) | A_Q(x)}`.
+
+    `q4[i]` is the basis value in `Z/4`, `brown_polar[i]` is the bitmask row of
+    the symmetric Brown polar, and `input` is the vector bitmask. The selector
+    validates the Brown datum and constructs both checked Witt--FIFO followers.
+    """
+    def __init__(self, q4: Sequence[builtins.int], brown_polar: Sequence[builtins.int], input: builtins.int) -> None: ...
+    @property
+    def classical_diagonal(self) -> list[builtins.bool]:
+        """Basis values of the canonical ordinary quadratic part `Q`."""
+    @property
+    def classical_polar(self) -> list[builtins.int]:
+        """Corrected alternating polar `B_Q = b + ell tensor ell`."""
+    @property
+    def input(self) -> builtins.int:
+        """Input vector in original-basis bitmask coordinates."""
+    @property
+    def left_follower(self) -> WittFifoArena:
+        """Checked Left follower `A_(Q+ell)(x)`."""
+    @property
+    def linear_diagonal(self) -> list[builtins.bool]:
+        """Basis values of the canonical linear part `ell`."""
+    @property
+    def residue(self) -> builtins.int:
+        """Directly evaluated Brown residue `q(x)` in `0..4`."""
+    @property
+    def right_follower(self) -> WittFifoArena:
+        """Checked Right follower `A_Q(x)`."""
+    @staticmethod
+    def decode_outcome(outcome: PartizanOutcome) -> builtins.int | None:
+        """Decode `N, R, P, L` as `0, 1, 2, 3`; a draw returns `None`."""
+    def outcome_class(self, state_budget_per_follower: builtins.int) -> PartizanOutcome:
+        """Compute the selector's intrinsic normal-play outcome from the actual game."""
+    def to_game(self, state_budget_per_follower: builtins.int) -> Game:
+        """Materialize the one-root selector as a finite short `Game`."""
     def __repr__(self) -> builtins.str: ...
 
 class Char2FiniteFieldForm:
@@ -976,7 +1042,9 @@ class F16Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -995,7 +1063,9 @@ class F16Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -1004,8 +1074,8 @@ class F16Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -1020,15 +1090,17 @@ class F16Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> F16MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -1037,11 +1109,9 @@ class F16Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -1049,7 +1119,7 @@ class F16Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -1075,8 +1145,9 @@ class F16Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -1176,16 +1247,19 @@ class F16MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -1201,9 +1275,10 @@ class F16MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -1228,22 +1303,32 @@ class F16MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -1252,7 +1337,10 @@ class F16MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -1376,7 +1464,9 @@ class F25Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -1395,7 +1485,9 @@ class F25Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -1404,8 +1496,8 @@ class F25Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -1420,15 +1512,17 @@ class F25Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> F25MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -1437,11 +1531,9 @@ class F25Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -1449,7 +1541,7 @@ class F25Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -1475,8 +1567,9 @@ class F25Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -1576,16 +1669,19 @@ class F25MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -1601,9 +1697,10 @@ class F25MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -1628,22 +1725,32 @@ class F25MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -1652,7 +1759,10 @@ class F25MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -1776,7 +1886,9 @@ class F27Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -1795,7 +1907,9 @@ class F27Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -1804,8 +1918,8 @@ class F27Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -1820,15 +1934,17 @@ class F27Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> F27MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -1837,11 +1953,9 @@ class F27Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -1849,7 +1963,7 @@ class F27Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -1875,8 +1989,9 @@ class F27Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -1976,16 +2091,19 @@ class F27MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -2001,9 +2119,10 @@ class F27MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -2028,22 +2147,32 @@ class F27MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -2052,7 +2181,10 @@ class F27MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -2176,7 +2308,9 @@ class F4Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -2195,7 +2329,9 @@ class F4Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -2204,8 +2340,8 @@ class F4Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -2220,15 +2356,17 @@ class F4Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> F4MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -2237,11 +2375,9 @@ class F4Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -2249,7 +2385,7 @@ class F4Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -2275,8 +2411,9 @@ class F4Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -2376,16 +2513,19 @@ class F4MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -2401,9 +2541,10 @@ class F4MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -2428,22 +2569,32 @@ class F4MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -2452,7 +2603,10 @@ class F4MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -2576,7 +2730,9 @@ class F8Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -2595,7 +2751,9 @@ class F8Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -2604,8 +2762,8 @@ class F8Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -2620,15 +2778,17 @@ class F8Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> F8MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -2637,11 +2797,9 @@ class F8Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -2649,7 +2807,7 @@ class F8Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -2675,8 +2833,9 @@ class F8Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -2776,16 +2935,19 @@ class F8MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -2801,9 +2963,10 @@ class F8MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -2828,22 +2991,32 @@ class F8MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -2852,7 +3025,10 @@ class F8MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -2976,7 +3152,9 @@ class F9Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -2995,7 +3173,9 @@ class F9Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -3004,8 +3184,8 @@ class F9Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -3020,15 +3200,17 @@ class F9Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> F9MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -3037,11 +3219,9 @@ class F9Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -3049,7 +3229,7 @@ class F9Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -3075,8 +3255,9 @@ class F9Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -3176,16 +3357,19 @@ class F9MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -3201,9 +3385,10 @@ class F9MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -3228,22 +3413,32 @@ class F9MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -3252,7 +3447,10 @@ class F9MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -3407,7 +3605,9 @@ class Fp11Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -3426,7 +3626,9 @@ class Fp11Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -3435,8 +3637,8 @@ class Fp11Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -3451,15 +3653,17 @@ class Fp11Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Fp11MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -3468,11 +3672,9 @@ class Fp11Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -3480,7 +3682,7 @@ class Fp11Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -3506,8 +3708,9 @@ class Fp11Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -3607,16 +3810,19 @@ class Fp11MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -3632,9 +3838,10 @@ class Fp11MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -3659,22 +3866,32 @@ class Fp11MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -3683,7 +3900,10 @@ class Fp11MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -3783,7 +4003,9 @@ class Fp11PolyAlgebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -3802,7 +4024,9 @@ class Fp11PolyAlgebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -3811,8 +4035,8 @@ class Fp11PolyAlgebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -3827,15 +4051,17 @@ class Fp11PolyAlgebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Fp11PolyMV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -3844,11 +4070,9 @@ class Fp11PolyAlgebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -3856,7 +4080,7 @@ class Fp11PolyAlgebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -3882,8 +4106,9 @@ class Fp11PolyAlgebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -3983,16 +4208,19 @@ class Fp11PolyMV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -4008,9 +4236,10 @@ class Fp11PolyMV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -4035,22 +4264,32 @@ class Fp11PolyMV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -4059,7 +4298,10 @@ class Fp11PolyMV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -4146,7 +4388,9 @@ class Fp11RationalFunctionAlgebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -4165,7 +4409,9 @@ class Fp11RationalFunctionAlgebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -4174,8 +4420,8 @@ class Fp11RationalFunctionAlgebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -4190,15 +4436,17 @@ class Fp11RationalFunctionAlgebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Fp11RationalFunctionMV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -4207,11 +4455,9 @@ class Fp11RationalFunctionAlgebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -4219,7 +4465,7 @@ class Fp11RationalFunctionAlgebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -4245,8 +4491,9 @@ class Fp11RationalFunctionAlgebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -4346,16 +4593,19 @@ class Fp11RationalFunctionMV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -4371,9 +4621,10 @@ class Fp11RationalFunctionMV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -4398,22 +4649,32 @@ class Fp11RationalFunctionMV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -4422,7 +4683,10 @@ class Fp11RationalFunctionMV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -4510,7 +4774,9 @@ class Fp13Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -4529,7 +4795,9 @@ class Fp13Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -4538,8 +4806,8 @@ class Fp13Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -4554,15 +4822,17 @@ class Fp13Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Fp13MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -4571,11 +4841,9 @@ class Fp13Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -4583,7 +4851,7 @@ class Fp13Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -4609,8 +4877,9 @@ class Fp13Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -4710,16 +4979,19 @@ class Fp13MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -4735,9 +5007,10 @@ class Fp13MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -4762,22 +5035,32 @@ class Fp13MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -4786,7 +5069,10 @@ class Fp13MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -4886,7 +5172,9 @@ class Fp13PolyAlgebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -4905,7 +5193,9 @@ class Fp13PolyAlgebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -4914,8 +5204,8 @@ class Fp13PolyAlgebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -4930,15 +5220,17 @@ class Fp13PolyAlgebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Fp13PolyMV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -4947,11 +5239,9 @@ class Fp13PolyAlgebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -4959,7 +5249,7 @@ class Fp13PolyAlgebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -4985,8 +5275,9 @@ class Fp13PolyAlgebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -5086,16 +5377,19 @@ class Fp13PolyMV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -5111,9 +5405,10 @@ class Fp13PolyMV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -5138,22 +5433,32 @@ class Fp13PolyMV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -5162,7 +5467,10 @@ class Fp13PolyMV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -5249,7 +5557,9 @@ class Fp13RationalFunctionAlgebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -5268,7 +5578,9 @@ class Fp13RationalFunctionAlgebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -5277,8 +5589,8 @@ class Fp13RationalFunctionAlgebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -5293,15 +5605,17 @@ class Fp13RationalFunctionAlgebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Fp13RationalFunctionMV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -5310,11 +5624,9 @@ class Fp13RationalFunctionAlgebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -5322,7 +5634,7 @@ class Fp13RationalFunctionAlgebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -5348,8 +5660,9 @@ class Fp13RationalFunctionAlgebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -5449,16 +5762,19 @@ class Fp13RationalFunctionMV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -5474,9 +5790,10 @@ class Fp13RationalFunctionMV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -5501,22 +5818,32 @@ class Fp13RationalFunctionMV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -5525,7 +5852,10 @@ class Fp13RationalFunctionMV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -5613,7 +5943,9 @@ class Fp2Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -5632,7 +5964,9 @@ class Fp2Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -5641,8 +5975,8 @@ class Fp2Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -5657,15 +5991,17 @@ class Fp2Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Fp2MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -5674,11 +6010,9 @@ class Fp2Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -5686,7 +6020,7 @@ class Fp2Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -5712,8 +6046,9 @@ class Fp2Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -5813,16 +6148,19 @@ class Fp2MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -5838,9 +6176,10 @@ class Fp2MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -5865,22 +6204,32 @@ class Fp2MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -5889,7 +6238,10 @@ class Fp2MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -5989,7 +6341,9 @@ class Fp2PolyAlgebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -6008,7 +6362,9 @@ class Fp2PolyAlgebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -6017,8 +6373,8 @@ class Fp2PolyAlgebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -6033,15 +6389,17 @@ class Fp2PolyAlgebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Fp2PolyMV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -6050,11 +6408,9 @@ class Fp2PolyAlgebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -6062,7 +6418,7 @@ class Fp2PolyAlgebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -6088,8 +6444,9 @@ class Fp2PolyAlgebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -6189,16 +6546,19 @@ class Fp2PolyMV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -6214,9 +6574,10 @@ class Fp2PolyMV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -6241,22 +6602,32 @@ class Fp2PolyMV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -6265,7 +6636,10 @@ class Fp2PolyMV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -6352,7 +6726,9 @@ class Fp2RationalFunctionAlgebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -6371,7 +6747,9 @@ class Fp2RationalFunctionAlgebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -6380,8 +6758,8 @@ class Fp2RationalFunctionAlgebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -6396,15 +6774,17 @@ class Fp2RationalFunctionAlgebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Fp2RationalFunctionMV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -6413,11 +6793,9 @@ class Fp2RationalFunctionAlgebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -6425,7 +6803,7 @@ class Fp2RationalFunctionAlgebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -6451,8 +6829,9 @@ class Fp2RationalFunctionAlgebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -6552,16 +6931,19 @@ class Fp2RationalFunctionMV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -6577,9 +6959,10 @@ class Fp2RationalFunctionMV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -6604,22 +6987,32 @@ class Fp2RationalFunctionMV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -6628,7 +7021,10 @@ class Fp2RationalFunctionMV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -6716,7 +7112,9 @@ class Fp3Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -6735,7 +7133,9 @@ class Fp3Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -6744,8 +7144,8 @@ class Fp3Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -6760,15 +7160,17 @@ class Fp3Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Fp3MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -6777,11 +7179,9 @@ class Fp3Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -6789,7 +7189,7 @@ class Fp3Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -6815,8 +7215,9 @@ class Fp3Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -6916,16 +7317,19 @@ class Fp3MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -6941,9 +7345,10 @@ class Fp3MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -6968,22 +7373,32 @@ class Fp3MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -6992,7 +7407,10 @@ class Fp3MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -7092,7 +7510,9 @@ class Fp3PolyAlgebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -7111,7 +7531,9 @@ class Fp3PolyAlgebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -7120,8 +7542,8 @@ class Fp3PolyAlgebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -7136,15 +7558,17 @@ class Fp3PolyAlgebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Fp3PolyMV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -7153,11 +7577,9 @@ class Fp3PolyAlgebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -7165,7 +7587,7 @@ class Fp3PolyAlgebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -7191,8 +7613,9 @@ class Fp3PolyAlgebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -7292,16 +7715,19 @@ class Fp3PolyMV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -7317,9 +7743,10 @@ class Fp3PolyMV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -7344,22 +7771,32 @@ class Fp3PolyMV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -7368,7 +7805,10 @@ class Fp3PolyMV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -7455,7 +7895,9 @@ class Fp3RationalFunctionAlgebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -7474,7 +7916,9 @@ class Fp3RationalFunctionAlgebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -7483,8 +7927,8 @@ class Fp3RationalFunctionAlgebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -7499,15 +7943,17 @@ class Fp3RationalFunctionAlgebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Fp3RationalFunctionMV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -7516,11 +7962,9 @@ class Fp3RationalFunctionAlgebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -7528,7 +7972,7 @@ class Fp3RationalFunctionAlgebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -7554,8 +7998,9 @@ class Fp3RationalFunctionAlgebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -7655,16 +8100,19 @@ class Fp3RationalFunctionMV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -7680,9 +8128,10 @@ class Fp3RationalFunctionMV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -7707,22 +8156,32 @@ class Fp3RationalFunctionMV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -7731,7 +8190,10 @@ class Fp3RationalFunctionMV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -7819,7 +8281,9 @@ class Fp5Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -7838,7 +8302,9 @@ class Fp5Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -7847,8 +8313,8 @@ class Fp5Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -7863,15 +8329,17 @@ class Fp5Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Fp5MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -7880,11 +8348,9 @@ class Fp5Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -7892,7 +8358,7 @@ class Fp5Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -7918,8 +8384,9 @@ class Fp5Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -8019,16 +8486,19 @@ class Fp5MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -8044,9 +8514,10 @@ class Fp5MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -8071,22 +8542,32 @@ class Fp5MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -8095,7 +8576,10 @@ class Fp5MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -8195,7 +8679,9 @@ class Fp5PolyAlgebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -8214,7 +8700,9 @@ class Fp5PolyAlgebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -8223,8 +8711,8 @@ class Fp5PolyAlgebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -8239,15 +8727,17 @@ class Fp5PolyAlgebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Fp5PolyMV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -8256,11 +8746,9 @@ class Fp5PolyAlgebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -8268,7 +8756,7 @@ class Fp5PolyAlgebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -8294,8 +8782,9 @@ class Fp5PolyAlgebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -8395,16 +8884,19 @@ class Fp5PolyMV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -8420,9 +8912,10 @@ class Fp5PolyMV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -8447,22 +8940,32 @@ class Fp5PolyMV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -8471,7 +8974,10 @@ class Fp5PolyMV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -8558,7 +9064,9 @@ class Fp5RationalFunctionAlgebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -8577,7 +9085,9 @@ class Fp5RationalFunctionAlgebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -8586,8 +9096,8 @@ class Fp5RationalFunctionAlgebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -8602,15 +9112,17 @@ class Fp5RationalFunctionAlgebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Fp5RationalFunctionMV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -8619,11 +9131,9 @@ class Fp5RationalFunctionAlgebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -8631,7 +9141,7 @@ class Fp5RationalFunctionAlgebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -8657,8 +9167,9 @@ class Fp5RationalFunctionAlgebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -8758,16 +9269,19 @@ class Fp5RationalFunctionMV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -8783,9 +9297,10 @@ class Fp5RationalFunctionMV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -8810,22 +9325,32 @@ class Fp5RationalFunctionMV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -8834,7 +9359,10 @@ class Fp5RationalFunctionMV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -8922,7 +9450,9 @@ class Fp7Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -8941,7 +9471,9 @@ class Fp7Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -8950,8 +9482,8 @@ class Fp7Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -8966,15 +9498,17 @@ class Fp7Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Fp7MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -8983,11 +9517,9 @@ class Fp7Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -8995,7 +9527,7 @@ class Fp7Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -9021,8 +9553,9 @@ class Fp7Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -9122,16 +9655,19 @@ class Fp7MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -9147,9 +9683,10 @@ class Fp7MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -9174,22 +9711,32 @@ class Fp7MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -9198,7 +9745,10 @@ class Fp7MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -9298,7 +9848,9 @@ class Fp7PolyAlgebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -9317,7 +9869,9 @@ class Fp7PolyAlgebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -9326,8 +9880,8 @@ class Fp7PolyAlgebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -9342,15 +9896,17 @@ class Fp7PolyAlgebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Fp7PolyMV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -9359,11 +9915,9 @@ class Fp7PolyAlgebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -9371,7 +9925,7 @@ class Fp7PolyAlgebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -9397,8 +9951,9 @@ class Fp7PolyAlgebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -9498,16 +10053,19 @@ class Fp7PolyMV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -9523,9 +10081,10 @@ class Fp7PolyMV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -9550,22 +10109,32 @@ class Fp7PolyMV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -9574,7 +10143,10 @@ class Fp7PolyMV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -9661,7 +10233,9 @@ class Fp7RationalFunctionAlgebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -9680,7 +10254,9 @@ class Fp7RationalFunctionAlgebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -9689,8 +10265,8 @@ class Fp7RationalFunctionAlgebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -9705,15 +10281,17 @@ class Fp7RationalFunctionAlgebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Fp7RationalFunctionMV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -9722,11 +10300,9 @@ class Fp7RationalFunctionAlgebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -9734,7 +10310,7 @@ class Fp7RationalFunctionAlgebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -9760,8 +10336,9 @@ class Fp7RationalFunctionAlgebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -9861,16 +10438,19 @@ class Fp7RationalFunctionMV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -9886,9 +10466,10 @@ class Fp7RationalFunctionMV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -9913,22 +10494,32 @@ class Fp7RationalFunctionMV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -9937,7 +10528,10 @@ class Fp7RationalFunctionMV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -10164,6 +10758,8 @@ class Game:
         """A general game `{ left | right }` from explicit option lists."""
     def ordinal_sum(self, *args: Any, **kwargs: Any) -> Any:
         """The ordinal sum `G : H` (play in `H`; a move in the base `G` discards `H`)."""
+    def outcome_class(self) -> PartizanOutcome:
+        """Intrinsic normal-play outcome class of this finite short game."""
     def overheat(self, *args: Any, **kwargs: Any) -> Any:
         """Berlekamp overheating `int_s^t G`; `None` if `s` is not positive."""
     def right(self, *args: Any, **kwargs: Any) -> Any:
@@ -10190,8 +10786,8 @@ class Game:
     def thermograph(self, *args: Any, **kwargs: Any) -> Any:
         """The thermograph as a first-class exact object with `Pl` walls."""
     def thermograph_via_tropical(self, *args: Any, **kwargs: Any) -> Any:
-        """The same thermograph, routed through the named tropical max-plus/min-plus
-        wall folds and pinned equal to `thermograph` in the Rust tests.
+        """The same exact thermograph computed through tropical max-plus/min-plus
+        wall folds.
         """
     def times_int(self, *args: Any, **kwargs: Any) -> Any: ...
     @staticmethod
@@ -10362,7 +10958,9 @@ class GaussQp11_4Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -10381,7 +10979,9 @@ class GaussQp11_4Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -10390,8 +10990,8 @@ class GaussQp11_4Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -10406,15 +11006,17 @@ class GaussQp11_4Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> GaussQp11_4MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -10423,11 +11025,9 @@ class GaussQp11_4Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -10435,7 +11035,7 @@ class GaussQp11_4Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -10461,8 +11061,9 @@ class GaussQp11_4Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -10488,13 +11089,15 @@ class GaussQp11_4Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> GaussQp11_4Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -10502,8 +11105,10 @@ class GaussQp11_4Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -10513,7 +11118,9 @@ class GaussQp11_4Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class GaussQp11_4DividedPowerAlgebra:
@@ -10597,16 +11204,19 @@ class GaussQp11_4MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -10622,9 +11232,10 @@ class GaussQp11_4MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -10649,22 +11260,32 @@ class GaussQp11_4MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -10673,7 +11294,10 @@ class GaussQp11_4MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -10762,7 +11386,9 @@ class GaussQp13_4Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -10781,7 +11407,9 @@ class GaussQp13_4Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -10790,8 +11418,8 @@ class GaussQp13_4Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -10806,15 +11434,17 @@ class GaussQp13_4Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> GaussQp13_4MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -10823,11 +11453,9 @@ class GaussQp13_4Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -10835,7 +11463,7 @@ class GaussQp13_4Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -10861,8 +11489,9 @@ class GaussQp13_4Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -10888,13 +11517,15 @@ class GaussQp13_4Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> GaussQp13_4Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -10902,8 +11533,10 @@ class GaussQp13_4Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -10913,7 +11546,9 @@ class GaussQp13_4Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class GaussQp13_4DividedPowerAlgebra:
@@ -10997,16 +11632,19 @@ class GaussQp13_4MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -11022,9 +11660,10 @@ class GaussQp13_4MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -11049,22 +11688,32 @@ class GaussQp13_4MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -11073,7 +11722,10 @@ class GaussQp13_4MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -11162,7 +11814,9 @@ class GaussQp2_4Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -11181,7 +11835,9 @@ class GaussQp2_4Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -11190,8 +11846,8 @@ class GaussQp2_4Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -11206,15 +11862,17 @@ class GaussQp2_4Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> GaussQp2_4MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -11223,11 +11881,9 @@ class GaussQp2_4Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -11235,7 +11891,7 @@ class GaussQp2_4Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -11261,8 +11917,9 @@ class GaussQp2_4Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -11288,13 +11945,15 @@ class GaussQp2_4Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> GaussQp2_4Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -11302,8 +11961,10 @@ class GaussQp2_4Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -11313,7 +11974,9 @@ class GaussQp2_4Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class GaussQp2_4DividedPowerAlgebra:
@@ -11397,16 +12060,19 @@ class GaussQp2_4MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -11422,9 +12088,10 @@ class GaussQp2_4MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -11449,22 +12116,32 @@ class GaussQp2_4MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -11473,7 +12150,10 @@ class GaussQp2_4MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -11562,7 +12242,9 @@ class GaussQp3_4Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -11581,7 +12263,9 @@ class GaussQp3_4Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -11590,8 +12274,8 @@ class GaussQp3_4Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -11606,15 +12290,17 @@ class GaussQp3_4Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> GaussQp3_4MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -11623,11 +12309,9 @@ class GaussQp3_4Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -11635,7 +12319,7 @@ class GaussQp3_4Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -11661,8 +12345,9 @@ class GaussQp3_4Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -11688,13 +12373,15 @@ class GaussQp3_4Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> GaussQp3_4Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -11702,8 +12389,10 @@ class GaussQp3_4Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -11713,7 +12402,9 @@ class GaussQp3_4Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class GaussQp3_4DividedPowerAlgebra:
@@ -11797,16 +12488,19 @@ class GaussQp3_4MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -11822,9 +12516,10 @@ class GaussQp3_4MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -11849,22 +12544,32 @@ class GaussQp3_4MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -11873,7 +12578,10 @@ class GaussQp3_4MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -11962,7 +12670,9 @@ class GaussQp5_4Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -11981,7 +12691,9 @@ class GaussQp5_4Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -11990,8 +12702,8 @@ class GaussQp5_4Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -12006,15 +12718,17 @@ class GaussQp5_4Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> GaussQp5_4MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -12023,11 +12737,9 @@ class GaussQp5_4Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -12035,7 +12747,7 @@ class GaussQp5_4Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -12061,8 +12773,9 @@ class GaussQp5_4Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -12088,13 +12801,15 @@ class GaussQp5_4Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> GaussQp5_4Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -12102,8 +12817,10 @@ class GaussQp5_4Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -12113,7 +12830,9 @@ class GaussQp5_4Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class GaussQp5_4DividedPowerAlgebra:
@@ -12197,16 +12916,19 @@ class GaussQp5_4MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -12222,9 +12944,10 @@ class GaussQp5_4MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -12249,22 +12972,32 @@ class GaussQp5_4MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -12273,7 +13006,10 @@ class GaussQp5_4MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -12362,7 +13098,9 @@ class GaussQp7_4Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -12381,7 +13119,9 @@ class GaussQp7_4Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -12390,8 +13130,8 @@ class GaussQp7_4Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -12406,15 +13146,17 @@ class GaussQp7_4Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> GaussQp7_4MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -12423,11 +13165,9 @@ class GaussQp7_4Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -12435,7 +13175,7 @@ class GaussQp7_4Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -12461,8 +13201,9 @@ class GaussQp7_4Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -12488,13 +13229,15 @@ class GaussQp7_4Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> GaussQp7_4Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -12502,8 +13245,10 @@ class GaussQp7_4Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -12513,7 +13258,9 @@ class GaussQp7_4Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class GaussQp7_4DividedPowerAlgebra:
@@ -12597,16 +13344,19 @@ class GaussQp7_4MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -12622,9 +13372,10 @@ class GaussQp7_4MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -12649,22 +13400,32 @@ class GaussQp7_4MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -12673,7 +13434,10 @@ class GaussQp7_4MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -12736,6 +13500,54 @@ class Genus:
     def symbol_at(self, *args: Any, **kwargs: Any) -> Any: ...
     def __repr__(self) -> builtins.str: ...
 
+class GuySmithCertificate:
+    """A sealed, checked certificate of eventual normal-play octal periodicity."""
+    @property
+    def checked_nim_values(self) -> list[builtins.int]:
+        """Exact finite prefix retained by the certificate."""
+    @property
+    def code(self) -> OctalCode:
+        """Checked canonical finite octal code."""
+    @property
+    def period(self) -> builtins.int:
+        """Certified eventual period; not claimed minimal."""
+    @property
+    def preperiod(self) -> builtins.int:
+        """Certified eventual-period start; not claimed minimal."""
+    @property
+    def proof_window(self) -> tuple[builtins.int, builtins.int]:
+        """Half-open Guy--Smith equality window `[preperiod, window_end)`."""
+    @staticmethod
+    def compute(code: OctalCode, preperiod: builtins.int, period: builtins.int, term_budget: builtins.int) -> GuySmithCertificate:
+        """Compute the exact required prefix and verify a proposed period in one call."""
+    def heap_grundy(self, heap: builtins.int) -> builtins.int:
+        """Certified Grundy value of a single heap of arbitrary size."""
+    def is_p_position(self, heaps: Sequence[builtins.int]) -> builtins.bool:
+        """Whether a heap multiset is a certified normal-play `P`-position."""
+    def position_grundy(self, heaps: Sequence[builtins.int]) -> builtins.int:
+        """Grundy value of a disjunctive sum of certified heaps."""
+    def __repr__(self) -> builtins.str: ...
+
+class GuySmithWitness:
+    """A finite candidate Grundy prefix and proposed Guy--Smith period.
+
+    Verification recomputes every supplied recurrence entry and checks the full
+    theorem window; the candidate values are never trusted as a certificate.
+    """
+    def __init__(self, preperiod: builtins.int, period: builtins.int, nim_values: Sequence[builtins.int]) -> None: ...
+    @property
+    def nim_values(self) -> list[builtins.int]:
+        """Candidate finite Grundy prefix beginning with the empty heap at index zero."""
+    @property
+    def period(self) -> builtins.int:
+        """Proposed period."""
+    @property
+    def preperiod(self) -> builtins.int:
+        """Proposed preperiod."""
+    def verify(self, code: OctalCode, term_budget: builtins.int) -> GuySmithCertificate:
+        """Verify the recurrence and full Guy--Smith equality window."""
+    def __repr__(self) -> builtins.str: ...
+
 class Hackenbush:
     def __init__(self, *args: Any, **kwargs: Any) -> None: ...
     def edges(self, *args: Any, **kwargs: Any) -> Any:
@@ -12746,7 +13558,7 @@ class Hackenbush:
     def string(colors: Sequence[Color]) -> Hackenbush:
         """A stalk `0—1—2—…` from the ground, edge `i` coloured `colors[i]`."""
     def to_game(self, *args: Any, **kwargs: Any) -> Any:
-        """The partizan game value (the universal evaluator)."""
+        """The partizan game represented by this Hackenbush position."""
     def value(self) -> Surreal:
         """The surreal number value (`None` if the value is not a number)."""
     def __repr__(self) -> builtins.str: ...
@@ -12829,7 +13641,9 @@ class IntegerAlgebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -12848,7 +13662,9 @@ class IntegerAlgebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -12857,8 +13673,8 @@ class IntegerAlgebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -12873,15 +13689,17 @@ class IntegerAlgebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> IntegerMV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -12890,11 +13708,9 @@ class IntegerAlgebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -12902,7 +13718,7 @@ class IntegerAlgebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -12928,8 +13744,9 @@ class IntegerAlgebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -13029,16 +13846,19 @@ class IntegerMV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -13054,9 +13874,10 @@ class IntegerMV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -13081,22 +13902,32 @@ class IntegerMV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -13105,7 +13936,10 @@ class IntegerMV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -13200,7 +14034,9 @@ class IntegerPolyAlgebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -13219,7 +14055,9 @@ class IntegerPolyAlgebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -13228,8 +14066,8 @@ class IntegerPolyAlgebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -13244,15 +14082,17 @@ class IntegerPolyAlgebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> IntegerPolyMV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -13261,11 +14101,9 @@ class IntegerPolyAlgebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -13273,7 +14111,7 @@ class IntegerPolyAlgebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -13299,8 +14137,9 @@ class IntegerPolyAlgebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -13400,16 +14239,19 @@ class IntegerPolyMV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -13425,9 +14267,10 @@ class IntegerPolyMV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -13452,22 +14295,32 @@ class IntegerPolyMV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -13476,7 +14329,10 @@ class IntegerPolyMV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -13657,7 +14513,9 @@ class LaurentF25_6Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -13676,7 +14534,9 @@ class LaurentF25_6Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -13685,8 +14545,8 @@ class LaurentF25_6Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -13701,15 +14561,17 @@ class LaurentF25_6Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> LaurentF25_6MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -13718,11 +14580,9 @@ class LaurentF25_6Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -13730,7 +14590,7 @@ class LaurentF25_6Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -13756,8 +14616,9 @@ class LaurentF25_6Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -13857,16 +14718,19 @@ class LaurentF25_6MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -13882,9 +14746,10 @@ class LaurentF25_6MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -13909,22 +14774,32 @@ class LaurentF25_6MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -13933,7 +14808,10 @@ class LaurentF25_6MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -14030,7 +14908,9 @@ class LaurentF27_6Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -14049,7 +14929,9 @@ class LaurentF27_6Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -14058,8 +14940,8 @@ class LaurentF27_6Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -14074,15 +14956,17 @@ class LaurentF27_6Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> LaurentF27_6MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -14091,11 +14975,9 @@ class LaurentF27_6Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -14103,7 +14985,7 @@ class LaurentF27_6Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -14129,8 +15011,9 @@ class LaurentF27_6Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -14230,16 +15113,19 @@ class LaurentF27_6MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -14255,9 +15141,10 @@ class LaurentF27_6MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -14282,22 +15169,32 @@ class LaurentF27_6MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -14306,7 +15203,10 @@ class LaurentF27_6MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -14403,7 +15303,9 @@ class LaurentF9_6Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -14422,7 +15324,9 @@ class LaurentF9_6Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -14431,8 +15335,8 @@ class LaurentF9_6Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -14447,15 +15351,17 @@ class LaurentF9_6Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> LaurentF9_6MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -14464,11 +15370,9 @@ class LaurentF9_6Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -14476,7 +15380,7 @@ class LaurentF9_6Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -14502,8 +15406,9 @@ class LaurentF9_6Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -14603,16 +15508,19 @@ class LaurentF9_6MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -14628,9 +15536,10 @@ class LaurentF9_6MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -14655,22 +15564,32 @@ class LaurentF9_6MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -14679,7 +15598,10 @@ class LaurentF9_6MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -14776,7 +15698,9 @@ class LaurentFp11_6Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -14795,7 +15719,9 @@ class LaurentFp11_6Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -14804,8 +15730,8 @@ class LaurentFp11_6Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -14820,15 +15746,17 @@ class LaurentFp11_6Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> LaurentFp11_6MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -14837,11 +15765,9 @@ class LaurentFp11_6Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -14849,7 +15775,7 @@ class LaurentFp11_6Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -14875,8 +15801,9 @@ class LaurentFp11_6Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -14976,16 +15903,19 @@ class LaurentFp11_6MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -15001,9 +15931,10 @@ class LaurentFp11_6MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -15028,22 +15959,32 @@ class LaurentFp11_6MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -15052,7 +15993,10 @@ class LaurentFp11_6MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -15149,7 +16093,9 @@ class LaurentFp13_6Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -15168,7 +16114,9 @@ class LaurentFp13_6Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -15177,8 +16125,8 @@ class LaurentFp13_6Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -15193,15 +16141,17 @@ class LaurentFp13_6Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> LaurentFp13_6MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -15210,11 +16160,9 @@ class LaurentFp13_6Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -15222,7 +16170,7 @@ class LaurentFp13_6Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -15248,8 +16196,9 @@ class LaurentFp13_6Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -15349,16 +16298,19 @@ class LaurentFp13_6MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -15374,9 +16326,10 @@ class LaurentFp13_6MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -15401,22 +16354,32 @@ class LaurentFp13_6MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -15425,7 +16388,10 @@ class LaurentFp13_6MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -15522,7 +16488,9 @@ class LaurentFp3_6Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -15541,7 +16509,9 @@ class LaurentFp3_6Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -15550,8 +16520,8 @@ class LaurentFp3_6Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -15566,15 +16536,17 @@ class LaurentFp3_6Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> LaurentFp3_6MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -15583,11 +16555,9 @@ class LaurentFp3_6Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -15595,7 +16565,7 @@ class LaurentFp3_6Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -15621,8 +16591,9 @@ class LaurentFp3_6Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -15722,16 +16693,19 @@ class LaurentFp3_6MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -15747,9 +16721,10 @@ class LaurentFp3_6MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -15774,22 +16749,32 @@ class LaurentFp3_6MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -15798,7 +16783,10 @@ class LaurentFp3_6MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -15895,7 +16883,9 @@ class LaurentFp5_6Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -15914,7 +16904,9 @@ class LaurentFp5_6Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -15923,8 +16915,8 @@ class LaurentFp5_6Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -15939,15 +16931,17 @@ class LaurentFp5_6Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> LaurentFp5_6MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -15956,11 +16950,9 @@ class LaurentFp5_6Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -15968,7 +16960,7 @@ class LaurentFp5_6Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -15994,8 +16986,9 @@ class LaurentFp5_6Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -16095,16 +17088,19 @@ class LaurentFp5_6MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -16120,9 +17116,10 @@ class LaurentFp5_6MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -16147,22 +17144,32 @@ class LaurentFp5_6MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -16171,7 +17178,10 @@ class LaurentFp5_6MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -16268,7 +17278,9 @@ class LaurentFp7_6Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -16287,7 +17299,9 @@ class LaurentFp7_6Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -16296,8 +17310,8 @@ class LaurentFp7_6Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -16312,15 +17326,17 @@ class LaurentFp7_6Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> LaurentFp7_6MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -16329,11 +17345,9 @@ class LaurentFp7_6Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -16341,7 +17355,7 @@ class LaurentFp7_6Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -16367,8 +17381,9 @@ class LaurentFp7_6Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -16468,16 +17483,19 @@ class LaurentFp7_6MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -16493,9 +17511,10 @@ class LaurentFp7_6MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -16520,22 +17539,32 @@ class LaurentFp7_6MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -16544,7 +17573,10 @@ class LaurentFp7_6MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -16591,13 +17623,15 @@ class LaurentRational6Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> LaurentRational_6Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -16605,8 +17639,10 @@ class LaurentRational6Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -16616,7 +17652,9 @@ class LaurentRational6Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class LaurentRational_6:
@@ -16676,7 +17714,9 @@ class LaurentRational_6Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -16695,7 +17735,9 @@ class LaurentRational_6Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -16704,8 +17746,8 @@ class LaurentRational_6Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -16720,15 +17762,17 @@ class LaurentRational_6Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> LaurentRational_6MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -16737,11 +17781,9 @@ class LaurentRational_6Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -16749,7 +17791,7 @@ class LaurentRational_6Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -16775,8 +17817,9 @@ class LaurentRational_6Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -16876,16 +17919,19 @@ class LaurentRational_6MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -16901,9 +17947,10 @@ class LaurentRational_6MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -16928,22 +17975,32 @@ class LaurentRational_6MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -16952,7 +18009,10 @@ class LaurentRational_6MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -17476,7 +18536,9 @@ class NimberAlgebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -17495,7 +18557,9 @@ class NimberAlgebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -17504,8 +18568,8 @@ class NimberAlgebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -17520,15 +18584,17 @@ class NimberAlgebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> NimberMV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -17537,11 +18603,9 @@ class NimberAlgebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -17549,7 +18613,7 @@ class NimberAlgebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -17575,8 +18639,9 @@ class NimberAlgebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -17638,11 +18703,9 @@ class NimberDpVector:
     def __sub__(self, other: Any) -> Any: ...
 
 class NimberGame:
-    """A transfinite **nimber-valued** (impartial) game — the Nim heap `⋆α` (e.g.
-    `⋆ω`) — carried by its ordinal Grundy value. The char-2 mirror of `NumberGame`:
-    Grundy value / disjunctive sum (XOR) / Turning-Corners product all delegate to
-    the `Ordinal` (`On₂`) backend, completing the `No ↔ On₂` symmetry at the games
-    layer.
+    """A transfinite nimber-valued impartial game carried by its ordinal Grundy
+    value. Disjunctive sum is total on represented ordinals; the Turning-Corners
+    product inherits the ordinal backend's explicit partial boundary.
     """
     @staticmethod
     def from_ordinal(*args: Any, **kwargs: Any) -> Any:
@@ -17657,8 +18720,9 @@ class NimberGame:
     def to_finite_game(self, *args: Any, **kwargs: Any) -> Any:
         """The short `Game`, if the heap is finite; `None` for transfinite heaps."""
     def turning_corners(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Turning-Corners product** (nim-multiplication); `None` only past the
-        verified Kummer table or at `≥ ω^(ω^ω)`.
+        """The Turning-Corners product (nim-multiplication). Returns `None` outside
+        `ω^(ω^ω)` or when a required Kummer carry exceeds the implemented prime
+        table through 727.
         """
     def __add__(self, other: Any) -> Any: ...
     def __eq__(self, other: builtins.object) -> builtins.bool: ...
@@ -17711,16 +18775,19 @@ class NimberMV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -17736,9 +18803,10 @@ class NimberMV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -17763,22 +18831,32 @@ class NimberMV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -17787,7 +18865,10 @@ class NimberMV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -17883,7 +18964,9 @@ class NimberPolyAlgebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -17902,7 +18985,9 @@ class NimberPolyAlgebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -17911,8 +18996,8 @@ class NimberPolyAlgebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -17927,15 +19012,17 @@ class NimberPolyAlgebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> NimberPolyMV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -17944,11 +19031,9 @@ class NimberPolyAlgebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -17956,7 +19041,7 @@ class NimberPolyAlgebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -17982,8 +19067,9 @@ class NimberPolyAlgebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -18083,16 +19169,19 @@ class NimberPolyMV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -18108,9 +19197,10 @@ class NimberPolyMV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -18135,22 +19225,32 @@ class NimberPolyMV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -18159,7 +19259,10 @@ class NimberPolyMV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -18244,7 +19347,9 @@ class NimberRationalFunctionAlgebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -18263,7 +19368,9 @@ class NimberRationalFunctionAlgebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -18272,8 +19379,8 @@ class NimberRationalFunctionAlgebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -18288,15 +19395,17 @@ class NimberRationalFunctionAlgebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> NimberRationalFunctionMV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -18305,11 +19414,9 @@ class NimberRationalFunctionAlgebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -18317,7 +19424,7 @@ class NimberRationalFunctionAlgebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -18343,8 +19450,9 @@ class NimberRationalFunctionAlgebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -18444,16 +19552,19 @@ class NimberRationalFunctionMV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -18469,9 +19580,10 @@ class NimberRationalFunctionMV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -18496,22 +19608,32 @@ class NimberRationalFunctionMV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -18520,7 +19642,10 @@ class NimberRationalFunctionMV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -18561,9 +19686,8 @@ class NimberRationalFunctionMV:
     def __xor__(self, other: Any) -> Any: ...
 
 class NumberGame:
-    """A transfinite **number-valued** game, carried by its surreal value (e.g. the
-    game `ω = {0,1,2,…|}`). The numbers-only honoring of transfinite birthdays —
-    value/birthday/sum/order all delegate to the surreal.
+    """A transfinite number-valued game carried by its surreal value, including its
+    represented birthday and sign expansion.
     """
     def birthday(self, *args: Any, **kwargs: Any) -> Any:
         """The birthday as an `Ordinal`, matching Rust's `NumberGame::birthday` name."""
@@ -18589,7 +19713,9 @@ class NumberGame:
         length an `Ordinal`), the finite encoding of the number-game tree.
         """
     def to_finite_game(self, *args: Any, **kwargs: Any) -> Any:
-        """The short `Game`, if the value is dyadic; `None` for transfinite numbers."""
+        """The short `Game` when the value is dyadic; `None` for all nondyadic
+        values, including transfinite numbers.
+        """
     def value(self, *args: Any, **kwargs: Any) -> Any:
         """The exact surreal value."""
     def __add__(self, other: Any) -> Any: ...
@@ -18602,6 +19728,17 @@ class NumberGame:
     def __ne__(self, other: builtins.object) -> builtins.bool: ...
     def __neg__(self) -> Any: ...
     def __radd__(self, other: Any) -> Any: ...
+    def __repr__(self) -> builtins.str: ...
+
+class OctalCode:
+    """Canonical checked finite octal code `0.d_1...d_k`."""
+    def __init__(self, digits: Sequence[builtins.int]) -> None: ...
+    @property
+    def digits(self) -> list[builtins.int]:
+        """Canonical digits without trailing zeros."""
+    @property
+    def last_nonzero_digit(self) -> builtins.int | None:
+        """One-based index of the last nonzero digit, or `None` for the zero code."""
     def __repr__(self) -> builtins.str: ...
 
 class OddCharInvariants:
@@ -18732,7 +19869,9 @@ class OmnificAlgebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -18751,7 +19890,9 @@ class OmnificAlgebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -18760,8 +19901,8 @@ class OmnificAlgebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -18776,15 +19917,17 @@ class OmnificAlgebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> OmnificMV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -18793,11 +19936,9 @@ class OmnificAlgebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -18805,7 +19946,7 @@ class OmnificAlgebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -18831,8 +19972,9 @@ class OmnificAlgebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -18932,16 +20074,19 @@ class OmnificMV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -18957,9 +20102,10 @@ class OmnificMV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -18984,22 +20130,32 @@ class OmnificMV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -19008,7 +20164,10 @@ class OmnificMV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -19060,12 +20219,16 @@ class Ordinal:
     @staticmethod
     def characteristic(*args: Any, **kwargs: Any) -> Any: ...
     def checked_inv(self, *args: Any, **kwargs: Any) -> Any:
-        """Alias for the represented inverse boundary."""
+        """The multiplicative inverse in the detected represented finite subfield;
+        `None` for zero or outside the detector's boundary.
+        """
     def checked_sqrt(self, *args: Any, **kwargs: Any) -> Any:
-        """Checked nim-square root on the same represented finite-subfield window."""
+        """The unique nim-square root in the detected represented finite subfield;
+        `None` outside the detector's boundary.
+        """
     def finite_subfield_degree(self, *args: Any, **kwargs: Any) -> Any:
         """Minimal `m` such that this represented ordinal nimber lies in `F_{2^m}`.
-        `None` marks the staged Kummer/excess boundary.
+        `None` marks the explicit Kummer/excess representation boundary.
         """
     @staticmethod
     def from_omega3_coeffs(*args: Any, **kwargs: Any) -> Any:
@@ -19080,9 +20243,10 @@ class Ordinal:
     def nim_add(self, *args: Any, **kwargs: Any) -> Any:
         """Nim-addition (complete and exact): XOR of like-`ω`-power coefficients."""
     def nim_mul(self, *args: Any, **kwargs: Any) -> Any:
-        """Nim-multiplication (partial): exact on the verified Kummer window,
-        including finite operands and staged transfinite products such as
-        `ω ⊗ ω = ω²`; `None` beyond that represented boundary.
+        """Partial ordinal nim-multiplication. It is exact below `ω^(ω^ω)` when all
+        required Kummer carries use the implemented primes through 727, and
+        returns `None` at the first unsupported carry or outside that ordinal
+        range.
         """
     @staticmethod
     def omega(*args: Any, **kwargs: Any) -> Any:
@@ -19125,7 +20289,9 @@ class OrdinalAlgebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -19144,7 +20310,9 @@ class OrdinalAlgebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -19153,8 +20321,8 @@ class OrdinalAlgebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -19169,15 +20337,17 @@ class OrdinalAlgebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> OrdinalMV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -19186,11 +20356,9 @@ class OrdinalAlgebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -19198,7 +20366,7 @@ class OrdinalAlgebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -19224,8 +20392,9 @@ class OrdinalAlgebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -19325,16 +20494,19 @@ class OrdinalMV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -19350,9 +20522,10 @@ class OrdinalMV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -19377,22 +20550,32 @@ class OrdinalMV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -19401,7 +20584,10 @@ class OrdinalMV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -19577,7 +20763,9 @@ class Qp11_4Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -19596,7 +20784,9 @@ class Qp11_4Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -19605,8 +20795,8 @@ class Qp11_4Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -19621,15 +20811,17 @@ class Qp11_4Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Qp11_4MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -19638,11 +20830,9 @@ class Qp11_4Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -19650,7 +20840,7 @@ class Qp11_4Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -19676,8 +20866,9 @@ class Qp11_4Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -19703,13 +20894,15 @@ class Qp11_4Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> Qp11_4Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -19717,8 +20910,10 @@ class Qp11_4Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -19728,7 +20923,9 @@ class Qp11_4Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class Qp11_4DividedPowerAlgebra:
@@ -19812,16 +21009,19 @@ class Qp11_4MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -19837,9 +21037,10 @@ class Qp11_4MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -19864,22 +21065,32 @@ class Qp11_4MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -19888,7 +21099,10 @@ class Qp11_4MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -19988,7 +21202,9 @@ class Qp13_4Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -20007,7 +21223,9 @@ class Qp13_4Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -20016,8 +21234,8 @@ class Qp13_4Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -20032,15 +21250,17 @@ class Qp13_4Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Qp13_4MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -20049,11 +21269,9 @@ class Qp13_4Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -20061,7 +21279,7 @@ class Qp13_4Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -20087,8 +21305,9 @@ class Qp13_4Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -20114,13 +21333,15 @@ class Qp13_4Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> Qp13_4Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -20128,8 +21349,10 @@ class Qp13_4Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -20139,7 +21362,9 @@ class Qp13_4Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class Qp13_4DividedPowerAlgebra:
@@ -20223,16 +21448,19 @@ class Qp13_4MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -20248,9 +21476,10 @@ class Qp13_4MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -20275,22 +21504,32 @@ class Qp13_4MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -20299,7 +21538,10 @@ class Qp13_4MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -20399,7 +21641,9 @@ class Qp2_4Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -20418,7 +21662,9 @@ class Qp2_4Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -20427,8 +21673,8 @@ class Qp2_4Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -20443,15 +21689,17 @@ class Qp2_4Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Qp2_4MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -20460,11 +21708,9 @@ class Qp2_4Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -20472,7 +21718,7 @@ class Qp2_4Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -20498,8 +21744,9 @@ class Qp2_4Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -20525,13 +21772,15 @@ class Qp2_4Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> Qp2_4Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -20539,8 +21788,10 @@ class Qp2_4Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -20550,7 +21801,9 @@ class Qp2_4Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class Qp2_4DividedPowerAlgebra:
@@ -20634,16 +21887,19 @@ class Qp2_4MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -20659,9 +21915,10 @@ class Qp2_4MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -20686,22 +21943,32 @@ class Qp2_4MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -20710,7 +21977,10 @@ class Qp2_4MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -20810,7 +22080,9 @@ class Qp3_4Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -20829,7 +22101,9 @@ class Qp3_4Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -20838,8 +22112,8 @@ class Qp3_4Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -20854,15 +22128,17 @@ class Qp3_4Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Qp3_4MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -20871,11 +22147,9 @@ class Qp3_4Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -20883,7 +22157,7 @@ class Qp3_4Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -20909,8 +22183,9 @@ class Qp3_4Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -20936,13 +22211,15 @@ class Qp3_4Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> Qp3_4Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -20950,8 +22227,10 @@ class Qp3_4Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -20961,7 +22240,9 @@ class Qp3_4Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class Qp3_4DividedPowerAlgebra:
@@ -21045,16 +22326,19 @@ class Qp3_4MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -21070,9 +22354,10 @@ class Qp3_4MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -21097,22 +22382,32 @@ class Qp3_4MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -21121,7 +22416,10 @@ class Qp3_4MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -21221,7 +22519,9 @@ class Qp5_4Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -21240,7 +22540,9 @@ class Qp5_4Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -21249,8 +22551,8 @@ class Qp5_4Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -21265,15 +22567,17 @@ class Qp5_4Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Qp5_4MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -21282,11 +22586,9 @@ class Qp5_4Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -21294,7 +22596,7 @@ class Qp5_4Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -21320,8 +22622,9 @@ class Qp5_4Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -21347,13 +22650,15 @@ class Qp5_4Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> Qp5_4Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -21361,8 +22666,10 @@ class Qp5_4Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -21372,7 +22679,9 @@ class Qp5_4Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class Qp5_4DividedPowerAlgebra:
@@ -21456,16 +22765,19 @@ class Qp5_4MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -21481,9 +22793,10 @@ class Qp5_4MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -21508,22 +22821,32 @@ class Qp5_4MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -21532,7 +22855,10 @@ class Qp5_4MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -21632,7 +22958,9 @@ class Qp7_4Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -21651,7 +22979,9 @@ class Qp7_4Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -21660,8 +22990,8 @@ class Qp7_4Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -21676,15 +23006,17 @@ class Qp7_4Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Qp7_4MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -21693,11 +23025,9 @@ class Qp7_4Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -21705,7 +23035,7 @@ class Qp7_4Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -21731,8 +23061,9 @@ class Qp7_4Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -21758,13 +23089,15 @@ class Qp7_4Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> Qp7_4Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -21772,8 +23105,10 @@ class Qp7_4Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -21783,7 +23118,9 @@ class Qp7_4Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class Qp7_4DividedPowerAlgebra:
@@ -21867,16 +23204,19 @@ class Qp7_4MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -21892,9 +23232,10 @@ class Qp7_4MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -21919,22 +23260,32 @@ class Qp7_4MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -21943,7 +23294,10 @@ class Qp7_4MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -22052,7 +23406,9 @@ class Qq2_4_2Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -22071,7 +23427,9 @@ class Qq2_4_2Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -22080,8 +23438,8 @@ class Qq2_4_2Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -22096,15 +23454,17 @@ class Qq2_4_2Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Qq2_4_2MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -22113,11 +23473,9 @@ class Qq2_4_2Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -22125,7 +23483,7 @@ class Qq2_4_2Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -22151,8 +23509,9 @@ class Qq2_4_2Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -22178,13 +23537,15 @@ class Qq2_4_2Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> Qq2_4_2Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -22192,8 +23553,10 @@ class Qq2_4_2Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -22203,7 +23566,9 @@ class Qq2_4_2Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class Qq2_4_2DividedPowerAlgebra:
@@ -22287,16 +23652,19 @@ class Qq2_4_2MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -22312,9 +23680,10 @@ class Qq2_4_2MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -22339,22 +23708,32 @@ class Qq2_4_2MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -22363,7 +23742,10 @@ class Qq2_4_2MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -22472,7 +23854,9 @@ class Qq2_4_3Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -22491,7 +23875,9 @@ class Qq2_4_3Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -22500,8 +23886,8 @@ class Qq2_4_3Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -22516,15 +23902,17 @@ class Qq2_4_3Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Qq2_4_3MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -22533,11 +23921,9 @@ class Qq2_4_3Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -22545,7 +23931,7 @@ class Qq2_4_3Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -22571,8 +23957,9 @@ class Qq2_4_3Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -22598,13 +23985,15 @@ class Qq2_4_3Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> Qq2_4_3Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -22612,8 +24001,10 @@ class Qq2_4_3Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -22623,7 +24014,9 @@ class Qq2_4_3Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class Qq2_4_3DividedPowerAlgebra:
@@ -22707,16 +24100,19 @@ class Qq2_4_3MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -22732,9 +24128,10 @@ class Qq2_4_3MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -22759,22 +24156,32 @@ class Qq2_4_3MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -22783,7 +24190,10 @@ class Qq2_4_3MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -22892,7 +24302,9 @@ class Qq2_4_4Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -22911,7 +24323,9 @@ class Qq2_4_4Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -22920,8 +24334,8 @@ class Qq2_4_4Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -22936,15 +24350,17 @@ class Qq2_4_4Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Qq2_4_4MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -22953,11 +24369,9 @@ class Qq2_4_4Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -22965,7 +24379,7 @@ class Qq2_4_4Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -22991,8 +24405,9 @@ class Qq2_4_4Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -23018,13 +24433,15 @@ class Qq2_4_4Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> Qq2_4_4Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -23032,8 +24449,10 @@ class Qq2_4_4Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -23043,7 +24462,9 @@ class Qq2_4_4Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class Qq2_4_4DividedPowerAlgebra:
@@ -23127,16 +24548,19 @@ class Qq2_4_4MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -23152,9 +24576,10 @@ class Qq2_4_4MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -23179,22 +24604,32 @@ class Qq2_4_4MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -23203,7 +24638,10 @@ class Qq2_4_4MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -23312,7 +24750,9 @@ class Qq3_4_2Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -23331,7 +24771,9 @@ class Qq3_4_2Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -23340,8 +24782,8 @@ class Qq3_4_2Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -23356,15 +24798,17 @@ class Qq3_4_2Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Qq3_4_2MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -23373,11 +24817,9 @@ class Qq3_4_2Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -23385,7 +24827,7 @@ class Qq3_4_2Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -23411,8 +24853,9 @@ class Qq3_4_2Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -23438,13 +24881,15 @@ class Qq3_4_2Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> Qq3_4_2Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -23452,8 +24897,10 @@ class Qq3_4_2Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -23463,7 +24910,9 @@ class Qq3_4_2Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class Qq3_4_2DividedPowerAlgebra:
@@ -23547,16 +24996,19 @@ class Qq3_4_2MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -23572,9 +25024,10 @@ class Qq3_4_2MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -23599,22 +25052,32 @@ class Qq3_4_2MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -23623,7 +25086,10 @@ class Qq3_4_2MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -23732,7 +25198,9 @@ class Qq3_4_3Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -23751,7 +25219,9 @@ class Qq3_4_3Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -23760,8 +25230,8 @@ class Qq3_4_3Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -23776,15 +25246,17 @@ class Qq3_4_3Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Qq3_4_3MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -23793,11 +25265,9 @@ class Qq3_4_3Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -23805,7 +25275,7 @@ class Qq3_4_3Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -23831,8 +25301,9 @@ class Qq3_4_3Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -23858,13 +25329,15 @@ class Qq3_4_3Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> Qq3_4_3Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -23872,8 +25345,10 @@ class Qq3_4_3Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -23883,7 +25358,9 @@ class Qq3_4_3Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class Qq3_4_3DividedPowerAlgebra:
@@ -23967,16 +25444,19 @@ class Qq3_4_3MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -23992,9 +25472,10 @@ class Qq3_4_3MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -24019,22 +25500,32 @@ class Qq3_4_3MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -24043,7 +25534,10 @@ class Qq3_4_3MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -24152,7 +25646,9 @@ class Qq5_4_2Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -24171,7 +25667,9 @@ class Qq5_4_2Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -24180,8 +25678,8 @@ class Qq5_4_2Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -24196,15 +25694,17 @@ class Qq5_4_2Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Qq5_4_2MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -24213,11 +25713,9 @@ class Qq5_4_2Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -24225,7 +25723,7 @@ class Qq5_4_2Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -24251,8 +25749,9 @@ class Qq5_4_2Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -24278,13 +25777,15 @@ class Qq5_4_2Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> Qq5_4_2Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -24292,8 +25793,10 @@ class Qq5_4_2Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -24303,7 +25806,9 @@ class Qq5_4_2Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class Qq5_4_2DividedPowerAlgebra:
@@ -24387,16 +25892,19 @@ class Qq5_4_2MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -24412,9 +25920,10 @@ class Qq5_4_2MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -24439,22 +25948,32 @@ class Qq5_4_2MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -24463,7 +25982,10 @@ class Qq5_4_2MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -24610,7 +26132,9 @@ class RamifiedQp11_4_E2Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -24629,7 +26153,9 @@ class RamifiedQp11_4_E2Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -24638,8 +26164,8 @@ class RamifiedQp11_4_E2Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -24654,15 +26180,17 @@ class RamifiedQp11_4_E2Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> RamifiedQp11_4_E2MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -24671,11 +26199,9 @@ class RamifiedQp11_4_E2Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -24683,7 +26209,7 @@ class RamifiedQp11_4_E2Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -24709,8 +26235,9 @@ class RamifiedQp11_4_E2Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -24736,13 +26263,15 @@ class RamifiedQp11_4_E2Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> RamifiedQp11_4_E2Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -24750,8 +26279,10 @@ class RamifiedQp11_4_E2Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -24761,7 +26292,9 @@ class RamifiedQp11_4_E2Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class RamifiedQp11_4_E2DividedPowerAlgebra:
@@ -24845,16 +26378,19 @@ class RamifiedQp11_4_E2MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -24870,9 +26406,10 @@ class RamifiedQp11_4_E2MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -24897,22 +26434,32 @@ class RamifiedQp11_4_E2MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -24921,7 +26468,10 @@ class RamifiedQp11_4_E2MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -25012,7 +26562,9 @@ class RamifiedQp11_4_E3Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -25031,7 +26583,9 @@ class RamifiedQp11_4_E3Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -25040,8 +26594,8 @@ class RamifiedQp11_4_E3Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -25056,15 +26610,17 @@ class RamifiedQp11_4_E3Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> RamifiedQp11_4_E3MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -25073,11 +26629,9 @@ class RamifiedQp11_4_E3Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -25085,7 +26639,7 @@ class RamifiedQp11_4_E3Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -25111,8 +26665,9 @@ class RamifiedQp11_4_E3Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -25138,13 +26693,15 @@ class RamifiedQp11_4_E3Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> RamifiedQp11_4_E3Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -25152,8 +26709,10 @@ class RamifiedQp11_4_E3Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -25163,7 +26722,9 @@ class RamifiedQp11_4_E3Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class RamifiedQp11_4_E3DividedPowerAlgebra:
@@ -25247,16 +26808,19 @@ class RamifiedQp11_4_E3MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -25272,9 +26836,10 @@ class RamifiedQp11_4_E3MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -25299,22 +26864,32 @@ class RamifiedQp11_4_E3MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -25323,7 +26898,10 @@ class RamifiedQp11_4_E3MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -25414,7 +26992,9 @@ class RamifiedQp13_4_E2Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -25433,7 +27013,9 @@ class RamifiedQp13_4_E2Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -25442,8 +27024,8 @@ class RamifiedQp13_4_E2Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -25458,15 +27040,17 @@ class RamifiedQp13_4_E2Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> RamifiedQp13_4_E2MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -25475,11 +27059,9 @@ class RamifiedQp13_4_E2Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -25487,7 +27069,7 @@ class RamifiedQp13_4_E2Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -25513,8 +27095,9 @@ class RamifiedQp13_4_E2Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -25540,13 +27123,15 @@ class RamifiedQp13_4_E2Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> RamifiedQp13_4_E2Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -25554,8 +27139,10 @@ class RamifiedQp13_4_E2Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -25565,7 +27152,9 @@ class RamifiedQp13_4_E2Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class RamifiedQp13_4_E2DividedPowerAlgebra:
@@ -25649,16 +27238,19 @@ class RamifiedQp13_4_E2MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -25674,9 +27266,10 @@ class RamifiedQp13_4_E2MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -25701,22 +27294,32 @@ class RamifiedQp13_4_E2MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -25725,7 +27328,10 @@ class RamifiedQp13_4_E2MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -25816,7 +27422,9 @@ class RamifiedQp13_4_E3Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -25835,7 +27443,9 @@ class RamifiedQp13_4_E3Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -25844,8 +27454,8 @@ class RamifiedQp13_4_E3Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -25860,15 +27470,17 @@ class RamifiedQp13_4_E3Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> RamifiedQp13_4_E3MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -25877,11 +27489,9 @@ class RamifiedQp13_4_E3Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -25889,7 +27499,7 @@ class RamifiedQp13_4_E3Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -25915,8 +27525,9 @@ class RamifiedQp13_4_E3Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -25942,13 +27553,15 @@ class RamifiedQp13_4_E3Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> RamifiedQp13_4_E3Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -25956,8 +27569,10 @@ class RamifiedQp13_4_E3Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -25967,7 +27582,9 @@ class RamifiedQp13_4_E3Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class RamifiedQp13_4_E3DividedPowerAlgebra:
@@ -26051,16 +27668,19 @@ class RamifiedQp13_4_E3MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -26076,9 +27696,10 @@ class RamifiedQp13_4_E3MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -26103,22 +27724,32 @@ class RamifiedQp13_4_E3MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -26127,7 +27758,10 @@ class RamifiedQp13_4_E3MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -26218,7 +27852,9 @@ class RamifiedQp2_4_E2Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -26237,7 +27873,9 @@ class RamifiedQp2_4_E2Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -26246,8 +27884,8 @@ class RamifiedQp2_4_E2Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -26262,15 +27900,17 @@ class RamifiedQp2_4_E2Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> RamifiedQp2_4_E2MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -26279,11 +27919,9 @@ class RamifiedQp2_4_E2Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -26291,7 +27929,7 @@ class RamifiedQp2_4_E2Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -26317,8 +27955,9 @@ class RamifiedQp2_4_E2Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -26344,13 +27983,15 @@ class RamifiedQp2_4_E2Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> RamifiedQp2_4_E2Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -26358,8 +27999,10 @@ class RamifiedQp2_4_E2Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -26369,7 +28012,9 @@ class RamifiedQp2_4_E2Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class RamifiedQp2_4_E2DividedPowerAlgebra:
@@ -26453,16 +28098,19 @@ class RamifiedQp2_4_E2MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -26478,9 +28126,10 @@ class RamifiedQp2_4_E2MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -26505,22 +28154,32 @@ class RamifiedQp2_4_E2MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -26529,7 +28188,10 @@ class RamifiedQp2_4_E2MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -26620,7 +28282,9 @@ class RamifiedQp2_4_E3Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -26639,7 +28303,9 @@ class RamifiedQp2_4_E3Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -26648,8 +28314,8 @@ class RamifiedQp2_4_E3Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -26664,15 +28330,17 @@ class RamifiedQp2_4_E3Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> RamifiedQp2_4_E3MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -26681,11 +28349,9 @@ class RamifiedQp2_4_E3Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -26693,7 +28359,7 @@ class RamifiedQp2_4_E3Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -26719,8 +28385,9 @@ class RamifiedQp2_4_E3Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -26746,13 +28413,15 @@ class RamifiedQp2_4_E3Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> RamifiedQp2_4_E3Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -26760,8 +28429,10 @@ class RamifiedQp2_4_E3Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -26771,7 +28442,9 @@ class RamifiedQp2_4_E3Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class RamifiedQp2_4_E3DividedPowerAlgebra:
@@ -26855,16 +28528,19 @@ class RamifiedQp2_4_E3MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -26880,9 +28556,10 @@ class RamifiedQp2_4_E3MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -26907,22 +28584,32 @@ class RamifiedQp2_4_E3MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -26931,7 +28618,10 @@ class RamifiedQp2_4_E3MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -27022,7 +28712,9 @@ class RamifiedQp3_4_E2Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -27041,7 +28733,9 @@ class RamifiedQp3_4_E2Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -27050,8 +28744,8 @@ class RamifiedQp3_4_E2Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -27066,15 +28760,17 @@ class RamifiedQp3_4_E2Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> RamifiedQp3_4_E2MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -27083,11 +28779,9 @@ class RamifiedQp3_4_E2Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -27095,7 +28789,7 @@ class RamifiedQp3_4_E2Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -27121,8 +28815,9 @@ class RamifiedQp3_4_E2Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -27148,13 +28843,15 @@ class RamifiedQp3_4_E2Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> RamifiedQp3_4_E2Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -27162,8 +28859,10 @@ class RamifiedQp3_4_E2Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -27173,7 +28872,9 @@ class RamifiedQp3_4_E2Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class RamifiedQp3_4_E2DividedPowerAlgebra:
@@ -27257,16 +28958,19 @@ class RamifiedQp3_4_E2MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -27282,9 +28986,10 @@ class RamifiedQp3_4_E2MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -27309,22 +29014,32 @@ class RamifiedQp3_4_E2MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -27333,7 +29048,10 @@ class RamifiedQp3_4_E2MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -27424,7 +29142,9 @@ class RamifiedQp3_4_E3Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -27443,7 +29163,9 @@ class RamifiedQp3_4_E3Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -27452,8 +29174,8 @@ class RamifiedQp3_4_E3Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -27468,15 +29190,17 @@ class RamifiedQp3_4_E3Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> RamifiedQp3_4_E3MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -27485,11 +29209,9 @@ class RamifiedQp3_4_E3Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -27497,7 +29219,7 @@ class RamifiedQp3_4_E3Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -27523,8 +29245,9 @@ class RamifiedQp3_4_E3Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -27550,13 +29273,15 @@ class RamifiedQp3_4_E3Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> RamifiedQp3_4_E3Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -27564,8 +29289,10 @@ class RamifiedQp3_4_E3Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -27575,7 +29302,9 @@ class RamifiedQp3_4_E3Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class RamifiedQp3_4_E3DividedPowerAlgebra:
@@ -27659,16 +29388,19 @@ class RamifiedQp3_4_E3MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -27684,9 +29416,10 @@ class RamifiedQp3_4_E3MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -27711,22 +29444,32 @@ class RamifiedQp3_4_E3MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -27735,7 +29478,10 @@ class RamifiedQp3_4_E3MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -27826,7 +29572,9 @@ class RamifiedQp5_4_E2Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -27845,7 +29593,9 @@ class RamifiedQp5_4_E2Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -27854,8 +29604,8 @@ class RamifiedQp5_4_E2Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -27870,15 +29620,17 @@ class RamifiedQp5_4_E2Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> RamifiedQp5_4_E2MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -27887,11 +29639,9 @@ class RamifiedQp5_4_E2Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -27899,7 +29649,7 @@ class RamifiedQp5_4_E2Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -27925,8 +29675,9 @@ class RamifiedQp5_4_E2Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -27952,13 +29703,15 @@ class RamifiedQp5_4_E2Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> RamifiedQp5_4_E2Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -27966,8 +29719,10 @@ class RamifiedQp5_4_E2Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -27977,7 +29732,9 @@ class RamifiedQp5_4_E2Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class RamifiedQp5_4_E2DividedPowerAlgebra:
@@ -28061,16 +29818,19 @@ class RamifiedQp5_4_E2MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -28086,9 +29846,10 @@ class RamifiedQp5_4_E2MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -28113,22 +29874,32 @@ class RamifiedQp5_4_E2MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -28137,7 +29908,10 @@ class RamifiedQp5_4_E2MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -28228,7 +30002,9 @@ class RamifiedQp5_4_E3Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -28247,7 +30023,9 @@ class RamifiedQp5_4_E3Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -28256,8 +30034,8 @@ class RamifiedQp5_4_E3Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -28272,15 +30050,17 @@ class RamifiedQp5_4_E3Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> RamifiedQp5_4_E3MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -28289,11 +30069,9 @@ class RamifiedQp5_4_E3Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -28301,7 +30079,7 @@ class RamifiedQp5_4_E3Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -28327,8 +30105,9 @@ class RamifiedQp5_4_E3Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -28354,13 +30133,15 @@ class RamifiedQp5_4_E3Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> RamifiedQp5_4_E3Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -28368,8 +30149,10 @@ class RamifiedQp5_4_E3Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -28379,7 +30162,9 @@ class RamifiedQp5_4_E3Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class RamifiedQp5_4_E3DividedPowerAlgebra:
@@ -28463,16 +30248,19 @@ class RamifiedQp5_4_E3MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -28488,9 +30276,10 @@ class RamifiedQp5_4_E3MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -28515,22 +30304,32 @@ class RamifiedQp5_4_E3MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -28539,7 +30338,10 @@ class RamifiedQp5_4_E3MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -28630,7 +30432,9 @@ class RamifiedQp7_4_E2Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -28649,7 +30453,9 @@ class RamifiedQp7_4_E2Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -28658,8 +30464,8 @@ class RamifiedQp7_4_E2Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -28674,15 +30480,17 @@ class RamifiedQp7_4_E2Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> RamifiedQp7_4_E2MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -28691,11 +30499,9 @@ class RamifiedQp7_4_E2Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -28703,7 +30509,7 @@ class RamifiedQp7_4_E2Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -28729,8 +30535,9 @@ class RamifiedQp7_4_E2Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -28756,13 +30563,15 @@ class RamifiedQp7_4_E2Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> RamifiedQp7_4_E2Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -28770,8 +30579,10 @@ class RamifiedQp7_4_E2Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -28781,7 +30592,9 @@ class RamifiedQp7_4_E2Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class RamifiedQp7_4_E2DividedPowerAlgebra:
@@ -28865,16 +30678,19 @@ class RamifiedQp7_4_E2MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -28890,9 +30706,10 @@ class RamifiedQp7_4_E2MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -28917,22 +30734,32 @@ class RamifiedQp7_4_E2MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -28941,7 +30768,10 @@ class RamifiedQp7_4_E2MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -29032,7 +30862,9 @@ class RamifiedQp7_4_E3Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -29051,7 +30883,9 @@ class RamifiedQp7_4_E3Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -29060,8 +30894,8 @@ class RamifiedQp7_4_E3Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -29076,15 +30910,17 @@ class RamifiedQp7_4_E3Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> RamifiedQp7_4_E3MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -29093,11 +30929,9 @@ class RamifiedQp7_4_E3Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -29105,7 +30939,7 @@ class RamifiedQp7_4_E3Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -29131,8 +30965,9 @@ class RamifiedQp7_4_E3Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -29158,13 +30993,15 @@ class RamifiedQp7_4_E3Cga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> RamifiedQp7_4_E3Algebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -29172,8 +31009,10 @@ class RamifiedQp7_4_E3Cga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -29183,7 +31022,9 @@ class RamifiedQp7_4_E3Cga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class RamifiedQp7_4_E3DividedPowerAlgebra:
@@ -29267,16 +31108,19 @@ class RamifiedQp7_4_E3MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -29292,9 +31136,10 @@ class RamifiedQp7_4_E3MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -29319,22 +31164,32 @@ class RamifiedQp7_4_E3MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -29343,7 +31198,10 @@ class RamifiedQp7_4_E3MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -29432,7 +31290,9 @@ class RationalAlgebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -29451,7 +31311,9 @@ class RationalAlgebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -29460,8 +31322,8 @@ class RationalAlgebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -29476,15 +31338,17 @@ class RationalAlgebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> RationalMV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -29493,11 +31357,9 @@ class RationalAlgebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -29505,7 +31367,7 @@ class RationalAlgebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -29531,8 +31393,9 @@ class RationalAlgebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -29584,13 +31447,15 @@ class RationalCga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> RationalAlgebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -29598,8 +31463,10 @@ class RationalCga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -29609,7 +31476,9 @@ class RationalCga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class RationalCliffordInvariants:
@@ -29709,16 +31578,19 @@ class RationalMV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -29734,9 +31606,10 @@ class RationalMV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -29761,22 +31634,32 @@ class RationalMV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -29785,7 +31668,10 @@ class RationalMV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -30004,10 +31890,9 @@ class Surcomplex:
     @staticmethod
     def one(*args: Any, **kwargs: Any) -> Any: ...
     def sqrt(self, *args: Any, **kwargs: Any) -> Any:
-        """The **exact algebraic-closure square root** `√(a+bi)`: the surcomplex field
-        is algebraically closed over its real-closed base, so a represented number
-        has a represented root. `None` outside the represented square subdomain
-        (e.g. `√2`). The functorial companion of `Surreal.exact_sqrt`.
+        """An exact square root in the represented `Surcomplex<Surreal>` subdomain.
+        Returns `None` when the required base-field roots are not finitely
+        representable (for example `√2`).
         """
     @staticmethod
     def zero(*args: Any, **kwargs: Any) -> Any: ...
@@ -30036,7 +31921,9 @@ class SurcomplexAlgebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -30055,7 +31942,9 @@ class SurcomplexAlgebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -30064,8 +31953,8 @@ class SurcomplexAlgebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -30080,15 +31969,17 @@ class SurcomplexAlgebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> SurcomplexMV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -30097,11 +31988,9 @@ class SurcomplexAlgebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -30109,7 +31998,7 @@ class SurcomplexAlgebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -30135,8 +32024,9 @@ class SurcomplexAlgebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -30162,13 +32052,15 @@ class SurcomplexCga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> SurcomplexAlgebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -30176,8 +32068,10 @@ class SurcomplexCga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -30187,7 +32081,9 @@ class SurcomplexCga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class SurcomplexDividedPowerAlgebra:
@@ -30271,16 +32167,19 @@ class SurcomplexMV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -30296,9 +32195,10 @@ class SurcomplexMV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -30323,22 +32223,32 @@ class SurcomplexMV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -30347,7 +32257,10 @@ class SurcomplexMV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -30409,8 +32322,8 @@ class Surreal:
         birthday, outside this finite-support representation).
         """
     def exact_sqrt(self, *args: Any, **kwargs: Any) -> Any:
-        """The **exact** real square root (no precision argument): `Some` iff a finite
-        represented surreal squares back to this — `√ω = ω^{1/2}`, `√4 = 2`, but
+        """The **exact** real square root (no precision argument): `Some` iff a
+        finite-support represented surreal squares back to this — `√ω = ω^{1/2}`, `√4 = 2`, but
         `√2` is `None`. The exact companion to [`sqrt_to_terms`](Self::sqrt_to_terms).
         """
     def floor(self, *args: Any, **kwargs: Any) -> Any:
@@ -30516,7 +32429,9 @@ class SurrealAlgebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -30535,7 +32450,9 @@ class SurrealAlgebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -30544,8 +32461,8 @@ class SurrealAlgebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -30560,15 +32477,17 @@ class SurrealAlgebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> SurrealMV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -30577,11 +32496,9 @@ class SurrealAlgebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -30589,7 +32506,7 @@ class SurrealAlgebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -30615,8 +32532,9 @@ class SurrealAlgebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -30642,13 +32560,15 @@ class SurrealCga:
     @property
     def n(self) -> Any: ...
     def alg(self) -> SurrealAlgebra:
-        """The exact monomorphic Clifford algebra underlying this conformal model."""
+        """The monomorphic Clifford algebra underlying this conformal model."""
     def down(self, *args: Any, **kwargs: Any) -> Any:
-        """Recover a Euclidean point from a null vector (`None` if not normalizable)."""
+        """Recover a coordinate vector from a null vector (`None` if not normalizable)."""
     def inner(self, *args: Any, **kwargs: Any) -> Any:
-        """The conformal inner product `x · y` (= `−½|p−q|²` on lifted points)."""
+        """The conformal inner product `x · y`, equal to
+        `−½|p−q|²` on lifted coordinate vectors.
+        """
     def meet(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibility spelling for `meet_ipns`; operands are IPNS values."""
+        """Alias for `meet_ipns`; operands are IPNS values."""
     def meet_ipns(self, *args: Any, **kwargs: Any) -> Any:
         """IPNS meet (intersection) `x ∧ y`.
 
@@ -30656,8 +32576,10 @@ class SurrealCga:
         convention.  This method is deliberately not an OPNS meet,
         which would require dualization and a nondegenerate pseudoscalar.
         """
-    def n_inf(self, *args: Any, **kwargs: Any) -> Any: ...
-    def n_o(self, *args: Any, **kwargs: Any) -> Any: ...
+    def n_inf(self, *args: Any, **kwargs: Any) -> Any:
+        """The null infinity vector `n_∞`."""
+    def n_o(self, *args: Any, **kwargs: Any) -> Any:
+        """The null origin vector `n_o`."""
     def outer_join(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior join `x ∧ y`; for IPNS operands this represents their intersection."""
     def plane(self, *args: Any, **kwargs: Any) -> Any:
@@ -30667,7 +32589,9 @@ class SurrealCga:
     def sphere(self, *args: Any, **kwargs: Any) -> Any:
         """The sphere of squared radius `r2` about center `c`."""
     def up(self, *args: Any, **kwargs: Any) -> Any:
-        """Lift a Euclidean point to the null cone: `up(p) = n_o + p + ½|p|² n_∞`."""
+        """Lift a coordinate vector to the null cone:
+        `up(p) = n_o + p + ½|p|² n_∞`.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class SurrealDividedPowerAlgebra:
@@ -30751,16 +32675,19 @@ class SurrealMV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -30776,9 +32703,10 @@ class SurrealMV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -30803,22 +32731,32 @@ class SurrealMV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -30827,7 +32765,10 @@ class SurrealMV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -31021,6 +32962,41 @@ class WittClassG:
     def __repr__(self) -> builtins.str: ...
     def __rmul__(self, other: Any) -> Any: ...
 
+class WittFifoArena:
+    """The proved weighted-source Witt--FIFO arena for one binary quadratic value.
+
+    `diagonal[i]` is `Q(e_i)`, `polar[i]` is the bitmask row of the alternating
+    polar form, and `input` is the vector bitmask. Construction validates the
+    complete quadratic datum before loading any coins.
+    """
+    def __init__(self, diagonal: Sequence[builtins.bool], polar: Sequence[builtins.int], input: builtins.int) -> None: ...
+    @property
+    def adapted_basis(self) -> list[builtins.int]:
+        """Deterministic adapted basis, as original-coordinate bitmasks."""
+    @property
+    def adapted_coordinates(self) -> builtins.int:
+        """Coordinates of the input in the adapted basis."""
+    @property
+    def coin_count(self) -> builtins.int:
+        """Number of loaded public coins in deterministic play order."""
+    @property
+    def dimension(self) -> builtins.int:
+        """Original `F_2` dimension."""
+    @property
+    def frame_mates(self) -> list[builtins.int | None]:
+        """Mate map on the full adapted frame; radical vectors have no mate."""
+    @property
+    def input(self) -> builtins.int:
+        """Input vector in original-basis bitmask coordinates."""
+    @property
+    def quadratic_value(self) -> builtins.bool:
+        """Direct algebraic value `Q(x)`, retained as an independent oracle."""
+    def grundy(self, state_budget: builtins.int) -> builtins.int:
+        """Compute the arena's exact Grundy value within a caller-supplied state budget."""
+    def to_game(self, state_budget: builtins.int) -> Game:
+        """Materialize the arena as a finite short `Game` within the state budget."""
+    def __repr__(self) -> builtins.str: ...
+
 class WittVec2_4_2:
     def __init__(self, *args: Any, **kwargs: Any) -> None: ...
     @property
@@ -31078,7 +33054,9 @@ class WittVec2_4_2Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -31097,7 +33075,9 @@ class WittVec2_4_2Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -31106,8 +33086,8 @@ class WittVec2_4_2Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -31122,15 +33102,17 @@ class WittVec2_4_2Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> WittVec2_4_2MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -31139,11 +33121,9 @@ class WittVec2_4_2Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -31151,7 +33131,7 @@ class WittVec2_4_2Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -31177,8 +33157,9 @@ class WittVec2_4_2Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -31278,16 +33259,19 @@ class WittVec2_4_2MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -31303,9 +33287,10 @@ class WittVec2_4_2MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -31330,22 +33315,32 @@ class WittVec2_4_2MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -31354,7 +33349,10 @@ class WittVec2_4_2MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -31451,7 +33449,9 @@ class WittVec2_4_3Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -31470,7 +33470,9 @@ class WittVec2_4_3Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -31479,8 +33481,8 @@ class WittVec2_4_3Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -31495,15 +33497,17 @@ class WittVec2_4_3Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> WittVec2_4_3MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -31512,11 +33516,9 @@ class WittVec2_4_3Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -31524,7 +33526,7 @@ class WittVec2_4_3Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -31550,8 +33552,9 @@ class WittVec2_4_3Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -31651,16 +33654,19 @@ class WittVec2_4_3MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -31676,9 +33682,10 @@ class WittVec2_4_3MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -31703,22 +33710,32 @@ class WittVec2_4_3MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -31727,7 +33744,10 @@ class WittVec2_4_3MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -31824,7 +33844,9 @@ class WittVec2_4_4Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -31843,7 +33865,9 @@ class WittVec2_4_4Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -31852,8 +33876,8 @@ class WittVec2_4_4Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -31868,15 +33892,17 @@ class WittVec2_4_4Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> WittVec2_4_4MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -31885,11 +33911,9 @@ class WittVec2_4_4Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -31897,7 +33921,7 @@ class WittVec2_4_4Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -31923,8 +33947,9 @@ class WittVec2_4_4Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -32024,16 +34049,19 @@ class WittVec2_4_4MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -32049,9 +34077,10 @@ class WittVec2_4_4MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -32076,22 +34105,32 @@ class WittVec2_4_4MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -32100,7 +34139,10 @@ class WittVec2_4_4MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -32197,7 +34239,9 @@ class WittVec3_4_2Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -32216,7 +34260,9 @@ class WittVec3_4_2Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -32225,8 +34271,8 @@ class WittVec3_4_2Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -32241,15 +34287,17 @@ class WittVec3_4_2Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> WittVec3_4_2MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -32258,11 +34306,9 @@ class WittVec3_4_2Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -32270,7 +34316,7 @@ class WittVec3_4_2Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -32296,8 +34342,9 @@ class WittVec3_4_2Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -32397,16 +34444,19 @@ class WittVec3_4_2MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -32422,9 +34472,10 @@ class WittVec3_4_2MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -32449,22 +34500,32 @@ class WittVec3_4_2MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -32473,7 +34534,10 @@ class WittVec3_4_2MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -32570,7 +34634,9 @@ class WittVec3_4_3Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -32589,7 +34655,9 @@ class WittVec3_4_3Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -32598,8 +34666,8 @@ class WittVec3_4_3Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -32614,15 +34682,17 @@ class WittVec3_4_3Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> WittVec3_4_3MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -32631,11 +34701,9 @@ class WittVec3_4_3Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -32643,7 +34711,7 @@ class WittVec3_4_3Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -32669,8 +34737,9 @@ class WittVec3_4_3Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -32770,16 +34839,19 @@ class WittVec3_4_3MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -32795,9 +34867,10 @@ class WittVec3_4_3MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -32822,22 +34895,32 @@ class WittVec3_4_3MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -32846,7 +34929,10 @@ class WittVec3_4_3MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -32943,7 +35029,9 @@ class WittVec5_4_2Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -32962,7 +35050,9 @@ class WittVec5_4_2Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -32971,8 +35061,8 @@ class WittVec5_4_2Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -32987,15 +35077,17 @@ class WittVec5_4_2Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> WittVec5_4_2MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -33004,11 +35096,9 @@ class WittVec5_4_2Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -33016,7 +35106,7 @@ class WittVec5_4_2Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -33042,8 +35132,9 @@ class WittVec5_4_2Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -33143,16 +35234,19 @@ class WittVec5_4_2MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -33168,9 +35262,10 @@ class WittVec5_4_2MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -33195,22 +35290,32 @@ class WittVec5_4_2MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -33219,7 +35324,10 @@ class WittVec5_4_2MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -33306,7 +35414,9 @@ class Zp11_4Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -33325,7 +35435,9 @@ class Zp11_4Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -33334,8 +35446,8 @@ class Zp11_4Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -33350,15 +35462,17 @@ class Zp11_4Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Zp11_4MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -33367,11 +35481,9 @@ class Zp11_4Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -33379,7 +35491,7 @@ class Zp11_4Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -33405,8 +35517,9 @@ class Zp11_4Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -33506,16 +35619,19 @@ class Zp11_4MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -33531,9 +35647,10 @@ class Zp11_4MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -33558,22 +35675,32 @@ class Zp11_4MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -33582,7 +35709,10 @@ class Zp11_4MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -33669,7 +35799,9 @@ class Zp13_4Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -33688,7 +35820,9 @@ class Zp13_4Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -33697,8 +35831,8 @@ class Zp13_4Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -33713,15 +35847,17 @@ class Zp13_4Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Zp13_4MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -33730,11 +35866,9 @@ class Zp13_4Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -33742,7 +35876,7 @@ class Zp13_4Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -33768,8 +35902,9 @@ class Zp13_4Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -33869,16 +36004,19 @@ class Zp13_4MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -33894,9 +36032,10 @@ class Zp13_4MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -33921,22 +36060,32 @@ class Zp13_4MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -33945,7 +36094,10 @@ class Zp13_4MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -34032,7 +36184,9 @@ class Zp2_4Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -34051,7 +36205,9 @@ class Zp2_4Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -34060,8 +36216,8 @@ class Zp2_4Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -34076,15 +36232,17 @@ class Zp2_4Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Zp2_4MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -34093,11 +36251,9 @@ class Zp2_4Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -34105,7 +36261,7 @@ class Zp2_4Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -34131,8 +36287,9 @@ class Zp2_4Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -34232,16 +36389,19 @@ class Zp2_4MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -34257,9 +36417,10 @@ class Zp2_4MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -34284,22 +36445,32 @@ class Zp2_4MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -34308,7 +36479,10 @@ class Zp2_4MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -34395,7 +36569,9 @@ class Zp3_4Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -34414,7 +36590,9 @@ class Zp3_4Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -34423,8 +36601,8 @@ class Zp3_4Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -34439,15 +36617,17 @@ class Zp3_4Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Zp3_4MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -34456,11 +36636,9 @@ class Zp3_4Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -34468,7 +36646,7 @@ class Zp3_4Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -34494,8 +36672,9 @@ class Zp3_4Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -34595,16 +36774,19 @@ class Zp3_4MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -34620,9 +36802,10 @@ class Zp3_4MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -34647,22 +36830,32 @@ class Zp3_4MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -34671,7 +36864,10 @@ class Zp3_4MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -34758,7 +36954,9 @@ class Zp5_4Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -34777,7 +36975,9 @@ class Zp5_4Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -34786,8 +36986,8 @@ class Zp5_4Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -34802,15 +37002,17 @@ class Zp5_4Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Zp5_4MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -34819,11 +37021,9 @@ class Zp5_4Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -34831,7 +37031,7 @@ class Zp5_4Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -34857,8 +37057,9 @@ class Zp5_4Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -34958,16 +37159,19 @@ class Zp5_4MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -34983,9 +37187,10 @@ class Zp5_4MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -35010,22 +37215,32 @@ class Zp5_4MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -35034,7 +37249,10 @@ class Zp5_4MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -35121,7 +37339,9 @@ class Zp7_4Algebra:
     @property
     def dim(self) -> Any: ...
     def a_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero upper/in-order contraction entries `(i, j, value)` with `i < j`."""
+        """Nonzero entries `(i, j, a_ij)` with `i < j`, where
+        `a_ij = B(e_i,e_j)`.
+        """
     def apply_generator(self, *args: Any, **kwargs: Any) -> Any:
         """Apply the lazy left-regular spinor action of generator `e_i` to a
         sparse module vector. This reaches dimensions where explicit
@@ -35140,7 +37360,9 @@ class Zp7_4Algebra:
         congruence-diagonalize it.
         """
     def b_terms(self, *args: Any, **kwargs: Any) -> Any:
-        """Nonzero polar entries `(i, j, value)` with `i < j`."""
+        """Nonzero polar entries `(i, j, b_ij)` with `i < j`, where
+        `b_ij = e_i e_j + e_j e_i`.
+        """
     def blade(self, *args: Any, **kwargs: Any) -> Any: ...
     def char_poly(self, *args: Any, **kwargs: Any) -> Any:
         """The characteristic polynomial `det(t·I − f)` via exterior-power
@@ -35149,8 +37371,8 @@ class Zp7_4Algebra:
         """
     def determinant(self, *args: Any, **kwargs: Any) -> Any:
         """The determinant of a `LinearMap`: the scalar by which its
-        outermorphism scales the pseudoscalar. Char-faithful (the char-2
-        determinant over nimbers).
+        outermorphism scales the pseudoscalar. Signs collapse through the
+        scalar backend in characteristic two.
         """
     def diagonalize(self, *args: Any, **kwargs: Any) -> Any:
         """Congruence-diagonalize the symmetric form, if possible. Returns
@@ -35165,15 +37387,17 @@ class Zp7_4Algebra:
         target algebra by shifting its blade masks by `shift`.
         """
     def even_subalgebra(self, *args: Any, **kwargs: Any) -> Any:
-        """The even subalgebra as a Clifford algebra one dimension smaller
-        (orthogonal metrics with a non-null generator only).
+        """The even subalgebra as a Clifford algebra one dimension smaller.
+        Requires an orthogonal metric with an invertible generator square.
         """
     def exterior_power_trace(self, *args: Any, **kwargs: Any) -> Any:
         """The trace of the exterior power `Λ^k f`."""
     def gen(self, i: builtins.int) -> Zp7_4MV: ...
     @staticmethod
     def general(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for a general-bilinear metric algebra."""
+        """Alias constructor accepting the same `q`, `b`, and `a` data as
+        the class constructor.
+        """
     def graded_tensor(self, *args: Any, **kwargs: Any) -> Any:
         """The graded (super) tensor product self ⊗̂ other ≅ Cl(self ⟂ other)."""
     def gram(self, *args: Any, **kwargs: Any) -> Any:
@@ -35182,11 +37406,9 @@ class Zp7_4Algebra:
         """
     @staticmethod
     def grassmann(*args: Any, **kwargs: Any) -> Any:
-        """Rust-name constructor for the fully-null Grassmann/exterior metric."""
+        """Constructs the fully null Grassmann/exterior algebra."""
     def has_upper(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether the metric has any upper/in-order
-        contraction terms and therefore needs the general product path.
-        """
+        """Whether the metric has any nonzero upper/in-order contraction."""
     def in_fundamental_ideal(self, *args: Any, **kwargs: Any) -> Any:
         """Membership in the fundamental ideal I: for a diagonal representative,
         the nondegenerate rank is even.
@@ -35194,7 +37416,7 @@ class Zp7_4Algebra:
     def inverse_outermorphism(self, *args: Any, **kwargs: Any) -> Any:
         """The inverse `LinearMap`, if it is invertible over this scalar world."""
     def is_orthogonal(self, *args: Any, **kwargs: Any) -> Any:
-        """Rust-name helper: whether this basis is orthogonal."""
+        """Whether all off-diagonal `b` and `a` entries are zero."""
     def lazy_spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Build the Rust `LazySpinorRep` façade for this backend."""
     def map(self, *args: Any, **kwargs: Any) -> Any:
@@ -35220,8 +37442,9 @@ class Zp7_4Algebra:
     def scalar(self, *args: Any, **kwargs: Any) -> Any: ...
     def spinor_rep(self, *args: Any, **kwargs: Any) -> Any:
         """Full concrete spinor data as a named `SpinorRep` record.
-        Supports nondegenerate characteristic-0 metrics and nonsingular
-        characteristic-2 nimber metrics. Characteristic-0 general-bilinear
+        Supports nondegenerate characteristic-zero metrics and nonsingular
+        characteristic-two metrics over supported field-like backends.
+        Characteristic-zero general-bilinear
         metrics are transported through the antisymmetric `a` gauge;
         characteristic 2 keeps the no-`a` boundary.
         `diagonalized_metric` is returned as `(q, b_terms)` when present,
@@ -35321,16 +37544,19 @@ class Zp7_4MV:
         empty basis; errors for zero or mixed-grade multivectors.
         """
     def cayley(self, *args: Any, **kwargs: Any) -> Any:
-        """The **Cayley transform** `(1−B)(1+B)⁻¹` of this bivector — the exact
-        rational map from the Lie algebra (bivectors) to the Spin group
-        (rotors). Errors if `1+B` is not invertible.
+        """The rational Cayley expression `(1−B)(1+B)⁻¹` for a bivector.
+        In simple or low-dimensional cases it yields a rotor; an arbitrary
+        higher-dimensional bivector need not yield a versor. Errors if
+        `1+B` is not invertible.
         """
     def cayley_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """The inverse Cayley transform — a rotor back to its bivector
-        generator (same involutive formula). Errors if `1+R` is singular.
+        """The inverse Cayley expression `(1−R)(1+R)⁻¹`, using the same
+        involutive formula. Errors if `1+R` is singular.
         """
     def classify_versor(self, *args: Any, **kwargs: Any) -> Any:
-        """Classify a versor as a named `VersorClass` record."""
+        """Bundle the raw norm and grade parity of a versor candidate.
+        Success does not independently prove Clifford-group membership.
+        """
     def clifford_conjugate(self, *args: Any, **kwargs: Any) -> Any:
         """The Clifford (main) conjugate: reversion ∘ grade involution."""
     def commutator(self, *args: Any, **kwargs: Any) -> Any:
@@ -35346,9 +37572,10 @@ class Zp7_4MV:
     def even_part(self, *args: Any, **kwargs: Any) -> Any:
         """Projection onto the even subalgebra (sum of even-grade blades)."""
     def exp_nilpotent(self, *args: Any, **kwargs: Any) -> Any:
-        """`exp(self)` for a nilpotent multivector — the terminating series
-        `Σ selfᵏ/k!`. Errors if `self` is not nilpotent (a rotational motor,
-        needing transcendental cos/sin).
+        """A terminating exponential series `Σ selfᵏ/k!`, searched through
+        the implementation's finite cap. An error means the series did
+        not terminate within that cap or a factorial was not invertible;
+        it does not prove that the input is nonnilpotent.
         """
     def factor_blade(self, *args: Any, **kwargs: Any) -> Any:
         """Factor a blade into the grade-1 vectors whose wedge is it; errors
@@ -35373,22 +37600,32 @@ class Zp7_4MV:
         """
     def norm2(self, *args: Any, **kwargs: Any) -> Any: ...
     def reflect(self, *args: Any, **kwargs: Any) -> Any:
-        """Reflect x in the hyperplane ⊥ self (self must be an invertible vector)."""
+        """Apply the twisted-adjoint expression to `x`. This is reflection
+        when `self` is an invertible grade-one vector; the method checks
+        the reverse-norm inverse gate but not grade one.
+        """
     def reverse(self, *args: Any, **kwargs: Any) -> Any: ...
     def right_contract(self, *args: Any, **kwargs: Any) -> Any: ...
     def sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Sandwich self · x · self⁻¹ (rotor/versor action; untwisted)."""
+        """The sandwich expression `self · x · self⁻¹`; for a witnessed
+        versor this is the untwisted versor action.
+        """
     def scalar_part(self, *args: Any, **kwargs: Any) -> Any: ...
     def scalar_product(self, *args: Any, **kwargs: Any) -> Any:
         """The scalar product ⟨a b⟩₀ (grade-0 part of the geometric product)."""
     def spinor_norm(self, *args: Any, **kwargs: Any) -> Any:
-        """Raw spinor norm `<v reverse(v)>_0`; errors when `v` is not an
-        invertible simple versor. Reduce this scalar modulo squares (char != 2)
-        or Artin-Schreier (char 2) in the caller's field when needed.
+        """Raw norm `<v reverse(v)>_0`; errors unless the full product is a
+        pure invertible scalar. This gate does not itself prove that `v`
+        belongs to the Clifford group. For a witnessed versor over a
+        field of characteristic other than two, its
+        class modulo squares is the classical spinor norm. In
+        characteristic two this raw product is not the additive
+        Wall/Dye invariant and must not be reduced modulo Artin--Schreier
+        elements.
         """
     def twisted_sandwich(self, *args: Any, **kwargs: Any) -> Any:
-        """Twisted adjoint (Pin/Spin action) α(self) · x · self⁻¹ — the correct
-        versor action; for an odd versor it gives a genuine reflection.
+        """The twisted adjoint `α(self) · x · self⁻¹`. For a witnessed
+        versor this is the Pin/Spin action; an odd versor gives a reflection.
         """
     def undual(self, *args: Any, **kwargs: Any) -> Any:
         """The undual v ↦ v·I (inverse of `dual`)."""
@@ -35397,7 +37634,10 @@ class Zp7_4MV:
         `0` for even, `1` for odd, `None` for zero or mixed parity.
         """
     def versor_inverse(self, *args: Any, **kwargs: Any) -> Any:
-        """Versor inverse v⁻¹ = ṽ/(v ṽ); errors if v isn't an invertible versor."""
+        """The inverse formula `v⁻¹ = reverse(v)/(v reverse(v))`. It succeeds
+        when the denominator is a pure invertible scalar; this gate does
+        not independently prove versor membership.
+        """
     def wedge(self, *args: Any, **kwargs: Any) -> Any:
         """Exterior (wedge) product — grundy `∧`.
 
@@ -35453,8 +37693,8 @@ def arf_nimber(alg: NimberAlgebra) -> ArfInvariants:
     """Arf invariant (the char-2 Clifford classifier) of a nimber algebra."""
 
 def arf_ordinal_finite(*args: Any, **kwargs: Any) -> Any:
-    """Arf invariant of an ordinal-nimber Clifford metric, on the detected finite
-    ordinal windows (`F_2`/nimber entries and the first transfinite `F_64` window).
+    """Arf invariant of an ordinal-nimber Clifford metric when all coefficients
+    lie in a detected represented finite subfield.
     """
 
 def artin_schreier_class_finite(*args: Any, **kwargs: Any) -> Any:
@@ -35819,9 +38059,9 @@ def leech_aut_order(*args: Any, **kwargs: Any) -> Any: ...
 def left_stop(*args: Any, **kwargs: Any) -> Any: ...
 
 def level(*args: Any, **kwargs: Any) -> Any:
-    """The level/Stufe of the prime field `F_p`: least `n` with `-1` a sum of `n`
-    squares. Returns `None` only for the char-2/degenerate cases where the Rust
-    invariant deliberately declines; supported dispatch primes are finite.
+    """The level/Stufe of the prime field `F_p`: the least `n` for which `-1` is a
+    sum of `n` squares. Supported primes are `2, 3, 5, 7, 11, 13`; other inputs
+    raise `ValueError`.
     """
 
 def lexicode(*args: Any, **kwargs: Any) -> Any: ...
@@ -36110,8 +38350,8 @@ def springer_decompose_qq(*args: Any, **kwargs: Any) -> Any:
 
 def springer_decompose_ramified_qp4_e2(*args: Any, **kwargs: Any) -> Any:
     """Springer decomposition over the fixed ramified quadratic p-adic slice
-    `Q_p(pi)` with `pi^2 = p`, base precision `4`, and odd `p` in the existing
-    fixed p-adic dispatch set. Entries are diagonal coefficients encoded as
+    `Q_p(pi)` with `pi^2 = p`, base precision `4`, and
+    `p ∈ {3, 5, 7, 11, 13}`. Entries are diagonal coefficients encoded as
     component lists `[a0, a1]`, meaning `a0 + a1*pi` with integer `Qp*_4`
     components. The residue-characteristic-2 case is intentionally rejected by
     Springer's odd-residue theorem boundary.
@@ -36119,8 +38359,8 @@ def springer_decompose_ramified_qp4_e2(*args: Any, **kwargs: Any) -> Any:
 
 def springer_decompose_ramified_qp4_e3(*args: Any, **kwargs: Any) -> Any:
     """Springer decomposition over the fixed ramified cubic p-adic slice
-    `Q_p(pi)` with `pi^3 = p`, base precision `4`, and odd `p` in the existing
-    fixed p-adic dispatch set. Entries are diagonal coefficients encoded as
+    `Q_p(pi)` with `pi^3 = p`, base precision `4`, and
+    `p ∈ {3, 5, 7, 11, 13}`. Entries are diagonal coefficients encoded as
     component lists `[a0, a1, a2]`, meaning `a0 + a1*pi + a2*pi^2` with integer
     `Qp*_4` components. The residue-characteristic-2 case is intentionally
     rejected by Springer's odd-residue theorem boundary.

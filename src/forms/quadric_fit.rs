@@ -1,14 +1,11 @@
-//! Fitting an F₂ quadratic form to a point set — the **"is this P-set a
-//! quadric?"** test bench.
+//! Fit an `F_2` quadratic form to a finite point set.
 //!
 //! This is not a classifier (that is [`char2`](crate::forms::char2)'s Arf): it is
-//! the research instrument the game probes feed their P-positions into. Given a
-//! subset `S ⊆ F₂^k`, [`fit_f2_quadratic`] decides whether `S` is the zero set of
-//! *some* quadratic form and, if so, returns that form together with its
-//! [Arf](crate::forms::ArfInvariants) — distinguishing a genuine quadric (nonzero
-//! polar rank) from a mere affine flat (the XOR-linear case normal play already
-//! produces). It is the bench behind the `misere_quotient` and `octal_hunt`
-//! examples and the open-question probes; see `docs/OPEN.md`.
+//! a bounded diagnostic for Boolean data. Given a subset `S ⊆ F₂^k`,
+//! [`fit_f2_quadratic`] decides whether `S` is the zero set of a quadratic form
+//! and, if so, returns the form and its
+//! [Arf data](crate::forms::ArfInvariants). The polar rank distinguishes a genuine
+//! quadratic term from an affine-linear zero set.
 
 use crate::forms::{arf_f2, ArfInvariants};
 
@@ -59,7 +56,7 @@ impl QuadricFit {
         self.arf.arf ^ (self.constant as u128)
     }
 
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }

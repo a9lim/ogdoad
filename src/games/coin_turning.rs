@@ -1,5 +1,4 @@
-//! Coin-turning games and the game-theoretic definition of nim-multiplication
-//! — the concrete bridge from games to On₂.
+//! Coin-turning games and the mex definition of finite nim-multiplication.
 //!
 //! Conway's *Turning Corners*: on a grid of coins, a move picks a coin and the
 //! SW rectangle under it, turning the four corners. The Grundy value of the
@@ -7,18 +6,16 @@
 //!
 //!   x ⊗ y = mex { (i⊗y) ⊕ (x⊗j) ⊕ (i⊗j) : 0 ≤ i < x, 0 ≤ j < y }.
 //!
-//! This *is* nim-multiplication — defined entirely by a game. `nim_mul_mex`
+//! This is nim-multiplication defined entirely by a game. [`nim_mul_mex`]
 //! computes it, and the tests confirm it agrees with the algebraic Fermat-power
-//! `scalar::nim_mul`. Two independent definitions, one combinatorial and
-//! one field-theoretic, of the same product.
+//! [`crate::scalar::nim_mul`] implementation on its tested finite range.
 //!
 //! Nim-addition is likewise a game: the disjunctive sum of single-coin
 //! positions XORs their Grundy values (Sprague–Grundy). And there is a 1-D
 //! coin-turning game whose single-coin Grundy value is g(n) = 2ⁿ — "turn coin n
 //! together with any subset of the coins left of it": by induction the reachable
 //! values are the full F₂-span of {1,2,…,2ⁿ⁻¹}, so the mex is 2ⁿ. Under that
-//! game a position's value *is* a nimber (the bitmask of its heads-up coins),
-//! which is the sense in which the nimber backend is "made of games".
+//! game a position's value is the bitmask of its heads-up coins.
 
 use crate::games::grundy::mex;
 use std::cell::RefCell;

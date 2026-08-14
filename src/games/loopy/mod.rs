@@ -4,7 +4,7 @@
 //! graph evaluators and bounded recognition certificates; it does not identify
 //! loopy outcomes with the acyclic normal-play Gold--Arf construction.
 //!
-//! Five layers, re-exported flat so every public path is unchanged:
+//! Five layers are re-exported through this module:
 //!
 //!   * [`catalogue`] — [`LoopyWinner`], [`LoopyPartizanOutcome`],
 //!     [`PartizanOutcome`], and the [`LoopyValue`] stopper catalogue
@@ -23,12 +23,10 @@
 //!   * [`research`] — [`loopy_decision_sets`] and [`loopy_quadric_probe`]:
 //!     Loss-set / Draw-set instruments.
 //!
-//! Deliberately **out of scope** here: [`Game`](crate::games::Game) stays an acyclic
-//! `Arc` tree (it cannot represent cycles, by construction), and
-//! [`thermography`](crate::games::thermography) stays finite-game-only — loopy games
-//! never freeze to a number, so classical temperature does not apply. The sidling
-//! support is finite and certified: over-budget or non-canonical fixed-point
-//! systems return `None` rather than pretending to be full loopy-game equality.
+//! [`Game`](crate::games::Game) remains an acyclic short-game tree, and classical
+//! [`thermography`](crate::games::thermography) remains finite-game-only. Sidling
+//! support is finite and certified: over-budget or ambiguous fixed-point systems
+//! return `None`.
 
 pub mod catalogue;
 pub mod graph;
@@ -327,9 +325,7 @@ mod tests {
         // never reaches a terminal from any of the three and leaves all three
         // Draws. Position 3 is terminal, hence a Loss. So Loss-set = {3} and
         // Draw-set = {0,1,2} — both nonempty, so this actually exercises the
-        // Draw-set fit slot (the empty-Draw-set plumbing check the old version of
-        // this test did is already covered by `decision_sets_recover_an_acyclic_
-        // loss_set_with_no_draws`).
+        // Both fits are nonempty; the acyclic empty-Draw case is covered above.
         let (loss_fit, draw_fit) = loopy_quadric_probe(2, |v| match v {
             0 => vec![1],
             1 => vec![2],

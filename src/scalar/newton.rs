@@ -1,16 +1,13 @@
-//! The **Newton polygon** of a polynomial over a discretely-valued field — the
-//! *tropical curve* of the place axis, and the payoff object of Bridge J.
+//! Newton polygons over discretely-valued scalar backends.
 //!
 //! For `f = Σ aᵢ xⁱ ∈ K[x]` over a [`Valued`] field `K`, the Newton polygon is the
 //! lower convex hull of the points `(i, v(aᵢ))`. Its sides are tropical line
 //! segments whose **slopes are the negatives of the valuations of the roots**
-//! (horizontal length = multiplicity) — the slope theorem (Bridge J, Theorem J.5;
-//! Koblitz GTM 58 Ch. IV, Neukirch Ch. II). It is the same `(min, +)` arithmetic
-//! that the games pillar's thermography computes on the *game* axis, applied to the
-//! valuation read as the [tropicalization](crate::scalar::tropicalize) map of
-//! [`Valued`].
+//! (horizontal length = multiplicity) by the Newton polygon theorem (Koblitz,
+//! GTM 58, ch. IV; Neukirch, ch. II). The construction uses the `(min,+)`
+//! tropicalization of [`Valued`].
 //!
-//! ## Orientation (the implementation trap)
+//! ## Orientation
 //!
 //! With points `(i, v(aᵢ))`, a side of slope `−λ` carries roots of valuation `+λ`.
 //! To keep the public surface matching "slopes are the valuations of the roots",
@@ -22,22 +19,16 @@
 //!
 //! ## What it sees, and forgets
 //!
-//! The polygon is the image of the Springer decomposition
-//! ([`springer_decompose_local`](crate::forms::springer_decompose_local)) under
-//! tropicalization: it records `(valuation, multiplicity)` per layer and **forgets**
-//! the residue square classes (the `disc_is_square` bit), giving the forgetful
-//! hierarchy `NP(f) ≺ {initial forms} ≺ f` (Bridge J, Remark J.13). The
-//! cross-check — every Newton slope *is* a Springer residue layer — is witnessed in
-//! [`forms::springer`](crate::forms::springer)'s tests.
+//! The polygon records valuation and multiplicity data but forgets residue
+//! square classes. The Springer tests compare these slopes with the corresponding
+//! residue layers.
 //!
 //! ## Precision
 //!
 //! On the capped-relative models (`Qp`/`Qq`/`Laurent`/`Ramified`/`Gauss`) the
 //! valuation of a *represented nonzero* coefficient is exact, so the polygon of
 //! represented coefficients is exact; a coefficient whose true valuation exceeds the
-//! precision horizon renders as `0` (its vertex is absent). The completion of
-//! `F_q(t)` at a degree-1 finite place is literally the `Laurent` backend, so the
-//! global function-field polygons are exact too (Corollary J.9).
+//! precision horizon renders as `0` and contributes no vertex.
 
 use crate::scalar::{Rational, Valued};
 
@@ -134,7 +125,7 @@ impl NewtonPolygon {
 
     /// The **valuations of the finite (nonzero) roots**, with multiplicities:
     /// `(λ, ℓ)` for each side of slope `−λ` and horizontal length `ℓ` (the slope
-    /// theorem, J.5). Strictly *decreasing* in `λ`. Excludes the `0`-roots of
+    /// theorem). Strictly *decreasing* in `λ`. Excludes the `0`-roots of
     /// valuation `+∞` (see [`zero_root_multiplicity`](Self::zero_root_multiplicity)).
     pub fn root_valuations(&self) -> Vec<(Rational, u128)> {
         self.vertices
@@ -212,7 +203,7 @@ mod tests {
         assert_eq!(Q5::from_int(2).valuation(), Some(0)); // a₀ a unit
         assert!(np.slopes().iter().all(|(s, _)| *s == Rational::zero()));
 
-        // break it: x² + 3x + 5 has a₀ = 5 (valuation 1) ⇒ no longer all-flat.
+        // break it: x² + 3x + 5 has a₀ = 5 (valuation 1), so its hull is not flat.
         let np2 = NewtonPolygon::from_coeffs(&qpoly(&[5, 3, 1])).unwrap();
         assert_ne!(np2.root_valuations(), vec![(rat(0, 1), 2)]);
         assert_eq!(np2.root_valuations(), vec![(rat(1, 1), 1), (rat(0, 1), 1)]);

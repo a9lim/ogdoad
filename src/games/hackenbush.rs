@@ -1,26 +1,25 @@
-//! Hackenbush — the unifier.
+//! Normal-play Hackenbush.
 //!
 //! A Hackenbush position is a graph of coloured edges standing on the *ground*
 //! (vertex `0`). Players alternately delete an edge of their colour (Left:
 //! **blue**, Right: **red**, either player: **green**); any edge no longer
 //! connected to the ground falls off. Last player to move wins (normal play).
 //!
-//! The single evaluator [`Hackenbush::to_game`] — build the partizan game by the
-//! move-and-prune recursion — reads out as **all three** of ogdoad's game-value
-//! worlds at once, which is the whole point:
+//! [`Hackenbush::to_game`] evaluates a position by move-and-prune recursion.
+//! Restricted colour classes admit more specific interpretations:
 //!
-//! | position             | value world        | bridge                       |
+//! | position             | value class        | API                          |
 //! |----------------------|--------------------|------------------------------|
 //! | blue / red only      | surreal **number** | [`Hackenbush::value`]        |
 //! | blue–red string      | dyadic surreal     | = its **sign expansion**     |
 //! | green only           | **nimber** (Nim)   | [`Hackenbush::grundy`]       |
-//! | mixed                | general partizan   | the `Game` itself            |
+//! | mixed                | general partizan   | [`Hackenbush::to_game`]      |
 //!
 //! A blue–red *string* is exactly an [ordinal sum](crate::games::Game::ordinal_sum)
 //! of single edges, and Berlekamp's rule says its value's
 //! [sign expansion](crate::scalar::Surreal::sign_expansion) is the colour
 //! sequence read from the ground up (blue `+`, red `−`). A green *string* of `n`
-//! edges is the Nim heap `*n`. Both fall out of the one recursion below.
+//! edges is the Nim heap `*n`.
 
 use crate::games::Game;
 use crate::scalar::Surreal;
@@ -186,12 +185,7 @@ mod tests {
             let g = Hackenbush::string(&vec![Green; n as usize]);
             assert_eq!(g.grundy(), Some(n)); // mex recursion = Nim heap n
 
-            // `to_game()`'s edge-removal recursion agrees with the game engine's
-            // own canonical Nim-heap constructor (not an independent cross-check —
-            // `Game::nim_heap` is the same recursion the deleted local copy of this
-            // test used to duplicate; it just confirms Hackenbush's evaluator lands
-            // on that value, using the one nim_heap definition instead of a second
-            // copy of it).
+            // The edge-removal recursion lands on the canonical Nim-heap value.
             assert!(g.to_game().eq(&Game::nim_heap(n)));
             if n >= 1 {
                 assert_eq!(g.value(), None); // *n (n≥1) is not a number
@@ -224,7 +218,7 @@ mod tests {
     }
 
     #[test]
-    fn the_unifier_one_structure_three_worlds() {
+    fn one_position_model_exposes_three_value_classes() {
         use Color::*;
         // surreal integer
         assert_eq!(

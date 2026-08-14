@@ -1,16 +1,15 @@
-//! Conformal (CGA) and projective (PGA) geometric algebra layers, generic over
-//! the scalar — so the conformal model can run over the **surreals**, where a
-//! point can sit at `ω`-scale and a sphere can have an *infinitesimal* radius
-//! `ε`, exactly (impossible with floating point).
+//! Conformal (CGA) and projective (PGA) geometric-algebra constructions over
+//! supported scalar backends.
 //!
 //! ## CGA
 //!
-//! The conformal model of Euclidean `ℝⁿ` lives in `Cl(n+1, 1)`. We build it with
-//! a **null basis**: the `n` Euclidean generators `e_0..e_{n−1}` (`q = +1`) plus
+//! The conformal model of an `n`-dimensional unit-diagonal quadratic space uses
+//! `Cl(n+1, 1)`. We build it with a **null basis**: the `n` coordinate
+//! generators `e_0..e_{n−1}` (`q = +1`) plus
 //! two null vectors `n_o` (origin) and `n_∞` (infinity), `n_o² = n_∞² = 0` with
 //! `{n_o, n_∞} = −2` so `n_o · n_∞ = −1`. A Euclidean point `p` lifts to the null
-//! vector `up(p) = n_o + p + ½|p|² n_∞`, and `up(p) · up(q) = −½|p − q|²` turns
-//! the conformal inner product into Euclidean distance.
+//! vector `up(p) = n_o + p + ½|p|² n_∞`, and
+//! `up(p) · up(q) = −½|p − q|²` encodes the quadratic distance expression.
 //!
 //! Because `½` is needed throughout, **CGA is a characteristic-0 feature** (in
 //! char 2 the null pair degenerates, `−2 = 0`); the constructor asserts this.
@@ -21,8 +20,9 @@
 //! exponential of a **nilpotent** bivector — the translational part of a motor —
 //! is a *terminating* polynomial (`B² = 0 ⇒ exp B = 1 + B`), so it is exact over
 //! any backend with no transcendentals. The general Euclidean motor carries a
-//! rotation (`B² < 0`) and needs `cos`/`sin`, which is out of scope:
-//! `exp_nilpotent` returns `None` if the series does not terminate.
+//! rotation (`B² < 0`) and needs `cos`/`sin`, which is out of scope.
+//! `exp_nilpotent` returns `None` when its exact terminating-series boundary
+//! is not met.
 
 use crate::clifford::{CliffordAlgebra, Metric, Multivector};
 use crate::scalar::Scalar;
@@ -38,8 +38,8 @@ fn s_int<S: Scalar>(k: usize) -> S {
     acc
 }
 
-/// The conformal geometric algebra of Euclidean `ℝⁿ`: `Cl(n+1, 1)` in a null
-/// basis, with helpers for the conformal embedding and round/flat primitives.
+/// A conformal geometric algebra `Cl(n+1, 1)` in a null basis, with helpers for
+/// the conformal embedding and round/flat primitives.
 pub struct Cga<S: Scalar> {
     alg: CliffordAlgebra<S>,
     n: usize,
@@ -50,11 +50,12 @@ pub struct Cga<S: Scalar> {
 }
 
 impl<S: Scalar> Cga<S> {
-    /// Build the CGA of `ℝⁿ`. Panics unless the backend has characteristic 0
-    /// and `2` is invertible (CGA needs `½`). The sole constructor: `no`/`ninf`
-    /// are always `n`/`n+1` by this construction, so there is no unchecked path
-    /// to bypass — private fields close the struct-literal escape hatch the
-    /// panics above used to leave open.
+    /// Builds the conformal algebra on `n` unit-square coordinates.
+    ///
+    /// # Panics
+    ///
+    /// Panics unless `n <= 126` and the scalar backend has characteristic zero
+    /// and an invertible `2`.
     pub fn new(n: usize) -> Self {
         assert_eq!(
             S::characteristic(),
@@ -98,9 +99,11 @@ impl<S: Scalar> Cga<S> {
             .expect("½ exists in characteristic 0")
     }
 
+    /// The null origin vector `n_o`.
     pub fn n_o(&self) -> Multivector<S> {
         self.alg.e(self.no)
     }
+    /// The null infinity vector `n_∞`.
     pub fn n_inf(&self) -> Multivector<S> {
         self.alg.e(self.ninf)
     }
@@ -116,7 +119,7 @@ impl<S: Scalar> Cga<S> {
             .mul(&self.alg.scalar_part(&self.alg.add(&xy, &yx)))
     }
 
-    /// Lift a Euclidean point `p ∈ ℝⁿ` to the null vector `n_o + p + ½|p|² n_∞`.
+    /// Lifts a coordinate vector `p` to `n_o + p + ½|p|² n_∞`.
     pub fn up(&self, p: &[S]) -> Multivector<S> {
         assert_eq!(p.len(), self.n, "point dimension mismatch");
         let mut acc = self.n_o();
@@ -130,7 +133,7 @@ impl<S: Scalar> Cga<S> {
             .add(&acc, &self.alg.scalar_mul(&coeff, &self.n_inf()))
     }
 
-    /// Recover a Euclidean point from a (possibly unnormalized) null vector.
+    /// Recovers a coordinate vector from a possibly unnormalized null vector.
     /// `None` if it cannot be normalized (e.g. a direction / point at infinity).
     pub fn down(&self, x: &Multivector<S>) -> Option<Vec<S>> {
         let f = self.inner(x, &self.n_inf()); // = −1 for a normalized point
@@ -183,8 +186,12 @@ impl<S: Scalar> Cga<S> {
     }
 }
 
-/// The projective geometric algebra `Cl(n,0,1)` of `ℝⁿ`: one degenerate
-/// generator `e_0` (`q = 0`) and `n` Euclidean ones.
+/// The projective geometric algebra `Cl(n,0,1)`: one degenerate generator
+/// `e_0` (`q = 0`) and `n` unit-square coordinate generators.
+///
+/// # Panics
+///
+/// Panics when `n + 1` exceeds the 128-generator blade-mask limit.
 pub fn pga<S: Scalar>(n: usize) -> CliffordAlgebra<S> {
     let mut q = vec![S::zero()]; // e_0 null (the ideal/projective direction)
     q.extend(std::iter::repeat_n(S::one(), n));

@@ -514,6 +514,64 @@ impl HeisenbergWeilRepresentation {
         Some(out)
     }
 
+    /// The Fourier/bitwise-Hadamard Clifford intertwiner in the chosen
+    /// symplectic coordinates.  Projectively it exchanges each position lift
+    /// `x_i` with its momentum lift `y_i`.
+    pub fn fourier_intertwiner(&self) -> Option<Vec<Vec<Complex64>>> {
+        let n = self.matrix_dim()?;
+        let scale = 1.0 / (n as f64).sqrt();
+        let mut out = vec![vec![Complex64::zero(); n]; n];
+        for (row, out_row) in out.iter_mut().enumerate() {
+            for (col, value) in out_row.iter_mut().enumerate() {
+                let sign = if (row & col).count_ones().is_multiple_of(2) {
+                    1.0
+                } else {
+                    -1.0
+                };
+                *value = Complex64::one().scale(sign * scale);
+            }
+        }
+        Some(out)
+    }
+
+    /// Verify projectively that [`fourier_intertwiner`](Self::fourier_intertwiner)
+    /// exchanges every position/momentum pair in the chosen symplectic basis.
+    pub fn verify_fourier_intertwines(&self) -> bool {
+        let Some(fourier) = self.fourier_intertwiner() else {
+            return false;
+        };
+        // The normalized Walsh matrix is real, symmetric, and self-inverse.
+        for pair in self.symplectic_basis.chunks_exact(2) {
+            let Some(position) = self
+                .matrix(&ExtraspecialElement::new(false, pair[0]))
+                .map(|m| mat_mul(&mat_mul(&fourier, &m), &fourier))
+            else {
+                return false;
+            };
+            let Some(momentum) = self.matrix(&ExtraspecialElement::new(false, pair[1])) else {
+                return false;
+            };
+            if !mat_projectively_approx_eq(&position, &momentum, 1e-8) {
+                return false;
+            }
+
+            let Some(momentum_conjugate) = self
+                .matrix(&ExtraspecialElement::new(false, pair[1]))
+                .map(|m| mat_mul(&mat_mul(&fourier, &m), &fourier))
+            else {
+                return false;
+            };
+            let Some(position_target) = self.matrix(&ExtraspecialElement::new(false, pair[0]))
+            else {
+                return false;
+            };
+            if !mat_projectively_approx_eq(&momentum_conjugate, &position_target, 1e-8) {
+                return false;
+            }
+        }
+        true
+    }
+
     /// A projective Clifford/Weil operator for the symplectic transvection
     /// `w -> w + B(w,a)a`, returned as a dense matrix under the same budget as
     /// [`matrix`](Self::matrix).
@@ -952,6 +1010,18 @@ mod tests {
 
         let rep = g.heisenberg_weil_representation().unwrap();
         assert!(rep.verify_transvection_intertwines(a));
+    }
+
+    #[test]
+    fn fourier_intertwiner_exchanges_position_and_momentum() {
+        let g = Extraspecial2Group::from_f2(
+            vec![false, false, false, false],
+            bmat(4, &[(0, 1), (2, 3)]),
+        )
+        .unwrap();
+        let rep = g.heisenberg_weil_representation().unwrap();
+        assert_eq!(rep.symplectic_basis(), &[1, 2, 4, 8]);
+        assert!(rep.verify_fourier_intertwines());
     }
 
     #[test]

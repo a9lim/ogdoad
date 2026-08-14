@@ -18,6 +18,7 @@ use std::collections::HashMap;
 use std::sync::OnceLock;
 
 #[inline]
+/// Nim-addition, which is bitwise XOR on the canonical `u128` representation.
 pub fn nim_add(a: u128, b: u128) -> u128 {
     a ^ b
 }

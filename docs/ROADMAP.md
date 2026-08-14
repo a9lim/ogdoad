@@ -1,7 +1,8 @@
 # Engineering roadmap
 
-This file tracks unfinished engineering and publication work. Unresolved
-theorems belong only in [`OPEN.md`](OPEN.md).
+This file tracks unfinished engineering and publication work, plus research
+directions not yet sharp enough to state as conjectures. Unresolved theorems
+belong only in [`OPEN.md`](OPEN.md).
 
 ## Core mathematical joins
 
@@ -13,16 +14,9 @@ Highest-value additions are the joins between already public subsystems:
 | Milnor symbols | expose the degree-at-most-two mod-two symbols underlying the existing residue and `e_n` maps |
 | Hermitian restriction | compose trace/restriction of scalars with the ordinary quadratic classifiers |
 | ramified Springer | add a named ramified-extension path with correct value-group parity and independent tests |
-| finite-field invariants | lift level, Pythagoras number, and u-invariant reporting from prime fields to shipped extensions |
+| finite-field invariants | lift level, Pythagoras number, and u-invariant reporting from prime fields to supported extensions |
 | characteristic-two spinor norm | construct the additive spinor norm from vector-symmetry factorizations |
 | explicit Brauer representatives | materialize cyclic or quaternion algebras for computed classes |
-| integral coherence | test lattice, discriminant, Weil, Clifford, Brown, and signature invariants across the existing bridges |
-| local/global coherence | cross-check genus symbols, Hilbert/Hasse isotropy, and restriction/corestriction formulas |
-
-The games pillar still needs Rust constructors for the proved weighted-source
-Witt--FIFO arena and the intrinsic four-outcome Brown selector. Octal
-periodicity should become a checked Guy--Smith certificate before entering the
-public API.
 
 ## API and maintenance
 
@@ -52,6 +46,23 @@ The crate remains unpublished until step 3 is complete.
 - Prepare the characteristic-two classification for a Mathlib contribution.
 - Prepare stable submission artifacts for the finished papers; the tracked
   `.tex` and `.bib` files remain the source of truth.
+
+## Research directions
+
+Longer-horizon mathematical programs. No entry here is a sharp statement; each
+names its first concrete target. An entry graduates when it yields a precise
+conjecture with a proved reduction — that statement then moves to `OPEN.md`,
+with the front list in `AGENTS.md` updated in the same commit.
+
+| direction | first concrete target |
+| --- | --- |
+| nim reciprocity | an explicit Frobenius action in Conway-tower coordinates; success would evaluate the marked coordinates of `OPEN.md` §2 uniformly along ancestry and subsume all four selected-order arms |
+| fast nimber multiplication | essentially-linear multiplication in nim coordinates on the Fermat tower, or a documented barrier; either outcome feeds the `scalar` backends directly |
+| lexicode residuals | sharpen one of: asymptotic goodness of lexicodes; greedy reachability of a rootless rank-24 endpoint (the current constructor terminates at a root-full even unimodular lattice); the exact field-linearity boundary for nim-alphabet lexicodes |
+| Witt realization over imperfect fields | extend the Gold--Arf realization pattern from finite nimber fields (perfect) to `F_2(t)`, where bilinear and quadratic classification diverge and the `Metric` `q`/`b` split carries independent content |
+| semiring forms | a bilinear/quadratic layer over the `Semiring` siblings: supertropical forms (Izhakian--Knebusch--Rowen) on the idempotent side, the Hessenberg ordinal semiring on the other; motivated by the thermic-regrading obstruction — the thermic structure is not a ring, so ring-based Witt theory cannot see it. The Clifford scalar-ring boundary is untouched |
+| misère realization | which finite commutative monoids occur as indistinguishability quotients; the bounded machinery in `games::misere` turns quotient censuses into conjecture material, with misère Grundy's game the canonical wild target |
+| ko thermography | a machine-checked thermograph for loopy games with kos, validated against the known generalized-thermography examples, then its tropical structure; the linking arena's one-step ko is the in-house test case |
 
 ## Deliberately deferred
 

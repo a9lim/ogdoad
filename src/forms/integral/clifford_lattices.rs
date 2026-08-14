@@ -1,8 +1,8 @@
 //! Barnes-Wall lattices from the real Clifford-module side.
 //!
-//! The code-lattice side already builds `BW16` as Construction D from
-//! `RM(0,4) <= RM(2,4)`. This module gives the reverse bridge promised by the
-//! Clifford story: start with the real spinor module with weight basis indexed
+//! [`barnes_wall_16`](crate::forms::barnes_wall_16) builds `BW16` by Construction D
+//! from `RM(0,4) <= RM(2,4)`. This module constructs the same lattice from a real
+//! spinor module: start with a weight basis indexed
 //! by `F_2^4`, add the quadratic-phase rows coming from the degree-`<= 2`
 //! functions on that basis, and recover the same integral lattice.
 
@@ -10,7 +10,7 @@ use super::codes::{barnes_wall_16, divided_lattice_from_rows, reed_muller_code};
 use super::lattice::IntegralForm;
 use std::fmt;
 
-/// The spinor dimension in the shipped Barnes-Wall/Clifford certificate.
+/// The spinor dimension in the Barnes--Wall/Clifford certificate.
 pub const BW16_CLIFFORD_SPINOR_DIMENSION: usize = 16;
 
 /// The row-divisor in the integer numerator model for the Clifford-side `BW16`.
@@ -32,15 +32,25 @@ pub const BW16_AUTOMORPHISM_INDEX_IN_CLIFFORD_GROUP: u128 = 2;
 /// Verification record for the Clifford-side construction of `BW16`.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CliffordBarnesWall16Invariants {
+    /// Lattice constructed from Clifford-module rows.
     pub lattice: IntegralForm,
+    /// Reference Construction-D lattice.
     pub construction_d_lattice: IntegralForm,
+    /// Dimension of the real spinor module.
     pub spinor_dimension: usize,
+    /// Divisor applied to the integer row Gram matrix.
     pub row_divisor: i128,
+    /// Number of quadratic-phase rows.
     pub quadratic_phase_row_count: usize,
+    /// Number of coordinate-weight rows.
     pub coordinate_weight_row_count: usize,
+    /// Whether the two constructed Gram matrices agree.
     pub matches_construction_d: bool,
+    /// Recorded order of `Aut(BW16)`.
     pub automorphism_group_order: u128,
+    /// Recorded order of the full real Clifford group.
     pub full_clifford_group_order: u128,
+    /// Index of the automorphism group in the Clifford group.
     pub automorphism_index_in_clifford_group: u128,
 }
 
@@ -68,7 +78,7 @@ impl CliffordBarnesWall16Invariants {
             == Some(self.full_clifford_group_order)
     }
 
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }

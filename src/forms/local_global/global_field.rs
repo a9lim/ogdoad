@@ -1,54 +1,22 @@
-//! The [`GlobalField`] trait — the local–global principle written **once**, over
-//! the two kinds of global field this crate carries: the number field `ℚ`
-//! ([`Rational`]) and the function field `F_q(t)`
-//! ([`RationalFunction`]`<S>`).
+//! A common local--global interface for `Q` and odd-characteristic `F_q(t)`.
 //!
-//! [`forms::padic`](crate::forms)+[`adelic`](crate::forms) (over
-//! `ℚ`) and [`forms::function_field`](crate::forms) (over
-//! `F_q(t)`) were near-line-for-line parallel — the `_ff` suffix on the latter
-//! existed only to dodge name collisions with the former. That parallelism is not
-//! a coincidence: `ℚ` and `F_q(t)` are *the two kinds of global field*, and the
-//! local–global package (places, the Hilbert symbol, the Hasse invariant,
-//! reciprocity, Hasse–Minkowski) is **one** theory. This trait states it once, the
-//! same move [`ResidueField`](crate::scalar::ResidueField) made for the discrete
-//! Springer decomposition.
-//!
-//! # What is shared vs. what is per-field
-//!
-//! The **theorem package** — [`try_hasse_at_place`](GlobalField::try_hasse_at_place),
+//! The default methods
+//! [`try_hasse_at_place`](GlobalField::try_hasse_at_place),
 //! [`try_reciprocity_product`](GlobalField::try_reciprocity_product),
 //! [`try_ramified_places`](GlobalField::try_ramified_places), and
 //! [`try_is_isotropic_global`](GlobalField::try_is_isotropic_global)
-//! (Hasse–Minkowski) — are **default methods**, written once and identical across
-//! both fields. That is the symmetry made executable.
+//! implement the shared Hasse, reciprocity, ramification, and isotropy logic.
 //!
-//! The five **arithmetic primitives** stay per-field and delegate to the existing,
-//! tested code, because the underlying arithmetic genuinely differs: `ℚ` is
-//! `i128` number theory with square-free reduction and an **archimedean place**;
-//! `F_q(t)` is `F_q[t]` polynomial factorization with **no archimedean place**
-//! (the degree place `∞` is just another tame place). That asymmetry — the missing
-//! real place in equal characteristic — is the content, not a gap. This trait is
-//! deliberately **not** a [`Valued`](crate::scalar::Valued) abstraction: a global
-//! field carries *all* its places at once (the same reason `RationalFunction` and
-//! `Adele` are not `Valued`), so per-place residue data stays here in `forms/`.
+//! Each implementation supplies its place and arithmetic primitives. `Q` has an
+//! archimedean place; `F_q(t)` has a degree place and polynomial finite places.
+//! This is not a [`Valued`](crate::scalar::Valued) trait: a global field exposes
+//! all places rather than one selected valuation.
 //!
-//! # The characteristic-2 asymmetry
-//!
-//! Both characteristic regimes of `F_q(t)` share the **same** place type
+//! Characteristic-two function fields use the same
 //! [`FunctionFieldPlace`](crate::forms::FunctionFieldPlace) — the
-//! structural payload (a finite uniformizer or the degree place) does not depend on
-//! the residue characteristic. What does *not* unify is the symbol. In odd
-//! characteristic the quaternion/quadratic symbol is the **multiplicative**, symmetric
-//! tame Hilbert symbol `(a,b)_v ∈ {±1}` with reciprocity `∏_v (a,b)_v = +1`, and that
-//! is exactly the [`try_hilbert_symbol_at`](GlobalField::try_hilbert_symbol_at)
-//! primitive this trait abstracts. In characteristic 2 the working object is the
-//! **additive**, asymmetric Artin–Schreier symbol `s_v(a,b) ∈ F₂` (the Schmid residue)
-//! with reciprocity `Σ_v s_v(a,b) = 0` — a different group (`F₂` under XOR, not `{±1}`
-//! under product) and a different functional shape (`a` additive mod `℘`, `b`
-//! multiplicative). It therefore cannot implement the multiplicative `GlobalField`
-//! trait and lives as its own surface in
-//! [`function_field_char2`](crate::forms). That asymmetry — like
-//! the missing real place in equal characteristic — is the content, not a gap.
+//! place carrier but an additive Artin--Schreier symbol, so their symbol and
+//! reciprocity functions live in [`function_field_char2`](crate::forms) rather
+//! than this multiplicative Hilbert-symbol trait.
 
 use crate::forms::FiniteOddField;
 use crate::scalar::{Rational, RationalFunction, Scalar};
@@ -100,7 +68,7 @@ pub trait GlobalField: Scalar {
 
     /// The **Hilbert reciprocity product** `∏_v (a,b)_v` over all places — the
     /// product formula for the quaternion-algebra class `(a,b)`. It is `+1` for
-    /// every nonzero `a, b` (Hilbert/Weil reciprocity), the gold oracle.
+    /// every nonzero `a, b` by Hilbert/Weil reciprocity.
     fn try_reciprocity_product(a: &Self, b: &Self) -> Option<i128> {
         if a.is_zero() || b.is_zero() {
             return None;

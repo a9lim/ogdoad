@@ -7,7 +7,10 @@
 
 use crate::scalar::Scalar;
 
-/// Solve `A x = b` by Gauss-Jordan elimination.
+/// Solve the square system `A x = b` by unit-pivot Gauss--Jordan elimination.
+///
+/// Returns `None` if some pivot column has no invertible entry. Panics if `A`
+/// is not square with the same number of rows as `b`.
 pub(crate) fn solve<S: Scalar>(mut a: Vec<Vec<S>>, mut b: Vec<S>) -> Option<Vec<S>> {
     let n = b.len();
     // Always-on, not debug-only (matches `linalg/integer.rs`): the O(n) shape
@@ -44,7 +47,10 @@ pub(crate) fn solve<S: Scalar>(mut a: Vec<Vec<S>>, mut b: Vec<S>) -> Option<Vec<
     Some(b)
 }
 
-/// Invert a square row-major matrix by Gauss-Jordan elimination.
+/// Invert a square row-major matrix by unit-pivot Gauss--Jordan elimination.
+///
+/// Returns `None` if some pivot column has no invertible entry. Panics if the
+/// matrix is not square.
 pub(crate) fn inverse_matrix<S: Scalar>(mut m: Vec<Vec<S>>) -> Option<Vec<Vec<S>>> {
     let n = m.len();
     // Always-on; see the same-cost note in `solve` above.
@@ -84,20 +90,13 @@ pub(crate) fn inverse_matrix<S: Scalar>(mut m: Vec<Vec<S>>) -> Option<Vec<Vec<S>
     Some(inv)
 }
 
-/// A basis of the right nullspace `{ x : M x = 0 }` of a row-major matrix with
-/// `ncols` columns. A column with no unit-invertible entry among the rows not
-/// yet claimed by an earlier pivot is left unpivoted rather than failing right
-/// away: over a ring, that column may still clear for free once a later
-/// column supplies a pivot (`[[2, 1]]` over `Integer` has kernel `(1, -2)` via
-/// column 1's unit pivot, without ever dividing by the nonunit `2` in column
-/// 0). Elimination sweeps every column, not just the ones from the current
-/// pivot onward, so an unpivoted column's entries stay correct across later
-/// pivots instead of going stale. Returns `None` only when elimination is
-/// genuinely stuck: some row past the last pivot found is still nonzero, and
-/// since every pivoted column is already zero there, that nonzero entry can
-/// only sit in a column that never found a unit to pivot on. Over a field
-/// this never triggers early skipping (nonzero always has an inverse), so the
-/// field-backend contract is unchanged.
+/// A basis of the right nullspace `{x : Mx = 0}` of a row-major matrix with
+/// `ncols` columns.
+///
+/// Columns without an available unit pivot remain free while elimination
+/// continues through later columns. Returns `None` if a nonzero residual row
+/// remains after all unit pivots are exhausted. Over a field this is ordinary
+/// nullspace elimination; over a ring it succeeds only when unit pivots suffice.
 pub(crate) fn unit_pivot_nullspace<S: Scalar>(
     mut m: Vec<Vec<S>>,
     ncols: usize,

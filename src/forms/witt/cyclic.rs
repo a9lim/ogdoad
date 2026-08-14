@@ -1,11 +1,9 @@
-//! Bridge K — the **full `ℚ/ℤ` ungraded Brauer invariant** from cyclic algebras.
+//! `Q/Z`-valued local Brauer invariants from cyclic algebras.
 //!
-//! Bridge F (`brauer_rational.rs`) computes the **2-torsion** rational Brauer class
-//! as a set of ramified places (`inv_v ∈ {0, ½}`). This module lifts that surface to
-//! the **full local Brauer group** `Br(K_v) ≅ ℚ/ℤ`, the image of a **cyclic algebra**
-//! `(χ_σ, a)` under the local invariant map of class field theory. Standard math
-//! (Serre, *Local Fields*, Ch. XII; Gille–Szamuely §6.3–6.4; Reiner §§31–32) made
-//! computational — *not* a new theorem, the same status the shipped bridges hold.
+//! [`Brauer2Class`] records rational two-torsion classes as ramified places.
+//! This module also represents the full local Brauer group `Br(K_v) ≅ Q/Z` and
+//! computes the invariant of a cyclic algebra `(χ_σ, a)`. See Serre, *Local
+//! Fields*, Ch. XII; Gille--Szamuely §6.3--6.4; Reiner §§31--32.
 //!
 //! ## The cyclic algebra and its local invariant
 //!
@@ -26,26 +24,25 @@
 //! [`Valued`] base — in practice [`Qq`](crate::scalar::Qq)`<P,N,F>` over
 //! `Q_p = Qq<P,N,1>`, the only [`CyclicGaloisExtension`] whose base is local.
 //!
-//! ## The ℚ/ℤ class and the Bridge F embedding
+//! # The `Q/Z` class and two-torsion embedding
 //!
 //! [`BrauerClass`] carries `inv_v ∈ ℚ/ℤ` per place, with additive (mod-`ℤ`) law. The
 //! 2-torsion [`Brauer2Class`] embeds as the `½`-slice
 //! ([`from_two_torsion`](BrauerClass::from_two_torsion) /
-//! [`two_torsion`](BrauerClass::two_torsion)): all of Bridge F — quadratic-form Brauer
-//! classes are 2-torsion — lands inside this ambient group, which additionally sees the
-//! `n>2` classes Bridge F cannot. One ambient group, two constructors.
+//! [`two_torsion`](BrauerClass::two_torsion)); cyclic algebras of degree above two
+//! can represent classes outside that slice.
 //!
-//! ## Scope (honest boundaries)
+//! # Scope
 //!
 //! - [`cyclic_algebra_invariant`] is **unramified-at-`v` only**: the `v(a)/n`
 //!   formula applies to the unramified cyclic character. The tame Kummer slice is
 //!   separate: [`tame_symbol_exponent`] / [`tame_symbol_invariant`] implement the
 //!   explicit residue tame symbol when `n | |κ*|`. Wild symbols remain out of scope.
-//! - **Ungraded** Brauer group — kept strictly distinct from the graded
-//!   [`BrauerWallClass`](crate::forms::bw_class_real), exactly as Bridge F insists.
+//! - This is the **ungraded** Brauer group, distinct from
+//!   [`BrauerWallClass`](crate::forms::bw_class_real).
 //! - The archimedean place (`Br(ℝ) = ½ℤ/ℤ`) and the finite legs carry no `v(a)/n`
 //!   invariant: over a finite field every central simple algebra splits (Wedderburn),
-//!   so the Gold forms have no `inv`; their classifier is Arf/Brauer–Wall (Bridge B).
+//!   so finite characteristic-two forms use Arf/Brauer--Wall invariants instead.
 //!   The real place enters only through the 2-torsion [`from_two_torsion`] embedding.
 
 use std::collections::{BTreeMap, BTreeSet};
@@ -61,6 +58,40 @@ use crate::scalar::{
 fn frac_mod_one(r: &Rational) -> Rational {
     Rational::try_new(r.numer().rem_euclid(r.denom()), r.denom())
         .expect("a positive denominator stays valid under rem_euclid")
+}
+
+/// Local invariant under Brauer restriction along a finite extension `L_w/K_v`:
+///
+/// `inv_w(res(alpha)) = [L_w:K_v] * inv_v(alpha)` in `Q/Z`.
+///
+/// The result is reduced to `[0,1)`.  Degree zero is rejected because it does not
+/// describe a field extension.
+pub fn brauer_restrict_local_invariant(
+    invariant: &Rational,
+    local_degree: usize,
+) -> Option<Rational> {
+    if local_degree == 0 {
+        return None;
+    }
+    let degree = i128::try_from(local_degree).ok()?;
+    Some(frac_mod_one(&invariant.mul(&Rational::from_int(degree))))
+}
+
+/// Local invariant under global Brauer corestriction at a base place `v`:
+///
+/// `inv_v(cor(alpha)) = sum_{w|v} inv_w(alpha)` in `Q/Z`.
+///
+/// For one extension of local fields there is a single `w`, so corestriction
+/// preserves the local invariant.  Combined with
+/// [`brauer_restrict_local_invariant`], this gives
+/// `cor(res(alpha)) = [L:K] alpha` because the local degrees over `v` sum to the
+/// global degree.
+pub fn brauer_corestrict_local_invariants(invariants: &[Rational]) -> Rational {
+    frac_mod_one(
+        &invariants
+            .iter()
+            .fold(Rational::zero(), |acc, invariant| acc.add(invariant)),
+    )
 }
 
 /// Finite residue fields whose multiplicative group can be enumerated to evaluate
@@ -194,7 +225,7 @@ fn residue_tame_symbol_exponent<F: TameSymbolResidueField>(
 /// with zero entries omitted (so the split class is the empty map). The group law is
 /// entrywise addition mod `ℤ`.
 ///
-/// This is the full-`ℚ/ℤ` ambient group of which Bridge F's 2-torsion
+/// This is the full-`Q/Z` ambient group containing the two-torsion
 /// [`Brauer2Class`] is the `½`-slice (see
 /// [`from_two_torsion`](Self::from_two_torsion) / [`two_torsion`](Self::two_torsion)).
 /// Keyed by [`Place`] (`ℝ` before `Prime(p)`, the order `Place` derives); the
@@ -274,7 +305,7 @@ impl BrauerClass {
 
     /// The sum `∑_v inv_v` mod `ℤ` — the reduced value in `[0, 1)`. For a **global**
     /// Brauer class it is `0` (the Albert–Brauer–Hasse–Noether reciprocity law; the
-    /// full-`ℚ/ℤ` strengthening of Bridge F's even-ramification statement).
+    /// full-`Q/Z` form of the even-ramification statement).
     pub fn invariant_sum(&self) -> Rational {
         frac_mod_one(
             &self
@@ -284,7 +315,7 @@ impl BrauerClass {
         )
     }
 
-    /// Embed Bridge F's 2-torsion [`Brauer2Class`] as the `½`-slice: every ramified
+    /// Embed a two-torsion [`Brauer2Class`] as the `1/2` slice: every ramified
     /// place `v` gets `inv_v = ½`. A group monomorphism onto the 2-torsion of
     /// `⊕_v ℚ/ℤ` (XOR of indicator sets = addition of `½`'s mod `1`).
     pub fn from_two_torsion(class: &Brauer2Class) -> Self {
@@ -313,7 +344,7 @@ impl BrauerClass {
         Some(set)
     }
 
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -476,10 +507,54 @@ mod tests {
         );
     }
 
-    // ───────────────────── Bridge F as the 2-torsion slice ─────────────────────
+    #[test]
+    fn restriction_and_corestriction_obey_local_degree_formulas() {
+        assert_eq!(
+            brauer_restrict_local_invariant(&third(), 2),
+            Some(two_thirds())
+        );
+        assert_eq!(
+            brauer_restrict_local_invariant(&third(), 3),
+            Some(Rational::zero())
+        );
+        assert_eq!(brauer_restrict_local_invariant(&third(), 0), None);
+
+        // Three places over v with local degrees 1, 2, and 3.  Corestricting the
+        // restricted invariants multiplies alpha by their sum, the global degree 6.
+        let restricted =
+            [1usize, 2, 3].map(|degree| brauer_restrict_local_invariant(&q(1, 4), degree).unwrap());
+        assert_eq!(
+            brauer_corestrict_local_invariants(&restricted),
+            brauer_restrict_local_invariant(&q(1, 4), 6).unwrap(),
+        );
+        assert_eq!(
+            brauer_corestrict_local_invariants(&[third(), two_thirds()]),
+            Rational::zero()
+        );
+    }
 
     #[test]
-    fn two_torsion_round_trips_with_bridge_f() {
+    fn restriction_preserves_global_brauer_reciprocity() {
+        let global = BrauerClass::from_local([
+            (Place::Prime(2), third()),
+            (Place::Prime(3), third()),
+            (Place::Prime(5), third()),
+        ]);
+        let restricted =
+            BrauerClass::from_local(global.local().iter().map(|(&place, invariant)| {
+                (
+                    place,
+                    brauer_restrict_local_invariant(invariant, 2).unwrap(),
+                )
+            }));
+        assert_eq!(global.invariant_sum(), Rational::zero());
+        assert_eq!(restricted.invariant_sum(), Rational::zero());
+    }
+
+    // Two-torsion slice.
+
+    #[test]
+    fn two_torsion_round_trips() {
         // Hamilton's quaternions (−1,−1): ramified {ℝ, Q_2}.
         let f = Brauer2Class::quaternion(-1, -1).unwrap();
         let k = BrauerClass::from_two_torsion(&f);
@@ -498,9 +573,7 @@ mod tests {
 
     #[test]
     fn reciprocity_reread_through_brauer_class() {
-        // The shipped quaternion reciprocity (Σ inv_v ≡ 0) re-read through the
-        // ℚ/ℤ class: from_two_torsion ∘ quaternion has invariant_sum 0, pinning the
-        // §5 embedding against `brauer_invariant_sum_is_zero_in_q_mod_z`.
+        // Quaternion reciprocity through the Q/Z representation.
         for (a, b) in [(-1i128, -1i128), (-1, 7), (2, 3), (-3, 5), (6, -7)] {
             let f = Brauer2Class::quaternion(a, b).unwrap();
             assert_eq!(
@@ -546,15 +619,14 @@ mod tests {
     }
 
     #[test]
-    fn degree_two_compat_with_shipped_quaternion_invariant() {
-        // The lift is a lift: for d = 2 (a nonsquare unit at 5), the degree-2 cyclic
-        // invariant over the unramified quadratic equals the shipped quaternion
-        // brauer_local_invariants(d, a) at Prime(5), place by place over a v-sweep.
+    fn degree_two_matches_quaternion_invariant() {
+        // For d = 2, the degree-two cyclic invariant equals the quaternion local
+        // invariant at Q_5.
         let d = 2i128; // nonsquare mod 5 (squares are {1,4})
         for (a, v) in [(1i128, 0i128), (5, 1), (25, 2), (125, 3)] {
-            // Bridge K (Qq leg): v(a)/2 mod ℤ.
+            // Unramified cyclic-algebra invariant: v(a)/2 mod Z.
             let k = cyclic_algebra_invariant::<Qq<5, 4, 2>>(&Qp::from_int(a)).unwrap();
-            // Bridge F (shipped): the inv at Prime(5) of the quaternion (d, a)_ℚ.
+            // Two-torsion invariant of the quaternion (d, a) at Q_5.
             let invs =
                 brauer_local_invariants(&Rational::from_int(d), &Rational::from_int(a)).unwrap();
             let f = invs
@@ -589,6 +661,24 @@ mod tests {
         );
         // n-torsion: 3·inv(a) ≡ 0.
         assert_eq!(frac_mod_one(&i1.add(&i1).add(&i1)), Rational::zero());
+    }
+
+    #[test]
+    fn qq_cyclic_invariant_obeys_restriction_corestriction() {
+        let invariant = cyclic_algebra_invariant::<Qq<5, 4, 3>>(&Qp::from_int(5)).unwrap();
+        assert_eq!(invariant, third());
+        let restricted = brauer_restrict_local_invariant(&invariant, 2).unwrap();
+        assert_eq!(restricted, two_thirds());
+        assert_eq!(
+            brauer_corestrict_local_invariants(std::slice::from_ref(&restricted)),
+            restricted,
+            "local corestriction preserves the invariant",
+        );
+        assert_eq!(
+            brauer_corestrict_local_invariants(std::slice::from_ref(&restricted)),
+            brauer_restrict_local_invariant(&invariant, 2).unwrap(),
+            "cor(res(alpha)) = 2 alpha",
+        );
     }
 
     #[test]
@@ -663,7 +753,7 @@ mod tests {
         assert_eq!(tame_symbol_invariant(8, &pi, &g), Some(q(7, 8)));
     }
 
-    // ───────────────── §6 trace-form tie: the degree-2 norm-form oracle ─────────────────
+    // Degree-two norm-form comparison.
 
     #[test]
     fn degree_two_norm_form_oracle() {
@@ -671,7 +761,7 @@ mod tests {
         // quaternion (−1, a)_ℚ. Its reduced-norm form is ⟨1,1,−a,−a⟩ (= ½·Q₁ ⊥
         // (−a/2)·Q₁ with Q₁ = trace_twisted_form::<Surcomplex<Rational>>(1) = ⟨2,2⟩),
         // and the algebra splits at v ⇔ that form is isotropic over ℚ_v ⇔ inv_v = 0.
-        // Ties Bridge K's invariant to the shipped Hasse–Minkowski layer.
+        // Compare the cyclic invariant with local Hasse--Minkowski isotropy.
         use crate::forms::trace_twisted_form;
 
         // the trace-form half of the tie: Q₁ = ⟨2,2⟩.
@@ -680,7 +770,7 @@ mod tests {
         assert!(q1.b.is_empty());
 
         for a in [-7i128, -3, -2, -1, 2, 3, 5, 6, 7] {
-            // the 2-torsion class of (−1, a)_ℚ (Bridge F), lifted into ℚ/ℤ (Bridge K).
+            // Lift the two-torsion class of (−1, a) into Q/Z.
             let class = BrauerClass::from_two_torsion(&Brauer2Class::quaternion(-1, a).unwrap());
             // the reduced-norm form ⟨1,1,−a,−a⟩.
             let nrd: Vec<i128> = vec![1, 1, -a, -a];

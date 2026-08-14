@@ -1,16 +1,23 @@
-//! grundy, the small expression language over ogdoad scalar worlds.
+//! The grundy expression language over Ogdoad's scalar, Clifford, polynomial,
+//! and game worlds.
 //!
-//! The language contract lives in `docs/spec.md` (in this crate); the runtime
-//! architecture in `docs/implementation.md`. This crate is the pure Rust
-//! parser/evaluator over the published `ogdoad` core — unpublished
-//! (`publish = false`) while the language is pre-release, so the ogdoad crate
-//! carries no grundy surface until the language ships.
+//! `docs/spec.md` is the language contract and `docs/implementation.md`
+//! describes the runtime. This workspace crate is unpublished and depends only
+//! on Ogdoad's public Rust API.
 
+#![warn(missing_docs)]
+
+/// Parsed syntax tree types.
 pub mod ast;
+/// Structured evaluator errors and result types.
 pub mod error;
+/// Evaluation entry points and fixed world metadata.
 pub mod eval;
+/// Tokenization and statement-continuation detection.
 pub mod lex;
+/// Parsing from source text to syntax trees.
 pub mod parse;
+/// Canonical source rendering for syntax trees.
 pub mod unparse;
 
 pub use error::{GrundyError, GrundyErrorKind, GrundyResult, Span};

@@ -208,7 +208,7 @@ fn nimber_ring_axioms_on_representation_sentinels() {
     }
 }
 
-// --- transfinite ordinal nimbers On₂: Scalar on the verified tower, checked partial field ---
+// --- transfinite ordinal nimbers: Scalar on the represented tower, checked partial field ---
 //
 // `Ordinal` implements `Scalar` with panic-on-escape multiplication for the
 // Clifford engine, but the non-panicking mathematical surface is still
@@ -217,12 +217,10 @@ fn nimber_ring_axioms_on_representation_sentinels() {
 // defined, with full commutative-ring laws on the `< ω^ω` segment and
 // opportunistic associativity past it.
 
-/// True iff every CNF exponent is finite — i.e. the ordinal is `< ω^ω`. Nim-
-/// multiplication is actually implemented far past this (the source-verified
-/// prime-power generator tower reaches every ordinal `< ω^(ω^ω)`, `src/scalar/
-/// big/ordinal/tower.rs`); `< ω^ω` is just the sub-region this fuzzer picks
-/// because it is unconditionally closed under `⊗`, so full ring-axiom coverage
-/// applies below it and only opportunistic associativity above.
+/// True iff every CNF exponent is finite, so the ordinal is `< ω^ω`.
+/// The implementation also supports selected larger products when their Kummer
+/// carries use the represented rows in `src/scalar/big/ordinal/tower.rs`; this
+/// predicate identifies the finite-exponent region sampled by this test.
 fn below_omega_omega(o: &Ordinal) -> bool {
     o.terms().iter().all(|(e, _)| e.as_finite().is_some())
 }

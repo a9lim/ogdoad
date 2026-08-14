@@ -1,6 +1,6 @@
 //! The exterior (Grassmann) Hopf algebra structure on the multivector engine:
-//! coproduct, counit, antipode, with the Hopf axioms verified over both
-//! characteristics.
+//! coproduct, counit, and antipode. Tests exercise the Hopf laws in
+//! characteristic zero and characteristic two.
 //!
 //! On the exterior algebra `Λ(V)` (the `grassmann` metric) the generators are
 //! **primitive** — `Δ(e_i) = e_i ⊗ 1 + 1 ⊗ e_i` — and `Δ` extends as an algebra
@@ -20,7 +20,7 @@
 //! on `Λ^k` — the **grade involution**, *not* `reverse ∘ grade_involution`.
 //! Check on `v ∧ w`: `m(S⊗id)Δ(vw) = S(vw) − v∧w` must equal `ε(vw)·1 = 0`, so
 //! `S(vw) = +v∧w = (−1)^2 vw`; the reversion-twisted sign `(−1)^{k(k+1)/2}` would
-//! give `−vw` and fail the axiom. The tests pin this down.
+//! give `−vw` and fail the axiom.
 //!
 //! A tensor element `e_T ⊗ e_U` of `Cl ⊗̂ Cl` is encoded as the blade
 //! `T | (U << dim)` of `tensor_square(alg)` (the low block is the left factor,

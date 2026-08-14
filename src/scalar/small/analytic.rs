@@ -1,11 +1,9 @@
-//! The **analytic layer** for the non-Archimedean local worlds — the p-adic
-//! mirror of [`surreal/analytic.rs`](crate::scalar::Surreal#method.sqrt).
+//! Checked roots and Teichmüller lifts for the non-Archimedean local models.
 //!
-//! Where [`Surreal::sqrt_to_terms`](crate::scalar::Surreal::sqrt_to_terms) extracts real roots from
+//! [`Surreal::sqrt_to_terms`](crate::scalar::Surreal::sqrt_to_terms) extracts real roots from
 //! a Hahn series and [`Surreal::inv_to_terms`](crate::scalar::Surreal::inv_to_terms)
-//! sums a Neumann series, the local fields/rings get the operations that make
-//! "these worlds can take roots and name canonical lifts" true on the
-//! non-Archimedean side:
+//! sums a Neumann series; the local models instead use residue tests and Hensel
+//! lifting:
 //!
 //!   * [`is_square`](Zp::is_square) / [`sqrt`](Zp::sqrt) — checked squarehood and
 //!     root construction. For odd `p` these are **Hensel-lifted** square roots: a
@@ -16,27 +14,20 @@
 //!     facts determined by the retained representation, and the root itself remains
 //!     unknown unless it is zero or definitely absent.
 //!   * [`teichmuller`](Zp::teichmuller) — the **Teichmüller representative** `τ(a)`,
-//!     the unique `(q−1)`-th root of unity lifting a residue `a`, via the power
-//!     iteration `t ← t^p`. [`WittVec`](crate::scalar::WittVec::teichmuller)
-//!     already carries this (its Witt coordinates need it); this adds the same lift
-//!     to `Zp`/`Qp`/`Qq`, closing the asymmetry that `Zp = W_K(F_p)` lacked it.
+//!     the unique multiplicative lift of a residue. The same operation is exposed
+//!     by [`WittVec`](crate::scalar::WittVec::teichmuller).
 //!
-//! ## Scope (honest boundary)
+//! ## Scope
 //!
 //! The checked root APIs return an outer `None` when the represented precision is
 //! insufficient or the construction is not implemented, and `Some(None)` when the
-//! value is definitely not a square. `teichmuller` works for every `p` (no division).
-//! The natural next operations — `nth_root` (Hensel for `gcd(k, p) = 1`) and the
-//! p-adic `log`/`exp` (convergent on `v ≥ 1` / `1 + p𝒪`) — are deliberately left
-//! for a follow-up, the same way the surreal layer grew incrementally.
+//! value is definitely not a square. `teichmuller` works for every `p`.
 
 use crate::scalar::analytic::{fp_is_square, fp_sqrt, fq_sqrt};
 use crate::scalar::{Fp, Fpn, Qp, Qq, Scalar, WittVec, Zp};
 
-// The residue-field square roots (`fp_is_square` / `fp_sqrt` / `fq_sqrt`) that
-// seed the Hensel lifts here now live at the analytic root in
-// [`crate::scalar::analytic`], shared with the `ExactRoots` impls for the finite
-// fields. This module keeps the p-adic-specific Newton lift and Teichmüller rep.
+// Residue-field square roots are shared with the finite-field `ExactRoots`
+// implementations. This module adds p-adic Newton lifts and Teichmüller sections.
 
 // ───────────────────────── generic lift helpers ─────────────────────────
 

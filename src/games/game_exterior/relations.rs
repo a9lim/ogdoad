@@ -6,11 +6,18 @@ use crate::linalg::integer::reduce_integer_vector;
 use std::fmt;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+/// An integer relation among a fixed ordered tuple of game generators.
 pub struct GameRelation {
+    /// Coefficients in generator order.
     pub coeffs: Vec<i128>,
 }
 
 impl GameRelation {
+    /// Construct a nonzero relation vector.
+    ///
+    /// # Panics
+    ///
+    /// Panics when every coefficient is zero.
     pub fn new(coeffs: Vec<i128>) -> Self {
         assert!(
             coeffs.iter().any(|&c| c != 0),
@@ -33,16 +40,14 @@ pub struct GameRelationCertificate {
 }
 
 impl GameRelationCertificate {
-    /// `display()` alias kept for Python callers.
+    /// Python-visible rendering alias.
     pub fn display(&self) -> String {
         self.to_string()
     }
 }
 
 impl fmt::Display for GameRelationCertificate {
-    /// Byte-matches the hand-rolled `__repr__` in `src/py/games.rs`
-    /// (`PyGameRelationCertificate`), so a future delegation there is
-    /// behavior-preserving.
+    /// Render the coefficient vector and its canonical zero-value certificate.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -67,23 +72,19 @@ pub struct RelationSearchCertificate {
 }
 
 impl RelationSearchCertificate {
-    /// `display()` alias kept for Python callers.
+    /// Python-visible rendering alias.
     pub fn display(&self) -> String {
         self.to_string()
     }
 }
 
 impl fmt::Display for RelationSearchCertificate {
-    /// One line, leading with the completeness verdict: an incomplete search
-    /// says so up front rather than burying `exhaustive` in a field dump.
+    /// One-line summary beginning with the completeness verdict.
     /// `exhaustive = false` means only singleton-coefficient candidates were
     /// tried and the full cross-generator coefficient box (`candidate_count`,
     /// when its size is known) went unexplored — the case
     /// `game_exterior_new_default_bound_is_incomplete_at_three_generators`
-    /// (`game_exterior/mod.rs`) pins for `GameExterior::new`'s default bound.
-    /// This intentionally does NOT byte-match the current hand-rolled
-    /// `src/py/games.rs` `__repr__` (a bare field dump): the completeness
-    /// verdict needs to be visually unmissable, not merely present.
+    /// pins this behavior for [`GameExterior::new`](super::GameExterior::new).
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let n = self.relations.len();
         match (self.exhaustive, self.candidate_count) {
@@ -170,8 +171,7 @@ mod tests {
 
     #[test]
     fn game_relation_certificate_render_byte_matches_py_repr() {
-        // Pinned against the hand-rolled `PyGameRelationCertificate::__repr__`
-        // in src/py/games.rs so a future delegation there is a no-op.
+        // Keep the Rust and Python renderings byte-identical.
         let cert = GameRelationCertificate {
             coeffs: vec![1, -1],
             value_key: "0".to_string(),

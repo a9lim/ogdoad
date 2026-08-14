@@ -506,7 +506,7 @@ impl GameRuntime {
                     GameElement::Finite(game) => Ok(GameElement::Finite(game.canonical())),
                     GameElement::Graph(_) => {
                         Err(loopy_error("`canon` is not defined on loopy games")
-                            .with_hint("graph fusion is not yet in the envelope"))
+                            .with_hint("graph fusion is outside the supported envelope"))
                     }
                 }
             }
@@ -534,7 +534,7 @@ impl GameRuntime {
                 "`{name}` is a function-world operation, not a game operation"
             ))),
             "hasdraw" | "stopper" | "integral" => Err(bool_sort_error()),
-            "drawn" => Err(renamed_function_error("drawn", "hasdraw")),
+            "drawn" => Err(function_replacement_error("drawn", "hasdraw")),
             "outcome" | "winner" | "who" => Err(outcome_name_error(name)),
             _ => Err(GrundyError::new(
                 GrundyErrorKind::UnknownFn,

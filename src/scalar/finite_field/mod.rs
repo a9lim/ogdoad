@@ -1,8 +1,6 @@
-//! **Finite fields** — the residue worlds, where the field is finite. The whole
-//! char trichotomy's finite leg, plus the unramified ring of integers that mirrors
-//! `Z_p`:
+//! Finite fields and truncated unramified coefficient rings.
 //!
-//!   * [`fp`] — `F_p`, the prime fields (odd characteristic): the residue field of
+//!   * [`fp`] — `F_p`, the prime fields: the residue field of
 //!     `Z_p`, and the base of every extension here.
 //!   * [`fpn`] — `F_{p^n}`, finite extension fields via generated irreducible
 //!     reduction polynomials. Completes the odd-char tower *and* the char-2
@@ -11,9 +9,7 @@
 //!     `add = XOR` and `mul` is the coin-turning game product. The main char-2
 //!     backend; the only finite field that is also a game-value field.
 //!   * [`wittvec`] — `W_N(F_q)`, the truncated Witt vectors `(Z/p^N)[t]/(f̃)`: the
-//!     unramified ring of integers over the residue field `F_q`. The char-p mirror
-//!     of `Z_p` (which is `W(F_p)`) — completing the (field, ring of integers)
-//!     pattern in positive characteristic.
+//!     represented unramified ring of integers over the residue field `F_q`.
 //!
 //! [`nimber`] and [`fpn`] share a finite-field analysis toolkit (Frobenius orbit,
 //! degree, minimal polynomial, relative trace/norm, multiplicative order, discrete

@@ -1,7 +1,10 @@
+//! Canonical rendering of parsed syntax.
+
 use super::ast::{
     BinaryOp, Binding, DataSort, Expr, LambdaBinder, RelOp, StarLiteral, Statement, UnaryOp,
 };
 
+/// Render a statement in canonical grundy syntax.
 pub fn unparse_statement(stmt: &Statement) -> String {
     match stmt {
         Statement::Binding {
@@ -22,6 +25,7 @@ pub fn unparse_statement(stmt: &Statement) -> String {
     }
 }
 
+/// Render an expression with canonical operators and minimal parentheses.
 pub fn unparse_expr(expr: &Expr) -> String {
     unparse_prec(expr, 0, false)
 }

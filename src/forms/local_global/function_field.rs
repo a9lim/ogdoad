@@ -1,31 +1,16 @@
-//! Places, the Hilbert symbol, and Hilbert reciprocity over the **global function
-//! field** `F_q(t)` — the equal-characteristic (char `p`) mirror of
-//! [`forms::padic`](crate::forms) over `ℚ`.
-//!
-//! `F_q(t)` is a global field exactly like `ℚ`, with one structural simplification
-//! and one structural difference:
-//!
-//!   * **simpler:** `q` is odd, so *every* residue field `κ(π) = F_q[t]/(π) =
-//!     F_{q^{deg π}}` has odd characteristic. The Hilbert symbol is therefore the
-//!     **tame symbol** at every place — there is **no `p = 2` branch** (the messy
-//!     mod-8 case that `local_global/padic.rs` carries). The residue-characteristic-2 boundary
-//!     is the `springer_laurent` boundary; char-2 function fields are out of scope.
-//!   * **different:** there is **no archimedean place**. The role of `ℝ` is played
-//!     by the **degree place `∞`** (uniformizer `1/t`, residue field `F_q`), which
-//!     is just another tame place — so Hasse–Minkowski over `F_q(t)` has no
-//!     definiteness condition (see
-//!     [`try_is_isotropic_ff`]).
+//! Places, Hilbert symbols, reciprocity, and isotropy over `F_q(t)` for odd `q`.
 //!
 //! The places of `F_q(t)`: the **finite** places are the monic irreducible
 //! polynomials `π(t) ∈ F_q[t]` (residue field `F_{q^{deg π}}`), and the one
 //! **infinite** place `∞` is the degree valuation `v_∞(f) = deg(den) − deg(num)`.
-//! Reciprocity `∏_v (a,b)_v = +1` (Weil) is the gold oracle, exact here.
+//! Every place has odd residue characteristic, so the Hilbert symbol is tame;
+//! reciprocity gives `∏_v (a,b)_v = +1`.
 //!
 //! Entries are elements of [`RationalFunction`] `= F_q(t)`; everything reduces to
 //! [`Poly`] arithmetic over `F_q`, with the residue quadratic character computed by
-//! Euler's criterion `u^{(|κ|−1)/2}` in `F_q[t]/(π)`. Bridge K's tame Kummer helpers
-//! use the same place data, replacing the quadratic character by the full tame symbol
-//! when `μ_n` already lives in the constant field.
+//! Euler's criterion `u^{(|κ|−1)/2}` in `F_q[t]/(π)`. Characteristic-two
+//! Artin--Schreier symbols are implemented separately in
+//! [`function_field_char2`](crate::forms).
 
 use crate::forms::{is_square_finite, FiniteOddField};
 use crate::scalar::{Poly, Rational, RationalFunction, Scalar};
@@ -420,7 +405,7 @@ impl<S: FiniteOddField> FFAdelicIsotropy<S> {
         self.local.iter().all(|(_, iso)| *iso)
     }
 
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -465,7 +450,7 @@ pub fn try_ramified_places_ff<S: FiniteOddField>(
     <RationalFunction<S> as crate::forms::GlobalField>::try_ramified_places(a, b)
 }
 
-// ───────────────────── Bridge K: the constant-extension cyclic class ─────────────────────
+// Constant-extension cyclic classes.
 
 /// The canonical representative in `[0, 1)` of `m/n` mod `ℤ` (`n > 0`).
 fn frac_mod_one_ratio(m: i128, n: i128) -> Option<Rational> {
@@ -672,13 +657,10 @@ pub fn tame_symbol_invariant_sum_ff<S: FiniteOddField>(
 
 /// The local invariants `inv_v = deg(v)·v(a)/n (mod ℤ)` of the **constant-extension**
 /// cyclic algebra `(χ_σ, a)` over `K = F_q(t)`, where `E = F_{qⁿ}(t)` is the degree-`n`
-/// constant extension and `σ` is the `q`-power Frobenius. This is Bridge K at full
-/// **`ℚ/ℤ` strength** over a global field — and the function-field route is the *clean*
-/// one: a constant extension is **unramified at every place** (including `∞`), with
+/// constant extension and `σ` is the `q`-power Frobenius. A constant extension is
+/// **unramified at every place** (including `∞`), with
 /// `Frob_v = σ^{deg v}`, so the general local symbol collapses to the formula above and
-/// no ramified symbols are ever needed. (Over `ℚ`, by Minkowski every cyclic extension
-/// of degree `> 1` ramifies somewhere, so the `n > 2` story needs ramified symbols —
-/// out of this bridge's scope; here it falls out for free.)
+/// no ramified symbols are needed.
 ///
 /// Returns `(place, inv_v)` at each relevant place with nonzero invariant, mirroring
 /// the shape of [`brauer_local_invariants`](crate::forms::brauer_local_invariants)
@@ -865,7 +847,7 @@ mod tests {
 
     #[test]
     fn reciprocity_holds_small() {
-        // ∏_v (a,b)_v = +1 — the gold oracle, exact over F_q(t).
+        // Weil reciprocity: ∏_v (a,b)_v = +1 over F_q(t).
         let samples = [
             rf(&[0, 1], &[1]),    // t
             rf(&[1, 1], &[1]),    // t+1
@@ -1059,7 +1041,7 @@ mod tests {
 
     #[test]
     fn constant_extension_reciprocity_full_strength() {
-        // Bridge K at full ℚ/ℤ strength: Σ_v deg(v)·v(a)/n ≡ 0 for constant extensions
+        // Σ_v deg(v)·v(a)/n ≡ 0 for constant extensions
         // of *any* degree n (not only the 2-torsion ½-slice) — reduced to deg(div a)=0,
         // with no ramified symbols (every place is unramified in a constant extension).
         let samples = [
@@ -1106,7 +1088,7 @@ mod tests {
             .map(|(_, r)| r.clone());
         assert_eq!(at_t, Some(Rational::try_new(1, 3).unwrap()));
         // a degree-2 place carries deg(v)=2: at π = t²+2 (v=1), inv = 2/3 for n=3 —
-        // a value invisible to the 2-torsion Bridge F surface.
+        // a value outside the two-torsion slice.
         let invs_b = constant_extension_invariants(3, &rf(&[2, 0, 1], &[1])).unwrap();
         let at_b = invs_b
             .iter()

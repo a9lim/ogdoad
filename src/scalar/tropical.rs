@@ -1,5 +1,4 @@
-//! The tropical (min-plus / max-plus) semiring — the algebraic structure that
-//! combinatorial-game **thermography** already computes unnamed.
+//! Min-plus and max-plus tropical semirings.
 //!
 //! A *semiring* keeps a ring's two operations and distributivity but **drops the
 //! additive inverse**: tropical ⊕ is idempotent (`a ⊕ a = a`), so there is no
@@ -8,14 +7,12 @@
 //! and an idempotent ⊕ has no inverse to give one. The boundary mirrors the one
 //! the games pillar already draws — games under disjunctive sum are an abelian
 //! *group*, not a ring, so the Clifford story lives only on the field-like cores.
-//! [`Semiring`] is therefore a **sibling trait** (like [`Valued`](crate::scalar::Valued)
-//! /[`ResidueField`](crate::scalar::ResidueField)), not a `Scalar` supertrait; its
-//! impl delegates to inherent methods of the same name.
+//! [`Semiring`] is therefore separate from [`Scalar`].
 //!
 //! # Two dual conventions
 //!
 //! Tropical arithmetic comes in two mirror-image flavours, and thermography uses
-//! **both at once** (the two scaffold walls live in dual semirings — see
+//! **both** (the two thermograph walls live in dual semirings; see
 //! [`crate::games::tropical_thermography`]):
 //!
 //! | convention | ⊕ (`add`) | ⊕-identity `zero` | ⊗ (`mul`) | ⊗-identity `one` |
@@ -25,8 +22,7 @@
 //!
 //! The convention is a compile-time marker, so [`Tropical<MaxPlus>`] and
 //! [`Tropical<MinPlus>`] are **distinct types** — the type system forbids mixing
-//! the dual walls — that share one implementation body (the `Surcomplex<S>` /
-//! `Laurent<S, K>` move).
+//! the dual conventions while sharing one implementation.
 
 use crate::scalar::{Rational, Scalar};
 use std::cmp::Ordering;

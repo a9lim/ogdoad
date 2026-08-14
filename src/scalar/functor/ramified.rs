@@ -1,18 +1,7 @@
 //! Ramified (totally ramified) local extensions: adjoin a uniformizer `π` with
 //! `πᴱ = ϖ` (the base uniformizer) to a [`Valued`] field — `π` is a root of an
-//! Eisenstein polynomial, the mnemonic the old type name carried.
-//!
-//! This is the **third root-level functor**, completing the square of ways to
-//! grow a field beside [`Surcomplex`](crate::scalar::Surcomplex) and
-//! [`Laurent`](crate::scalar::Laurent):
-//!
-//!   * `Surcomplex<S>` adjoins an **algebraic, residue-extending** root (of
-//!     `x² + 1`) — the *unramified* flavour.
-//!   * `Laurent<S, K>` adjoins a **transcendental, value-group-extending** element
-//!     `t` with a fresh valuation.
-//!   * `Ramified<S, E>` adjoins an **algebraic, value-group-extending** root of
-//!     the Eisenstein polynomial `xᴱ − ϖ` — the *ramified* flavour, the cell the
-//!     table was missing. It refines the value group: `v(π) = 1`, `v(ϖ) = E`.
+//! Eisenstein polynomial. The normalized extension valuation satisfies
+//! `v(π) = 1` and `v(ϖ) = E`.
 //!
 //! Applied to [`Qp`](crate::scalar::Qp) it is the totally ramified extension
 //! `Q_p(p^{1/E})` (the ramified twin of the unramified `Q_q`); applied to
@@ -25,9 +14,8 @@
 //! field whenever `S` is — and `inv` is total on nonzero. Over a char-0 base
 //! (`Qp`, `Qq`) the extension is also separable for all `E`. Over an
 //! equal-characteristic base (`Laurent` of char `p`) it is **inseparable** when
-//! `p | E` (wild ramification): still a field, still computable here, but with a
-//! trivial automorphism group and a degenerate trace form — a Galois-theory
-//! subtlety that does not touch the ring arithmetic. (Note we cannot guard `p | E`
+//! `p | E`; the trace can then be degenerate. This does not affect the ring
+//! arithmetic. (The implementation cannot guard `p | E`
 //! generically: the residue characteristic is hidden in the base's const params,
 //! and `Qp::characteristic()` reports `0`.)
 //!
@@ -35,9 +23,8 @@
 //!
 //! Every [`Valued`] base in this crate (`Qp`/`Qq`/`Laurent`) is a *capped-relative
 //! precision model*, so `Ramified` over it inherits that contract: additive
-//! cancellation below the retained window reads as `0`. The `E = 2` inverse is
-//! exact (norm/conjugate closed form: a single scalar division, no Gaussian
-//! elimination). For `E ≥ 3` the inverse is computed via Gaussian elimination over
+//! cancellation below the retained window reads as `0`. The `E = 2` inverse uses
+//! the norm/conjugate closed form. For `E ≥ 3`, inverse is computed by Gaussian elimination over
 //! the base field, so it is correct only to the retained relative precision —
 //! `x · x⁻¹ = 1` up to a residual of valuation `≫ K`, not bit-exactly. Like its
 //! bases it is therefore **excluded from the exact-ring fuzz suite**. The

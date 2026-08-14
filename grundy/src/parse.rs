@@ -1,3 +1,5 @@
+//! Parser for one grundy statement or statement sequence.
+
 use super::ast::{
     BinaryOp, Binding, DataSort, Expr, LambdaBinder, RelOp, StarLiteral, Statement, UnaryOp,
 };
@@ -5,6 +7,7 @@ use super::error::{GrundyError, GrundyErrorKind, GrundyResult, Span};
 use super::lex::{lex, Token, TokenKind};
 use ogdoad::scalar::Ordinal;
 
+/// Parse one complete source statement.
 pub fn parse_statement(src: &str) -> GrundyResult<Statement> {
     let tokens = lex(src)?;
     let mut parser = Parser { tokens, pos: 0 };

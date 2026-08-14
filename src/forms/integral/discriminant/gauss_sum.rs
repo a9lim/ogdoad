@@ -7,11 +7,14 @@ use super::complex::Complex64;
 /// A normalized complex Gauss sum, kept dependency-free.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct GaussSum {
+    /// Real component.
     pub re: f64,
+    /// Imaginary component.
     pub im: f64,
 }
 
 impl GaussSum {
+    /// Complex modulus.
     pub fn abs(&self) -> f64 {
         self.re.hypot(self.im)
     }

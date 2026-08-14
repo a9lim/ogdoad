@@ -24,35 +24,59 @@ use super::relations::{
 /// vanishings such as `2* = 0` killing every pairing involving `*`.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum GameCliffordError {
+    /// The quadratic diagonal does not match the generator count.
     QuadraticLength {
+        /// Required number of entries.
         expected: usize,
+        /// Supplied number of entries.
         got: usize,
     },
+    /// An off-diagonal bilinear key is not a valid ordered basis pair.
     BilinearKeyInvalid {
+        /// First basis index.
         i: usize,
+        /// Second basis index.
         j: usize,
+        /// Basis dimension.
         dim: usize,
     },
+    /// A relation vector does not match the generator count.
     RelationLength {
+        /// Index of the rejected relation.
         relation_index: usize,
+        /// Required number of coefficients.
         expected: usize,
+        /// Supplied number of coefficients.
         got: usize,
     },
+    /// A declared relation does not evaluate to zero in the game group.
     RelationNotZero {
+        /// Index of the rejected relation.
         relation_index: usize,
+        /// Canonical key of its nonzero value.
         value_key: String,
     },
+    /// A relation has nonzero polar pairing with a generator.
     RelationPolarNonzero {
+        /// Index of the rejected relation.
         relation_index: usize,
+        /// Index of the generator with nonzero pairing.
         generator: usize,
+        /// Nonzero pairing value.
         value: i128,
     },
+    /// A relation has nonzero quadratic value.
     RelationQuadraticNonzero {
+        /// Index of the rejected relation.
         relation_index: usize,
+        /// Nonzero quadratic value.
         value: i128,
     },
+    /// Integer arithmetic overflowed while checking a relation.
     ArithmeticOverflow {
+        /// Index of the relation being checked.
         relation_index: usize,
+        /// Operation that overflowed.
         context: &'static str,
     },
 }
@@ -207,14 +231,17 @@ impl GameClifford {
         &self.alg
     }
 
+    /// The imposed game-group relations.
     pub fn relations(&self) -> &[GameRelation] {
         &self.relations
     }
 
+    /// Whether automatic relation discovery searched its full coefficient box.
     pub fn relation_search_complete(&self) -> bool {
         self.relation_search_complete
     }
 
+    /// The bounded relation-discovery certificate.
     pub fn relation_search_certificate(&self) -> &RelationSearchCertificate {
         &self.relation_certificate
     }
@@ -247,10 +274,12 @@ impl GameClifford {
         acc
     }
 
+    /// Add two elements and reduce them in the checked quotient.
     pub fn add(&self, a: &Multivector<Integer>, b: &Multivector<Integer>) -> Multivector<Integer> {
         self.reduce(&self.alg.add(a, b))
     }
 
+    /// Multiply by an integer scalar and reduce in the checked quotient.
     pub fn scalar_mul(&self, s: i128, a: &Multivector<Integer>) -> Multivector<Integer> {
         self.reduce(&self.alg.scalar_mul(&Integer(s), a))
     }
@@ -269,6 +298,7 @@ impl GameClifford {
         self.reduce(&self.alg.wedge(a, b))
     }
 
+    /// Whether an element reduces to zero in the checked quotient.
     pub fn is_zero(&self, mv: &Multivector<Integer>) -> bool {
         self.reduce(mv).is_zero()
     }

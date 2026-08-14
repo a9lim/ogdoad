@@ -40,9 +40,8 @@ grundy/src/
       equiv.rs             multiform equivalence
 ```
 
-Moving regular loopy-game mathematics into `src/games/loopy/` while leaving
-only lowering, guardedness, recognition, and display in the language is
-roadmap work.
+The language owns lowering, guardedness, recognition, and display. Reusable
+loopy-game mathematics belongs in Ogdoad's `src/games/loopy/` pillar.
 
 ## Structural decisions
 

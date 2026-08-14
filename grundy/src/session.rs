@@ -2,12 +2,16 @@
 
 use super::*;
 
+/// Canonical source and optional rendered value returned for one input line.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct EvalLine {
+    /// Canonical rendering of the submitted statement.
     pub canonical: String,
+    /// Rendered value, or `None` for a binding-only statement.
     pub value: Option<String>,
 }
 
+/// Evaluate a newline-delimited program in one world and join its values.
 pub fn eval_to_string(world: &str, src: &str) -> GrundyResult<String> {
     let mut session = GrundySession::new(world)?;
     let mut out = Vec::new();
@@ -96,12 +100,14 @@ enum WorkerCommand {
     Shutdown,
 }
 
+/// Persistent evaluator with one active world, environment, and resource budgets.
 pub struct GrundySession {
     worker: mpsc::Sender<WorkerCommand>,
     handle: Option<JoinHandle<()>>,
 }
 
 impl GrundySession {
+    /// Start a session from a world declaration such as `integer` or `nimber 2`.
     pub fn new(world_decl: &str) -> GrundyResult<Self> {
         let (worker, commands) = mpsc::channel();
         let (initialized, initialization) = mpsc::channel();
@@ -147,6 +153,7 @@ impl GrundySession {
         }
     }
 
+    /// Replace the active world and clear its bindings.
     pub fn set_world(&mut self, world_decl: &str) -> GrundyResult<()> {
         self.call_worker(|reply| WorkerCommand::SetWorld {
             decl: world_decl.to_string(),
@@ -154,6 +161,7 @@ impl GrundySession {
         })
     }
 
+    /// Evaluate one complete statement.
     pub fn eval_line(&mut self, src: &str) -> GrundyResult<EvalLine> {
         self.call_worker(|reply| WorkerCommand::EvalLine {
             src: src.to_string(),
@@ -161,26 +169,32 @@ impl GrundySession {
         })
     }
 
+    /// Set the per-statement recursive-unfolding budget.
     pub fn set_fuel_budget(&mut self, budget: u128) {
         self.call_worker(|reply| WorkerCommand::SetFuelBudget { budget, reply });
     }
 
+    /// Return the per-statement recursive-unfolding budget.
     pub fn fuel_budget(&self) -> u128 {
         self.call_worker(|reply| WorkerCommand::FuelBudget { reply })
     }
 
+    /// Set the graph-materialization node budget.
     pub fn set_graph_budget(&mut self, budget: u128) {
         self.call_worker(|reply| WorkerCommand::SetGraphBudget { budget, reply });
     }
 
+    /// Return the graph-materialization node budget.
     pub fn graph_budget(&self) -> u128 {
         self.call_worker(|reply| WorkerCommand::GraphBudget { reply })
     }
 
+    /// Render the active world declaration and resource settings.
     pub fn world_summary(&self) -> String {
         self.call_worker(|reply| WorkerCommand::WorldSummary { reply })
     }
 
+    /// Render the current bindings in key order.
     pub fn env_summary(&self) -> Vec<String> {
         self.call_worker(|reply| WorkerCommand::EnvSummary { reply })
     }

@@ -8,19 +8,13 @@
 //! `int_s^t G` uses Norton multiplication on integer leaves and shifts hot
 //! options by `t`.
 //!
-//! The unrestricted associated-graded hope is false: a nonnumeric unit can turn
-//! a hidden cold-number coefficient into a leading residue.  Positive **numeric**
-//! units do survive individually, however.  [`numeric_norton_regrade`] and
-//! [`numeric_norton_mean_temperature`] encode their exact affine regrading without
-//! materializing the (potentially much larger) Norton product.
+//! [`numeric_norton_regrade`] and [`numeric_norton_mean_temperature`] compute the
+//! exact affine thermographic regrading for a positive numeric unit without
+//! materializing the Norton product. Nonnumeric units do not satisfy this rule.
 //!
 //! They do **not** form a multiplicative scalar action.  The exact obstruction is
-//! [`numeric_norton_composition_defect`]: applying the `u` transport and then the
-//! `v` transport differs in degree from the `uv` transport by a nonnegative dyadic
-//! defect that is often positive.  Together with the nonzero 2-torsion class of
-//! `*` in the temperature-zero residue, this closes the one-ring reading of
-//! `under`: the surviving connection is a filtered shadow, not a faithful
-//! full-dyadic Newton-style graded ring.
+//! [`numeric_norton_composition_defect`]: composing the `u` and `v` transports
+//! differs in degree from the `uv` transport by a nonnegative dyadic defect.
 
 use crate::games::partizan::integer_value;
 use crate::games::Game;

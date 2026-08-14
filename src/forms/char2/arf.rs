@@ -73,7 +73,7 @@ impl ArfInvariants {
         }
     }
 
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -491,8 +491,8 @@ pub(crate) fn ordinal_to_nimber_metric(metric: &Metric<Ordinal>) -> Option<Metri
 }
 
 /// Minimal finite subfield degree containing every scalar in an ordinal metric.
-/// Returns `None` for general-bilinear metrics or entries outside the staged
-/// finite-subfield detector.
+/// Returns `None` for general-bilinear metrics or entries outside the finite
+/// subfields recognized by the `Ordinal` backend.
 pub fn ordinal_metric_finite_subfield_degree(metric: &Metric<Ordinal>) -> Option<u128> {
     if !metric.a.is_empty() {
         return None;
@@ -520,11 +520,11 @@ pub(crate) fn arf_ordinal_at_degree(
 /// Arf invariant for finite ordinal-nimber windows represented by the `Ordinal`
 /// backend. Purely finite entries delegate to [`arf_nimber`]. All other detected
 /// finite subfields use the same generic symplectic reduction plus the absolute
-/// trace from their minimal common `F_{2^m}`. Coefficients outside the staged
-/// finite-subfield detector return `None`. Over ideal full
+/// trace from their minimal common `F_{2^m}`. Coefficients outside the finite
+/// subfields recognized by the backend return `None`. Over ideal full
 /// algebraically closed `On₂`, every nonsingular form is hyperbolic and the Arf/Witt
-/// class vanishes (`writeups/transfinite_arf.tex`); this function deliberately
-/// reports only the checked, degree-relative finite-field class and does not claim
+/// class vanishes (`writeups/transfinite_arf.tex`); this function reports only
+/// the checked, degree-relative finite-field class and does not claim
 /// an executable full-field isometry witness.
 pub fn arf_ordinal_finite(metric: &Metric<Ordinal>) -> Option<ArfInvariants> {
     if !metric.a.is_empty() {
@@ -743,7 +743,7 @@ mod tests {
     }
 
     #[test]
-    fn ordinal_detector_rejects_past_the_staged_segment() {
+    fn ordinal_detector_rejects_unrecognized_finite_subfields() {
         let outside = Metric::diagonal(vec![Ordinal::omega_pow(Ordinal::omega_pow(
             Ordinal::omega(),
         ))]);

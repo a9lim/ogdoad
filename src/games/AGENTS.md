@@ -9,6 +9,7 @@ ring element.
 | path | responsibility |
 | --- | --- |
 | `grundy.rs`, `kernel.rs` | finite impartial evaluation and P/N kernels |
+| `octal.rs` | finite octal moves and checked Guy--Smith normal-play certificates |
 | `misere.rs` | bounded misere quotient machinery |
 | `loopy/` | finite cyclic impartial and partizan graphs |
 | `partizan.rs`, `piecewise.rs` | short partizan values and piecewise dyadic data |
@@ -18,6 +19,7 @@ ring element.
 | `heating.rs`, `thermography.rs`, `tropical_thermography.rs` | cooling/heating, Norton operations, thermographs, tropical comparison |
 | `atomic_weight.rs` | all-small atomic weight |
 | `lexicode.rs` | mex/turning-game construction of binary and nim lexicodes |
+| `witt_fifo.rs`, `brown_selector.rs` | weighted-source quadratic arenas and the intrinsic Brown selector |
 | `game_exterior/` | exterior algebra of the game group and checked local Clifford data |
 
 ## Category boundaries
@@ -40,6 +42,9 @@ ring element.
 - `nim_mul_mex` is the exponential game-definition oracle for small values.
   Use algebraic nim multiplication for computation.
 - `nim_moves(&Vec<u128>)` intentionally matches a generic `Fn(&P)` signature.
+- Guy--Smith certificates recompute their exact finite Grundy prefix and prove
+  the supplied eventual period, not period discovery or minimality. They are
+  normal-play certificates and do not certify a misere quotient.
 - Atomic weight's integer branch compares raw option games; do not replace it
   by a maximum of rounded option weights.
 - `Pl` thermograph walls do not implement `Semiring` because they lack a

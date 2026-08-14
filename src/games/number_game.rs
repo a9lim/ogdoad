@@ -46,8 +46,8 @@ impl NumberGame {
     }
 
     /// Reconstruct a number-game from a sign expansion — the inverse of
-    /// [`sign_expansion`](Self::sign_expansion), closing the transfinite
-    /// surreal↔game round trip *through* the canonical birthday path rather than a
+    /// [`sign_expansion`](Self::sign_expansion). The round trip uses the canonical
+    /// birthday path rather than a
     /// stored value: `from_sign_expansion(g.sign_expansion()?) == Some(g)`. This is
     /// the transfinite analogue of the dyadic [`Game::from_surreal`] /
     /// [`Game::number_value`] bridge. `None` outside the representable subclass.
@@ -78,7 +78,7 @@ impl NumberGame {
         self.value.cmp(&other.value)
     }
 
-    /// Bridge to the finite engine: `Some(short Game)` iff the value is dyadic;
+    /// Convert to the finite engine: `Some(short Game)` iff the value is dyadic;
     /// `None` for genuinely transfinite numbers (`omega`, `epsilon`, ...), which
     /// have no finite option tree. On dyadics this agrees with
     /// [`Game::from_surreal`]/[`Game::number_value`].

@@ -4,7 +4,7 @@
 //! an abelian group (a `ℤ`-module), and the Grassmann algebra is the exterior
 //! algebra of that module.
 //!
-//! Three layers, re-exported flat so every public path is unchanged:
+//! Three layers are re-exported through this module:
 //!
 //!   * [`relations`] — [`GameRelation`], [`GameRelationCertificate`],
 //!     [`RelationSearchCertificate`]: the relation and certificate record types.
@@ -14,13 +14,12 @@
 //!     integer-valued Clifford deformation surface; constructors verify that every
 //!     game relation is null and polar-radical before accepting the metric.
 //!
-//! Generators may be non-numbers (`⋆`, `↑`, switches) — exactly where the
-//! Clifford/scalar story cannot go — which is the point: the
-//! [`Game`](crate::games::Game) group is not a ring, but it *is* a `ℤ`-module,
-//! and that is enough for `Λ`. A nonzero torsion quadratic datum can exist on a
-//! chosen root-incomplete subgroup, but the power-of-two divisibility theorem in
-//! the game-exterior appendix of `writeups/goldarf.tex` proves that none extends
-//! coherently and coefficient-faithfully to all short games.
+//! Generators may be non-numbers (`⋆`, `↑`, switches): the
+//! [`Game`](crate::games::Game) group is not a ring, but its `ℤ`-module
+//! structure is sufficient for `Λ`. A nonzero torsion quadratic datum can exist
+//! on a chosen root-incomplete subgroup. The power-of-two divisibility theorem
+//! in `writeups/goldarf.tex` rules out a coherent, coefficient-faithful extension
+//! to all short games.
 
 pub mod clifford;
 pub mod lambda;

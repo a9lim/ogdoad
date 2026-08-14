@@ -20,10 +20,15 @@ use crate::forms::arf_invariant;
 use crate::scalar::{nim_degree, Nimber};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// Failure to construct a finite characteristic-two Witt class.
 pub enum WittClassError {
+    /// The metric has an ordered general-bilinear component.
     GeneralBilinearMetric,
+    /// The polar form is singular.
     Singular {
+        /// Dimension of the polar radical.
         radical_dim: usize,
+        /// Whether the quadratic form is nonzero on the radical.
         radical_anisotropic: bool,
     },
 }
@@ -118,7 +123,7 @@ impl WittClass {
         }
     }
 
-    /// Backward-compatible alias for [`zero_f2`](Self::zero_f2).
+    /// Deprecated alias for [`zero_f2`](Self::zero_f2).
     #[deprecated(since = "0.0.0", note = "use zero_f2() for clarity")]
     pub fn zero() -> Self {
         Self::zero_f2()
@@ -184,7 +189,7 @@ impl WittClass {
         }
     }
 
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -242,9 +247,12 @@ impl std::ops::Neg for WittClass {
 ///   invariant together with the field degree.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WittClassG {
+    /// Real characteristic-zero Witt class.
     Char0 {
+        /// Signature `p - q`.
         signature: i128,
     },
+    /// Witt class over a finite field of odd characteristic.
     OddChar {
         /// Field order `q`; finite fields of the same order are canonically unique.
         field_order: u128,
@@ -255,9 +263,11 @@ pub enum WittClassG {
         /// signed-discriminant square-class: 0 if a square, 1 if a nonsquare.
         sclass: u128,
     },
+    /// Quadratic Witt class over a finite field of characteristic two.
     Char2 {
         /// Field degree `m` for `F_{2^m}`.
         field_degree: u128,
+        /// Arf invariant.
         arf: u128,
     },
 }
@@ -422,7 +432,7 @@ impl WittClassG {
         }
     }
 
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }

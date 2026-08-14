@@ -115,7 +115,7 @@ pub(crate) fn infer_expr_sort(
                 infer_expr_sort(&args[0], ExpectedSort::Known(DataSort::Element), binders)?;
                 expect_sort(DataSort::Bool, expected)
             }
-            "drawn" => Err(renamed_function_error("drawn", "hasdraw")),
+            "drawn" => Err(function_replacement_error("drawn", "hasdraw")),
             "outcome" | "winner" | "who" => Err(outcome_name_error(name)),
             "coef" => {
                 expect_arity(name, args, 2)?;

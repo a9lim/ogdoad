@@ -1,59 +1,21 @@
-//! Quadratic forms and their invariants, organised by the characteristic
-//! trichotomy of the underlying scalar field.
+//! Quadratic forms and their invariants.
 //!
-//! The classification of a quadratic form (equivalently, of the Clifford
-//! algebra it builds) is *one* theory split three ways by `char F`:
+//! The primary organization follows the characteristic of the scalar field:
 //!
-//! * [`char0`] — char 0: the 8-fold real and 2-fold complex tables on the
-//!   exact-square subdomains represented by the scalar backends.
-//! * [`oddchar`] — odd characteristic: discriminant + Hasse invariant.
-//! * [`char2`] — characteristic 2: the Arf invariant (and Dickson).
+//! * [`char0`] classifies real, complex, and rational forms on each backend's
+//!   documented exact domain.
+//! * [`oddchar`] classifies forms over supported finite fields of odd
+//!   characteristic by dimension and discriminant.
+//! * [`char2`] provides Arf, Brown, Dickson, and extraspecial-group invariants.
 //!
-//! Three clusters of cross-cutting machinery sit beside the trichotomy, each in
-//! its own shelf so the flat public API stays shallow:
+//! [`classify`] dispatches to these implementations from the scalar type.
+//! [`witt`] contains Witt and Brauer--Wall classes, [`springer`] contains valued-
+//! field residue decompositions, [`local_global`] contains reciprocity and
+//! isotropy criteria, and [`integral`] contains lattices and finite quadratic
+//! modules. [`symplectic`] and [`hermitian`] cover alternating and Hermitian forms;
+//! [`trace_form`] constructs trace and transfer forms from field extensions.
 //!
-//! * [`witt`] — the **invariant groups**: the Witt group across all three legs
-//!   ([`WittClassG`]), the Witt *ring* (`Iⁿ`, Pfister forms, the `eₙ`
-//!   staircase), and the Brauer–Wall group ([`bw_class_real`], …).
-//! * [`springer`] — the **valuation-graded (local↔global) decomposition** across
-//!   the complete valued fields. The discretely-valued legs share **one** engine,
-//!   [`springer_decompose_local`], keyed off the
-//!   [`ResidueField`](crate::scalar::ResidueField) trait: `Q_p`/`Q_q`
-//!   ([`springer_decompose_qp`]/[`springer_decompose_qq`]) and `F_q((t))`
-//!   ([`springer_decompose_laurent`]); the surreal entry point
-//!   ([`springer_decompose`]) is the one that does *not* fit — its value group is
-//!   2-divisible, so the second residue map collapses — and keeps its own engine;
-//!   that mismatch *is* the local–global symmetry, not a gap. The char-2 mirror
-//!   ([`springer_decompose_local_char2`]) is the Aravire–Jacob three-layer story.
-//! * [`integral`] — the **arithmetic view**: integral lattices, genus, mass,
-//!   and the Leech lattice.
-//!
-//! [`classify`] is the façade over the trichotomy: which leg classifies a form
-//! is a fact about the field, so [`ClassifyForm`] resolves it from the scalar
-//! type — call `metric.classify()` / `algebra.classify()` (and `witt_class()`)
-//! and the right leg is selected at compile time, no manual char-dispatch.
-//!
-//! Alongside the symmetric bilinear forms sit the other two members of the
-//! "form + involution" family: [`symplectic`] alternating forms (rank is the
-//! complete invariant, char-uniform) and [`hermitian`] forms over the surcomplex
-//! field (Sylvester signature; [`HermitianForm::from_skew`] handles the
-//! skew-Hermitian case via multiplication by `i`).
-//!
-//! The local–global layer is unified by [`GlobalField`]: the
-//! local–global principle (places, Hilbert symbol, reciprocity `∏_v (a,b)_v = +1`,
-//! Hasse–Minkowski) written **once** over the two kinds of global field, `ℚ`
-//! ([`Rational`](crate::scalar::Rational)) and `F_q(t)`
-//! ([`RationalFunction`](crate::scalar::RationalFunction)) — the `forms` mirror of
-//! what [`ResidueField`](crate::scalar::ResidueField) did for the discrete Springer
-//! engine. And [`trace_form`] bridges *into* this pillar from the field-growing
-//! side: the Frobenius-twisted trace form `Tr_{E/F}(x·σ^k(x))` of a
-//! [`CyclicGaloisExtension`](crate::scalar::CyclicGaloisExtension) is classified by
-//! the same façade — the norm form over `Surcomplex`, the Gold form over the
-//! nim-fields.
-//!
-//! [`field_invariants`] holds the numeric field invariants the Witt ring implies
-//! (level/Stufe, Pythagoras number, u-invariant); [`quadric_fit`] is the
-//! "is this P-set a quadric?" research bench fed by the game probes.
+//! Public items from each child module are re-exported here.
 
 pub mod char0;
 pub mod char2;

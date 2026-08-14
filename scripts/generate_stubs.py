@@ -119,12 +119,52 @@ MEMBER_OVERRIDES: dict[str, str] = {
     "Extraspecial2Group.__init__": "(self, qd: Sequence[builtins.bool], bmat: Sequence[builtins.int]) -> None",
     "LexicodeTurningGame.__init__": "(self, word_len: builtins.int, min_distance: builtins.int) -> None",
     # games bridge (README quickstart)
+    "Game.outcome_class": "(self) -> PartizanOutcome",
     "Color.blue": "@staticmethod () -> Color",
     "Color.red": "@staticmethod () -> Color",
     "Color.green": "@staticmethod () -> Color",
     "Hackenbush.string": "@staticmethod (colors: Sequence[Color]) -> Hackenbush",
     "Hackenbush.value": "(self) -> Surreal",
     "Hackenbush.grundy": "(self) -> Nimber",
+    # checked quadratic-game and normal-play octal certificate surface
+    "WittFifoArena.__init__": "(self, diagonal: Sequence[builtins.bool], polar: Sequence[builtins.int], input: builtins.int) -> None",
+    "WittFifoArena.dimension": "(self) -> builtins.int",
+    "WittFifoArena.input": "(self) -> builtins.int",
+    "WittFifoArena.adapted_basis": "(self) -> list[builtins.int]",
+    "WittFifoArena.adapted_coordinates": "(self) -> builtins.int",
+    "WittFifoArena.frame_mates": "(self) -> list[builtins.int | None]",
+    "WittFifoArena.coin_count": "(self) -> builtins.int",
+    "WittFifoArena.quadratic_value": "(self) -> builtins.bool",
+    "WittFifoArena.grundy": "(self, state_budget: builtins.int) -> builtins.int",
+    "WittFifoArena.to_game": "(self, state_budget: builtins.int) -> Game",
+    "BrownSelector.__init__": "(self, q4: Sequence[builtins.int], brown_polar: Sequence[builtins.int], input: builtins.int) -> None",
+    "BrownSelector.linear_diagonal": "(self) -> list[builtins.bool]",
+    "BrownSelector.classical_diagonal": "(self) -> list[builtins.bool]",
+    "BrownSelector.classical_polar": "(self) -> list[builtins.int]",
+    "BrownSelector.input": "(self) -> builtins.int",
+    "BrownSelector.residue": "(self) -> builtins.int",
+    "BrownSelector.left_follower": "(self) -> WittFifoArena",
+    "BrownSelector.right_follower": "(self) -> WittFifoArena",
+    "BrownSelector.to_game": "(self, state_budget_per_follower: builtins.int) -> Game",
+    "BrownSelector.outcome_class": "(self, state_budget_per_follower: builtins.int) -> PartizanOutcome",
+    "BrownSelector.decode_outcome": "@staticmethod (outcome: PartizanOutcome) -> builtins.int | None",
+    "OctalCode.__init__": "(self, digits: Sequence[builtins.int]) -> None",
+    "OctalCode.digits": "(self) -> list[builtins.int]",
+    "OctalCode.last_nonzero_digit": "(self) -> builtins.int | None",
+    "GuySmithWitness.__init__": "(self, preperiod: builtins.int, period: builtins.int, nim_values: Sequence[builtins.int]) -> None",
+    "GuySmithWitness.preperiod": "(self) -> builtins.int",
+    "GuySmithWitness.period": "(self) -> builtins.int",
+    "GuySmithWitness.nim_values": "(self) -> list[builtins.int]",
+    "GuySmithWitness.verify": "(self, code: OctalCode, term_budget: builtins.int) -> GuySmithCertificate",
+    "GuySmithCertificate.compute": "@staticmethod (code: OctalCode, preperiod: builtins.int, period: builtins.int, term_budget: builtins.int) -> GuySmithCertificate",
+    "GuySmithCertificate.code": "(self) -> OctalCode",
+    "GuySmithCertificate.preperiod": "(self) -> builtins.int",
+    "GuySmithCertificate.period": "(self) -> builtins.int",
+    "GuySmithCertificate.proof_window": "(self) -> tuple[builtins.int, builtins.int]",
+    "GuySmithCertificate.checked_nim_values": "(self) -> list[builtins.int]",
+    "GuySmithCertificate.heap_grundy": "(self, heap: builtins.int) -> builtins.int",
+    "GuySmithCertificate.position_grundy": "(self, heaps: Sequence[builtins.int]) -> builtins.int",
+    "GuySmithCertificate.is_p_position": "(self, heaps: Sequence[builtins.int]) -> builtins.bool",
 }
 
 # --------------------------------------------------------------------------- #
@@ -318,7 +358,8 @@ def _emit_class(name: str) -> list[str]:
     props = sorted(n for n in own if not n.startswith("_") and _is_property(cls, n))
     for n in props:
         body.append("    @property")
-        head = f"    def {n}(self) -> Any:"
+        signature = MEMBER_OVERRIDES.get(f"{name}.{n}", "(self) -> Any")
+        head = f"    def {n}{signature}:"
         doc = _docstring_block(inspect.getattr_static(cls, n), "        ")
         body.extend([head, *doc] if doc else [f"{head} ..."])
 

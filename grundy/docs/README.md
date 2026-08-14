@@ -1,15 +1,12 @@
 # grundy
 
-**grundy is ogdoad's executable notation.**
-Games are equations (`on =: {on |}` is Siegel's `on`, verbatim as
-a program); nimbers, surreal monomials, and Clifford coordinates are
-literals; the outcome partition is a set of relation glyphs whose geometry
-*is* the mathematics (negate both games and the relation grid rotates 180°).
-Computation is deliberately thin — substitution, one equation binder,
-non-strictness only where the mathematics never looks — so that every
-construct coincides with a piece of CGT or algebra.
+grundy is Ogdoad's executable notation for scalar, Clifford, polynomial, and
+game worlds. It has first-order functions, explicit world selection, guarded
+game equations, canonical display, and typed resource failures. Games remain
+an additive-group world; algebra products are available only where the active
+world supports them.
 
-Ten lines, three delights:
+Examples:
 
 ```text
 :world game
@@ -40,6 +37,5 @@ cargo run -p grundy --example repl              # interactive; :help is task-fir
 cargo run -p grundy --example repl < file.og    # piped session
 ```
 
-Start with `:help`, then `:world game`. The REPL is the tutor: every echo is
-canonical, every error carries the mathematics in its message and the
-teaching in its hint.
+Start with `:help`, then select a world. The REPL prints canonical source and
+keeps corrective guidance in each error's hint.

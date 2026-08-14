@@ -2,34 +2,34 @@
 //!
 //! ## Metric data — characteristic-faithful by design
 //!
-//! A blade is a `u128` bitmask over basis generators e_0..e_127. The algebra is
-//! defined by two independent pieces of data, *not* a single bilinear form:
+//! A blade is a `u128` bitmask over basis generators `e_0..e_127`. The product
+//! is defined by three pieces of metric data:
 //!
-//!   * `q[i]`      = e_i²                      (the quadratic form / squares)
-//!   * `b[(i,j)]`  = e_i e_j + e_j e_i  (i<j)  (the polar / anticommutator form)
+//!   * `q[i] = e_i²`, the quadratic diagonal;
+//!   * `b[(i,j)] = e_i e_j + e_j e_i` for `i < j`, the polar form;
+//!   * `a[(i,j)] = B(e_i,e_j)` for `i < j`, the in-order contraction of the
+//!     general bilinear form used by the Chevalley product.
 //!
-//! In characteristic ≠ 2 these are linked (`b = 2·offdiag`, `q = diag`), so an
-//! orthogonal basis just sets `b = 0`. In characteristic 2 they are genuinely
-//! independent: the polar form is *alternating* (`b(i,i)=0`) yet `q[i]` can be
-//! nonzero, and a nonzero off-diagonal `b[(i,j)]` is exactly what makes the
-//! nim-Clifford algebra *non-commutative*. Carrying both is the faithful thing.
+//! The full bilinear form has `B(e_i,e_i) = q[i]`, `B(e_i,e_j) = a[(i,j)]`,
+//! and `B(e_j,e_i) = b[(i,j)] - a[(i,j)]` for `i < j`. Ordinary `(q, b)`
+//! metrics leave `a` empty. In characteristic two, the alternating polar data
+//! `b` remains independent of the possibly nonzero quadratic diagonal `q`.
 //!
-//! "With nilpotents": set `q[i] = 0` and you get a null generator, e_i² = 0.
-//! All `q = 0`, all `b = 0` ⇒ the exterior/Grassmann algebra.
+//! A zero `q[i]` gives a null generator. Setting all `q`, `b`, and `a` entries
+//! to zero gives the exterior algebra.
 //!
 //! ## Product
 //!
-//! Two canonical blades multiply by concatenating their (ascending) generator
-//! lists into a word and reducing to canonical form with the rules
+//! Ordinary `(q, b)` products satisfy the reduction rules
 //!
 //! ```text
 //!   e_i e_i  → q[i]                            (equal adjacent: contract)
 //!   e_i e_j  → b[(j,i)] − e_j e_i   (i>j)      (out of order: swap, emit polar)
 //! ```
 //!
-//! The `−` goes through the scalar's own `neg()`, so in characteristic 2 it is
-//! `+` automatically and signs vanish — no special-casing. Termination: each
-//! step lowers (word length, inversion count) lexicographically.
+//! The minus sign goes through [`Scalar::neg`](crate::scalar::Scalar::neg), so
+//! it becomes addition in characteristic two. General metrics use the
+//! equivalent Chevalley contraction determined by `q`, `b`, and `a`.
 
 mod algebra;
 mod basis;
@@ -366,10 +366,6 @@ mod tests {
         );
     }
 
-    /// `even_subalgebra_of_cl30_is_quaternions` uses the all-ones metric, which
-    /// cannot distinguish the documented `f_i^2 = -q_i q_p` law from a hardcoded
-    /// `-1` (both give the same answer when every `q` is 1). Pin the real law
-    /// with a non-unit metric where they diverge.
     #[test]
     fn even_subalgebra_generator_squares_follow_the_pivot_law_not_hardcoded_minus_one() {
         let alg = CliffordAlgebra::new(3, Metric::diagonal(vec![r(2), r(3), r(5)]));
@@ -380,7 +376,7 @@ mod tests {
         // f_0 = e_0 e_2 ⇒ f_0^2 = -q_0 q_2 = -10; f_1 = e_1 e_2 ⇒ f_1^2 = -q_1 q_2 = -15.
         assert_eq!(even.mul(&f0, &f0), even.scalar(r(-10)), "f0^2 != -q0*q_p");
         assert_eq!(even.mul(&f1, &f1), even.scalar(r(-15)), "f1^2 != -q1*q_p");
-        // A hardcoded -1 would pass the old all-ones test but fails here.
+        // Distinct diagonal entries ensure the result uses the pivot square.
         assert_ne!(even.mul(&f0, &f0), even.scalar(r(-1)));
         assert_ne!(even.mul(&f1, &f1), even.scalar(r(-1)));
     }
@@ -400,10 +396,6 @@ mod tests {
         assert!(alg_a.even_subalgebra().is_none(), "nonzero a should reject");
     }
 
-    /// Second documented `None`: no `q_i` is a unit in the scalar ring, so there
-    /// is no invertible pivot. Over `Integer`, `2` and `4` are nonzero but not
-    /// units (only `±1` invert), unlike over a field where every nonzero value
-    /// would serve as a pivot.
     #[test]
     fn even_subalgebra_none_when_no_generator_is_a_unit() {
         let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![Integer(2), Integer(4)]));

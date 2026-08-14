@@ -1,21 +1,19 @@
 //! Characteristic-2 quadratic-form invariants.
 //!
-//! Characteristic 2 has two different but adjacent invariants:
+//! The module contains five related constructions:
 //!
 //! * `arf` classifies the quadratic form / Clifford algebra through the Arf
 //!   invariant.
 //! * `dickson` classifies orthogonal transformations by the Dickson invariant,
 //!   the determinant replacement in characteristic 2.
 //! * `brown` lifts the `ℤ/2` Arf bit to the `ℤ/8` Brown invariant of a
-//!   `ℤ/4`-valued quadratic refinement — the char-2 cell of the mod-8 spine
-//!   (Bridge M), with `β(2q′) = 4·Arf(q′)`.
+//!   `Z/4`-valued quadratic refinement, with `β(2q') = 4 Arf(q')`.
 //! * `extraspecial` turns a nonsingular `F_2` quadratic form into the
 //!   extraspecial 2-group whose commutator is the polar form and whose squaring
 //!   map is the quadratic form.
-//!
-//! plus `field`, the [`FiniteChar2Field`] capability trait — the additive
-//! (Artin–Schreier) mirror of [`FiniteOddField`](crate::forms::FiniteOddField)
-//! that the char-2 local–global layer is generic over.
+//! * `field` defines the [`FiniteChar2Field`] capability trait, the additive
+//!   (Artin–Schreier) mirror of [`FiniteOddField`](crate::forms::FiniteOddField)
+//!   that the char-2 local–global layer is generic over.
 //!
 //! The public exports stay flat (`forms::arf_invariant`,
 //! `forms::dickson_matrix`, `forms::FiniteChar2Field`, …), matching the rest of the
@@ -82,10 +80,8 @@ mod coverage_gap_tests {
         assert_eq!(isometric_finite_char2(&aniso, &aniso), Some(true));
     }
 
-    /// The old char-2 `poly_factor` regression test — `(t+1)^4` over `F_2` —
-    /// reduces to a single repeated factor inside `squarefree_parts` and never
-    /// reaches `split_equal_degree` with `n != d`, so the equal-degree splitter
-    /// itself was never forced to actually split anything.
+    /// Exercises equal-degree splitting on a square-free product of two
+    /// irreducible quadratics.
     ///
     /// `g1`, `g2` are the distinct monic irreducible quadratics `1 + a*t + t^2`
     /// and `1 + (a+1)*t + t^2` over `F4 = Fpn<2,2>` (`a^2 = a+1`; verified by

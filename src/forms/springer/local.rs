@@ -1,6 +1,5 @@
-//! The **generic** discrete-valuation Springer decomposition — one engine, keyed
-//! off the [`ResidueField`](crate::scalar::ResidueField) trait, shared by all three
-//! discretely-valued legs. The named entry points
+//! Generic odd-residue-characteristic Springer decomposition, keyed by
+//! [`ResidueField`](crate::scalar::ResidueField). The named entry points
 //! [`springer_decompose_qp`](crate::forms::springer_decompose_qp),
 //! [`springer_decompose_qq`](crate::forms::springer_decompose_qq), and
 //! [`springer_decompose_laurent`](crate::forms::springer_decompose_laurent) are thin
@@ -19,19 +18,15 @@
 //! | `Q_q`       (unramified p-adic) | 0 | ℤ | `F_q` | survives — `W(Q_q)=W(F_q)²` |
 //! | `F_q((t))`  (Laurent) | `p` | ℤ | `F_q` | survives — `W(F_q((t)))=W(F_q)²` |
 //!
-//! The surreal leg is the one that does **not** fit here, and that is the content
-//! of the symmetry, not a gap: its value group `No` is 2-divisible, so the second
+//! The surreal leg does not use this engine: its value group `No` is 2-divisible,
+//! so the second
 //! residue map vanishes and the residue is ℝ (a signature, not a finite
 //! square-class). It is `Valued` only in the loose ω-adic sense and is deliberately
 //! not a [`ResidueField`], so it keeps its own engine — the surreal
 //! [`springer_decompose`](crate::forms::springer_decompose).
 //!
-//! Among the three that *do* fit, the residue field is `F_p` only for the bare
-//! `Q_p`; for `Q_q` (unramified, residue degree `F`) and `F_q((t))` it is a general
-//! `F_q`, so the per-layer discriminant square-class genuinely exercises the
-//! extension-field square-class. Adding `Q_q` is what makes the mixed-characteristic
-//! leg reach general `F_q` residues, matching what the equal-characteristic Laurent
-//! leg already did — the two legs are now symmetric in their residue reach.
+//! The residue field is `F_p` for `Q_p` and a general `F_q` for `Q_q` and
+//! `F_q((t))`; each residue layer records its extension-field discriminant class.
 //!
 //! ## The residue-characteristic-2 boundary (honest scope)
 //!
@@ -63,7 +58,9 @@ pub struct LocalResidueForm {
 /// descending by valuation), and the radical (genuinely zero entries).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LocalSpringerDecomp {
+    /// Residue forms, sorted by decreasing valuation.
     pub graded: Vec<LocalResidueForm>,
+    /// Number of zero diagonal entries.
     pub radical_dim: usize,
 }
 
@@ -79,7 +76,7 @@ impl LocalSpringerDecomp {
             .collect()
     }
 
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -201,7 +198,7 @@ mod tests {
         .is_none());
     }
 
-    /// The new sibling: `Q_q` (unramified, residue degree 2) reads its square-class
+    /// `Q_q` (unramified, residue degree 2) reads its square class
     /// in `F_9`, not `F_3` — content invisible to a bare-`Q_p` decomposition.
     #[test]
     fn unramified_qq_reads_extension_residue() {
@@ -224,7 +221,7 @@ mod tests {
         assert!(d.graded[1].disc_is_square, "ns² is a square in F_9");
     }
 
-    // --- Bridge J: every Newton slope IS a Springer residue layer (Prop. J.12) ---
+    // Every Newton slope gives a Springer residue layer.
 
     /// `∏ (x − aᵢ)` over a [`Scalar`] base — the polynomial whose root valuations
     /// are the entry valuations of the diagonal form `⟨aᵢ⟩`.

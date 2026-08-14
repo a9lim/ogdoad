@@ -1,6 +1,5 @@
 //! Springer-style decomposition of a diagonal quadratic form over the implemented
-//! **surreal** Hahn/CNF backend — the non-Archimedean valuation structure this
-//! scalar world uniquely exposes.
+//! **surreal** Hahn/CNF backend.
 //!
 //! A surreal Hahn series carries the ω-adic valuation
 //! `v(Σ ω^{y_i} r_i) = y_0` (the leading exponent). In this finite-support model
@@ -9,7 +8,7 @@
 //! theorem decomposes a form over such a field into valuation-graded residue
 //! forms.
 //!
-//! ## The honest headline: no bigger Witt group
+//! # Witt-group boundary
 //!
 //! Springer's theorem gives `W(F) ≅ W(k) ⊕ (W(k) ⊗ Γ/2Γ)` for a Henselian valued
 //! field with residue field `k` and value group `Γ`. For the full surreal value
@@ -18,8 +17,8 @@
 //! filtration as implemented valuation data, not as proof that the finite-support
 //! scalar model is itself a full real-closed field.
 //!
-//! What *is* new, and what this module exposes, is the **valuation filtration**
-//! itself: the form's entries grouped by ω-adic valuation, each graded piece a
+//! This module exposes the **valuation filtration**: entries grouped by ω-adic
+//! valuation, with each graded piece a
 //! residue ℝ-form read off by sign. No Archimedean Clifford library sees this
 //! structure, because over ℝ every nonzero entry has valuation 0. The built-in
 //! cross-check is that the residue signatures sum to the ordinary signature
@@ -47,8 +46,11 @@ pub struct ResidueForm {
 /// `classify_surreal` signature).
 #[derive(Debug, Clone, PartialEq)]
 pub struct SpringerDecomp {
+    /// Valuation-graded real residue forms.
     pub graded: Vec<ResidueForm>,
+    /// Number of zero diagonal entries.
     pub radical_dim: usize,
+    /// Sum of the graded residue signatures.
     pub total_signature: (usize, usize),
 }
 
@@ -112,7 +114,7 @@ pub fn springer_decompose(metric: &Metric<Surreal>) -> Option<SpringerDecomp> {
 }
 
 impl SpringerDecomp {
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }

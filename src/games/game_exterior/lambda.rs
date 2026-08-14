@@ -31,6 +31,7 @@ pub struct GameExterior {
 }
 
 impl GameExterior {
+    /// Build with bounded automatic relation discovery.
     pub fn new(gens: Vec<Game>) -> GameExterior {
         GameExterior::with_relation_search(gens, DEFAULT_RELATION_BOUND)
     }
@@ -91,14 +92,17 @@ impl GameExterior {
         &self.alg
     }
 
+    /// The imposed game-group relations.
     pub fn relations(&self) -> &[GameRelation] {
         &self.relations
     }
 
+    /// Whether automatic relation discovery searched its full coefficient box.
     pub fn relation_search_complete(&self) -> bool {
         self.relation_search_complete
     }
 
+    /// The bounded relation-discovery certificate.
     pub fn relation_search_certificate(&self) -> &RelationSearchCertificate {
         &self.relation_certificate
     }
@@ -132,14 +136,17 @@ impl GameExterior {
         acc
     }
 
+    /// Add two exterior elements and reduce them in the quotient.
     pub fn add(&self, a: &Multivector<Integer>, b: &Multivector<Integer>) -> Multivector<Integer> {
         self.reduce(&self.alg.add(a, b))
     }
 
+    /// Multiply by an integer scalar and reduce in the quotient.
     pub fn scalar_mul(&self, s: i128, a: &Multivector<Integer>) -> Multivector<Integer> {
         self.reduce(&self.alg.scalar_mul(&Integer(s), a))
     }
 
+    /// Take the exterior product and reduce it in the quotient.
     pub fn wedge(
         &self,
         a: &Multivector<Integer>,
@@ -148,6 +155,7 @@ impl GameExterior {
         self.reduce(&self.alg.wedge(a, b))
     }
 
+    /// Whether an element reduces to zero in the quotient.
     pub fn is_zero(&self, mv: &Multivector<Integer>) -> bool {
         self.reduce(mv).is_zero()
     }

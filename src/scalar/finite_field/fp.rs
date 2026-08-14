@@ -1,12 +1,8 @@
-//! Prime fields `F_p` of odd characteristic — a comparison backend.
+//! Prime fields `F_p` for any prime `p`, including `p = 2`.
 //!
-//! Like `Rational` and `Integer`, this is not a game-world core; it is here to
-//! complete the **characteristic trichotomy** the rest of the library realizes:
-//! char 0 (surreal/surcomplex, classified by signature → matrix algebra), char 2
-//! (nimbers, classified by the Arf invariant), and now **odd characteristic**
-//! (classified by dimension + discriminant; see `forms::oddchar`). Putting `F_p` in the
-//! same generic `Scalar` engine lets the odd-char classifier run on the very same
-//! `Metric`/`CliffordAlgebra` machinery.
+//! These fields support the generic scalar and forms algorithms. In odd
+//! characteristic, quadratic-form classification uses dimension and
+//! discriminant; in characteristic two, signs collapse because `−1 = 1`.
 //!
 //! ## The const-generic modulus
 //!
@@ -18,9 +14,8 @@
 //! operations assert this instead of silently turning field-theory APIs into
 //! arithmetic over `Z/PZ`.
 //!
-//! Unlike the nimbers, `neg` here is a *genuine* negation (`P − a ≠ a` for
-//! `a ≠ 0`), so the Clifford antisymmetry signs are real — a useful contrast to
-//! the char-2 backend where `−1 = 1`.
+//! For odd `P`, `neg` is genuine negation (`P − a ≠ a` for `a ≠ 0`); for
+//! `P = 2`, negation is the identity.
 
 use crate::scalar::{is_prime_u128, Scalar};
 use std::fmt;
@@ -54,10 +49,12 @@ pub(crate) fn mul_mod<const P: u128>(mut a: u128, mut b: u128) -> u128 {
 }
 
 impl<const P: u128> Fp<P> {
+    /// Whether `P` is prime.
     pub fn modulus_is_prime() -> bool {
         is_prime_u128(P)
     }
 
+    /// Validate that `P` is prime, panicking otherwise.
     pub fn assert_supported_params() {
         assert!(Self::modulus_is_prime(), "Fp<P> needs prime P, got {P}");
     }

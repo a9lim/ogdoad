@@ -1,7 +1,6 @@
-//! Python bindings for the form classifiers across the characteristic
-//! trichotomy: Arf (char 2), the char-0 Clifford type, the Witt classes,
-//! Dickson, the odd-characteristic classifier, and the Springer decomposition.
-//! These consume the `pub(crate)` algebra types stamped by [`super::engine`].
+//! Python bindings for quadratic and bilinear form invariants across all
+//! characteristics, together with Witt, local--global, Hermitian, symplectic,
+//! integral-lattice, modular-form, and Brauer--Wall operations.
 
 use super::engine::{
     F16Algebra, F25Algebra, F27Algebra, F4Algebra, F8Algebra, F9Algebra, Fp11Algebra,
@@ -171,8 +170,8 @@ fn arf_nimber(alg: &NimberAlgebra) -> PyResult<PyArfInvariants> {
     Ok(PyArfInvariants { inner })
 }
 
-/// Arf invariant of an ordinal-nimber Clifford metric, on the detected finite
-/// ordinal windows (`F_2`/nimber entries and the first transfinite `F_64` window).
+/// Arf invariant of an ordinal-nimber Clifford metric when all coefficients
+/// lie in a detected represented finite subfield.
 #[pyfunction]
 fn arf_ordinal_finite(alg: &OrdinalAlgebra) -> PyResult<PyArfInvariants> {
     let inner = crate::forms::arf_ordinal_finite(&alg.inner.metric).ok_or_else(|| {
@@ -3651,8 +3650,9 @@ impl PyWittClassG {
             .map(|inner| PyWittClassG { inner })
             .map_err(|e| PyValueError::new_err(e.to_string()))
     }
-    /// The Witt-**ring** product (tensor of forms). Defined on the char-0 and
-    /// odd-char legs; panics on a char-2 operand (`W_q` is a module, not a ring).
+    /// The Witt-ring product (tensor of forms). Defined on the characteristic-zero
+    /// and odd-characteristic legs; raises `ValueError` for characteristic two,
+    /// where `W_q` is a module rather than a ring.
     fn __mul__(&self, other: &PyWittClassG) -> PyResult<PyWittClassG> {
         self.inner
             .try_mul(&other.inner)
@@ -3888,9 +3888,9 @@ fn hilbert_symbol_prime<const P: u128>(a: i128, b: i128) -> PyResult<i128> {
     ))
 }
 
-/// The level/Stufe of the prime field `F_p`: least `n` with `-1` a sum of `n`
-/// squares. Returns `None` only for the char-2/degenerate cases where the Rust
-/// invariant deliberately declines; supported dispatch primes are finite.
+/// The level/Stufe of the prime field `F_p`: the least `n` for which `-1` is a
+/// sum of `n` squares. Supported primes are `2, 3, 5, 7, 11, 13`; other inputs
+/// raise `ValueError`.
 #[pyfunction]
 fn level(p: u128) -> PyResult<Option<usize>> {
     with_prime_field!(p, level_for_prime)
@@ -4247,8 +4247,8 @@ fn ramified_qp4_e_metric<const P: u128, const E: usize>(
 }
 
 /// Springer decomposition over the fixed ramified quadratic p-adic slice
-/// `Q_p(pi)` with `pi^2 = p`, base precision `4`, and odd `p` in the existing
-/// fixed p-adic dispatch set. Entries are diagonal coefficients encoded as
+/// `Q_p(pi)` with `pi^2 = p`, base precision `4`, and
+/// `p ∈ {3, 5, 7, 11, 13}`. Entries are diagonal coefficients encoded as
 /// component lists `[a0, a1]`, meaning `a0 + a1*pi` with integer `Qp*_4`
 /// components. The residue-characteristic-2 case is intentionally rejected by
 /// Springer's odd-residue theorem boundary.
@@ -4278,8 +4278,8 @@ fn springer_decompose_ramified_qp4_e2(
 }
 
 /// Springer decomposition over the fixed ramified cubic p-adic slice
-/// `Q_p(pi)` with `pi^3 = p`, base precision `4`, and odd `p` in the existing
-/// fixed p-adic dispatch set. Entries are diagonal coefficients encoded as
+/// `Q_p(pi)` with `pi^3 = p`, base precision `4`, and
+/// `p ∈ {3, 5, 7, 11, 13}`. Entries are diagonal coefficients encoded as
 /// component lists `[a0, a1, a2]`, meaning `a0 + a1*pi + a2*pi^2` with integer
 /// `Qp*_4` components. The residue-characteristic-2 case is intentionally
 /// rejected by Springer's odd-residue theorem boundary.

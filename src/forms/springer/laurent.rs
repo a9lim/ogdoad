@@ -1,15 +1,9 @@
 //! Springer decomposition over the **equal-characteristic** local field `F_q((t))`
-//! — the third discretely-valued sibling, beside the surreal leg
-//! ([`springer_decompose`](crate::forms::springer_decompose)) and the `Q_p`/`Q_q`
-//! leg ([`springer_decompose_qp`](crate::forms::springer_decompose_qp)), and a named
-//! entry point into the generic engine
-//! [`springer_decompose_local`](crate::forms::springer_decompose_local). See that
-//! engine for the full discrete-valuation trichotomy table.
+//! as a named entry point into
+//! [`springer_decompose_local`](crate::forms::springer_decompose_local).
 //!
-//! The novelty against the `Q_p` twin is twofold: this is the **equal
-//! characteristic** case (the field itself has characteristic `p`, not `0`), and the
-//! residue field is a general **`F_q = F_{p^n}`** — the same general-residue reach
-//! the `Q_q` sibling gives the mixed-characteristic leg. The per-layer discriminant
+//! This is the equal-characteristic case with a general residue field
+//! `F_q = F_{p^n}`. The per-layer discriminant
 //! square-class lives in `F_q*/(F_q*)²` and genuinely exercises the extension-field
 //! square-class (`Fpn::is_square`), not just `F_p`.
 //!
@@ -20,15 +14,14 @@
 //! residue characteristic and an already-diagonal metric (`Laurent` is a precision
 //! model).
 //!
-//! ## The residue-characteristic-2 boundary (honest scope)
+//! # Residue-characteristic-two boundary
 //!
-//! Residue characteristic 2 — `F_{2^n}((t))` — is **rejected** (returns `None`),
-//! exactly as the `Q_p`/`Q_q` siblings reject residue char 2. This is not laziness:
+//! Residue characteristic 2 — `F_{2^n}((t))` — is rejected. In that case
 //! Springer's second residue map requires residue characteristic `≠ 2`, and a
 //! *diagonal* char-2 form is totally singular (the polar form vanishes), so the
-//! clean `W(F_q((t))) = W(F_q) ⊕ W(F_q)` grading genuinely does not hold there. The
-//! char-2 Witt/Arf theory lives in [`char2`](crate::forms::char2), over the full
-//! `(q, b)` metric, not through this valuation filtration.
+//! clean `W(F_q((t))) = W(F_q) ⊕ W(F_q)` grading does not hold there. Use
+//! [`springer_decompose_local_char2`](crate::forms::springer_decompose_local_char2)
+//! on a full characteristic-two quadratic form.
 
 use crate::clifford::Metric;
 use crate::forms::FiniteOddField;

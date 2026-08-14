@@ -1,62 +1,22 @@
-//! Transfinite (ordinal) nimbers — the char-2 mirror of the surreal backend,
-//! and the closure the shipped `Nimber(u128)` backend cannot reach.
+//! Recursive ordinals with ordinary Cantor arithmetic and checked nim arithmetic.
 //!
-//! The finite nimbers form `⋃ₙ F_{2^{2^n}}` — the quadratic closure of `F₂` — but
-//! this is **not** algebraically closed: it contains `F_{2^d}` only for `d` a
-//! power of two, so it misses `F₈` (degree 3), `F₃₂` (degree 5), …. Conway's
-//! theorem (ONAG ch. 6) is that the proper class of *all ordinals* under
-//! nim-addition and nim-multiplication is an algebraically closed field of
-//! characteristic 2, and the algebraic closure of `F₂` already appears among the
-//! ordinals below `ω^{ω^ω}`. The first infinite ordinal `ω` supplies the missing
-//! cube roots: **`ω³ = 2`** (ω is the nim-cube-root of the nimber 2), which has
-//! no solution in any finite layer, so `F₂(ω)` jumps past the 2-power tower and
-//! brings in `F₈`.
+//! [`Ordinal`] stores a finite Cantor normal form `Σ ω^{βᵢ}cᵢ`. The
+//! `cantor` operations are ordinary, noncommutative ordinal sum and product. The
+//! `nim` operations use characteristic-two
+//! addition and Conway--Lenstra--DiMuro multiplication.
 //!
-//! An `Ordinal` is stored in Cantor normal form `Σ ω^{βᵢ}·cᵢ` (`βᵢ` descending
-//! ordinals, `cᵢ` finite), mirroring `surreal/` — and like there, every
-//! operation recurses only on the strictly-simpler *exponents*, which is the
-//! termination argument. This `mod.rs` is that CNF core (representation,
-//! constructors, ordering, display); the two arithmetics live beside it:
+//! Conway's ordinal nimbers form an algebraically closed characteristic-two
+//! field; the algebraic closure of `F₂` lies below `ω^(ω^ω)` (Conway, *ONAG*,
+//! ch. 6; Lenstra, *Nim multiplication*; DiMuro, arXiv:1108.0962). This backend
+//! represents only finite recursive CNFs and implements multiplication on the
+//! `< ω^(ω^ω)` segment subject to a checked Kummer-data boundary.
 //!
-//!   * `nim` — the char-2 nim arithmetic: nim-addition (XOR of like-power
-//!     coefficients) and the `φ_{ω+1}` field product (the DiMuro tower).
-//!   * `cantor` — the *ordinary* (Cantor) ordinal arithmetic `ord_add`/
-//!     `ord_mul` (`ω + ω = ω·2`, `1 + ω = ω`), a genuinely different operation
-//!     from nim, used by the surreal birthday's run-length sums.
-//!
-//! ## Status (honest scope)
-//!
-//! * **nim-addition is complete and exact** (`nim`): like-`ω`-power
-//!   coefficients combine by XOR (so `α ⊕ α = 0`, `ω ⊕ 1 = ω+1`), giving the
-//!   genuine transfinite characteristic-2 additive group.
-//! * **nim-multiplication is implemented across the prime-power generator tower**
-//!   (`tower`). Following DiMuro (*arXiv:1108.0962*, extending Conway *ONAG* ch. 6
-//!   and Lenstra 1977 "On the algebraic closure of two"): the finite layers are
-//!   `F_{2^{2^n}}`; then for the prime governing exponent-place `ω^m` — `p(m)` = the
-//!   `(m+2)`-th prime (`p(0)=3`, `p(1)=5`, `p(2)=7`, …) — the generators are
-//!   `χ_{p(m)^{k+1}} = ω^(ω^m · p(m)^k)`, so every ordinal `< ω^(ω^ω)` is a monomial
-//!   in the `χ` read off the **base-`p(m)` digits** of its exponents' `ω^m`-coefficients
-//!   (`ω^E = ⊗_{m,k} χ_{p(m)^{k+1}}^{d_{m,k}}`). Nim-multiplication is digit-vector
-//!   addition with the carries `χ_{u^{k+1}}^u = χ_{u^k}` (`k ≥ 1`) and the bottom
-//!   **Kummer** relation `χ_u^u = α_u` — `α_u` being Lenstra's *excess*, the smallest
-//!   ordinal `< χ_u` with no `u`-th root there. The prime-3 place is the degree-3 cube
-//!   tower (`g₀=ω, gₙ=ω^(3ⁿ), g₀³=2, gₙ³=g_{n-1}`); `f4_adjoin_omega_is_a_field` (F₆₄)
-//!   and `omega_cubed_is_two` remain green as its regression.
-//! * **The boundary is honest and operational.** A non-scalar excess (`α_7 = ω+1`,
-//!   `α_11 = ω^ω+1`, `α_13 = ω+4`, …) is a *sum*, so a level-0 Kummer carry **branches**
-//!   the monomial and the reduced monomial is nim-multiplied back by `α_u`. This recurses
-//!   **strictly downward by place** (every `α_{p(m)}` is built from generators at places
-//!   `< m`), bottoming out at `α_3 = 2` in the finite field. We carry the finite excess
-//!   integers `m_u` from OEIS A380496 (the b-file's 126 known rows, odd primes
-//!   `3..=709`) plus the locally certified rows `m_719=m_727=1`;
-//!   `α_u` itself is assembled from `ord_u(2)`, `Q(f(u))`, and `m_u`. A product is exact
-//!   whenever its Kummer carries stay at primes `≤ 727`; a carry needing `m_733` (the
-//!   first unsupported row) or beyond returns `None`, as does anything `≥ ω^(ω^ω)` (an
-//!   infinite exponent place). (The Artin–Schreier `x²+x+1` relation is the separate
-//!   `u = 2` Fermat-tower
-//!   case — DiMuro Thm 3.1.7 / Cor 3.11 — handled inside the finite nimber field
-//!   [`finite_field::nimber`](crate::scalar::finite_field).) See `docs/OPEN.md` for
-//!   the current proof boundary.
+//! Nim-addition is total. [`Ordinal::nim_mul`], [`Ordinal::nim_pow`],
+//! [`Ordinal::checked_inv`], and [`Ordinal::checked_sqrt`] return `None` when an
+//! operand leaves the represented segment or a carry needs a Lenstra-excess row
+//! beyond the source-backed table through prime `727`. The universal `0/1/4`
+//! excess rule remains open; table rows and their certificates establish only the
+//! encoded finite window. See `docs/OPEN.md`.
 
 mod cantor;
 mod nim;
@@ -68,8 +28,8 @@ use crate::scalar::{nim_inv, nim_sqrt, Scalar};
 use std::cmp::Ordering;
 use std::fmt;
 
-/// An ordinal `< ε₀`-ish in Cantor normal form: `Σ ω^{exp}·coeff`, exponents
-/// strictly descending, coefficients nonzero finite naturals.
+/// An ordinal below `ε₀`, represented by a finite Cantor normal form
+/// `Σ ω^{exp}·coeff` with descending exponents and nonzero `u128` coefficients.
 #[derive(Clone, PartialEq, Eq)]
 pub struct Ordinal {
     terms: Vec<(Ordinal, u128)>,
@@ -119,10 +79,12 @@ impl Ordinal {
         Ordinal::omega_pow(Ordinal::from_u128(1))
     }
 
+    /// Whether this is the zero ordinal.
     pub fn is_zero(&self) -> bool {
         self.terms.is_empty()
     }
 
+    /// Canonical Cantor-normal-form terms, in descending exponent order.
     pub fn terms(&self) -> &[(Ordinal, u128)] {
         &self.terms
     }
@@ -201,7 +163,7 @@ impl Ordinal {
     /// transfinite values first detect their minimal represented finite subfield,
     /// then apply checked Frobenius squaring `m - 1` times. `None` reports the same
     /// honest boundary as [`finite_subfield_degree`](Self::finite_subfield_degree)
-    /// and [`nim_mul`](Self::nim_mul): an input outside the staged segment or an
+    /// and [`nim_mul`](Self::nim_mul): an input outside the represented segment or an
     /// intermediate Kummer carry beyond the certified excess table.
     pub fn checked_sqrt(&self) -> Option<Ordinal> {
         if let Some(x) = self.as_finite() {
@@ -259,7 +221,7 @@ impl Scalar for Ordinal {
     fn mul(&self, rhs: &Self) -> Self {
         self.nim_mul(rhs).unwrap_or_else(|| {
             panic!(
-                "Ordinal::mul escaped the source-verified nim-product tower: left={self:?}, right={rhs:?}"
+                "Ordinal::mul escaped the represented nim-product tower: left={self:?}, right={rhs:?}"
             )
         })
     }
@@ -273,7 +235,8 @@ impl Scalar for Ordinal {
     }
 }
 
-/// The omega-power base `ω↑exp` (canonical grundy, Display v4 (spec.md §12)). Empty for a
+/// The omega-power base `ω↑exp` in canonical grundy syntax
+/// (`grundy/docs/spec.md` §12). Empty for a
 /// finite (exponent-0) term, bare `ω` for exponent 1, `ω↑k` for a plain finite
 /// exponent `k`, and `ω↑(…)` for any compound ordinal exponent.
 fn fmt_exp(e: &Ordinal) -> String {
@@ -372,7 +335,7 @@ mod tests {
 
     #[test]
     fn display_reads_as_cnf() {
-        // Display v4 (spec.md §12): star-wrapped, bare star only for finite/bare-ω.
+        // Canonical grundy syntax: star-wrapped, bare star only for finite/bare-ω.
         assert_eq!(format!("{:?}", Ordinal::omega()), "*ω");
         assert_eq!(format!("{:?}", Ordinal::monomial(fin(1), 3)), "*(ω⋅3)");
         assert_eq!(format!("{:?}", Ordinal::omega_pow(fin(2))), "*(ω↑2)");
@@ -429,13 +392,13 @@ mod tests {
     }
 
     #[test]
-    fn checked_square_root_refuses_outside_staged_segment() {
+    fn checked_square_root_refuses_outside_represented_segment() {
         let out_of_range = Ordinal::omega_pow(Ordinal::omega_pow(Ordinal::omega()));
         assert_eq!(out_of_range.checked_sqrt(), None);
     }
 
     #[test]
-    #[should_panic(expected = "Ordinal::mul escaped the source-verified nim-product tower")]
+    #[should_panic(expected = "Ordinal::mul escaped the represented nim-product tower")]
     fn scalar_mul_panics_past_verified_tower() {
         let out_of_range = Ordinal::omega_pow(Ordinal::omega_pow(Ordinal::omega()));
         let _ = out_of_range.mul(&Ordinal::omega());

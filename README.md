@@ -52,7 +52,7 @@ Representation limits are part of the API:
 | `src/clifford/` | metrics, blades, multivectors, products, versors, spinors, and geometric-algebra constructions |
 | `src/forms/` | quadratic-form classification, Witt/Brauer theory, Springer and local--global arithmetic |
 | `src/forms/integral/` | lattices, discriminant forms, codes, theta series, genera, neighbors, and Weyl bridges |
-| `src/games/` | impartial, partizan, misere, loopy, thermographic, Hackenbush, and game-exterior constructions |
+| `src/games/` | impartial, partizan, misere, loopy, thermographic, Witt--FIFO/Brown, octal-certificate, Hackenbush, and game-exterior constructions |
 | `src/py/` | optional per-backend PyO3 bindings; scalar worlds never mix at runtime |
 | `src/linalg/` | crate-private shared linear algebra |
 | `grundy/` | unpublished expression-language workspace crate using only Ogdoad's public API |
@@ -90,6 +90,18 @@ assert e0 * e1 + e1 * e0 == A.scalar(og.Nimber(1))
 # Exact finite-support surreal monomials.
 S = og.SurrealAlgebra(q=[og.omega(), og.epsilon()])
 assert (S.gen(0) * S.gen(1)) ** 2 == S.scalar(og.Surreal.from_int(-1))
+
+# Checked game constructors preserve their proof and validation boundaries.
+arena = og.WittFifoArena(diagonal=[True], polar=[0], input=1)
+assert arena.quadratic_value and arena.grundy(state_budget=100_000) != 0
+
+selector = og.BrownSelector(q4=[3], brown_polar=[0], input=1)
+outcome = selector.outcome_class(state_budget_per_follower=100_000)
+assert og.BrownSelector.decode_outcome(outcome) == selector.residue
+
+code = og.OctalCode([2])
+certificate = og.GuySmithCertificate.compute(code, 1, 2, term_budget=16)
+assert certificate.heap_grundy(10**30) == 1
 ```
 
 The Python layer monomorphizes a documented slice of the Rust backends. It
@@ -97,8 +109,9 @@ does not provide a runtime-tagged any-scalar algebra. Its typed report surface
 includes finite quadratic modules and Nikulin criteria, extraspecial and
 Heisenberg--Weil objects, function-field Brauer--Wall classes, Niemeier data,
 finite-field Witt decompositions, lexicode turning games, conformal-algebra
-accessors, and represented ordinal finite-subfield degrees. Python `repr`
-delegates to canonical Rust rendering where the core provides it.
+accessors, represented ordinal finite-subfield degrees, checked Witt--FIFO and
+Brown constructors, and sealed Guy--Smith periodicity certificates. Python
+`repr` delegates to canonical Rust rendering where the core provides it.
 
 ## Mathematical status
 

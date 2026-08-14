@@ -54,7 +54,7 @@ pub struct FqmPrimaryWittClass {
 }
 
 impl FqmPrimaryWittClass {
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -88,7 +88,7 @@ impl FqmWittClass {
         self.primary.iter().all(|p| p.core_order == 1)
     }
 
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -135,7 +135,7 @@ pub struct NikulinPrimaryExistenceInvariants {
 }
 
 impl NikulinPrimaryExistenceInvariants {
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -163,32 +163,42 @@ impl fmt::Display for NikulinPrimaryExistenceInvariants {
 pub enum NikulinExistenceObstruction {
     /// `sign(q) != t_+ - t_- (mod 8)`.
     SignatureCongruence {
+        /// Signature required by the requested lattice.
         required_mod8: i128,
+        /// Phase of the finite quadratic module.
         module_phase_mod8: i128,
     },
     /// `rank < l(A_p)` at one prime.
     RankTooSmall {
+        /// Prime at which the length bound fails.
         prime: u128,
+        /// Requested lattice rank.
         rank: usize,
+        /// Length of the primary module.
         length: usize,
     },
     /// The odd-prime equality case failed:
     /// `(-1)^{t_-}|A_p| != discr K(q_p)` in `Q_p^*/Q_p^{*2}`.
     OddPrimeDeterminant {
+        /// Odd prime at which the determinant condition fails.
         prime: u128,
+        /// Signed order entering Nikulin's condition.
         signed_order: i128,
+        /// Computed p-adic discriminant.
         p_adic_discriminant: Rational,
     },
     /// The 2-adic even equality case failed:
     /// `|A_2| != +/- discr K(q_2)` in `Q_2^*/Q_2^{*2}`.
     TwoAdicDeterminant {
+        /// Order of the two-primary module.
         order: u128,
+        /// Computed two-adic discriminant.
         p_adic_discriminant: Rational,
     },
 }
 
 impl NikulinExistenceObstruction {
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -250,7 +260,7 @@ impl NikulinExistenceInvariants {
         self.obstruction.is_none()
     }
 
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -1312,10 +1322,9 @@ mod tests {
     }
 
     #[test]
-    fn fqm_witt_class_of_d4_matches_the_independently_shipped_brown_invariant() {
+    fn fqm_witt_class_of_d4_matches_brown_invariant() {
         // D_4's discriminant form is a standard textbook example (Conway-Sloane
-        // SPLAG, and the `forms::char2` extraspecial-group literature this crate
-        // already cites): the "Arf invariant 1" quadratic form on (Z/2)^2, whose
+        // SPLAG): the "Arf invariant 1" quadratic form on (Z/2)^2, whose
         // three nonzero vectors ALL carry q = 1 (no isotropic vector at all, unlike
         // a hyperbolic plane's single nonzero isotropic vector). Rather than lean on
         // an external citation I can't source-pin precisely, this pins the D_4 Witt
@@ -1330,9 +1339,9 @@ mod tests {
         // (2) cross-check against `DiscriminantForm::brown_invariant`
         //     (`forms/integral/discriminant/form.rs`), a COMPLETELY separate
         //     exact-integer code path (radical splitting + line/plane reduction,
-        //     no cyclotomic arithmetic) already pinned elsewhere
+        //     no cyclotomic arithmetic) tested independently
         //     (`brown_invariant_recovers_signature_mod8_on_2_elementary_forms`) to
-        //     beta(D_4) = 4. The shipped Milgram/Brown identity beta = sign(L) mod 8
+        //     beta(D_4) = 4. The Milgram/Brown identity beta = sign(L) mod 8
         //     forces the FQM phase to equal that same 4 — an independently-derived
         //     pin on `class.phase_mod8`, not just a self-consistency check of this
         //     file's own cyclotomic machinery.
@@ -1369,7 +1378,7 @@ mod tests {
         );
         assert_eq!(
             p2.phase_mod8, brown.beta as i128,
-            "FQM phase must match the independently-shipped Brown invariant"
+            "FQM phase must match the independently computed Brown invariant"
         );
         assert_eq!(class.phase_mod8, brown.beta as i128);
         assert!(!class.is_trivial());

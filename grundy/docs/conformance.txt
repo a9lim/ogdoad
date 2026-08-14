@@ -1060,7 +1060,7 @@
 > down < 0
 = true
 
-// the founding scope boundary, enforced: games are a group, not a ring
+// games are an additive group, not a ring
 > *2 ⋅ *3
 ! E_WrongWorld:
 
@@ -1492,7 +1492,7 @@
 > id(x) := x
 ! E_Parse:
 
-// ============================================================ recognition and delights
+// ============================================================ recognition and display
 @world game
 
 > [0]
@@ -2013,7 +2013,7 @@
 > g30 ≡ h30
 = false
 
-// Stage D: adjacent Element equations are simultaneous and display is self-contained.
+// Adjacent Element equations are simultaneous and display is self-contained.
 @world game
 
 > a =: {b |}; b =: {| a}
@@ -2088,7 +2088,7 @@
 > {a | g1}
 = (a =: {| a}; g1 =: {1 | g1}; {a | g1})
 
-// Stage E: skipped append operands are sort-checked but never value-evaluated.
+// Skipped append operands are sort-checked but never value-evaluated.
 @world game
 
 > ones =: [1] ⧺ ones
@@ -2179,7 +2179,7 @@
 > on =: {on |}
 
 > canon(on)
-! E_Loopy: graph fusion is not yet in the envelope
+! E_Loopy: graph fusion is outside the supported envelope
 
 @world integer 0
 
@@ -2196,7 +2196,7 @@
 > *3
 ! E_WrongWorld: `*3` is a nimber literal
 
-// Stage F: conditionals are words, nearest-else, lazy, and totally sort-checked.
+// Conditionals are words, nearest-else, lazy, and totally sort-checked.
 @world integer 0
 
 > if false then 1 else if true then 2 else 3
@@ -2293,7 +2293,7 @@
 > gold
 = (a, u) ↦ tr(u⋅u↑(2↑a))
 
-// Stage G: one container glyph for graded polynomial and function-field worlds.
+// One container glyph covers graded polynomial and function-field worlds.
 @world fp5[t]
 
 > [1, 2, 3]
@@ -2505,7 +2505,7 @@
 > integral := 0
 ! E_Reserved:
 
-// Stage E addendum: Element equations sort-check before non-strict reduction skips.
+// Element equations sort-check before non-strict reduction skips.
 @world game
 
 > dead =: if true then {dead |} else true

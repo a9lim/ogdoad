@@ -1,15 +1,15 @@
 //! PyO3 bindings, split along the same pillars as the math core.
 //!
-//! Each scalar world (nimber / surreal / surcomplex / integer / omnific) gets
-//! its own scalar type plus an `<World>Algebra` / `<World>MV` multivector pair,
-//! stamped out by the `backend!` macro in [`engine`] — monomorphising the one
-//! verified generic engine to a concrete scalar type, so there is no runtime
-//! dispatch and no way to mix scalar worlds in one algebra.
+//! A fixed catalog of exact and represented-precision scalar backends is
+//! exposed as separate Python types. Registered scalar backends also receive
+//! monomorphic algebra, multivector, and linear-map classes. Operands from
+//! different backends cannot mix, and there is no runtime-tagged any-scalar
+//! escape hatch.
 //!
-//!   - [`scalars`] — the scalar types, their constructors, nim-field ops.
-//!   - [`engine`]  — the `backend!` macro, the algebra/MV pairs, conformal GA.
-//!   - [`forms`]   — the classifier / invariant bindings (trichotomy + Witt).
-//!   - [`games`]   — partizan games and the game-group exterior algebra.
+//!   - [`scalars`] — scalar types, arithmetic, extensions, and valuation APIs.
+//!   - [`engine`] — algebra/MV pairs, linear maps, divided powers, and CGA.
+//!   - [`forms`] — quadratic, bilinear, Hermitian, symplectic, and integral forms.
+//!   - [`games`] — short/transfinite games, graph kernels, and game invariants.
 //!
 //! Each submodule registers its own classes and functions through a
 //! `pub(crate) fn register`, which the `#[pymodule]` entry point chains

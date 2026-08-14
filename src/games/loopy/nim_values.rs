@@ -23,9 +23,13 @@ pub enum LoopyNimber {
 /// checked recovery condition for additive finite-nimber claims.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LoopyNimCertificate {
+    /// Normal-play outcome of each graph position.
     pub outcomes: Vec<Outcome>,
+    /// Positions assigned the loopy value `Side`.
     pub side_positions: Vec<usize>,
+    /// Whether evaluation required bounded sidling assignments.
     pub used_sidling_solver: bool,
+    /// Number of sidling assignments examined.
     pub sidling_assignments_examined: usize,
     /// True when every finite-valued position has only finite-valued options.
     /// Under this checked condition the emitted finite nimbers are ordinary
@@ -38,7 +42,7 @@ pub struct LoopyNimCertificate {
 }
 
 impl LoopyNimCertificate {
-    /// `display()` alias kept for Python callers.
+    /// Python-visible rendering alias.
     pub fn display(&self) -> String {
         self.to_string()
     }

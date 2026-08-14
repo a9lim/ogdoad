@@ -1,15 +1,13 @@
-//! The **ungraded rational Brauer class** of a quadratic form over `ℚ` — the
-//! char-0 / odd mirror of Bridge B (which classified the *char-2* Clifford algebra
-//! by its Arf/Brauer–Wall bit), done **correctly**: the Hasse–Witt invariant is
-//! *not* the Brauer class of the Clifford algebra, and this module computes the
-//! exact correction between them.
+//! Ungraded two-torsion Brauer classes of quadratic forms over `Q`.
+//!
+//! The Hasse--Witt invariant and the Clifford-algebra Brauer class are distinct;
+//! this module computes both and the exact correction between them.
 //!
 //! ## Two distinct invariants
 //!
 //! Over `ℚ`, quadratic-form Brauer invariants live in `Br(ℚ)[2]`, which by
 //! Hasse–Brauer–Noether injects into `⊕_v Br(ℚ_v)[2] = ⊕_v {±1}` — a finite set of
-//! ramified places of **even** cardinality (`∏_v = +1`, Hilbert reciprocity, the
-//! oracle already in [`local_global`](crate::forms::local_global)). A
+//! ramified places of **even** cardinality (`∏_v = +1` by Hilbert reciprocity). A
 //! [`Brauer2Class`] *is* that ramification set. For `q = ⟨a₁,…,aₙ⟩` two **distinct**
 //! 2-torsion classes:
 //!
@@ -33,20 +31,18 @@
 //!                                       (−1, d)             for n ≡ 7, 0
 //! ```
 //!
-//! So [`hasse_brauer_class`] reads `s(q)` off the Hilbert products, and
-//! [`clifford_brauer_class`] applies the correction to obtain `c(q)`. The honest
-//! bridge verifies the **correction**, not an identity. The independent oracle for
-//! small forms is the direct Clifford structure: `C(⟨a,b⟩) ≅ (a,b)` and
-//! `C₀(⟨a,b,c⟩) ≅ (−ab, −ac)` (the quaternion factor of the even subalgebra) — the
-//! "clifford-side reader" the bridge proposes, exercised in the tests.
+//! [`hasse_brauer_class`] reads `s(q)` from Hilbert products, and
+//! [`clifford_brauer_class`] applies this correction to obtain `c(q)`. Tests also
+//! check the direct low-rank identifications `C(⟨a,b⟩) ≅ (a,b)` and
+//! `C₀(⟨a,b,c⟩) ≅ (−ab, −ac)`.
 //!
-//! ## Scope (honest boundaries)
+//! # Scope
 //!
 //! `ℚ` (and `ℚ_v`) only; **2-torsion only** (quadratic-form Brauer classes are
 //! 2-torsion). This is the **ungraded** Brauer class — the `c(q)` projection of
 //! the graded rational [`RationalBrauerWallClass`](crate::forms::RationalBrauerWallClass),
-//! not the whole Brauer-Wall class. The full `ℚ/ℤ` lift via cyclic algebras
-//! (Bridge K) is built as [`BrauerClass`](crate::forms::BrauerClass), which embeds
+//! not the whole Brauer-Wall class. [`BrauerClass`](crate::forms::BrauerClass)
+//! carries the full `Q/Z` local invariant and embeds
 //! this 2-torsion class as its `½`-slice via
 //! [`from_two_torsion`](crate::forms::BrauerClass::from_two_torsion).
 
@@ -132,7 +128,7 @@ impl Brauer2Class {
         Some(Brauer2Class { ramified })
     }
 
-    /// `display()` alias kept for Python callers.
+    /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -184,7 +180,7 @@ fn clifford_correction(n: usize, d: i128) -> Option<Brauer2Class> {
 
 /// The **Clifford invariant** `c(q) = [C(q)]` (`n` even) / `[C₀(q)]` (`n` odd) as a
 /// rational Brauer class: the Hasse–Witt class corrected by the `n mod 8` /
-/// discriminant term `δ`. The honest char-0 analogue of Bridge B — the algebra the
+/// discriminant term `δ`, producing the algebra that
 /// `clifford` pillar builds, classified by the symbols the `forms` pillar computes.
 ///
 /// Entries as in [`hasse_brauer_class`]. `None` on a zero entry or overflow.

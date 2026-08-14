@@ -1,10 +1,8 @@
 //! Short partizan combinatorial games.
 //!
-//! Conway's games `G = { G^L | G^R }` form, under disjunctive sum, a partially
-//! ordered abelian group — but *not a ring* (the product is only a congruence on
-//! the number/nimber subclasses). That is the obstruction the whole project lives
-//! around: a Clifford algebra needs a commutative scalar *ring*, so it only reaches
-//! the field-like cores (nimbers, surreals, surcomplex).
+//! Conway's games `G = { G^L | G^R }` form a partially ordered abelian group
+//! under disjunctive sum, but not a ring. Clifford coefficients therefore use
+//! commutative scalar subclasses rather than arbitrary games.
 //!
 //! This module ships the short-game engine — sum, negation, the recursive order,
 //! birthday, the number test, and the **canonical form** (dominated/reversible
@@ -14,11 +12,11 @@
 //! [`Surreal`] value with no infinite option tree lives in the sibling
 //! [`number_game`](crate::games::number_game) module.
 //!
-//! The exterior algebra of the game group — the one Clifford-adjacent structure
-//! that lives on *all* of game-world because it needs only the ℤ-module structure,
-//! not the game product — is the sibling module
+//! The exterior algebra of the game group needs only its ℤ-module structure and
+//! therefore applies to arbitrary short games; see
 //! [`game_exterior`](crate::games::game_exterior).
 
+use crate::games::PartizanOutcome;
 use crate::scalar::{Scalar, Surreal};
 use std::cmp::Ordering;
 use std::fmt;
@@ -36,13 +34,16 @@ struct GameData {
 }
 
 impl Game {
+    /// Construct a short game from its Left and Right options.
     pub fn new(left: Vec<Game>, right: Vec<Game>) -> Game {
         Game(Arc::new(GameData { left, right }))
     }
 
+    /// Left options.
     pub fn left(&self) -> &[Game] {
         &self.0.left
     }
+    /// Right options.
     pub fn right(&self) -> &[Game] {
         &self.0.right
     }
@@ -151,6 +152,21 @@ impl Game {
         !self.le(other) && !other.le(self)
     }
 
+    /// The ordinary normal-play outcome class of this finite acyclic game.
+    ///
+    /// Comparison with zero gives the four Conway outcome classes: equality is
+    /// `P`, positive is `L`, negative is `R`, and fuzziness is `N`. A finite
+    /// short game cannot have the loopy [`PartizanOutcome::Draw`] outcome.
+    pub fn outcome_class(&self) -> PartizanOutcome {
+        let zero = Game::zero();
+        match (zero.le(self), self.le(&zero)) {
+            (true, true) => PartizanOutcome::P,
+            (true, false) => PartizanOutcome::L,
+            (false, true) => PartizanOutcome::R,
+            (false, false) => PartizanOutcome::N,
+        }
+    }
+
     /// The birthday (formation day): `0` for `{|}`, else `1 + max` over options.
     pub fn birthday(&self) -> u128 {
         self.left()
@@ -195,7 +211,7 @@ impl Game {
     }
 
     /// A readable structural form: `0` for `{|}`, else `{L|R}` recursively.
-    /// Alias for [`to_string`](std::fmt::Display) — kept for Python compatibility.
+    /// Python-visible alias for [`to_string`](std::fmt::Display).
     pub fn display(&self) -> String {
         self.to_string()
     }
@@ -467,6 +483,14 @@ mod tests {
         assert_eq!(Game::zero().birthday(), 0);
         assert_eq!(Game::star().birthday(), 1);
         assert_eq!(Game::integer(3).birthday(), 3);
+    }
+
+    #[test]
+    fn finite_outcome_classes_are_comparison_with_zero() {
+        assert_eq!(Game::zero().outcome_class(), PartizanOutcome::P);
+        assert_eq!(Game::star().outcome_class(), PartizanOutcome::N);
+        assert_eq!(Game::integer(1).outcome_class(), PartizanOutcome::L);
+        assert_eq!(Game::integer(-1).outcome_class(), PartizanOutcome::R);
     }
 
     #[test]

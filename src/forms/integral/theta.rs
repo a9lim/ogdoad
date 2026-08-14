@@ -106,7 +106,7 @@ mod tests {
     }
 
     #[test]
-    fn theta_series_counts_the_headline_lattices() {
+    fn theta_series_counts_named_lattices() {
         assert_eq!(e_8().theta_series(3), Some(vec![1, 240, 2160]));
         assert_eq!(
             type_ii_e8_sum_code().theta_series_via_weight_enumerator(2),

@@ -20,7 +20,7 @@ const CASES: u32 = 2;
 /// Every commutative-semiring law, checked on one triple `(a, b, c)`.
 fn semiring_axioms<T: Semiring>(a: &T, b: &T, c: &T) {
     // (R, ⊕) is a commutative, *idempotent* monoid (no inverse — that is the
-    // whole point of a semiring vs a ring).
+    // defining distinction between a semiring and a ring).
     assert!(a.add(b).add(c) == a.add(&b.add(c)), "⊕ associative");
     assert!(a.add(b) == b.add(a), "⊕ commutative");
     assert!(a.add(&T::zero()) == *a, "0 is the ⊕-identity");

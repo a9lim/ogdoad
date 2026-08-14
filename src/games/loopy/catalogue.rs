@@ -26,11 +26,14 @@ pub enum LoopyWinner {
 /// collapse to a [`PartizanOutcome`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct LoopyPartizanOutcome {
+    /// Winner when Left moves first.
     pub left_to_move: LoopyWinner,
+    /// Winner when Right moves first.
     pub right_to_move: LoopyWinner,
 }
 
 impl LoopyPartizanOutcome {
+    /// Construct an outcome from the two starter results.
     pub fn new(left_to_move: LoopyWinner, right_to_move: LoopyWinner) -> Self {
         Self {
             left_to_move,
@@ -52,6 +55,7 @@ impl LoopyPartizanOutcome {
         }
     }
 
+    /// Whether either starter result is a draw.
     pub fn has_draw(&self) -> bool {
         self.left_to_move == LoopyWinner::Draw || self.right_to_move == LoopyWinner::Draw
     }
@@ -107,7 +111,12 @@ pub enum LoopyValue {
     Tisn,
     /// A finite onside/offside tag `s&t`. Addition and negation are carried on the
     /// pair itself; equality with arbitrary loopy games is not decided here.
-    OnsideOffside { onside: i128, offside: i128 },
+    OnsideOffside {
+        /// Integer onside tag.
+        onside: i128,
+        /// Integer offside tag.
+        offside: i128,
+    },
     /// `dud = {dud|dud}` — the "deathless universal draw": both players loop
     /// forever, neither wins. Absorbing under sum; confused with every value.
     Dud,
@@ -290,7 +299,6 @@ impl LoopyValue {
 
 impl fmt::Display for LoopyValue {
     /// The conventional symbol — the same string [`name()`](LoopyValue::name) returns.
-    /// Kept [`name()`](LoopyValue::name) as an alias for Python compatibility.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.name())
     }

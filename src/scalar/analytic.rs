@@ -1,15 +1,4 @@
-//! The **analytic layer**, unified: root-taking and lazy inversion across every
-//! coefficient world, behind two traits that split on the one honest difference
-//! between the backends — *where the precision lives*.
-//!
-//! Until now "the analytic layer" was four disconnected sets of inherent methods
-//! with two incompatible signatures: the exact `Option<Self>` roots of
-//! [`Rational`] / the finite fields, and
-//! the precision-argument `(n) -> Option<Self>` series of
-//! [`Surreal`]. This module promotes that split to the
-//! type system, the same way [`valued`](crate::scalar::valued) and
-//! [`integrality`](crate::scalar::integrality) promoted valuation and the
-//! (field, ring-of-integers) pairing.
+//! Root-taking and lazy inversion across scalar backends.
 //!
 //! # The two traits
 //!
@@ -28,19 +17,17 @@
 //! `Surreal` implements **both**: its `SeriesRoots` methods are the primitive
 //! (truncated) operations, and its [`ExactRoots::sqrt`] is the exact value
 //! recovered by squaring back the truncations until one matches — the
-//! `SeriesRoots → ExactRoots` bridge on the representable subdomain.
+//! exact-root recovery on the subdomain representable by [`SeriesRoots`].
 //!
-//! # Surcomplex roots fall out functorially
+//! # Surcomplex roots
 //!
-//! The headline payoff: the algebraic-closure square root of a surcomplex number
-//! used to be a private helper buried in [`forms::char0`](crate::forms::char0).
-//! Here it is one blanket impl —
+//! The complex square-root formula is provided by the blanket implementation
 //! `impl<R: ExactRoots + Ordered> ExactRoots for Surcomplex<R>` — exactly the
 //! shape [`integrality`](crate::scalar::integrality) uses to transport the
 //! Gaussian pairing. The complex `√(a+bi)` formula needs the base to be *ordered*
 //! (to pick the branch) with exact non-negative roots, so the bound is
-//! [`Ordered`], satisfied by `Rational` (→ the Gaussian rationals `ℚ[i]`) and
-//! `Surreal` (→ the surreal-complex field). `Surcomplex<Surreal>` additionally
+//! [`Ordered`], satisfied by `Rational` (the Gaussian rationals `ℚ[i]`) and
+//! `Surreal` (the represented surreal-complex model). `Surcomplex<Surreal>` additionally
 //! gets a lazy [`inv_to_terms`](Surcomplex::inv_to_terms), making division
 //! first-class even when the norm `a²+b²` is a non-monomial.
 //!
@@ -55,8 +42,8 @@
 //!   * [`Gauss`](crate::scalar::Gauss) (rational functions) and
 //!     [`Ramified`](crate::scalar::Ramified) get **no** `ExactRoots` here: a
 //!     rational-function square root needs polynomial perfect-square detection, a
-//!     different machine, and the ramified case its own uniformizer bookkeeping.
-//!     Left out honestly rather than stubbed.
+//!     different machine, and the ramified case needs its own uniformizer
+//!     bookkeeping.
 
 use crate::scalar::{
     mul_mod_u128, Fp, Fpn, Laurent, Nimber, Rational, Scalar, Surcomplex, Surreal,
@@ -108,10 +95,8 @@ pub trait Ordered: Scalar {
 
 // ─────────────────── residue-field square roots (shared) ───────────────────
 //
-// The Tonelli–Shanks residue-field roots live here, at the analytic root, because
-// they are field primitives with no p-adic dependency: `ExactRoots for Fp/Fpn`
-// uses them directly, and the Hensel lift in `small/analytic.rs` imports them as
-// the lift's seed. (They were previously private to `small/analytic.rs`.)
+// These Tonelli--Shanks helpers are field primitives shared by the finite-field
+// `ExactRoots` implementations and the p-adic Hensel lifts.
 
 /// `base^e mod m`, using double-and-add multiplication so large legal prime
 /// moduli do not wrap in release builds.
@@ -291,11 +276,8 @@ impl ExactRoots for Surreal {
         if self.sign() != Ordering::Greater {
             return None;
         }
-        // Search up to 12 truncated terms. The adaptive formula `(8*base+32).min(12)`
-        // that used to appear here was identically 12 for all inputs (base ≥ 1 gives
-        // 8*1+32 = 40 > 12, so `.min(12)` was always the operative bound). 12 is
-        // also the safe ceiling before i128 binomial coefficients overflow in the
-        // underlying `sqrt_to_terms`.
+        // Twelve terms is the safe ceiling before i128 binomial coefficients can
+        // overflow in the underlying `sqrt_to_terms` search.
         let max_terms = 12;
         for n in 1..=max_terms {
             let root = self.sqrt_to_terms(n)?;
@@ -364,11 +346,10 @@ impl<S: ExactRoots, const K: usize> ExactRoots for Laurent<S, K> {
     }
 }
 
-/// Functorial: the **algebraic closure** square root. `Surcomplex<R>` over an
-/// ordered [`ExactRoots`] base is [`ExactRoots`], via the classical
+/// `Surcomplex<R>` over an ordered [`ExactRoots`] base supports the classical
 /// `√(a+bi) = ±(√((|z|+a)/2) + sgn(b)·√((|z|−a)/2) i)`. This is the operation that
-/// used to be a private helper in `forms::char0`; it now lives where it belongs,
-/// and the classifier calls the trait.
+/// is used by the characteristic-zero classifier. A root is returned only when
+/// every required base root is representable and the result squares back exactly.
 impl<R: ExactRoots + Ordered> ExactRoots for Surcomplex<R> {
     fn is_square(&self) -> bool {
         self.sqrt().is_some()
@@ -541,7 +522,7 @@ mod tests {
         );
     }
 
-    // ---------- surcomplex roots (the functorial payoff) ----------
+    // ---------- surcomplex roots ----------
 
     #[test]
     fn gaussian_sqrt() {

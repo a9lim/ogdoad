@@ -1,66 +1,120 @@
+//! Tokenization and continuation detection.
+
 use super::ast::OutcomeCell;
 use super::error::{GrundyError, GrundyErrorKind, GrundyResult, Span};
 
+/// A normalized token and its source span.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Token {
+    /// Normalized token kind.
     pub kind: TokenKind,
+    /// Byte range in the submitted source.
     pub span: Span,
 }
 
+/// Tokens accepted by the parser after ASCII sugar is normalized.
 #[derive(Clone, Debug, PartialEq)]
 pub enum TokenKind {
+    /// Unsigned integer literal.
     Int(u128),
+    /// Identifier.
     Ident(String),
+    /// Basis-blade token `eN`.
     Blade(usize),
+    /// Omega literal.
     Omega,
+    /// Nimber/ordinal prefix `*`.
     Star,
+    /// Index prefix or binder mark `#`.
     Index,
+    /// Power operator `↑`.
     Power,
+    /// Exterior-product operator `∧`.
     Wedge,
+    /// Algebra-product operator `⋅`.
     Dot,
+    /// Division or reciprocal slash.
     Slash,
+    /// Remainder operator.
     Percent,
+    /// Application operator.
     At,
+    /// Boolean binder mark.
     Question,
+    /// Reserved colon token.
     Colon,
+    /// Lambda arrow.
     Arrow,
+    /// `if` keyword.
     If,
+    /// `then` keyword.
     Then,
+    /// `else` keyword.
     Else,
+    /// Boolean conjunction.
     And,
+    /// Boolean disjunction.
     Or,
+    /// Boolean negation.
     Not,
+    /// Boolean true literal.
     True,
+    /// Boolean false literal.
     False,
+    /// Game `up` literal.
     Up,
+    /// Game `down` literal.
     Down,
+    /// Active-dimension literal.
     Dim,
+    /// Statement separator.
     Semicolon,
+    /// Equality operator.
     Eq,
+    /// Less-than operator.
     Less,
+    /// Greater-than operator.
     Greater,
+    /// Structural game-form bar.
     Pipe,
     // U+2225, the canonical fuzzy relop; `!` is its lexer sugar. `Pipe` is
     // the structural braceform bar only — no relop reading (a relop-tier `|`
     // gets the expect_end hint) — and `Parallel` is refused as the bar in turn.
+    /// Fuzzy relation `∥`.
     Parallel,
+    /// Non-recursive binding `:=`.
     Assign,
+    /// Equation binding `=:`.
     RecursiveAssign,
+    /// Game-spine append `⧺`.
     Append,
+    /// Game multiform equality `≡`.
     Equiv,
+    /// One two-glyph loopy-game outcome relation.
     Outcome(OutcomeCell),
+    /// Lone draw atom, retained so the parser can issue a focused error.
     DrawAtom,
+    /// Addition operator.
     Plus,
+    /// Subtraction or negation operator.
     Minus,
+    /// `(`.
     LParen,
+    /// `)`.
     RParen,
+    /// `[`.
     LBracket,
+    /// `]`.
     RBracket,
+    /// `{`.
     LBrace,
+    /// `}`.
     RBrace,
+    /// `,`.
     Comma,
 }
 
+/// Tokenize source and normalize accepted ASCII sugar to canonical tokens.
 pub fn lex(src: &str) -> GrundyResult<Vec<Token>> {
     let (src, block_depth) = mask_comments(src);
     if block_depth != 0 {
@@ -328,6 +382,7 @@ fn mover_atom(ch: char) -> Option<char> {
     }
 }
 
+/// Whether a source fragment requires another input line.
 pub fn needs_continuation(src: &str) -> GrundyResult<bool> {
     let (masked, block_depth) = mask_comments(src);
     if block_depth != 0 {
@@ -461,5 +516,5 @@ fn mask_comments(src: &str) -> (String, usize) {
 
 fn reserved(span: Span) -> GrundyError {
     GrundyError::new(GrundyErrorKind::Reserved, span, "reserved syntax")
-        .with_hint("reserved for future games/precision/function syntax")
+        .with_hint("this reserved syntax is unsupported")
 }

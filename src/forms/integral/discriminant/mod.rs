@@ -26,6 +26,7 @@
 mod complex;
 mod form;
 mod gauss_sum;
+mod heisenberg;
 mod phases;
 
 pub use complex::Complex64;
@@ -35,6 +36,7 @@ pub use form::{
 };
 pub(crate) use form::{phase_mod8_from_q_values, IsoTables};
 pub use gauss_sum::GaussSum;
+pub use heisenberg::TwoElementaryWeilHeisenbergInvariants;
 pub use phases::{FqmGaussPhase, FqmPrimaryPhase};
 
 #[cfg(test)]
@@ -264,8 +266,8 @@ mod tests {
 
     #[test]
     fn fqm_phase_extends_past_2_elementary_brown_slice() {
-        // A_3 has discriminant group Z/4, so the old 2-elementary Brown bridge
-        // declines. The p-primary FQM phase still sees the Milgram signature.
+        // A_3 has discriminant group Z/4, so the 2-elementary Brown computation
+        // declines while the p-primary phase remains defined.
         let a3 = DiscriminantForm::from_lattice(&a_n(3)).unwrap();
         assert_eq!(a3.group(), vec![4]);
         assert_eq!(a3.brown_invariant(), None);
@@ -316,7 +318,7 @@ mod tests {
 
     #[test]
     fn brown_invariant_recovers_signature_mod8_on_2_elementary_forms() {
-        // β ≡ sign(L) mod 8 — the fifth route to σ mod 8, exact-integer (Bridge M).
+        // β ≡ sign(L) mod 8, computed with exact integers.
         // 2-elementary generators: A_1 (ℤ/2, β=1), E_7 (ℤ/2, β=7), D_4 ((ℤ/2)², β=4),
         // D_8 ((ℤ/2)², β=0), and the unimodular E_8 (β=0).
         for (l, want) in [
@@ -330,7 +332,7 @@ mod tests {
             let brown = disc.brown_invariant().expect("2-elementary");
             assert_eq!(brown.beta, want, "β mismatch");
             assert_eq!(brown.radical_dim, 0, "discriminant b is nondegenerate");
-            // cross-check against the shipped f64 Milgram phase.
+            // Compare against the numerical Milgram phase.
             let milgram = disc.milgram_signature_mod8().unwrap().rem_euclid(8) as u128;
             assert_eq!(brown.beta, milgram, "β ≢ Milgram phase");
         }

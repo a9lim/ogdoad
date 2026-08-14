@@ -1,22 +1,21 @@
-//! Surcomplex numbers: adjoin i (with i² = −1) to any scalar backend.
+//! The quadratic algebra `S[i] = S[x]/(x² + 1)` over a scalar backend.
 //!
 //! Generic over `S`, so `Surcomplex<Surreal>` is the complexification of the
 //! implemented finite-support surreal backend. `Surcomplex<Rational>` is the
-//! Gaussian rationals `ℚ[i]`, handy for tests.
+//! Gaussian rational field `ℚ[i]`.
 //!
-//! Over a *characteristic-2* backend this construction is **degenerate**, and
-//! the tool demonstrates exactly why: i² = −1 = 1, so (1+i)² = 1 + 2i + i²
-//! = 1 + 0 + 1 = 0. `1+i` is a nonzero nilpotent ⇒ zero divisors ⇒ not a
-//! field. This is the concrete reason surcomplex only does something useful
-//! over characteristic-0 scalar worlds here. Full `On₂` is algebraically closed,
-//! while the fixed-width `Nimber` backend is `F_{2^128}`; neither makes this
-//! char-2 adjunction a field. (See `tests::nimber_surcomplex_is_degenerate`.)
+//! Over a field this algebra is a quadratic field extension when `x² + 1` is
+//! irreducible and a split algebra when it has distinct roots. In characteristic
+//! two, `(1+i)² = 0`, so the algebra is nonreduced and not a field.
 
 use crate::scalar::Scalar;
 
+/// An element `re + im·i` of `S[i]`, with `i² = −1`.
 #[derive(Clone, PartialEq)]
 pub struct Surcomplex<S: Scalar> {
+    /// Real coefficient.
     pub re: S,
+    /// Imaginary coefficient.
     pub im: S,
 }
 
@@ -39,6 +38,7 @@ impl<S: Scalar> std::fmt::Debug for Surcomplex<S> {
 }
 
 impl<S: Scalar> Surcomplex<S> {
+    /// Construct `re + im·i`.
     pub fn new(re: S, im: S) -> Self {
         Surcomplex { re, im }
     }
@@ -147,7 +147,7 @@ mod tests {
     #[test]
     fn nimber_surcomplex_is_degenerate() {
         // Over char 2: i^2 = -1 = 1, so (1+i)^2 = 0. Nonzero nilpotent ⇒
-        // not a field. This is the theorem made executable.
+        // not a field.
         type NC = Surcomplex<Nimber>;
         let i = NC::i();
         assert_eq!(i.mul(&i), NC::one()); // i^2 = 1, not -1≠1

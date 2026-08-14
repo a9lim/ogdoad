@@ -538,7 +538,7 @@ pub(crate) trait GrundyScalar: Scalar + Sized + Display + 'static {
         Err(GrundyError::new(
             GrundyErrorKind::WrongWorld,
             span,
-            "this scalar world has no shipped ring-of-integers pairing",
+            "this scalar world has no supported ring-of-integers pairing",
         ))
     }
     fn mul_checked(lhs: &Self, rhs: &Self, _span: Span) -> GrundyResult<Self> {

@@ -346,7 +346,7 @@ pub(crate) trait SharedRuntime: WorldOps {
             }
             Expr::Call { name, args } => {
                 if name == "drawn" {
-                    return Err(renamed_function_error("drawn", "hasdraw"));
+                    return Err(function_replacement_error("drawn", "hasdraw"));
                 }
                 if matches!(name.as_str(), "outcome" | "winner" | "who") {
                     return Err(outcome_name_error(name));

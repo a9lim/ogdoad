@@ -1,12 +1,6 @@
-//! The general-bilinear-form geometric product on wedge-basis blades:
-//! `geom_product_blades` recursively peels one generator at a time,
-//! contracting through the bilinear form `B` (reconstructed from `q`/`b`/`a`
-//! via the private `bil` helper) and applying the wedge-reordering sign, with a
-//! fast orthogonal-basis path when `b` and `a` are both empty. The
-//! `#[cfg(test)]` `reduce_word` is an independent swap/contract oracle kept
-//! only to cross-validate this recursion (see
-//! `general_product_reproduces_reduce_word_when_a_empty` in `engine.rs`'s test
-//! module).
+//! Geometric products of wedge-basis blades. The general path uses Chevalley
+//! contraction with the bilinear form reconstructed from `q`, `b`, and `a`;
+//! orthogonal metrics use a single-blade fast path.
 
 use super::basis::wedge_sign;
 use super::metric::Metric;

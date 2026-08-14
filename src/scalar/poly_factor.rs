@@ -1,8 +1,7 @@
 //! Finite-field polynomial factorization beside the shared polynomial arithmetic.
 //!
 //! The public place APIs only need the square-free support: the distinct monic
-//! irreducible factors of a polynomial. This helper replaces the old monic
-//! trial division with the standard finite-field pipeline:
+//! irreducible factors of a polynomial. It uses the standard finite-field pipeline:
 //!
 //! 1. square-free support via `gcd(f, f')`, including inseparable `p`-th roots;
 //! 2. distinct-degree factorization using `gcd(x^{q^d} - x, f)`;

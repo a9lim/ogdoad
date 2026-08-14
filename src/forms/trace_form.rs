@@ -1,31 +1,27 @@
-//! The **twisted trace form** — the bridge from the "grow a field"
-//! [`CyclicGaloisExtension`] layer to the "classify a form" trichotomy.
+//! Trace, transfer, and Gold forms from finite field extensions.
 //!
-//! Every cyclic Galois extension `E/F` carries a canonical quadratic form on `E`
-//! seen as an `F`-vector space. The *naive* trace form `Tr_{E/F}(x²)` is a **trap**
-//! in characteristic 2: Frobenius is additive, so
+//! For a cyclic Galois extension `E/F`, [`trace_twisted_form`] constructs
+//! `Q_k(x) = Tr_{E/F}(x σ^k(x))` on the underlying `F`-vector space. In
+//! characteristic two the untwisted quadratic map `Tr_{E/F}(x²)` has zero polar
+//! form because
 //! `Tr((x+y)²) = Tr(x²) + Tr(y²)` and the polar form **vanishes** — it degenerates
-//! exactly where this project lives. The Arf-bearing object is the
-//! **Frobenius-twisted** form
+//! so nonzero twists supply the relevant polar data:
 //!
 //! ```text
 //! Q_k(x) = Tr_{E/F}( x · σ^k(x) )
 //! ```
 //!
-//! with polar `B(x,y) = Tr(x σ^k(y) + y σ^k(x))` (genuinely alternating, since
-//! `B(x,x) = Tr(2·x σ^k x) = 0` in char 2). This is precisely the family the Gold
-//! research thread builds by hand (`experiments/trace_form_arf.py`): with
-//! `E = F_{2^m}`, `σ = ` Frobenius, `k = a`, `Q_a(x) = Tr(x^{1+2^a})` is the Gold
-//! form. [`gold_form`] lands it in the typed core over the nim subfields, where
-//! `.classify()` reads off the Arf invariant (rank, radical, win-bias zero-count).
+//! Its polar form is `B(x,y) = Tr(x σ^k(y) + y σ^k(x))`. For
+//! `E = F_{2^m}` and `σ` Frobenius, this is the Gold form
+//! `Q_a(x) = Tr(x^{1+2^a})`; [`gold_form`] constructs it over supported nim
+//! subfields.
 //!
 //! The same construction over `Surcomplex` (`σ = ` conjugation, `k = 1`) gives the
 //! **norm form** `Tr(x·x̄) = 2(a²+b²)` — the binary Pfister/norm form; over `Qq` it
 //! gives an unramified local trace form using a Teichmuller-lifted residue basis; and
 //! over an odd-characteristic `Fpn` it gives an ordinary diagonalizable trace form.
 //!
-//! Boundary: the form has dimension `[E:F]`, so as a [`Metric`] it is capped at
-//! `MAX_BASIS_DIM = 128` — exactly the degree of the full nim-field `F_{2^128}`.
+//! A returned [`Metric`] is limited to [`MAX_BASIS_DIM`] generators.
 
 use crate::clifford::{Metric, MAX_BASIS_DIM};
 use crate::forms::ArfInvariants;
@@ -175,6 +171,22 @@ where
     Metric::general(q, b, BTreeMap::new())
 }
 
+/// Scalar extension (Witt restriction)
+/// `r*: W(F) -> W(E)` of a diagonal form along a cyclic Galois extension
+/// `E/F`: `⟨a_1,...,a_r⟩` becomes `⟨i(a_1),...,i(a_r)⟩` via the canonical
+/// [`embed`](FieldExtension::embed) map.
+///
+/// This is additive on orthogonal sums and multiplicative for tensor products.
+/// Together with [`transfer_diagonal`] it satisfies Frobenius reciprocity
+/// `s_*(r*(x) y) = x s_*(y)`.  Odd-degree injectivity is Springer's theorem;
+/// even-degree restriction can kill a nonzero Witt class.
+pub fn restrict_diagonal<E>(entries: &[E::Base]) -> Metric<E>
+where
+    E: CyclicGaloisExtension,
+{
+    Metric::diagonal(entries.iter().map(E::embed).collect())
+}
+
 /// The **Scharlau transfer** `s_*(⟨λ_1,…,λ_r⟩)` of a diagonal form over `E`, pushed
 /// to `W(F)` along the field trace `s = Tr_{E/F}` (Lam, GSM 67, Ch. VII; Scharlau,
 /// *Quadratic and Hermitian Forms*, Ch. 2). Each diagonal entry `λ ∈ E` contributes
@@ -213,8 +225,8 @@ where
     result
 }
 
-/// The Arf invariant of the **char-2** twisted trace form of `E/F_2` — the typed
-/// bridge for the finite-field tower. Builds `Q_k` over `F_2`, lifts the
+/// The Arf invariant of the characteristic-two twisted trace form of `E/F_2`.
+/// Builds `Q_k` over `F_2`, lifts the
 /// coefficients `F_2 ↪ Nimber` (so the char-2 [`ArfInvariants`] classifier can read the
 /// form), and returns its Arf data. For `E = Fpn<2,m>` with `k = a` this is the Gold
 /// form `Tr(x^{1+2^a})`; see [`gold_form`] for the nim-native construction that
@@ -316,9 +328,8 @@ pub fn gold_diagonal_dual(m: usize, a: usize) -> u128 {
 /// zero, which is exactly the Artin--Schreier solvability criterion.  The returned
 /// root is selected by the exact nim-field solver; its companion is `w ^ 1`.
 ///
-/// This closes the *diagonal-sourcing* lemma for all Gold exponents, including
-/// even `a`.  It does not by itself turn the sourced diagonal into a normal-,
-/// misere-, or loopy-outcome game rule.
+/// This supplies the diagonal source for every Gold exponent, including even
+/// `a`; it does not construct or analyze a game rule.
 pub fn gold_diagonal_artin_schreier_source(m: usize, a: usize) -> u128 {
     assert!(
         m >= 2,
@@ -331,10 +342,8 @@ pub fn gold_diagonal_artin_schreier_source(m: usize, a: usize) -> u128 {
 }
 
 /// The **Gold form** `Q_a(x) = Tr_{F_{2^m}/F_2}(x^{1+2^a})` over the nim subfield
-/// `F_{2^m} ⊂ Nimber`, as a [`Metric`]`<Nimber>` (already `F_2`-valued, ready for
-/// `.classify()` → [`ArfInvariants`]). This is the central object of the game-built
-/// quadratic-form thread (mirrors `experiments/gold_form_from_games.py`): the bit
-/// basis `{1, 2, …, 2^{m-1}}` is an `F_2`-basis of `F_{2^m}`, the twist `σ^a` is the
+/// `F_{2^m} ⊂ Nimber`, as an `F_2`-valued [`Metric`]`<Nimber>`. The bit basis
+/// `{1, 2, …, 2^{m-1}}` is an `F_2`-basis of `F_{2^m}`, the twist `σ^a` is the
 /// `a`-fold nim-Frobenius `x ↦ x^{2^a}`, and the trace is `nim_trace(·, m)`.
 ///
 /// `m` must be a **power of two** `≤ 128`: only then do the nimbers `< 2^m` form a
@@ -406,7 +415,7 @@ mod tests {
 
     #[test]
     fn cyclic_trace_form_degree_two_satisfies_cayley_hamilton_relation() {
-        // The honest degree-2 tie to the shipped norm-form oracle is
+        // The degree-2 relation to the reduced norm is
         // Trd(z^2) = Trd(z)^2 - 2*Nrd(z), not equality with Nrd.
         for a in [-3i128, 2, 5] {
             let m = cyclic_algebra_trace_form::<Surcomplex<Rational>>(&r(a));
@@ -428,7 +437,7 @@ mod tests {
 
     #[test]
     fn qq_twist_uses_the_unramified_galois_basis() {
-        // E = Q_9/Q_3: the same trace-form bridge now reaches the unramified local
+        // E = Q_9/Q_3 uses the unramified local
         // leg via the Teichmüller-lifted residue basis and the Witt-Frobenius.
         type Q9 = Qq<3, 3, 2>;
         let m = trace_twisted_form::<Q9>(1);
@@ -471,7 +480,7 @@ mod tests {
 
     #[test]
     fn gold_form_over_nim_subfields_matches_rank_formula() {
-        // The nim-native path reaches the power-of-two fields the Gold survey uses
+        // The nim-native path reaches the power-of-two nim subfields
         // (F_16, F_256). arf_nimber computes rank by independent symplectic reduction
         // of the polar form — agreement with m − gcd(2a, m) is a real cross-check.
         for m in [2usize, 4, 8] {
@@ -536,9 +545,8 @@ mod tests {
             }
         }
 
-        // Pin the previously reported drifting even-a values.  Drift is real,
-        // but the recursive source handles it rather than requiring one fixed
-        // lambda across every tower level.
+        // Even exponents depend on the tower level; the recursive source computes
+        // the corresponding value at each level.
         assert_eq!(gold_diagonal_dual(4, 2), 0);
         assert_eq!(gold_diagonal_dual(8, 2), 6);
         assert_eq!(gold_diagonal_dual(16, 2), 102);
@@ -570,18 +578,50 @@ mod tests {
     }
 
     #[test]
+    fn restriction_preserves_orthogonal_sums_and_exposes_even_degree_kernel() {
+        let left = [Fp::<3>::one(), Fp::<3>::from_int(2)];
+        let right = [Fp::<3>::one()];
+        let together = restrict_diagonal::<Fpn<3, 2>>(&[left[0], left[1], right[0]]);
+        let separately = restrict_diagonal::<Fpn<3, 2>>(&left)
+            .direct_sum(&restrict_diagonal::<Fpn<3, 2>>(&right));
+        assert_eq!(
+            together, separately,
+            "restriction is additive on orthogonal sums"
+        );
+
+        // The anisotropic <1,1>/F_3 becomes hyperbolic over F_9: restriction is
+        // not generally injective in even degree.
+        let killed = restrict_diagonal::<Fpn<3, 2>>(&[Fp::<3>::one(), Fp::<3>::one()]);
+        match killed.witt_decompose().expect("F_9 Witt decomposition") {
+            crate::forms::FiniteFieldWittDecomp::Odd(d) => assert_eq!(d.anisotropic_dim, 0),
+            other => panic!("expected odd-characteristic decomposition, got {other:?}"),
+        }
+    }
+
+    #[test]
     fn frobenius_reciprocity_projection_formula() {
-        // s_*(r*(⟨c⟩) · ⟨λ⟩) = ⟨c⟩ · s_*(⟨λ⟩):  c ∈ F factors out of the F-linear
-        // trace, so the transfer of (c·λ) equals the c-scaling of the transfer of λ.
-        let c = Fp::<3>::from_int(2); // a unit of F_3
-        let lam = Fpn::<3, 2>::from_coeffs(&[1, 1]); // 1 + x ∈ F_9
-        let lhs = transfer_diagonal::<Fpn<3, 2>>(&[Fpn::<3, 2>::embed(&c).mul(&lam)]);
-        let base = transfer_diagonal::<Fpn<3, 2>>(&[lam]);
-        let scaled_q: Vec<Fp<3>> = base.q.iter().map(|x| c.mul(x)).collect();
-        let scaled_b: BTreeMap<(usize, usize), Fp<3>> =
-            base.b.iter().map(|(k, v)| (*k, c.mul(v))).collect();
-        assert_eq!(lhs.q, scaled_q);
-        assert_eq!(lhs.b, scaled_b);
+        // Representative-level, multi-rank form of
+        // s_*(r*(x)·y) = x·s_*(y).
+        let x = [Fp::<3>::one(), Fp::<3>::from_int(2)];
+        let y = [
+            Fpn::<3, 2>::from_coeffs(&[1, 1]),
+            Fpn::<3, 2>::from_coeffs(&[2, 1]),
+        ];
+        let restricted = restrict_diagonal::<Fpn<3, 2>>(&x);
+        let product = crate::forms::tensor_form(&restricted, &Metric::diagonal(y.to_vec()))
+            .expect("both representatives are diagonal");
+        let lhs = transfer_diagonal::<Fpn<3, 2>>(product.q());
+
+        let transferred = transfer_diagonal::<Fpn<3, 2>>(&y);
+        let scale = |c: Fp<3>| {
+            Metric::general(
+                transferred.q.iter().map(|v| c.mul(v)).collect(),
+                transferred.b.iter().map(|(k, v)| (*k, c.mul(v))),
+                Vec::new(),
+            )
+        };
+        let rhs = scale(x[0]).direct_sum(&scale(x[1]));
+        assert_eq!(lhs, rhs);
     }
 
     #[test]
@@ -593,8 +633,7 @@ mod tests {
         let base_dec = aniso.witt_decompose().expect("Fp<3> Witt decomposition");
         assert_eq!(base_dec.anisotropic_dim, 2, "⟨1,1⟩ anisotropic over F_3");
 
-        let restricted =
-            Metric::<Fpn<3, 3>>::diagonal(vec![Fpn::<3, 3>::one(), Fpn::<3, 3>::one()]);
+        let restricted = restrict_diagonal::<Fpn<3, 3>>(&[Fp::<3>::one(), Fp::<3>::one()]);
         match restricted
             .witt_decompose()
             .expect("F_27 Witt decomposition")

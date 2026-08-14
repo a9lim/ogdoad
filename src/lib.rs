@@ -1,27 +1,24 @@
-//! ogdoad — Clifford algebras (with nilpotents) over the field-like
-//! subclasses of combinatorial games.
+//! Clifford algebras, quadratic forms, arithmetic, and combinatorial games.
 //!
-//! Pure-Rust math core (generic over the `Scalar` trait), with optional PyO3
-//! bindings behind the `python` feature (abi3). The source is organised into
-//! four pillars plus the bindings:
+//! The pure-Rust core is generic over [`scalar::Scalar`]. Optional PyO3
+//! bindings are available behind the `python` feature. The public API has four
+//! pillars:
 //!
-//! - [`scalar`] — the coefficient worlds: the `Scalar` trait, exact
-//!   `Rational`/`Integer`, game-adjacent nimber/surreal backends, finite
-//!   fields, p-adic/local functors, and the adelic precision model.
-//! - [`clifford`] — the multivector engine (Metric + general bilinear form +
-//!   geometric product), generic over `Scalar`, plus the GA layer:
-//!   outermorphisms, the exterior Hopf algebra, conformal/projective GA, and
-//!   spinor modules.
-//! - [`forms`] — quadratic forms and their invariants across the characteristic
-//!   trichotomy: char-0 / odd-char / char-2 classifiers, Witt/Brauer-Wall
-//!   utilities, Springer decompositions, and rational local-global helpers.
-//! - [`games`] — combinatorial game theory: coin-turning & Tartan products,
-//!   normal-, misère-, and loopy finite-game probes, plus short partizan games
-//!   and the exterior algebra of the game group.
-//! - `py` — PyO3 per-backend bindings (feature = "python").
+//! - [`scalar`] provides exact, finite, valued, global, surreal, and ordinal
+//!   coefficient models.
+//! - [`clifford`] provides metrics, multivectors, products, versors, spinors,
+//!   and geometric-algebra constructions.
+//! - [`forms`] provides quadratic-form classification, Witt and Brauer theory,
+//!   Springer decompositions, and local--global and integral arithmetic.
+//! - [`games`] provides finite impartial, short partizan, misère, loopy,
+//!   thermographic, and game-exterior constructions.
 //!
-//! See `AGENTS.md` for the mathematical layout and `docs/OPEN.md` for the open problems.
+//! Arbitrary partizan games form an abelian group, not a commutative scalar
+//! ring; game-valued constructions therefore remain separate from the generic
+//! Clifford engine. See the repository `README.md` for supported backends and
+//! representation limits.
 
+#![warn(missing_docs)]
 // This crate is matrix/algebra-heavy throughout: linalg solves, Gram matrices,
 // Witt/carry formulas, Dickson/symplectic reductions, and spinor reps all walk
 // index-parallel arrays where explicit `for i in 0..n` reads clearer than the

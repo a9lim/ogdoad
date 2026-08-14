@@ -1126,3 +1126,31 @@ print("  ordinal finite subfield       :", omega_ord.finite_subfield_degree(),
       pl.ordinal_common_finite_subfield_degree([omega_ord, pl.Ordinal(16)]))
 assert omega_ord.finite_subfield_degree() == 6
 assert omega_ord.checked_sqrt() * omega_ord.checked_sqrt() == omega_ord
+
+section("checked game constructors — Witt–FIFO, Brown selector, Guy–Smith")
+arena = pl.WittFifoArena([True], [0], 1)
+arena_game = arena.to_game(100_000)
+print("  weighted-source Witt–FIFO     :", arena, arena.grundy(100_000),
+      arena_game.outcome_class())
+assert arena.quadratic_value and arena.grundy(100_000) != 0
+assert arena_game.outcome_class() == pl.PartizanOutcome.n()
+
+brown_outcomes = []
+for residue in range(4):
+    selector = pl.BrownSelector([residue], [0], 1)
+    outcome = selector.outcome_class(100_000)
+    brown_outcomes.append(outcome.name())
+    assert selector.residue == pl.BrownSelector.decode_outcome(outcome)
+    assert selector.to_game(100_000).outcome_class() == outcome
+print("  intrinsic Brown outcomes      :", brown_outcomes)
+assert brown_outcomes == ["N", "R", "P", "L"]
+
+octal_code = pl.OctalCode([2, 0, 0])
+periodic = pl.GuySmithCertificate.compute(octal_code, 1, 2, 16)
+rechecked = pl.GuySmithWitness(
+    periodic.preperiod, periodic.period, periodic.checked_nim_values
+).verify(octal_code, 16)
+print("  checked Guy–Smith certificate :", periodic, periodic.heap_grundy(10**30))
+assert octal_code.digits == [2] and periodic.proof_window == (1, 5)
+assert periodic.heap_grundy(10**30) == rechecked.heap_grundy(10**30)
+assert periodic.is_p_position([101, 101])

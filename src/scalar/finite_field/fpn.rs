@@ -1,11 +1,8 @@
-//! Finite extension fields `F_{p^n}` — completing the field tower in every
-//! characteristic.
+//! Finite extension fields `F_{p^n}` in a generated polynomial basis.
 //!
-//! The odd-characteristic leg of the crate only had the *prime* fields `Fp<P>`;
-//! characteristic 2 had the whole nimber tower (`F_{2^{2^k}}`). `Fpn<P, N>` closes
-//! that asymmetry: it is `F_{p^n}` for any prime `P` and positive `N` whose order
-//! fits in the crate's `u128` payload model. It also supplies the **char-2
-//! odd-degree** fields the nimbers cannot reach — the finite nimbers realise only
+//! `Fpn<P, N>` represents `F_{p^N}` for any prime `P` and positive `N` whose
+//! field order fits `u128`. It also supplies the characteristic-two odd-degree
+//! fields the nimbers cannot reach — the finite nimbers realise only
 //! `F_{2^{2^k}}` (degrees that are powers of two), so `F_8` (degree 3) is not a
 //! nimber subfield; `Fpn<2, 3>` is the way to get it here.
 //!
@@ -16,8 +13,7 @@
 //! `N` coefficients of `c_0 + c_1 x + … + c_{N-1} x^{N-1}` with each `c_i ∈ [0, P)`.
 //! A different `(P, N)` is a different type — the same no-mixing discipline the rest
 //! of the crate uses. `Fpn<2, 2>` is "the polynomial-basis `F_4`", a *different type*
-//! from (but isomorphic to) the nimber `F_4`; the value-add over the nimbers is the
-//! odd-degree char-2 layers and the odd-`p` extensions.
+//! from (but isomorphic to) the nimber `F_4`.
 //!
 //! ## The reduction polynomial
 //!
@@ -25,11 +21,10 @@
 //! `reduction` returns the low coefficients `r` of the reduction rule
 //! `x^N = Σ_i r_i x^i` (i.e. `m(x) = x^N − Σ_i r_i x^i`). Extension fields are opened
 //! by a deterministic search for the first monic irreducible polynomial, certified by
-//! Rabin's irreducibility test and cached per `(P,N)`. The old small Conway rows are
-//! retained only as test oracles; the runtime model is an honest generated
-//! "irreducible polynomial" model, not a compatible Conway embedding. `mul` is
-//! schoolbook multiply-then-reduce — the degree-`N`, odd-`p` generalisation of
-//! `big::ordinal`'s "reduce mod `ω³ = 2`".
+//! Rabin's irreducibility test and cached per `(P,N)`. The resulting bases are not
+//! claimed to be Conway-compatible. Generation is deterministic but may be
+//! expensive for large fields. Multiplication is schoolbook
+//! multiply-then-reduce.
 
 use super::fp::{add_mod, mul_mod};
 use super::FiniteField;
@@ -44,18 +39,14 @@ use std::sync::{Mutex, OnceLock};
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Fpn<const P: u128, const N: usize>([u128; N]);
 
-/// Provenance of the shipped reduction polynomial for an `Fpn<P,N>` backend.
+/// Classification of an `Fpn<P,N>` reduction polynomial.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ReductionPolynomialKind {
     /// Degree-1 prime field, so no extension polynomial is needed.
     PrimeField,
-    /// A curated table entry is the Conway polynomial in this polynomial basis.
-    /// Production `Fpn` generation no longer returns this tag; old rows use it only
-    /// as test-oracle vocabulary.
+    /// An explicitly curated Conway polynomial in this polynomial basis.
     Conway,
-    /// A curated table entry is verified irreducible, but not claimed as Conway data.
-    /// Production `Fpn` generation no longer returns this tag; old rows use it only
-    /// as test-oracle vocabulary.
+    /// An explicitly curated irreducible polynomial without a Conway claim.
     Irreducible,
     /// The entry was generated deterministically and verified irreducible by Rabin's test.
     GeneratedIrreducible,
@@ -305,13 +296,12 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
     /// Whether this const-generic pair has a prime base field, positive degree, and
     /// field order fitting the crate's `u128` payload model. When `N > 1`, the
     /// extension (reduction) polynomial is generated deterministically and cached on
-    /// first use — production `Fpn` no longer reads from curated rows; those survive
-    /// only as test oracles (see [`ReductionPolynomialKind::Conway`]/
-    /// [`ReductionPolynomialKind::Irreducible`]).
+    /// first use.
     pub fn is_supported_field() -> bool {
         Fp::<P>::modulus_is_prime() && field_order_for(P, N).is_some()
     }
 
+    /// Validate the const-generic field parameters, panicking if unsupported.
     pub fn assert_supported_params() {
         assert!(
             Self::is_supported_field(),
@@ -347,9 +337,8 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
         reduction_kind::<P, N>()
     }
 
-    /// `true` exactly when this backend is tagged with Conway polynomial provenance.
-    /// The production generator does not currently return Conway-tagged rows; the
-    /// method remains a provenance query rather than an irreducibility claim.
+    /// Whether this backend's reduction polynomial is explicitly tagged Conway.
+    /// Deterministically generated polynomials are irreducible but return `false`.
     pub fn is_conway_polynomial() -> bool {
         Self::reduction_polynomial_kind() == ReductionPolynomialKind::Conway
     }
@@ -467,8 +456,8 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
             .collect()
     }
 
-    /// A **primitive element** (a generator of `F_{p^N}*`), found by scanning the
-    /// field — cheap for the modest orders in this tower.
+    /// A **primitive element** (a generator of `F_{p^N}*`), found by deterministic
+    /// enumeration. This may be expensive for large supported field orders.
     pub fn primitive_element() -> Self {
         Self::assert_supported_params();
         let target = Self::field_order() - 1;
@@ -486,8 +475,8 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
 /// field shape: the Frobenius `x ↦ x^p`, integer exponentiation, the extension
 /// degree `N`, and the multiplicative-group order `p^N − 1` with its factors.
 /// Every Galois notion is then a default method. The brute-force discrete log
-/// (the trait default) suffices for the small orders here — no Pohlig–Hellman
-/// needed, unlike the nimber `F_{2^128}`.
+/// (the trait default) is simple but may be expensive for large field orders;
+/// nimbers override it with Pohlig--Hellman.
 impl<const P: u128, const N: usize> FiniteField for Fpn<P, N> {
     fn frobenius(&self) -> Self {
         Self::assert_supported_params();
@@ -518,7 +507,7 @@ impl<const P: u128, const N: usize> fmt::Display for Fpn<P, N> {
             if c == 0 {
                 continue;
             }
-            // Display v4 (spec.md §12): explicit `⋅` and `↑`, coefficient-1 suppressed.
+            // Canonical grundy syntax: explicit `⋅` and `↑`, coefficient 1 suppressed.
             let term = match i {
                 0 => format!("{c}"),
                 1 if c == 1 => "x".to_string(),
@@ -696,11 +685,11 @@ mod tests {
     }
 
     #[test]
-    fn generated_rows_match_small_curated_oracles_without_using_them() {
+    fn generated_rows_match_independent_small_field_oracles() {
         // These constants are test-only: the production path above always calls the
         // deterministic generator for extension fields. The comparison protects the
-        // generator's scan order and keeps the old Conway rows as oracles, not runtime
-        // data.
+        // generator's scan order; the curated Conway rows are independent test
+        // oracles, not runtime data.
         assert_eq!(Fpn::<2, 2>::reduction_rule(), &[1, 1]);
         assert_eq!(Fpn::<2, 3>::reduction_rule(), &[1, 1, 0]);
         assert_eq!(Fpn::<2, 4>::reduction_rule(), &[1, 1, 0, 0]);
@@ -771,8 +760,8 @@ mod tests {
     }
 
     #[test]
-    fn display_v4_canonical_grundy() {
-        // Display v4 (spec.md §12): explicit `⋅` and `↑`, coefficient-1 suppressed.
+    fn display_canonical_grundy() {
+        // Canonical grundy syntax: explicit `⋅` and `↑`, coefficient 1 suppressed.
         // The §12.1 example `3⋅x↑2 + 2⋅x + 1` needs coefficient 3, so it is only
         // realizable in a field whose characteristic exceeds 3 (in F_27 the
         // coefficient 3 reduces to 0). Pin it in F_125.
@@ -799,7 +788,7 @@ mod tests {
         let w = Fpn::<2, 4>::generator();
         let w4 = w.mul(&w).mul(&w).mul(&w);
         assert_eq!(w4, Fpn::<2, 4>::from_coeffs(&[1, 1, 0, 0])); // x + 1
-                                                                 // F_27: the reduction is generated, not fixed to the old curated row.
+                                                                 // F_27: generated reduction checked against a field oracle.
         let y = Fpn::<3, 3>::generator();
         let y3 = y.mul(&y).mul(&y);
         assert_eq!(y3, Fpn::<3, 3>::from_coeffs(Fpn::<3, 3>::reduction_rule()));

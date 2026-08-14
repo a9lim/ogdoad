@@ -12,7 +12,7 @@
 //! blade iff `dim⟨A⟩ = grade(A)`. [`factor_blade`] then returns a basis of `⟨A⟩`
 //! rescaled so its wedge is `A` on the nose.
 //!
-//! `is_blade` is ring-native: it checks the quadratic Pluecker relations, so it
+//! `is_blade` is ring-native: it checks the quadratic Plücker relations, so it
 //! does not rely on field division and correctly handles nonunit scalar
 //! multiples such as `2e0` over `Z`. `blade_subspace` and the general
 //! factorization path still return a free basis only when unit-pivot linear
@@ -51,7 +51,7 @@ fn higher_bits(mask: u128, i: usize) -> usize {
     }
 }
 
-/// The Pluecker equations for the affine cone over `Gr(k,n)`. They are
+/// The Plücker equations for the affine cone over `Gr(k,n)`. They are
 /// polynomial, hence valid over any commutative scalar ring.
 fn plucker_relations_hold<S: Scalar>(
     alg: &CliffordAlgebra<S>,
@@ -155,7 +155,7 @@ pub fn blade_subspace<S: Scalar>(
 
 /// Whether `A` is a **blade** (a decomposable homogeneous multivector). Scalars,
 /// vectors, and top-grade homogeneous multivectors always are; intermediate
-/// grades are checked by the Pluecker relations over the scalar ring. Zero and
+/// grades are checked by the Plücker relations over the scalar ring. Zero and
 /// mixed-grade multivectors are not blades.
 pub fn is_blade<S: Scalar>(alg: &CliffordAlgebra<S>, a: &Multivector<S>) -> bool {
     match homogeneous_grade(a) {

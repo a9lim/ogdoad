@@ -1,17 +1,13 @@
 //! The [`Valued`] trait: a scalar carrying a discrete valuation and a canonical
 //! uniformizer.
 //!
-//! Every backend in the **non-Archimedean local** part of the "any number" table
-//! already exposes an *inherent* `valuation()` and a way to name its prime element
-//! ([`Qp`]/[`Qq`] via `from_p_power(1)`,
-//! [`Laurent`] via `t()`). This trait promotes that shared
-//! shape to the type system so the [`Ramified`](crate::scalar::Ramified)
-//! ramified-extension functor can fold a *generic* base valuation — it adjoins a
-//! uniformizer `π` with `πᴱ = ϖ`, and `ϖ = S::uniformizer()` is exactly the datum
-//! it needs from the base field.
+//! [`Qp`], [`Qq`], and [`Laurent`] expose the same valuation and uniformizer
+//! operations through this trait. Generic consumers include
+//! [`Ramified`](crate::scalar::Ramified), residue-field operations, and Newton
+//! polygons.
 //!
-//! Deliberately **not** a [`Scalar`] supertrait (same reasoning as the operator
-//! manifest): only the discretely-valued local fields are `Valued`. The exact
+//! This is deliberately not a [`Scalar`] supertrait: only discretely-valued
+//! local fields are `Valued`. The
 //! Archimedean worlds (`Rational`, `Surreal`) carry no canonical uniformizer and
 //! are intentionally left out. The rings of integers (`Zp`, `WittVec`) are also
 //! left out: a `Ramified` base must be a *field* so its `inv` is total on
@@ -29,7 +25,7 @@ use crate::scalar::{Laurent, Qp, Qq, Scalar};
 /// Read into the min-plus semiring [`Tropical<MinPlus>`](crate::scalar::Tropical),
 /// the valuation [`v`](Valued::valuation) is exactly the **tropicalization** map
 /// `τ : K → 𝕋` of [`tropicalize`] — a homomorphism of multiplicative monoids that
-/// is *lax* (subadditive) for addition (Bridge J, Lemma J.1):
+/// is *lax* (subadditive) for addition:
 ///
 /// ```text
 /// v(x·y)   = v(x) + v(y)                        (the tropical ⊗ — strict)
@@ -37,9 +33,7 @@ use crate::scalar::{Laurent, Qp, Qq, Scalar};
 /// v(x + y) = min(v(x), v(y))   if v(x) ≠ v(y)   (strict off the vanishing locus)
 /// ```
 ///
-/// So the whole `Valued` stack already *is* the tropicalization the games pillar
-/// computes unnamed in thermography — the same `(min, +)` algebra on the *place*
-/// axis. "Is the tropicalization" is meant **laxly**: no discretely-valued field
+/// Here "tropicalization" is meant **laxly**: no discretely-valued field
 /// admits a strict additive homomorphism onto `𝕋` (the vanishing locus, e.g.
 /// `v(1 + (−1)) = ∞ ≠ 0`); strictness is restored only by the tropical hyperfield
 /// [Viro 2010], or by taking the three lines above as the *definition* of a
@@ -56,7 +50,7 @@ pub trait Valued: Scalar {
 /// The **tropicalization** `τ(x) = v(x)` of a valued field, into the min-plus
 /// tropical semiring (`None`/zero ↦ `∞`, the `⊕`-identity). This is the thin
 /// adaptor naming the map the `Valued` trait already computes; see the trait docs
-/// for the lax-homomorphism laws it satisfies (Bridge J).
+/// for its lax-homomorphism laws.
 pub fn tropicalize<K: Valued>(x: &K) -> Tropical<MinPlus> {
     match x.valuation() {
         Some(v) => Tropical::int(v),
@@ -122,9 +116,7 @@ mod tests {
         assert_eq!(<Qp<5, 4> as Valued>::valuation(&x), Some(2));
     }
 
-    // --- Bridge J: the valuation is the (lax) tropicalization (Lemma J.1) ---
-
-    /// `τ(x·y) = τ(x) ⊗ τ(y)` — multiplicativity, exact, zero included (J.1(i)).
+    /// `τ(x·y) = τ(x) ⊗ τ(y)` — multiplicativity, including zero.
     #[test]
     fn tropicalize_is_multiplicative() {
         type Q = Qp<5, 8>;
@@ -147,7 +139,7 @@ mod tests {
         }
     }
 
-    /// The `⊕`-internal subadditivity `τ(x+y) ⊕ (τx ⊕ τy) = τx ⊕ τy` (J.1(ii)),
+    /// The `⊕`-internal subadditivity `τ(x+y) ⊕ (τx ⊕ τy) = τx ⊕ τy`,
     /// truncation-safe: a deep cancellation that renders the sum as `0` gives
     /// `τ = ∞` on the left and the identity still holds.
     #[test]
@@ -169,8 +161,8 @@ mod tests {
         }
     }
 
-    /// Equality off the tropical vanishing locus: `τx ≠ τy ⇒ τ(x+y) = τx ⊕ τy`
-    /// (J.1(iii)) — exact even in the capped models (the leading term survives).
+    /// Equality off the tropical vanishing locus: `τx ≠ τy ⇒ τ(x+y) = τx ⊕ τy`;
+    /// valid in the capped models because the leading term survives.
     #[test]
     fn tropicalize_equality_off_vanishing_locus() {
         type Q = Qp<5, 8>;

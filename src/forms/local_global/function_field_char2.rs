@@ -38,16 +38,15 @@
 //! Res_P(g dt) = [u^{m-1}]( B(T(u)) · P'(T(u))⁻¹ ) ∈ κ.
 //! ```
 //!
-//! (Even-order poles contribute through the higher `u`-coefficients — there is no
-//! "only the simple pole matters" shortcut in char 2. The odd-order tail that
-//! Hermite reduction *cannot* remove is the same wild `R_π` phenomenon that
-//! Aravire–Jacob's Witt decomposition carries; see root AGENTS.md.) At the degree place
+//! Even-order poles contribute through the higher `u`-coefficients; there is no
+//! simple-pole-only shortcut. The surviving odd-order tail is the wild `R_π`
+//! coordinate in the characteristic-two Springer decomposition. At the degree place
 //! `∞` (`κ = F_q`) the substitution `u = 1/t`, `dt = u⁻²du` (the char-2 sign
 //! vanishes) gives `Res_∞(g dt) = [u⁻¹]( g(1/u)·u⁻² )`.
 //!
-//! Scope: this layer is the symbol + reciprocity + quaternion-ramification package.
-//! The full char-2 Witt/Springer decomposition of an arbitrary form (the wild
-//! `R_π` term) is a separate, larger build tracked in root AGENTS.md.
+//! This module provides symbols, reciprocity, and quaternion ramification.
+//! [`springer_decompose_local_char2`](crate::forms::springer_decompose_local_char2)
+//! provides the corresponding local Witt decomposition.
 
 use super::function_field::FunctionFieldPlace;
 use crate::forms::{artin_schreier_class_finite, FiniteChar2Field};
@@ -77,11 +76,9 @@ fn dpoly<S: Scalar>(p: &Poly<S>) -> Poly<S> {
     Poly::new(out)
 }
 
-/// The multiplicity of `pi` in `p` and the cofactor `p / pi^mult`. Returns `i128`
-/// (width rule 7: fixed-width, matching the [`function_field`](crate::forms)
-/// odd-char twin of this helper) even though the value is never negative; callers
-/// that need it as a power-series precision/index convert once, at their own entry
-/// point, rather than the multiplicity being pre-narrowed here.
+/// The multiplicity of `pi` in `p` and the cofactor `p / pi^mult`.
+/// The multiplicity uses the crate's fixed-width mathematical integer convention;
+/// callers convert it to an index only at the indexing boundary.
 pub(crate) fn strip_factor<S: Scalar>(mut p: Poly<S>, pi: &Poly<S>) -> (i128, Poly<S>) {
     let mut mult = 0i128;
     if p.is_zero() {
@@ -377,7 +374,7 @@ pub fn artin_schreier_symbol_places<S: FiniteChar2Field>(
 /// `0` for every `a` and `b ≠ 0` (the residue theorem on `P¹`). The char-2 additive
 /// analogue of the odd-char product formula `∏_v (a,b)_v = +1`
 /// ([`try_hilbert_reciprocity_product_ff`](crate::forms::try_hilbert_reciprocity_product_ff)),
-/// the gold oracle: the reciprocity here is an XOR sum, not a product.
+/// This is an XOR sum, not a product.
 pub fn artin_schreier_reciprocity_sum<S: FiniteChar2Field>(
     a: &RationalFunction<S>,
     b: &RationalFunction<S>,
@@ -419,7 +416,7 @@ mod tests {
         )
     }
 
-    // ── the residue engine, against Codex's source-derived oracles ──
+    // Residue-engine source examples.
     // P = t²+t+1 over F₂ (irreducible, κ = F₄ = F₂(α), α²+α+1=0; α = "t mod P").
 
     #[test]
@@ -446,7 +443,7 @@ mod tests {
         assert_eq!(t[2], one);
     }
 
-    // ── the symbol + reciprocity, against Codex's worked oracles over F₂(t) ──
+    // Symbol and reciprocity examples over F₂(t).
 
     #[test]
     fn symbol_oracle_a1_b_t() {
@@ -538,7 +535,7 @@ mod tests {
         assert!(artin_schreier_ramified_places(&one, &b).is_empty());
     }
 
-    // ── reciprocity sweep: the gold oracle, Σ_v s_v = 0 for every (a, b≠0) ──
+    // Reciprocity sweep: Σ_v s_v = 0 for every (a, b≠0).
 
     #[test]
     fn reciprocity_sweep_over_f2() {
