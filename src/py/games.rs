@@ -9,10 +9,11 @@ use super::scalars::{
 };
 use crate::clifford::CliffordAlgebra;
 use crate::games::{
-    thermography, AbstractGame, Color, Game, GameClifford, GameExterior, GameRelation, Hackenbush,
-    LexicodeTurningGame, LoopyGraph, LoopyNimCertificate, LoopyNimber, LoopyPartizanGraph,
-    LoopyPartizanOutcome, LoopyValue, LoopyWinner, NimLexicode, NimberGame, NumberGame, Outcome,
-    PartizanOutcome, Quotient,
+    thermography, AbstractGame, BrownSelector, Color, Game, GameClifford, GameExterior,
+    GameRelation, GuySmithCertificate, GuySmithWitness, Hackenbush, LexicodeTurningGame,
+    LoopyGraph, LoopyNimCertificate, LoopyNimber, LoopyPartizanGraph, LoopyPartizanOutcome,
+    LoopyValue, LoopyWinner, NimLexicode, NimberGame, NumberGame, OctalCode, Outcome,
+    PartizanOutcome, Quotient, WittFifoArena,
 };
 use crate::scalar::{Integer, Rational, SignExpansion, Surreal};
 use pyo3::basic::CompareOp;
@@ -944,6 +945,369 @@ fn scoring_values(
 }
 
 // ---------------------------------------------------------------------------
+// Checked quadratic-game constructors and normal-play octal certificates
+// ---------------------------------------------------------------------------
+
+/// The proved weighted-source Witt--FIFO arena for one binary quadratic value.
+///
+/// `diagonal[i]` is `Q(e_i)`, `polar[i]` is the bitmask row of the alternating
+/// polar form, and `input` is the vector bitmask. Construction validates the
+/// complete quadratic datum before loading any coins.
+#[pyclass(name = "WittFifoArena", module = "ogdoad", from_py_object)]
+#[derive(Clone)]
+struct PyWittFifoArena {
+    inner: WittFifoArena,
+}
+
+#[pymethods]
+impl PyWittFifoArena {
+    #[new]
+    fn new(diagonal: Vec<bool>, polar: Vec<u128>, input: u128) -> PyResult<Self> {
+        WittFifoArena::try_new(&diagonal, &polar, input)
+            .map(|inner| Self { inner })
+            .map_err(|error| PyValueError::new_err(error.to_string()))
+    }
+
+    /// Original `F_2` dimension.
+    #[getter]
+    fn dimension(&self) -> usize {
+        self.inner.dimension()
+    }
+
+    /// Input vector in original-basis bitmask coordinates.
+    #[getter]
+    fn input(&self) -> u128 {
+        self.inner.input()
+    }
+
+    /// Deterministic adapted basis, as original-coordinate bitmasks.
+    #[getter]
+    fn adapted_basis(&self) -> Vec<u128> {
+        self.inner.adapted_basis().to_vec()
+    }
+
+    /// Coordinates of the input in the adapted basis.
+    #[getter]
+    fn adapted_coordinates(&self) -> u128 {
+        self.inner.adapted_coordinates()
+    }
+
+    /// Mate map on the full adapted frame; radical vectors have no mate.
+    #[getter]
+    fn frame_mates(&self) -> Vec<Option<usize>> {
+        self.inner.frame_mates().to_vec()
+    }
+
+    /// Number of loaded public coins in deterministic play order.
+    #[getter]
+    fn coin_count(&self) -> usize {
+        self.inner.coins().len()
+    }
+
+    /// Direct algebraic value `Q(x)`, retained as an independent oracle.
+    #[getter]
+    fn quadratic_value(&self) -> bool {
+        self.inner.quadratic_value()
+    }
+
+    /// Compute the arena's exact Grundy value within a caller-supplied state budget.
+    fn grundy(&self, state_budget: usize) -> PyResult<u128> {
+        self.inner
+            .grundy(state_budget)
+            .map_err(|error| PyValueError::new_err(error.to_string()))
+    }
+
+    /// Materialize the arena as a finite short `Game` within the state budget.
+    fn to_game(&self, state_budget: usize) -> PyResult<PyGame> {
+        self.inner
+            .to_game(state_budget)
+            .map(|inner| PyGame { inner })
+            .map_err(|error| PyValueError::new_err(error.to_string()))
+    }
+
+    fn __repr__(&self) -> String {
+        format!(
+            "WittFifoArena(dimension={}, input={}, coin_count={}, quadratic_value={})",
+            self.inner.dimension(),
+            self.inner.input(),
+            self.inner.coins().len(),
+            self.inner.quadratic_value()
+        )
+    }
+}
+
+fn wrap_witt_fifo_arena(inner: WittFifoArena) -> PyWittFifoArena {
+    PyWittFifoArena { inner }
+}
+
+/// The intrinsic four-outcome Brown selector `{A_(Q+ell)(x) | A_Q(x)}`.
+///
+/// `q4[i]` is the basis value in `Z/4`, `brown_polar[i]` is the bitmask row of
+/// the symmetric Brown polar, and `input` is the vector bitmask. The selector
+/// validates the Brown datum and constructs both checked Witt--FIFO followers.
+#[pyclass(name = "BrownSelector", module = "ogdoad", from_py_object)]
+#[derive(Clone)]
+struct PyBrownSelector {
+    inner: BrownSelector,
+}
+
+#[pymethods]
+impl PyBrownSelector {
+    #[new]
+    fn new(q4: Vec<u128>, brown_polar: Vec<u128>, input: u128) -> PyResult<Self> {
+        BrownSelector::try_new(&q4, &brown_polar, input)
+            .map(|inner| Self { inner })
+            .map_err(|error| PyValueError::new_err(error.to_string()))
+    }
+
+    /// Basis values of the canonical linear part `ell`.
+    #[getter]
+    fn linear_diagonal(&self) -> Vec<bool> {
+        self.inner.linear_diagonal().to_vec()
+    }
+
+    /// Basis values of the canonical ordinary quadratic part `Q`.
+    #[getter]
+    fn classical_diagonal(&self) -> Vec<bool> {
+        self.inner.classical_diagonal().to_vec()
+    }
+
+    /// Corrected alternating polar `B_Q = b + ell tensor ell`.
+    #[getter]
+    fn classical_polar(&self) -> Vec<u128> {
+        self.inner.classical_polar().to_vec()
+    }
+
+    /// Input vector in original-basis bitmask coordinates.
+    #[getter]
+    fn input(&self) -> u128 {
+        self.inner.input()
+    }
+
+    /// Directly evaluated Brown residue `q(x)` in `0..4`.
+    #[getter]
+    fn residue(&self) -> u128 {
+        self.inner.residue()
+    }
+
+    /// Checked Left follower `A_(Q+ell)(x)`.
+    #[getter]
+    fn left_follower(&self) -> PyWittFifoArena {
+        wrap_witt_fifo_arena(self.inner.left_follower().clone())
+    }
+
+    /// Checked Right follower `A_Q(x)`.
+    #[getter]
+    fn right_follower(&self) -> PyWittFifoArena {
+        wrap_witt_fifo_arena(self.inner.right_follower().clone())
+    }
+
+    /// Materialize the one-root selector as a finite short `Game`.
+    fn to_game(&self, state_budget_per_follower: usize) -> PyResult<PyGame> {
+        self.inner
+            .to_game(state_budget_per_follower)
+            .map(|inner| PyGame { inner })
+            .map_err(|error| PyValueError::new_err(error.to_string()))
+    }
+
+    /// Compute the selector's intrinsic normal-play outcome from the actual game.
+    fn outcome_class(&self, state_budget_per_follower: usize) -> PyResult<PyPartizanOutcome> {
+        self.inner
+            .outcome_class(state_budget_per_follower)
+            .map(wrap_partizan_outcome)
+            .map_err(|error| PyValueError::new_err(error.to_string()))
+    }
+
+    /// Decode `N, R, P, L` as `0, 1, 2, 3`; a draw returns `None`.
+    #[staticmethod]
+    fn decode_outcome(outcome: &PyPartizanOutcome) -> Option<u128> {
+        BrownSelector::decode_outcome(outcome.inner)
+    }
+
+    fn __repr__(&self) -> String {
+        format!(
+            "BrownSelector(dimension={}, input={}, residue={})",
+            self.inner.linear_diagonal().len(),
+            self.inner.input(),
+            self.inner.residue()
+        )
+    }
+}
+
+/// Canonical checked finite octal code `0.d_1...d_k`.
+#[pyclass(name = "OctalCode", module = "ogdoad", from_py_object)]
+#[derive(Clone)]
+struct PyOctalCode {
+    inner: OctalCode,
+}
+
+#[pymethods]
+impl PyOctalCode {
+    #[new]
+    fn new(digits: Vec<u128>) -> PyResult<Self> {
+        OctalCode::try_new(&digits)
+            .map(|inner| Self { inner })
+            .map_err(|error| PyValueError::new_err(error.to_string()))
+    }
+
+    /// Canonical digits without trailing zeros.
+    #[getter]
+    fn digits(&self) -> Vec<u128> {
+        self.inner
+            .digits()
+            .iter()
+            .map(|&digit| digit.into())
+            .collect()
+    }
+
+    /// One-based index of the last nonzero digit, or `None` for the zero code.
+    #[getter]
+    fn last_nonzero_digit(&self) -> Option<usize> {
+        self.inner.last_nonzero_digit()
+    }
+
+    fn __repr__(&self) -> String {
+        format!("OctalCode(digits={:?})", self.inner.digits())
+    }
+}
+
+/// A finite candidate Grundy prefix and proposed Guy--Smith period.
+///
+/// Verification recomputes every supplied recurrence entry and checks the full
+/// theorem window; the candidate values are never trusted as a certificate.
+#[pyclass(name = "GuySmithWitness", module = "ogdoad", from_py_object)]
+#[derive(Clone)]
+struct PyGuySmithWitness {
+    inner: GuySmithWitness,
+}
+
+#[pymethods]
+impl PyGuySmithWitness {
+    #[new]
+    fn new(preperiod: u128, period: u128, nim_values: Vec<u128>) -> Self {
+        Self {
+            inner: GuySmithWitness::new(preperiod, period, nim_values),
+        }
+    }
+
+    /// Proposed preperiod.
+    #[getter]
+    fn preperiod(&self) -> u128 {
+        self.inner.preperiod()
+    }
+
+    /// Proposed period.
+    #[getter]
+    fn period(&self) -> u128 {
+        self.inner.period()
+    }
+
+    /// Candidate finite Grundy prefix beginning with the empty heap at index zero.
+    #[getter]
+    fn nim_values(&self) -> Vec<u128> {
+        self.inner.nim_values().to_vec()
+    }
+
+    /// Verify the recurrence and full Guy--Smith equality window.
+    fn verify(&self, code: &PyOctalCode, term_budget: usize) -> PyResult<PyGuySmithCertificate> {
+        self.inner
+            .clone()
+            .verify(code.inner.clone(), term_budget)
+            .map(|inner| PyGuySmithCertificate { inner })
+            .map_err(|error| PyValueError::new_err(error.to_string()))
+    }
+
+    fn __repr__(&self) -> String {
+        format!(
+            "GuySmithWitness(preperiod={}, period={}, nim_values={:?})",
+            self.inner.preperiod(),
+            self.inner.period(),
+            self.inner.nim_values()
+        )
+    }
+}
+
+/// A sealed, checked certificate of eventual normal-play octal periodicity.
+#[pyclass(name = "GuySmithCertificate", module = "ogdoad", from_py_object)]
+#[derive(Clone)]
+struct PyGuySmithCertificate {
+    inner: GuySmithCertificate,
+}
+
+#[pymethods]
+impl PyGuySmithCertificate {
+    /// Compute the exact required prefix and verify a proposed period in one call.
+    #[staticmethod]
+    fn compute(
+        code: &PyOctalCode,
+        preperiod: u128,
+        period: u128,
+        term_budget: usize,
+    ) -> PyResult<Self> {
+        GuySmithCertificate::compute(code.inner.clone(), preperiod, period, term_budget)
+            .map(|inner| Self { inner })
+            .map_err(|error| PyValueError::new_err(error.to_string()))
+    }
+
+    /// Checked canonical finite octal code.
+    #[getter]
+    fn code(&self) -> PyOctalCode {
+        PyOctalCode {
+            inner: self.inner.code().clone(),
+        }
+    }
+
+    /// Certified eventual-period start; not claimed minimal.
+    #[getter]
+    fn preperiod(&self) -> u128 {
+        self.inner.preperiod()
+    }
+
+    /// Certified eventual period; not claimed minimal.
+    #[getter]
+    fn period(&self) -> u128 {
+        self.inner.period()
+    }
+
+    /// Half-open Guy--Smith equality window `[preperiod, window_end)`.
+    #[getter]
+    fn proof_window(&self) -> (u128, u128) {
+        self.inner.proof_window()
+    }
+
+    /// Exact finite prefix retained by the certificate.
+    #[getter]
+    fn checked_nim_values(&self) -> Vec<u128> {
+        self.inner.checked_nim_values().to_vec()
+    }
+
+    /// Certified Grundy value of a single heap of arbitrary size.
+    fn heap_grundy(&self, heap: u128) -> u128 {
+        self.inner.heap_grundy(heap)
+    }
+
+    /// Grundy value of a disjunctive sum of certified heaps.
+    fn position_grundy(&self, heaps: Vec<u128>) -> u128 {
+        self.inner.position_grundy(&heaps)
+    }
+
+    /// Whether a heap multiset is a certified normal-play `P`-position.
+    fn is_p_position(&self, heaps: Vec<u128>) -> bool {
+        self.inner.is_p_position(&heaps)
+    }
+
+    fn __repr__(&self) -> String {
+        format!(
+            "GuySmithCertificate(code=OctalCode(digits={:?}), preperiod={}, period={}, proof_window={:?})",
+            self.inner.code().digits(),
+            self.inner.preperiod(),
+            self.inner.period(),
+            self.inner.proof_window()
+        )
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Misère play: Nim witnesses, octal moves, and the indistinguishability quotient
 // ---------------------------------------------------------------------------
 
@@ -1275,6 +1639,10 @@ impl PyGame {
     }
     fn birthday(&self) -> u128 {
         self.inner.birthday()
+    }
+    /// Intrinsic normal-play outcome class of this finite short game.
+    fn outcome_class(&self) -> PyPartizanOutcome {
+        wrap_partizan_outcome(self.inner.outcome_class())
     }
     fn is_number(&self) -> bool {
         self.inner.is_number()
@@ -2610,6 +2978,11 @@ fn lexicode_turning_game(n: usize, d: usize) -> Option<PyLexicodeTurningGame> {
 
 pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyGame>()?;
+    m.add_class::<PyWittFifoArena>()?;
+    m.add_class::<PyBrownSelector>()?;
+    m.add_class::<PyOctalCode>()?;
+    m.add_class::<PyGuySmithWitness>()?;
+    m.add_class::<PyGuySmithCertificate>()?;
     m.add_class::<PyOutcome>()?;
     m.add_class::<PyPartizanOutcome>()?;
     m.add_class::<PyLoopyWinner>()?;

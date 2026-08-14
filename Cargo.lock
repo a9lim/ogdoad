@@ -193,7 +193,7 @@ dependencies = [
 
 [[package]]
 name = "ogdoad"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "proptest",
  "pyo3",
