@@ -60,6 +60,40 @@ fn frac_mod_one(r: &Rational) -> Rational {
         .expect("a positive denominator stays valid under rem_euclid")
 }
 
+/// Local invariant under Brauer restriction along a finite extension `L_w/K_v`:
+///
+/// `inv_w(res(alpha)) = [L_w:K_v] * inv_v(alpha)` in `Q/Z`.
+///
+/// The result is reduced to `[0,1)`.  Degree zero is rejected because it does not
+/// describe a field extension.
+pub fn brauer_restrict_local_invariant(
+    invariant: &Rational,
+    local_degree: usize,
+) -> Option<Rational> {
+    if local_degree == 0 {
+        return None;
+    }
+    let degree = i128::try_from(local_degree).ok()?;
+    Some(frac_mod_one(&invariant.mul(&Rational::from_int(degree))))
+}
+
+/// Local invariant under global Brauer corestriction at a base place `v`:
+///
+/// `inv_v(cor(alpha)) = sum_{w|v} inv_w(alpha)` in `Q/Z`.
+///
+/// For one extension of local fields there is a single `w`, so corestriction
+/// preserves the local invariant.  Combined with
+/// [`brauer_restrict_local_invariant`], this gives
+/// `cor(res(alpha)) = [L:K] alpha` because the local degrees over `v` sum to the
+/// global degree.
+pub fn brauer_corestrict_local_invariants(invariants: &[Rational]) -> Rational {
+    frac_mod_one(
+        &invariants
+            .iter()
+            .fold(Rational::zero(), |acc, invariant| acc.add(invariant)),
+    )
+}
+
 /// Finite residue fields whose multiplicative group can be enumerated to evaluate
 /// the tame Kummer symbol. This is a form-theory capability, not a new scalar
 /// supertrait: callers use it only when the local field contains the relevant
@@ -473,6 +507,50 @@ mod tests {
         );
     }
 
+    #[test]
+    fn restriction_and_corestriction_obey_local_degree_formulas() {
+        assert_eq!(
+            brauer_restrict_local_invariant(&third(), 2),
+            Some(two_thirds())
+        );
+        assert_eq!(
+            brauer_restrict_local_invariant(&third(), 3),
+            Some(Rational::zero())
+        );
+        assert_eq!(brauer_restrict_local_invariant(&third(), 0), None);
+
+        // Three places over v with local degrees 1, 2, and 3.  Corestricting the
+        // restricted invariants multiplies alpha by their sum, the global degree 6.
+        let restricted =
+            [1usize, 2, 3].map(|degree| brauer_restrict_local_invariant(&q(1, 4), degree).unwrap());
+        assert_eq!(
+            brauer_corestrict_local_invariants(&restricted),
+            brauer_restrict_local_invariant(&q(1, 4), 6).unwrap(),
+        );
+        assert_eq!(
+            brauer_corestrict_local_invariants(&[third(), two_thirds()]),
+            Rational::zero()
+        );
+    }
+
+    #[test]
+    fn restriction_preserves_global_brauer_reciprocity() {
+        let global = BrauerClass::from_local([
+            (Place::Prime(2), third()),
+            (Place::Prime(3), third()),
+            (Place::Prime(5), third()),
+        ]);
+        let restricted =
+            BrauerClass::from_local(global.local().iter().map(|(&place, invariant)| {
+                (
+                    place,
+                    brauer_restrict_local_invariant(invariant, 2).unwrap(),
+                )
+            }));
+        assert_eq!(global.invariant_sum(), Rational::zero());
+        assert_eq!(restricted.invariant_sum(), Rational::zero());
+    }
+
     // Two-torsion slice.
 
     #[test]
@@ -583,6 +661,24 @@ mod tests {
         );
         // n-torsion: 3·inv(a) ≡ 0.
         assert_eq!(frac_mod_one(&i1.add(&i1).add(&i1)), Rational::zero());
+    }
+
+    #[test]
+    fn qq_cyclic_invariant_obeys_restriction_corestriction() {
+        let invariant = cyclic_algebra_invariant::<Qq<5, 4, 3>>(&Qp::from_int(5)).unwrap();
+        assert_eq!(invariant, third());
+        let restricted = brauer_restrict_local_invariant(&invariant, 2).unwrap();
+        assert_eq!(restricted, two_thirds());
+        assert_eq!(
+            brauer_corestrict_local_invariants(std::slice::from_ref(&restricted)),
+            restricted,
+            "local corestriction preserves the invariant",
+        );
+        assert_eq!(
+            brauer_corestrict_local_invariants(std::slice::from_ref(&restricted)),
+            brauer_restrict_local_invariant(&invariant, 2).unwrap(),
+            "cor(res(alpha)) = 2 alpha",
+        );
     }
 
     #[test]

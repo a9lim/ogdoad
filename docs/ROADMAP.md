@@ -17,8 +17,6 @@ Highest-value additions are the joins between already public subsystems:
 | finite-field invariants | lift level, Pythagoras number, and u-invariant reporting from prime fields to supported extensions |
 | characteristic-two spinor norm | construct the additive spinor norm from vector-symmetry factorizations |
 | explicit Brauer representatives | materialize cyclic or quaternion algebras for computed classes |
-| integral coherence | test lattice, discriminant, Weil, Clifford, Brown, and signature invariants across the existing bridges |
-| local/global coherence | cross-check genus symbols, Hilbert/Hasse isotropy, and restriction/corestriction formulas |
 
 The games pillar still needs Rust constructors for the proved weighted-source
 Witt--FIFO arena and the intrinsic four-outcome Brown selector. Octal

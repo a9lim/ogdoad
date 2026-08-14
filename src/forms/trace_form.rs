@@ -171,6 +171,22 @@ where
     Metric::general(q, b, BTreeMap::new())
 }
 
+/// Scalar extension (Witt restriction)
+/// `r*: W(F) -> W(E)` of a diagonal form along a cyclic Galois extension
+/// `E/F`: `⟨a_1,...,a_r⟩` becomes `⟨i(a_1),...,i(a_r)⟩` via the canonical
+/// [`embed`](FieldExtension::embed) map.
+///
+/// This is additive on orthogonal sums and multiplicative for tensor products.
+/// Together with [`transfer_diagonal`] it satisfies Frobenius reciprocity
+/// `s_*(r*(x) y) = x s_*(y)`.  Odd-degree injectivity is Springer's theorem;
+/// even-degree restriction can kill a nonzero Witt class.
+pub fn restrict_diagonal<E>(entries: &[E::Base]) -> Metric<E>
+where
+    E: CyclicGaloisExtension,
+{
+    Metric::diagonal(entries.iter().map(E::embed).collect())
+}
+
 /// The **Scharlau transfer** `s_*(⟨λ_1,…,λ_r⟩)` of a diagonal form over `E`, pushed
 /// to `W(F)` along the field trace `s = Tr_{E/F}` (Lam, GSM 67, Ch. VII; Scharlau,
 /// *Quadratic and Hermitian Forms*, Ch. 2). Each diagonal entry `λ ∈ E` contributes
@@ -562,18 +578,50 @@ mod tests {
     }
 
     #[test]
+    fn restriction_preserves_orthogonal_sums_and_exposes_even_degree_kernel() {
+        let left = [Fp::<3>::one(), Fp::<3>::from_int(2)];
+        let right = [Fp::<3>::one()];
+        let together = restrict_diagonal::<Fpn<3, 2>>(&[left[0], left[1], right[0]]);
+        let separately = restrict_diagonal::<Fpn<3, 2>>(&left)
+            .direct_sum(&restrict_diagonal::<Fpn<3, 2>>(&right));
+        assert_eq!(
+            together, separately,
+            "restriction is additive on orthogonal sums"
+        );
+
+        // The anisotropic <1,1>/F_3 becomes hyperbolic over F_9: restriction is
+        // not generally injective in even degree.
+        let killed = restrict_diagonal::<Fpn<3, 2>>(&[Fp::<3>::one(), Fp::<3>::one()]);
+        match killed.witt_decompose().expect("F_9 Witt decomposition") {
+            crate::forms::FiniteFieldWittDecomp::Odd(d) => assert_eq!(d.anisotropic_dim, 0),
+            other => panic!("expected odd-characteristic decomposition, got {other:?}"),
+        }
+    }
+
+    #[test]
     fn frobenius_reciprocity_projection_formula() {
-        // s_*(r*(⟨c⟩) · ⟨λ⟩) = ⟨c⟩ · s_*(⟨λ⟩):  c ∈ F factors out of the F-linear
-        // trace, so the transfer of (c·λ) equals the c-scaling of the transfer of λ.
-        let c = Fp::<3>::from_int(2); // a unit of F_3
-        let lam = Fpn::<3, 2>::from_coeffs(&[1, 1]); // 1 + x ∈ F_9
-        let lhs = transfer_diagonal::<Fpn<3, 2>>(&[Fpn::<3, 2>::embed(&c).mul(&lam)]);
-        let base = transfer_diagonal::<Fpn<3, 2>>(&[lam]);
-        let scaled_q: Vec<Fp<3>> = base.q.iter().map(|x| c.mul(x)).collect();
-        let scaled_b: BTreeMap<(usize, usize), Fp<3>> =
-            base.b.iter().map(|(k, v)| (*k, c.mul(v))).collect();
-        assert_eq!(lhs.q, scaled_q);
-        assert_eq!(lhs.b, scaled_b);
+        // Representative-level, multi-rank form of
+        // s_*(r*(x)·y) = x·s_*(y).
+        let x = [Fp::<3>::one(), Fp::<3>::from_int(2)];
+        let y = [
+            Fpn::<3, 2>::from_coeffs(&[1, 1]),
+            Fpn::<3, 2>::from_coeffs(&[2, 1]),
+        ];
+        let restricted = restrict_diagonal::<Fpn<3, 2>>(&x);
+        let product = crate::forms::tensor_form(&restricted, &Metric::diagonal(y.to_vec()))
+            .expect("both representatives are diagonal");
+        let lhs = transfer_diagonal::<Fpn<3, 2>>(product.q());
+
+        let transferred = transfer_diagonal::<Fpn<3, 2>>(&y);
+        let scale = |c: Fp<3>| {
+            Metric::general(
+                transferred.q.iter().map(|v| c.mul(v)).collect(),
+                transferred.b.iter().map(|(k, v)| (*k, c.mul(v))),
+                Vec::new(),
+            )
+        };
+        let rhs = scale(x[0]).direct_sum(&scale(x[1]));
+        assert_eq!(lhs, rhs);
     }
 
     #[test]
@@ -585,8 +633,7 @@ mod tests {
         let base_dec = aniso.witt_decompose().expect("Fp<3> Witt decomposition");
         assert_eq!(base_dec.anisotropic_dim, 2, "⟨1,1⟩ anisotropic over F_3");
 
-        let restricted =
-            Metric::<Fpn<3, 3>>::diagonal(vec![Fpn::<3, 3>::one(), Fpn::<3, 3>::one()]);
+        let restricted = restrict_diagonal::<Fpn<3, 3>>(&[Fp::<3>::one(), Fp::<3>::one()]);
         match restricted
             .witt_decompose()
             .expect("F_27 Witt decomposition")
