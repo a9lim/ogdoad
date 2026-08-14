@@ -26,6 +26,7 @@
 mod complex;
 mod form;
 mod gauss_sum;
+mod heisenberg;
 mod phases;
 
 pub use complex::Complex64;
@@ -35,6 +36,7 @@ pub use form::{
 };
 pub(crate) use form::{phase_mod8_from_q_values, IsoTables};
 pub use gauss_sum::GaussSum;
+pub use heisenberg::TwoElementaryWeilHeisenbergInvariants;
 pub use phases::{FqmGaussPhase, FqmPrimaryPhase};
 
 #[cfg(test)]

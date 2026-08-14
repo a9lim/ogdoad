@@ -491,7 +491,7 @@ fn subgroup_closure(t: &IsoTables, gens: &[usize]) -> HashSet<usize> {
 
 /// A minimal generating set, chosen greedily by maximal order (which realizes the
 /// invariant-factor count for a finite abelian group).
-fn min_generators(t: &IsoTables) -> Vec<usize> {
+pub(super) fn min_generators(t: &IsoTables) -> Vec<usize> {
     let n = t.order.len();
     let mut gens: Vec<usize> = Vec::new();
     let mut covered = subgroup_closure(t, &gens);
