@@ -21,6 +21,9 @@ mod root_lattices;
 mod theta;
 mod weyl_versors;
 
+#[cfg(test)]
+mod coherence;
+
 /// Whether `order` is a power of `p` (with `order == 1` = `p⁰` accepted). Shared by
 /// the discriminant-form and finite-quadratic-module primary-component sweeps.
 pub(crate) fn is_prime_power(order: u128, p: u128) -> bool {
