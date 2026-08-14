@@ -18,11 +18,6 @@ Highest-value additions are the joins between already public subsystems:
 | characteristic-two spinor norm | construct the additive spinor norm from vector-symmetry factorizations |
 | explicit Brauer representatives | materialize cyclic or quaternion algebras for computed classes |
 
-The games pillar still needs Rust constructors for the proved weighted-source
-Witt--FIFO arena and the intrinsic four-outcome Brown selector. Octal
-periodicity should become a checked Guy--Smith certificate before entering the
-public API.
-
 ## API and maintenance
 
 No unfinished API-maintenance work is currently tracked. New Python bindings

@@ -16,6 +16,7 @@
 //! therefore applies to arbitrary short games; see
 //! [`game_exterior`](crate::games::game_exterior).
 
+use crate::games::PartizanOutcome;
 use crate::scalar::{Scalar, Surreal};
 use std::cmp::Ordering;
 use std::fmt;
@@ -149,6 +150,21 @@ impl Game {
     /// non-number relative to its options.
     pub fn fuzzy(&self, other: &Game) -> bool {
         !self.le(other) && !other.le(self)
+    }
+
+    /// The ordinary normal-play outcome class of this finite acyclic game.
+    ///
+    /// Comparison with zero gives the four Conway outcome classes: equality is
+    /// `P`, positive is `L`, negative is `R`, and fuzziness is `N`. A finite
+    /// short game cannot have the loopy [`PartizanOutcome::Draw`] outcome.
+    pub fn outcome_class(&self) -> PartizanOutcome {
+        let zero = Game::zero();
+        match (zero.le(self), self.le(&zero)) {
+            (true, true) => PartizanOutcome::P,
+            (true, false) => PartizanOutcome::L,
+            (false, true) => PartizanOutcome::R,
+            (false, false) => PartizanOutcome::N,
+        }
     }
 
     /// The birthday (formation day): `0` for `{|}`, else `1 + max` over options.
@@ -467,6 +483,14 @@ mod tests {
         assert_eq!(Game::zero().birthday(), 0);
         assert_eq!(Game::star().birthday(), 1);
         assert_eq!(Game::integer(3).birthday(), 3);
+    }
+
+    #[test]
+    fn finite_outcome_classes_are_comparison_with_zero() {
+        assert_eq!(Game::zero().outcome_class(), PartizanOutcome::P);
+        assert_eq!(Game::star().outcome_class(), PartizanOutcome::N);
+        assert_eq!(Game::integer(1).outcome_class(), PartizanOutcome::L);
+        assert_eq!(Game::integer(-1).outcome_class(), PartizanOutcome::R);
     }
 
     #[test]

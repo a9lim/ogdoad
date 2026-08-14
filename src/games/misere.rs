@@ -11,6 +11,10 @@ use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::hash::Hash;
 
+// Historical module path retained for the already-public move generator; the
+// normal-play sequence and certificate machinery live in `games::octal`.
+pub use crate::games::octal::octal_moves;
+
 fn misere_is_n_inner<P, F>(
     pos: &P,
     moves: &F,
@@ -426,56 +430,6 @@ pub fn misere_quotient(
     let tests = multisets(&atoms_sorted, test_bound);
     let mut memo: HashMap<Vec<usize>, bool> = HashMap::new();
     build_quotient(elements, &tests, |g| game.misere_outcome(g, &mut memo))
-}
-
-// ---------------------------------------------------------------------------
-// Octal games — the wild hunting ground for a quadric P-set
-// ---------------------------------------------------------------------------
-
-/// Moves of an octal game `0.d₁d₂…` (`code[k-1] = dₖ`) on a heap-multiset. From a
-/// heap of size n, remove k tokens (1 ≤ k ≤ n): leaving the heap empty needs
-/// `dₖ & 1`; leaving one nonempty heap `n−k` needs `dₖ & 2`; splitting `n−k` into
-/// two nonempty heaps needs `dₖ & 4`. (Nim is `0.333…`; Dawson's chess is the
-/// octal game `0.137` — Berlekamp-Conway-Guy, *Winning Ways*.)
-pub fn octal_moves(code: &[u128], pos: &[u128]) -> Vec<Vec<u128>> {
-    let mut out = Vec::new();
-    for idx in 0..pos.len() {
-        let n = pos[idx];
-        let base: Vec<u128> = pos
-            .iter()
-            .enumerate()
-            .filter(|&(i, _)| i != idx)
-            .map(|(_, &h)| h)
-            .collect();
-        for k in 1..=n {
-            let d = *code.get((k - 1) as usize).unwrap_or(&0);
-            let rem = n - k;
-            if rem == 0 {
-                if d & 1 != 0 {
-                    let mut p = base.clone();
-                    p.sort_unstable();
-                    out.push(p);
-                }
-            } else {
-                if d & 2 != 0 {
-                    let mut p = base.clone();
-                    p.push(rem);
-                    p.sort_unstable();
-                    out.push(p);
-                }
-                if d & 4 != 0 {
-                    for a in 1..=rem / 2 {
-                        let mut p = base.clone();
-                        p.push(a);
-                        p.push(rem - a);
-                        p.sort_unstable();
-                        out.push(p);
-                    }
-                }
-            }
-        }
-    }
-    out
 }
 
 /// The bounded misère quotient of an octal game, over single heaps of size
