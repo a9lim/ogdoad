@@ -29,8 +29,11 @@ use crate::forms::integral::diagonal::{
     odd_unit_residue, rat_val, rational_congruence_diagonal, rdiv, signature_from_diagonal,
     unit_mod8, DegenerateBehavior,
 };
-use crate::forms::try_is_square_qp;
 use crate::forms::IntegralForm;
+use crate::forms::{
+    try_disc_class, try_hasse_at_place, try_is_isotropic_at_p, try_is_square_qp, try_square_free,
+    Place,
+};
 use crate::linalg::integer::prime_factors;
 use crate::scalar::{Rational, Scalar};
 use std::collections::BTreeMap;
@@ -97,6 +100,69 @@ pub struct Genus {
     /// Gram determinant.
     pub det: i128,
     symbols: BTreeMap<u128, Vec<ScaleSymbol>>,
+}
+
+/// Local rational invariants computed from one presentation of a quadratic
+/// space over `Q_p`.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct GenusLocalFieldInvariants {
+    /// The local prime.
+    pub prime: u128,
+    /// Dimension of the nondegenerate quadratic space.
+    pub dim: usize,
+    /// A square-free rational representative of the determinant square class.
+    pub determinant: i128,
+    /// Hasse invariant in `{+1,-1}`.
+    pub hasse: i128,
+    /// Whether the space is isotropic over `Q_p`.
+    pub isotropic: bool,
+}
+
+/// Independent local-field comparison between a lattice Gram matrix and its
+/// Conway--Sloane genus symbol.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct GenusHasseCoherence {
+    /// The local prime.
+    pub prime: u128,
+    /// Invariants obtained by rational congruence-diagonalizing the Gram matrix.
+    pub lattice: GenusLocalFieldInvariants,
+    /// Invariants obtained from a standard local representative reconstructed
+    /// from the Jordan symbol.
+    pub symbol: GenusLocalFieldInvariants,
+    /// Whether the two determinant representatives define the same `Q_p`
+    /// square class.
+    pub determinant_matches: bool,
+}
+
+impl GenusHasseCoherence {
+    /// Whether dimension, determinant square class, Hasse invariant, and local
+    /// isotropy agree across the two computations.
+    pub fn verified(&self) -> bool {
+        self.lattice.dim == self.symbol.dim
+            && self.determinant_matches
+            && self.lattice.hasse == self.symbol.hasse
+            && self.lattice.isotropic == self.symbol.isotropic
+    }
+
+    /// Return the canonical display representation.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl fmt::Display for GenusHasseCoherence {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "GenusHasseCoherence(Q_{}, dim={}, determinant_matches={}, hasse={:+}, isotropic={}, verified={})",
+            self.prime,
+            self.lattice.dim,
+            self.determinant_matches,
+            self.lattice.hasse,
+            self.lattice.isotropic,
+            self.verified(),
+        )
+    }
 }
 
 // --- exact rational helpers (p-adic valuations, unit residues) ---
@@ -317,6 +383,144 @@ fn relevant_primes(det: i128) -> Vec<u128> {
     ps
 }
 
+fn checked_prime_power(p: u128, scale: u128) -> Option<i128> {
+    let exponent = u32::try_from(scale).ok()?;
+    i128::try_from(p.checked_pow(exponent)?).ok()
+}
+
+fn rational_square_class(x: &Rational) -> Option<i128> {
+    try_square_free(x.numer().checked_mul(x.denom())?)
+}
+
+fn local_invariants(entries: &[i128], prime: u128) -> Option<GenusLocalFieldInvariants> {
+    Some(GenusLocalFieldInvariants {
+        prime,
+        dim: entries.len(),
+        determinant: try_disc_class(entries)?,
+        hasse: try_hasse_at_place(entries, Place::Prime(prime))?,
+        isotropic: try_is_isotropic_at_p(entries, prime)?,
+    })
+}
+
+/// One representative for each `(oddity, determinant mod 8)` realizable by
+/// `dim` odd two-adic units.  There are only 64 states regardless of dimension.
+fn odd_unit_sequences(dim: usize) -> BTreeMap<(i128, i128), Vec<i128>> {
+    let mut states = BTreeMap::from([((0, 1), Vec::new())]);
+    for _ in 0..dim {
+        let mut next = BTreeMap::new();
+        for ((oddity, determinant), units) in states {
+            for unit in [1i128, 3, 5, 7] {
+                let mut candidate = units.clone();
+                candidate.push(unit);
+                next.entry((
+                    (oddity + unit).rem_euclid(8),
+                    mul_mod8_unit(determinant, unit),
+                ))
+                .or_insert(candidate);
+            }
+        }
+        states = next;
+    }
+    states
+}
+
+fn type_i_candidates(symbol: &ScaleSymbol) -> Vec<(i128, Vec<i128>)> {
+    odd_unit_sequences(symbol.dim)
+        .into_iter()
+        .filter_map(|((oddity, determinant), units)| {
+            (sign_from_mod8(determinant) == symbol.sign).then_some((oddity, units))
+        })
+        .collect()
+}
+
+/// Choose odd diagonal units for every type-I compartment.  Canonical symbols
+/// fuse oddity onto the compartment's first scale, so this solves for all scales
+/// in a compartment together rather than treating the displayed zeroes as
+/// constituent oddities.
+fn two_adic_type_i_units(symbols: &[ScaleSymbol]) -> Option<Vec<Option<Vec<i128>>>> {
+    let mut chosen = vec![None; symbols.len()];
+    for compartment in two_adic_compartments(symbols) {
+        let target = compartment
+            .iter()
+            .map(|&i| symbols[i].oddity)
+            .sum::<i128>()
+            .rem_euclid(8);
+        let mut states: BTreeMap<i128, Vec<(usize, Vec<i128>)>> = BTreeMap::from([(0, Vec::new())]);
+        for &index in &compartment {
+            let mut next = BTreeMap::new();
+            for (total, assignments) in states {
+                for (oddity, units) in type_i_candidates(&symbols[index]) {
+                    let mut candidate = assignments.clone();
+                    candidate.push((index, units));
+                    next.entry((total + oddity).rem_euclid(8))
+                        .or_insert(candidate);
+                }
+            }
+            states = next;
+        }
+        for (index, units) in states.remove(&target)? {
+            chosen[index] = Some(units);
+        }
+    }
+    Some(chosen)
+}
+
+fn odd_nonsquare_unit(prime: u128) -> Option<i128> {
+    let prime_i = i128::try_from(prime).ok()?;
+    (2..prime_i).find(|&unit| try_is_square_qp(unit, prime) == Some(false))
+}
+
+/// Diagonal square-class representatives for the rational `Q_p`-space encoded
+/// by a Jordan symbol.
+fn local_entries_from_symbol(prime: u128, symbols: &[ScaleSymbol]) -> Option<Vec<i128>> {
+    if symbols.is_empty() {
+        return None;
+    }
+    let mut entries = Vec::new();
+    if prime != 2 {
+        let nonsquare = if symbols.iter().any(|symbol| symbol.sign < 0) {
+            Some(odd_nonsquare_unit(prime)?)
+        } else {
+            None
+        };
+        for symbol in symbols {
+            let scale = checked_prime_power(prime, symbol.scale)?;
+            entries.extend(std::iter::repeat_n(scale, symbol.dim));
+            if symbol.sign < 0 {
+                let last = entries.last_mut()?;
+                *last = last.checked_mul(nonsquare?)?;
+            }
+        }
+        return Some(entries);
+    }
+
+    let type_i_units = two_adic_type_i_units(symbols)?;
+    for (index, symbol) in symbols.iter().enumerate() {
+        let scale = checked_prime_power(2, symbol.scale)?;
+        if symbol.type_ii {
+            if !symbol.dim.is_multiple_of(2) {
+                return None;
+            }
+            // U = [[0,1],[1,0]] is rationally diagonal <2,-2>; V =
+            // [[2,1],[1,2]] is rationally diagonal <2,6>.  U has plus sign and
+            // V minus sign, so one V realizes a negative aggregate sign.
+            for block in 0..(symbol.dim / 2) {
+                let first = scale.checked_mul(2)?;
+                let second_unit = if block == 0 && symbol.sign < 0 { 6 } else { -2 };
+                entries.push(first);
+                entries.push(scale.checked_mul(second_unit)?);
+            }
+        } else {
+            for unit in type_i_units[index].as_ref()? {
+                // Use -1 for residue 7 to avoid needless coefficient growth.
+                let unit = if *unit == 7 { -1 } else { *unit };
+                entries.push(scale.checked_mul(unit)?);
+            }
+        }
+    }
+    Some(entries)
+}
+
 impl Genus {
     /// The genus of a nondegenerate integral lattice, or `None` if `det = 0`.
     pub fn from_lattice(lattice: &IntegralForm) -> Option<Genus> {
@@ -359,6 +563,18 @@ impl Genus {
         }
     }
 
+    /// Reconstruct a standard rational `Q_p`-form from the Jordan symbol and
+    /// compute its determinant, Hasse invariant, and isotropy.
+    ///
+    /// At `p = 2`, type-I oddities are solved compartment-wise and type-II
+    /// constituents are materialized from `U`/`V` planes.  This is a field-level
+    /// collapse of the integral symbol: it does not claim to reconstruct the
+    /// original integral lattice or its basis.
+    pub fn local_field_invariants_at(&self, p: u128) -> Option<GenusLocalFieldInvariants> {
+        let entries = local_entries_from_symbol(p, self.symbol_at(p))?;
+        local_invariants(&entries, p)
+    }
+
     /// The primes carrying a recorded local symbol.
     pub fn primes(&self) -> Vec<u128> {
         self.symbols.keys().copied().collect()
@@ -367,6 +583,42 @@ impl Genus {
     /// Return the canonical display representation.
     pub fn display(&self) -> String {
         self.to_string()
+    }
+}
+
+impl IntegralForm {
+    /// Cross-check every recorded genus symbol against independent rational
+    /// diagonalization of this lattice's Gram matrix.
+    ///
+    /// The genus side builds a standard local representative from the p-adic
+    /// symbol.  The lattice side bypasses the Jordan decomposition and computes
+    /// Hilbert/Hasse data directly from rational congruence pivots.  A successful
+    /// report therefore joins the integral and local-field implementations
+    /// without sharing their diagonalization path.
+    pub fn genus_hasse_coherence(&self) -> Option<Vec<GenusHasseCoherence>> {
+        let genus = Genus::from_lattice(self)?;
+        let lattice_entries =
+            rational_congruence_diagonal(self.gram(), DegenerateBehavior::RequireNonsingular)
+                .iter()
+                .map(rational_square_class)
+                .collect::<Option<Vec<_>>>()?;
+
+        genus
+            .primes()
+            .into_iter()
+            .map(|prime| {
+                let lattice = local_invariants(&lattice_entries, prime)?;
+                let symbol = genus.local_field_invariants_at(prime)?;
+                let determinant_matches =
+                    try_is_square_qp(lattice.determinant.checked_mul(symbol.determinant)?, prime)?;
+                Some(GenusHasseCoherence {
+                    prime,
+                    lattice,
+                    symbol,
+                    determinant_matches,
+                })
+            })
+            .collect()
     }
 }
 
@@ -658,6 +910,68 @@ mod tests {
             (s2[0].scale, s2[0].dim, s2[0].type_ii, s2[0].oddity),
             (1, 1, false, 1)
         );
+    }
+
+    #[test]
+    fn genus_symbols_collapse_to_the_direct_local_field_invariants() {
+        let cases = [
+            IntegralForm::diagonal(&[2]),
+            a_n(2),
+            a_n(3),
+            d_n(4),
+            d_n(5),
+            e_6(),
+            e_7(),
+            e_8(),
+            IntegralForm::diagonal(&[1, 6]),
+            IntegralForm::diagonal(&[1, -1, 3, -6]),
+        ];
+        for lattice in cases {
+            let reports = lattice.genus_hasse_coherence().unwrap_or_else(|| {
+                panic!(
+                    "coherence construction failed for Gram {:?}",
+                    lattice.gram()
+                )
+            });
+            assert!(!reports.is_empty());
+            assert!(
+                reports.iter().all(GenusHasseCoherence::verified),
+                "local mismatch for Gram {:?}: {reports:?}",
+                lattice.gram(),
+            );
+        }
+
+        for first in [-7i128, -5, -3, -1, 1, 3, 5, 7] {
+            for second in [-6i128, -2, 2, 6] {
+                let lattice = IntegralForm::diagonal(&[first, second]);
+                let reports = lattice.genus_hasse_coherence().unwrap();
+                assert!(
+                    reports.iter().all(GenusHasseCoherence::verified),
+                    "diagonal local mismatch for <{first},{second}>: {reports:?}",
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn coherence_report_pins_hasse_and_isotropy() {
+        let reports = IntegralForm::diagonal(&[1, -1, 3, -6])
+            .genus_hasse_coherence()
+            .unwrap();
+        assert_eq!(
+            reports.iter().map(|r| r.prime).collect::<Vec<_>>(),
+            vec![2, 3]
+        );
+        for report in &reports {
+            assert!(report.verified());
+            assert!(report.lattice.isotropic);
+            assert_eq!(report.lattice.hasse, report.symbol.hasse);
+        }
+        assert_eq!(
+            reports[0].to_string(),
+            "GenusHasseCoherence(Q_2, dim=4, determinant_matches=true, hasse=+1, isotropic=true, verified=true)",
+        );
+        assert_eq!(reports[0].display(), reports[0].to_string());
     }
 
     #[test]
