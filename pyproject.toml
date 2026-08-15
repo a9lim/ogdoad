@@ -47,6 +47,10 @@ excess-certificate = ["python-flint==0.9.0"]
 [tool.maturin]
 features = ["python"]
 module-name = "ogdoad"
+# Cargo's source-package allowlist intentionally omits Python-only inputs.
+# Restore the generated stub to the sdist so wheels built from source retain
+# the same typing surface as the prebuilt wheels.
+include = [{ path = "ogdoad.pyi", format = "sdist" }]
 
 [tool.ruff]
 target-version = "py39"
