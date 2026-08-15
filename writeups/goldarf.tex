@@ -11,6 +11,7 @@
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{corollary}[theorem]{Corollary}
+\newtheorem*{thmA}{Theorem A}
 \theoremstyle{definition}
 \newtheorem{definition}[theorem]{Definition}
 \theoremstyle{remark}
@@ -57,19 +58,23 @@ partizan selector decodes every $\mathbb Z/4$-valued Brown refinement through
 its four outcome classes, whereas any coefficient-faithful Clifford datum
 coherent on all short-game values vanishes on torsion and collapses over the
 usual coefficient rings.  The finite realization and these boundary
-theorems are formalized in Lean.  The stronger FIFO statement for arbitrary
-graphs is not used.
+theorems are formalized in Lean.
 \end{abstract}
 
 \section{Introduction}
 
-Classical impartial constructions often realize linear losing sets: coin
+Classical impartial constructions realize linear losing sets: coin
 turning decomposes into nim heaps, kernels of Grundy maps produce codes, and
 lexicographic codes admit game-theoretic models
-\cite{berlekampconwayguy1982,conwaysloane1986,fraenkel1996}.  More generally,
-impartial $P/N$ recursion can emulate arbitrary Boolean update rules in
-modular and invariant heap games \cite{larssonwastlund2013}; there the Boolean
-function is compiled into the rules.  Binary quadratic forms also organize
+\cite{berlekampconwayguy1982,conwaysloane1986,fraenkel1996}.  The linearity
+is forced, not incidental: nim values of coin-turning games add coin-wise
+\cite{berlekampconwayguy1982}, so the $P$-positions of every such game form
+an $\F_2$-linear code, the starting point of the codes-from-games program of
+\cite{conwaysloane1986,fraenkel1996}.  More generally, impartial $P/N$
+recursion can emulate arbitrary Boolean update rules in modular and
+invariant heap games \cite{larssonwastlund2013}; there the Boolean function
+is compiled into the rules, and which losing sets admit \emph{invariant}
+rules is subtle already in the linear world \cite{ducheneparreaurigo2017}.  Binary quadratic forms also organize
 the orbit structure of lit-only sigma-games on nondegenerate graphs
 \cite{huang2015}, but those are configuration-reachability puzzles rather
 than alternating normal-play realizations.  We study a different quadratic
@@ -82,7 +87,22 @@ declared terminal in a purpose-built acyclic graph, so the arena here is
 required to be independent of the refinement and every access to $Q$ is
 counted.  The construction uses one singleton query per
 refinement-sensitive transition.  Its complete query set is also optimal:
-exactness forces the observed directions to span the input.
+exactness forces the observed directions to span the input.  The resulting
+statement is the following.
+
+\begin{thmA}[Theorems~\ref{thm:realization} and~\ref{thm:span} with
+Corollary~\ref{cor:block}]
+Fix an alternating bilinear form $B$ on a finite-dimensional $\F_2$-space
+and an input $x$.  There is one impartial normal-play arena, with board and
+loading built from $B$ and $x$ alone, in which each refinement-sensitive
+transition reads the single coordinate value $Q(e_j)$ of a loaded source,
+and whose loaded root is a $P$-position exactly when $Q(x)=0$,
+simultaneously for every quadratic refinement $Q$ of $B$.  Conversely,
+every exact transcript-stable rule observes directions spanning $x$;
+observations of coordinate weight at most $w$ therefore number at least
+$\lceil\wt(x)/w\rceil$, and block compression attains this bound at every
+width.
+\end{thmA}
 
 The principal examples are the Gold trace forms
 \[
@@ -116,9 +136,9 @@ realization theorem.
 
 Let $V$ be an $m$-dimensional $\F_2$-space.  A quadratic refinement of an
 alternating bilinear form $B$ is a function $Q:V\to\F_2$ such that
-\begin{equation}
+\[
   Q(x+y)=Q(x)+Q(y)+B(x,y).
-\end{equation}
+\]
 For fixed $B$, the refinements form a torsor under $V^*$: every other
 refinement has the form $Q+\ell$ for a unique linear functional $\ell$.
 
@@ -129,27 +149,27 @@ invariant is
 \]
 It classifies nonsingular binary quadratic forms at fixed dimension
 \cite{arf1941,elmankarpenkomerkurjev2008}.  Their zero count is
-\begin{equation}
+\[
   \#\{x:Q(x)=0\}
   =2^{2r-1}+(-1)^{\Arf(Q)}2^{r-1}.
-\end{equation}
+\]
 For a degenerate form of polar rank $2r$ on an $m$-dimensional space, the
 values are balanced when $Q$ is nonzero on $\rad B$.  If $Q|_{\rad B}=0$,
 the count is
-\begin{equation}
+\[
   2^{m-1}+(-1)^{\Arf(Q_{\mathrm{ns}})}2^{m-r-1},
-\end{equation}
+\]
 where $Q_{\mathrm{ns}}$ is the nonsingular quotient.
 
 Fix an ordered basis $e_1,\dots,e_m$.  Put
-\begin{equation}
+\[
  P_B(z)=\sum_{j<k}B(e_j,e_k)z_jz_k,
  \qquad q_j=Q(e_j).
-\end{equation}
+\]
 Then
-\begin{equation}
+\[
   Q(z)=P_B(z)+\sum_j q_jz_j.
-\end{equation}
+\]
 The alternating form is public data; the diagonal vector $(q_j)$ is the
 additional information carried by the refinement.
 
@@ -201,12 +221,12 @@ Write
 \]
 All of $C$, $y$, and $p_i$ are public.  Expanding the quadratic form in the
 adapted basis and using the coordinate formula above gives the identity
-\begin{equation}
+\[
  Q(x)=
  \sum_i y_ip_i
  +\sum_jx_jq_j
  +\sum_h y_{a_h}y_{b_h}.
-\end{equation}
+\]
 Indeed,
 \[
  Q(x)=\sum_i y_iQ(f_i)+\sum_hy_{a_h}y_{b_h},
@@ -234,8 +254,8 @@ reachable for a given refinement.
 There are two impartial moves.
 \begin{itemize}
 \item $\operatorname{OPEN}(v)$ removes $v$ from $U$ and appends it to the
-      queue.  If its potential mate is already open, the edge weight is added
-      to $\sigma$.  Opening into an empty queue sets ko; every other opening
+      queue.  If its potential mate is already in the queue, the edge weight
+      is added to $\sigma$.  Opening into an empty queue sets ko; every other opening
       clears it.
 \item $\operatorname{CLOSE}$ removes the queue front.  It is legal when the
       queue is nonempty and either ko is clear or $U$ is empty.  Closing a
@@ -244,9 +264,9 @@ There are two impartial moves.
 \end{itemize}
 There is no pass.  Every coin is opened once and later closed once.  The
 quantity
-\begin{equation}
+\[
   2|U|+|\mathcal Q|
-\end{equation}
+\]
 decreases by one on every move, and the exhausted-board exception to ko
 ensures that the core never stalls before drainage.  Thus every core play has
 exactly two moves per loaded coin.
@@ -288,6 +308,12 @@ If the endpoints of an edge did not overlap, the first endpoint opened would
 close while its mate remained untouched, giving live degree one.  The strategy
 excludes this possibility.
 \end{proof}
+
+Under the FIFO discipline closes occur in opening order, so two touch
+intervals never nest: they are disjoint or they interlace.  The overlap
+forced by Theorem~\ref{thm:matching} therefore makes every matched pair an
+interlaced chord in the chord diagram of the play; compare the interlacement
+and isotropic-systems framework of \cite{brijdertraldi2016}.
 
 \begin{theorem}[Quadratic realization]\label{thm:realization}
 The weighted-source Witt--FIFO arena is a local impartial realization with
@@ -420,16 +446,16 @@ original complete play now reaches the bit-sensitive fork.
 
 Let $K_m=\F_{2^m}$ and let $\Tr_m:K_m\to\F_2$ be absolute trace.  For
 $a\ge0$ and $c\in K_m$, define
-\begin{equation}
+\[
  Q_{a,c}(x)=\Tr_m(c x^{1+2^a}),
  \qquad Q_a=Q_{a,1}.
-\end{equation}
+\]
 We call $Q_{a,c}$ a scaled Gold trace form, using ``Gold'' for the monomial
 shape without imposing the APN convention $\gcd(a,m)=1$.
 Its polar form is
-\begin{equation}
+\[
  B_{a,c}(x,y)=\Tr_m\bigl(c(xy^{2^a}+yx^{2^a})\bigr).
-\end{equation}
+\]
 When $K_m$ is identified with a finite nimber subfield, all operations in
 these formulas are nimber operations.  The quadratic-tower construction
 below uses the canonical subfields of power-of-two degree.  Every
@@ -441,11 +467,11 @@ algebraic-closure property is used.
 Choose a basis $e_0,\dots,e_{m-1}$ of $K_m$ over $\F_2$ with $e_0=1$.
 Nondegeneracy of the trace pairing gives a unique diagonal dual
 $\lambda_{a,c}^{(m)}\in K_m$ satisfying
-\begin{equation}
+\[
  \Tr_m(\lambda_{a,c}^{(m)}e_i)
  =\Tr_m(c e_i e_i^{2^a})
  \qquad(0\le i<m).
-\end{equation}
+\]
 Thus $\lambda_{a,c}^{(m)}$ packages the entire basis diagonal into one
 trace-linear field element.  This is structural compression specific to the
 Gold datum, not a contradiction of the full-torsor observation lower bound of
@@ -461,11 +487,11 @@ For every $m,a,c$ as above,
 \]
 In particular, if $m\ge2$ is even and $c=1$, there is a
 $w_a^{(m)}\in K_m$ such that
-\begin{equation}
+\[
  Q_a(e_i)=
  \Tr_m\bigl(((w_a^{(m)})^2+w_a^{(m)})e_i\bigr)
  \quad(0\le i<m).
-\end{equation}
+\]
 \end{theorem}
 
 \begin{proof}
@@ -479,23 +505,23 @@ For $c=1$ and even $m$, $\Tr_m(1)=0$.
 The source can be constructed recursively in a quadratic tower.  Write
 $K_{2M}=K_M(u)=K_M\oplus uK_M$ with conjugation $\sigma(u)=u+1$.  Relative
 trace satisfies
-\begin{equation}
+\[
  (1+\sigma)((A+uB)e)=Be,\qquad
  (1+\sigma)((A+uB)ue)=(A+B)e.
-\end{equation}
+\]
 Consequently, if $e_j^{*,(M)}$ is trace-dual to $e_j$ in $K_M$, then
-\begin{equation}
+\[
  e_{M+j}^{*,(2M)}=e_j^{*,(M)},\qquad
  e_j^{*,(2M)}=(1+u)e_j^{*,(M)}.
-\end{equation}
+\]
 These identities give a closed recursion for $\lambda_{a,c}^{(2M)}$ from its
 two diagonal blocks.
 
 Likewise, if $u^2+u=\delta$ with $\Tr_M(\delta)=1$ and
 $\lambda=A+uB$ has trace zero, seek $w=X+uY$.  Then
-\begin{equation}
+\[
  w^2+w=(X^2+X+\delta Y^2)+u(Y^2+Y).
-\end{equation}
+\]
 First solve $Y^2+Y=B$.  The two choices $Y$ and $Y+1$ toggle the trace of
 $A+\delta Y^2$, so exactly one makes the second downstairs equation
 $X^2+X=A+\delta Y^2$ soluble.  Iteration constructs a source throughout the
@@ -544,26 +570,26 @@ gives an explicit cocycle.
 
 The same trace monomial defines a structural multiplication without a unary
 quadratic oracle.  Put
-\begin{equation}
+\[
  \phi_{a,c}(x,y)=\Tr_m(cxy^{2^a}),
  \qquad Q_{a,c}(x)=\phi_{a,c}(x,x).
-\end{equation}
+\]
 
 \begin{theorem}[Gold--Heisenberg group]\label{thm:heisenberg}
 On $E_{a,c}=\F_2\times K_m$, define
-\begin{equation}
+\[
  (s,x)(t,y)=\bigl(s+t+\phi_{a,c}(x,y),x+y\bigr).
-\end{equation}
+\]
 Then $E_{a,c}$ is a group fitting into a central extension
 \[
  1\longrightarrow\F_2\longrightarrow E_{a,c}
  \longrightarrow K_m^+\longrightarrow1.
 \]
 For $z=(1,0)$,
-\begin{align}
+\begin{align*}
  (s,x)^2&=z^{Q_{a,c}(x)},\\
  [(s,x),(t,y)]&=z^{B_{a,c}(x,y)}.
-\end{align}
+\end{align*}
 Its center is
 \[
  Z(E_{a,c})=\{(s,r):s\in\F_2, r\in\rad B_{a,c}\}.
@@ -611,6 +637,11 @@ addition, nim product supplies multiplication, repeated squaring supplies
 Frobenius, and trace is a finite iterated sum.  The multiplication contains
 neither a table of basis diagonals nor a $Q_{a,c}$ query; its squares reveal
 the quadratic form because that is the defining structure of the extension.
+In particular, Corollary~\ref{cor:q8} builds the quaternion group from nim
+operations alone: a group-level positive answer to the quaternion case of
+\cite[Problem~5.3(j)]{altmanlipparini2026} inside a finite nimber core,
+whose value-level ambient counterpart fails by
+Section~\ref{sec:exterior}.
 
 For the unscaled form, put $d=\gcd(2a,m)$ and
 $R=\F_{2^d}=\rad B_a$.  If $m$ is a power of two and $d<m$, then $m/d$ is
@@ -634,9 +665,9 @@ coherence theorem.
 \section{Brown refinements as partizan outcomes}\label{sec:brown}
 
 Let $q:V\to\mathbb Z/4$ satisfy
-\begin{equation}
+\[
  q(x+y)=q(x)+q(y)+2b(x,y),
-\end{equation}
+\]
 where $b:V\times V\to\F_2$ is symmetric bilinear.  Such forms underlie the
 Brown invariant and the associated fourth-root Gauss sums
 \cite{brown1972,brumfielmorgan1973}; their algebraic classification and coding
@@ -653,10 +684,10 @@ linear, and $Q$ is a quadratic refinement with polar form
   B_Q=b+\ell\otimes\ell.
 \]
 Moreover, if $W(R)=\sum_x(-1)^{R(x)}$, then
-\begin{equation}
+\[
  \sum_{x\in V}i^{q(x)}
  =\frac{1+i}{2}W(Q)+\frac{1-i}{2}W(Q+\ell).
-\end{equation}
+\]
 \end{proposition}
 
 \begin{proof}
@@ -681,10 +712,10 @@ impartial arena of Theorem~\ref{thm:realization}.  Thus
 
 \begin{theorem}[Intrinsic Brown selector]\label{thm:brown-selector}
 The single partizan game
-\begin{equation}
+\[
  \mathcal B_q(x)=
  \{\mathcal A_{Q+\ell}(x)\mid\mathcal A_Q(x)\}
-\end{equation}
+\]
 has outcome
 \[
 \begin{array}{c|cccc}
@@ -723,20 +754,22 @@ assigned by Gauss-sum normalization.
 
 The additive group of short partizan game values is not a ring under Conway
 multiplication.  Altman and Lipparini ask whether a different game-theoretic
-product could produce Clifford algebras
-\cite[Problem 5.3(j)]{altmanlipparini2026}.  We give a negative result for a
-precise value-level interpretation.
+product could produce quaternions, octonions, or general Clifford algebras
+\cite[Problem 5.3(j)]{altmanlipparini2026}.  The Gold--Heisenberg extension
+of Section~\ref{sec:heisenberg} answers the group-level quaternion fragment
+positively inside a finite nimber core.  We now give a negative result for a
+precise value-level interpretation on the full short-game group.
 
 Let $\mathcal S$ be the additive group of short-game values, $R$ a commutative
 ring, $C$ an $R$-algebra, and $\iota:R\hookrightarrow C$ an injective
 coefficient map.  A coefficient-faithful Clifford datum consists of an
 additive map $j:\mathcal S\to C$, a function $Q:\mathcal S\to R$, and a
 function $B:\mathcal S\times\mathcal S\to R$ satisfying
-\begin{equation}
+\[
  j(x)^2=\iota(Q(x)),
  \qquad
  j(x)j(y)+j(y)j(x)=\iota(B(x,y)).
-\end{equation}
+\]
 It is \emph{ambient-coherent} when it is defined on all of $\mathcal S$;
 equivalently, compatible data on a cofinal directed family of finitely
 generated subgroups glue to such a datum.
