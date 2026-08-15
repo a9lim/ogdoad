@@ -90,11 +90,10 @@ jobs:
           lint: false
 
   python:
-    # Build the abi3 extension with maturin, install the wheel, and run the demo
-    # tour. Display paths (blade / nimber / surreal rendering) don't surface in
-    # `cargo test`, so the tour is the smoke test for the binding + Display
-    # layer. If this is green the release workflow's wheel build can publish
-    # blind.
+    # Build the sdist and reconstruct the abi3 wheel from it, then install the
+    # wheel and run the demo tour. This keeps the source package honest as well
+    # as exercising Display paths (blade / nimber / surreal rendering) that do
+    # not surface in `cargo test`.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -103,17 +102,33 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.9"
-      - name: Build the abi3 wheel
+      - name: Build the sdist and abi3 wheel from it
         uses: PyO3/maturin-action@v1
         with:
           command: build
-          args: --release --out dist
+          args: --release --sdist --out dist
           sccache: true
           manylinux: auto
       - name: Install the wheel and run the demo tour
         run: |
           pip install --find-links dist --no-index ogdoad
           python demo.py
+      - name: Check the installed typing payload
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          import ogdoad
+
+          package = Path(ogdoad.__file__).parent
+          missing = [
+              name
+              for name in ("__init__.pyi", "py.typed")
+              if not (package / name).is_file()
+          ]
+          if missing:
+              raise SystemExit(f"wheel is missing typing files: {', '.join(missing)}")
+          PY
       - name: Check the committed type stubs are up to date
         # ogdoad.pyi is @generated from the built module by scripts/generate_stubs.py.
         # If a binding was added/renamed without regenerating, the committed stub is

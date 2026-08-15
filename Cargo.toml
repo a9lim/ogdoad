@@ -14,25 +14,18 @@ documentation = "https://docs.rs/ogdoad"
 readme = "README.md"
 keywords = ["clifford-algebra", "surreal-numbers", "nimbers", "quadratic-forms", "game-theory"]
 categories = ["mathematics", "science"]
-# The published crate is the Rust library artifact. The Python research probes
-# (`experiments/`), the mathematical papers (`writeups/`), the repo CI/infra
-# (`.github/`), the project documentation (`docs/`, linked
-# from the README via the repository URL), the unpublished grundy language
-# crate (`grundy/`, a workspace member cargo would exclude anyway), and the
-# Python-distribution side (the regenerable `ogdoad.pyi` stub, `demo.py`,
-# `pyproject.toml`, `scripts/` — all built/consumed separately via maturin,
-# never from this tarball) are part of the source tree but not the crate a
-# `cargo add` consumer needs, so they are kept out of the `.crate`.
-exclude = [
-    "experiments/",
-    "writeups/",
-    ".github/",
-    "docs/",
-    "grundy/",
-    "ogdoad.pyi",
-    "demo.py",
-    "pyproject.toml",
-    "scripts/",
+# Keep the published crate to its compilable Rust surface, public examples and
+# tests, package metadata, and the instruction files colocated with the source.
+# Research experiments, Lean developments, papers, project infrastructure, and
+# Python-distribution inputs remain in the repository but outside the `.crate`.
+include = [
+    "/src/**",
+    "/examples/**",
+    "/tests/**",
+    "/README.md",
+    "/LICENSE",
+    "/AGENTS.md",
+    "/CLAUDE.md",
 ]
 
 # docs.rs builds the default, pure-Rust feature set. The `python` feature pulls
