@@ -17,6 +17,7 @@ PAPERS = (
     "linking_affine",
     "thermo_newton",
     "transfinite_arf",
+    "semiring_stability",
 )
 
 CITATION = re.compile(

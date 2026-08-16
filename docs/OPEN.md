@@ -275,25 +275,51 @@ Consider two coefficient worlds:
 - the Hessenberg semiring of ordinals under natural sum and natural product,
   represented first on a closed finite-CNF fragment.
 
-**Problem.** For each world, construct and compute a stable form invariant with
-the following properties, or prove that these requirements force it to
-collapse.
+The common stable structure and the Hessenberg arm are now settled in
+[`../writeups/semiring_stability.tex`](../writeups/semiring_stability.tex).
+Over an entire unique-base semiring, a finite free quadratic pair is an
+admissible vertex/edge-weighted graph modulo permutation and unit gauge.
+Orthogonal sum is disjoint union, so the isometry monoid is free commutative
+on connected graph types.  Regular pairs have only rank-one loop and rank-two
+edge blocks; basic metabolic stabilization deletes exactly the metabolic edge
+generators.
 
-1. Start from isometry classes of finite free quadratic pairs under orthogonal
-   sum. Specify regular, split, and metabolic objects without using subtraction,
-   and prove that the proposed stable quotient is a well-defined commutative
-   monoid or group completion.
-2. Classify rank-two pairs and their companion ambiguity, then give generators,
-   relations, and a decision procedure for the stable invariant on every
-   supported finite rank.
-3. Make supervaluation/scalar extension from ring-valued forms functorial and
-   determine exactly which classical Witt data survives supertropicalization.
-4. Determine whether the Hessenberg invariant is nontrivial beyond the
-   diagonal/Cantor-normal-form data forced by its unique basis and trivial unit
-   group.
-5. Test whether the max/min-plus pair of thermograph walls defines a stable
-   class. If it does not, isolate the minimal obstruction implied by freezing,
-   the Norton degree defect, or temperature-zero torsion.
+For the closed Hessenberg fragments
+
+```text
+H_d = {alpha < omega^(omega^d)} ~= N[x_0,...,x_(d-1)],
+```
+
+additive cancellation makes the companion unique and balanced, and the
+trivial unit group forces every regular pair to be an orthogonal sum of copies
+of the hyperbolic plane.  Thus the regular Witt group is zero.  The all-pairs
+stable monoid is nevertheless free on every connected weighted-graph type except
+that hyperbolic plane; exact CNF normalization, component decomposition, and
+finite graph canonicalization give a decision procedure in every finite rank.
+
+The thermograph clause is also settled by a no-go theorem.  Adjoining one
+global tropical zero to the eventually constant rational piecewise-linear
+walls gives honest max/min-plus semifields.  A wall pair is a regular rank-one
+quadratic pair classified exactly by its gap `L - R`.  The self-negative hot
+switch `{1|-1}` has nonzero gap, so the basepoint-reduced stable wall class has
+infinite order while additivity would make it two-torsion.  Hence the natural
+paired max/min stable class is not additive under disjunctive sum.
+
+**Remaining problem.** Over the standard rational tangible supertropical
+cover, the note gives the complete rank-two companion ambiguity, regular
+loop/edge blocks, metabolic generators, and finite-rank gauge-orbit decision
+procedure.  What remains is the universal unbased scalar-extension quotient:
+
+1. Impose all ordinary change-of-basis relations on the canonical balanced
+   coefficientwise supertropicalizations, together with hyperbolic
+   stabilization, and compute the resulting universal quotient.
+2. Decide whether any classical Witt datum beyond rank parity survives.  Rank
+   parity does survive, while the raw stable graph class does not descend:
+   two bases of the classical hyperbolic plane give a split edge and two
+   nonmetabolic loops, and the canonical second pair is not even regular.
+3. Compare this canonical quotient with the alternative pair lift obtained by
+   tropicalizing the classical polar companion.  That choice can preserve
+   regularity in the hyperbolic example but still fails basis independence.
 
 ### Boundaries and completion
 
@@ -304,13 +330,15 @@ a Newton-style graded ring. These are constraints on a proposed theory, not
 reasons to insert either type into the existing ring-based Witt or Clifford
 APIs.
 
-A successful nontrivial invariant, or a no-go theorem showing that the five
-requirements force collapse in one coefficient world, closes that arm. Merely
-adding a generic matrix type over `Semiring` does not. The starting references
-are [supertropical quadratic forms](https://arxiv.org/abs/1309.5729) and the
-[unique-basis cancellation theorem](https://arxiv.org/abs/1509.01039); the
-in-house obstruction is
-[`../writeups/thermo_newton.tex`](../writeups/thermo_newton.tex).
+A computation or collapse theorem for this universal quotient closes the
+remaining arm.  Merely adding a generic matrix type over `Semiring` does not.
+The starting references are
+[supertropical quadratic forms I](https://arxiv.org/abs/1309.5729),
+[supertropical quadratic forms II](https://arxiv.org/abs/1506.03404), and the
+[unique-basis cancellation theorem](https://arxiv.org/abs/1509.01039).  The
+thermographic inputs are
+[`../writeups/thermo_newton.tex`](../writeups/thermo_newton.tex) and the new
+stable-pair note.
 
 ## 5. Natural realization of finite misère quotients
 
