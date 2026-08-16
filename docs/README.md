@@ -3,7 +3,7 @@
 | document | authority |
 | --- | --- |
 | [`../README.md`](../README.md) | public scope, architecture, and supported surface |
-| [`OPEN.md`](OPEN.md) | the five live mathematical problems and their exact frontiers |
+| [`OPEN.md`](OPEN.md) | the six live mathematical problems and their exact frontiers |
 | [`ROADMAP.md`](ROADMAP.md) | unfinished engineering and publication work |
 | [`VERIFY.md`](VERIFY.md) | evidence classes, verification gates, and representation limits |
 | [`../formal/README.md`](../formal/README.md) | Lean theorem map and proof boundary |

@@ -1,7 +1,7 @@
 # Open mathematical problems
 
-Ogdoad has five live research problems. The first two are universal
-conjectures with exact reductions; the remaining three are constructive or
+Ogdoad has six live research problems. The first two are universal
+conjectures with exact reductions; the remaining four are constructive or
 classification programs with explicit completion criteria. This document
 states their current form, known starting point, and missing step. The linked
 papers carry the detailed arguments. Finite experiments and an implemented API
@@ -372,3 +372,86 @@ are [supertropical quadratic forms](https://arxiv.org/abs/1309.5729) and the
 [unique-basis cancellation theorem](https://arxiv.org/abs/1509.01039); the
 in-house obstruction is
 [`../writeups/thermo_newton.tex`](../writeups/thermo_newton.tex).
+
+## 6. Natural realization of finite misère quotients
+
+Let `A` be a set of finite impartial games closed under options and disjunctive
+sum, and write `o^-(G)` for the misère outcome. Define
+
+```text
+G ~ H  iff  o^-(G + X) = o^-(H + X) for every X in A.
+```
+
+The quotient `Q(A) = A / ~` is a commutative monoid with identity `1` and a
+distinguished subset `P` of previous-player wins. Thus the object to realize is
+not a bare monoid but a reduced bipartite monoid `(Q, P)`: distinct elements
+`x, y` must be separated by some `z` for which exactly one of `xz, yz` lies in
+`P`. Misère terminal play also forces `1` not to lie in `P`.
+
+The unrestricted finite realization question is already settled. A transition
+table is a subset `T` of `Q × Pow(Q)`; its product is
+
+```text
+(x, E)(y, F) = (xy, xF ∪ yE).
+```
+
+Siegel's realization theorem says that a reduced `(Q, P)` with `1` outside
+`P` is `Q(A)` for some closed set of impartial games exactly when it admits a
+transition table that is parity-correct
+
+```text
+(x, E) in T  implies  [x in P  iff  E is nonempty and E ∩ P is empty],
+```
+
+complete over `Q`, closed under this product, and well-founded by a rank with
+`R(1) = 0` that decreases along one option set for every element. The open
+problem therefore begins only after imposing a natural ruleset class.
+
+**Problem.** Characterize the finite reduced bipartite monoids that occur as
+the exact misère quotients of finite-code octal games. The characterization
+should be decidable from finite algebraic data and should either construct an
+octal code and its quotient map or return an obstruction that rules out every
+such code. An undecidability theorem, together with a maximal natural decidable
+subclass, is an alternative resolution. In parallel, determine the exact
+quotient of misère Grundy's game, whose single-heap positions satisfy
+
+```text
+opts(H_n) = {H_i + H_(n-i) : 1 <= i < n-i}.
+```
+
+For Grundy's game, decide first whether the full quotient is finite. If it is,
+give a finite presentation, its `P`-portion, and a proved quotient map for all
+heap sizes. If it is infinite, exhibit an infinite family of pairwise
+distinguishable positions together with contexts that separate them.
+
+### Milestones and completion
+
+1. Implement the valid-transition-table or minimex criterion as an exact
+   certificate checker. This recovers the known abstract theorem and filters
+   algebraically impossible candidates; it does not by itself address octal
+   realization.
+2. Produce a reproducible small-order atlas separating abstractly realizable
+   quotients from those currently realized by finite octal codes. A bounded
+   atlas is conjecture material unless the searched code class is itself
+   proved exhaustive for the stated order.
+3. Identify invariants preserved by finite-code octal realization but absent
+   from arbitrary transition-table constructions, or prove a universality
+   theorem showing that there are no additional obstructions.
+4. For any claimed finite heap quotient, certify the infinite ruleset: prove
+   the heap-value recurrence and the required eventual period or other
+   induction, then verify surjectivity, reduction, and the `P`-portion. A
+   stable bounded table is not enough.
+
+The octal-realization arm closes with the requested if-and-only-if theorem and
+certified construction/obstruction algorithm. The Grundy arm closes with one
+of the two exact finite/infinite certificates above. Calling a quotient
+*wild* only means non-tame; it does not establish that the quotient is
+infinite.
+
+The starting theory is the [Plambeck--Siegel quotient
+construction](https://arxiv.org/abs/math/0609825) and Siegel's
+[valid-transition-table classification](https://arxiv.org/abs/math/0703070).
+The current `src/games/misere.rs` routines compare only bounded element and
+test sets, so their signatures and multiplication flags are observational
+evidence, not exact quotient certificates. The `misere_quotient` and
+`octal_hunt` examples are useful census instruments under that boundary.

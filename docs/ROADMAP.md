@@ -58,7 +58,6 @@ classification target with an auditable completion criterion. It then moves to
 | direction | first concrete target |
 | --- | --- |
 | lexicode residuals | sharpen one of: asymptotic goodness of lexicodes; greedy reachability of a rootless rank-24 endpoint (the current constructor terminates at a root-full even unimodular lattice); the exact field-linearity boundary for nim-alphabet lexicodes |
-| misère realization | which finite commutative monoids occur as indistinguishability quotients; the bounded machinery in `games::misere` turns quotient censuses into conjecture material, with misère Grundy's game the canonical wild target |
 | ko thermography | a machine-checked thermograph for loopy games with kos, validated against the known generalized-thermography examples, then its tropical structure; the linking arena's one-step ko is the in-house test case |
 
 ## Deliberately deferred

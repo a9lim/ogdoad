@@ -88,7 +88,9 @@ The current open fronts are exactly:
 - quasi-linear multiplication in canonical finite-nimber coordinates;
 - game-valued Witt realization over `F_2(t)`;
 - stable quadratic-form invariants over the supertropical and Hessenberg
-  semirings.
+  semirings;
+- natural-ruleset realization of finite misère quotients, including the exact
+  quotient of misère Grundy's game.
 
 In particular, the Gold--Arf construction uses the proved
 matching-plus-isolates theorem and does not depend on general FIFO linking.
