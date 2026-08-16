@@ -755,25 +755,41 @@ The Lean module \texttt{Ogdoad.SemiringQuadratic} \cite{ogdoad2026} checks:
 \begin{enumerate}
 \item uniqueness and diagonal balance of companions over additively
 cancellative semirings;
-\item the no-half-of-one and no-nonzero-self-double properties of
-\(\operatorname{MvPolynomial}(\operatorname{Fin}d,\Nat)\), the polynomial
-model for \(\Hess_d\);
-\item that a symmetric balanced permutation Gram matrix is a
-fixed-point-free involution with zero quadratic basis labels; and
+\item that finite basis labels and Gram coefficients determine the entire
+quadratic pair;
+\item the no-half-of-one, no-nonzero-self-double, and trivial-unit properties
+of the polynomial model
+\[
+ \operatorname{MvPolynomial}(\operatorname{Fin}d,\Nat)
+\]
+for \(\Hess_d\);
+\item that every two-sided invertible square matrix over that polynomial
+semiring is a permutation matrix;
+\item the end-to-end polynomial proxy theorem
+\texttt{hessenbergPolynomial\_}\linebreak
+\texttt{regular\_isometric\_}\linebreak
+\texttt{hyperbolic}: bijectivity of the
+companion adjoint implies even rank and produces an explicit coefficient
+calculation together with an actual linear isometry of quadratic pairs to a
+canonical orthogonal sum of hyperbolic planes; and
 \item that an additive invariant into a cancellative monoid vanishes on any
 observation identified with its double; and
-\item that multiples of a generator killed by the hyperbolic relation
-\(2L=0\) depend only on parity, while a homomorphism to \(\Integers/2\)
-detecting \(L\) proves noncollapse.
+\item Mathlib's classical diagonalization under \(2\ne0\), together with an
+explicit additive equivalence between the exact cyclic/hyperbolic/parity
+presentation of the ring-image group and \(\Integers/2\).
 \end{enumerate}
-The kernel therefore checks the algebraic core of
-Theorem~\ref{thm:hesscollapse} and the cancellation step in the freezing
-obstruction, together with the universal group-theoretic step of
-Theorem~\ref{thm:ringcollapse}.  Classical diagonalization, the
-Cantor-normal-form identification, the unique-base theorem, finite graph
-decomposition, supertropical companion classification, and standard
-thermograph facts remain proved here or cited external mathematics, not Lean
-theorems.
+Thus the kernel now checks the regular hyperbolic classification over the
+concrete polynomial model from the same input notion of regularity used in the
+paper; it no longer assumes the permutation-Gram, matching, or
+coefficient-to-isometry joins.  The
+Cantor-normal-form identification with the actual ordinal fragment, the
+connected-graph stable quotient and Witt-group packaging, the construction of
+the concrete supertropical semiring and its two scalar-extension presentations,
+and standard thermograph facts remain proved here or cited external
+mathematics, not Lean theorems.  For Theorem~\ref{thm:ringcollapse}, Lean
+checks classical diagonalization and the exact final group equivalence, while
+the supertropical normalization and quotient-presentation fields are the
+explicit remaining bridge.
 
 Ogdoad's current \texttt{Ordinal} backend implements Conway nim arithmetic
 and ordinary noncommutative Cantor arithmetic.  It is not a Hessenberg
