@@ -91,6 +91,7 @@ import Ogdoad.GoldNoEvaluator
 import Ogdoad.GoldBlockCompression
 import Ogdoad.GoldForkPadding
 import Ogdoad.Excess
+import Ogdoad.NimFastMultiplication
 import Ogdoad.GameExterior
 import Ogdoad.BrownGame
 import Ogdoad.BrownSelectorPGame

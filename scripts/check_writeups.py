@@ -14,6 +14,7 @@ PAPERS = (
     "goldarf",
     "witt_realization",
     "excess",
+    "nim_fast_multiplication",
     "linking_affine",
     "thermo_newton",
     "transfinite_arf",

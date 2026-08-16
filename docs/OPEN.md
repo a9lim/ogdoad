@@ -1,8 +1,8 @@
 # Open mathematical problems
 
-Ogdoad has four live research problems. The first two are universal
-conjectures with exact reductions; the remaining two are constructive or
-classification programs with explicit completion criteria. This document
+Ogdoad has three live research problems. The first two are universal
+conjectures with exact reductions; the third is a classification program with
+an explicit completion criterion. This document
 states their current form, known starting point, and missing step. The linked
 papers carry the detailed arguments. Finite experiments and an implemented API
 are evidence or infrastructure, never substitutes for the stated theorem or
@@ -190,69 +190,7 @@ deciding the selected value.
 - The authoritative mathematical account is
   [`../writeups/excess.tex`](../writeups/excess.tex).
 
-## 3. Fast multiplication in canonical nim coordinates
-
-Put `n = 2^k` and
-
-```text
-K_k = {0, ..., 2^n - 1} = F_(2^n),
-```
-
-represented by the literal `n`-bit nimber word. If
-`c_i = 2^(2^i)`, these coordinates are the multivariate tower basis for
-
-```text
-c_i^2 + c_i = product_(j < i) c_j.
-```
-
-Thus finite nimbers are an explicit quadratic Artin--Schreier tower, not an
-arbitrary polynomial-basis presentation of the same abstract finite field.
-
-**Problem.** Construct a uniform family of exact multiplication algorithms
-
-```text
-mul_k : K_k x K_k -> K_k
-```
-
-whose inputs and output are canonical nim words and whose bit complexity is
-`M(n) log^O(1)(n)`, where `M(n)` is binary-polynomial multiplication cost.
-Auxiliary space and any level-dependent conversion data must also have
-`n log^O(1)(n)` size; preprocessing may be reported separately but may not hide
-a quadratic multiplication tensor or table.
-
-### Known starting point
-
-The standard direct tower recurrence takes `O(k 3^k)`, or
-`O(n^(log_2 3) log n)`, bit operations. The current `u128` backend instead
-distributes over the set bits and memoizes products of basis powers; it is an
-exact fixed-width implementation, not an asymptotic result.
-
-Quasi-linear arithmetic for arbitrary Artin--Schreier towers is already known:
-the substantive target is therefore not an existence conjecture about finite
-fields. It is an explicit specialization of the fast tower-isomorphism and
-basis-conversion machinery to the literal Conway generators above, with a
-proof that the returned bit string is the canonical nim product.
-
-### Completion criterion
-
-A completion consists of all four items.
-
-1. Give forward and inverse transforms between canonical nim coordinates and a
-   fast multiplication basis, uniformly in `k`.
-2. Prove the tower equations, transforms, multiplication, and stated time and
-   space bounds, including precomputation.
-3. Supply an arbitrary-width implementation with exhaustive agreement against
-   the mex/direct oracle on small fields and differential agreement against the
-   existing backend on its full supported word widths.
-4. Measure the crossover. Retaining the present `u128` path below it is
-   compatible with solving the problem; a faster fixed-width table alone is
-   not.
-
-The mathematical starting point is the fast arbitrary-tower construction of
-[De Feo--Schost](https://arxiv.org/abs/1002.2594). The implementation boundary
-is `src/scalar/finite_field/nimber/arithmetic.rs`.
-
-## 4. Natural realization of finite misère quotients
+## 3. Natural realization of finite misère quotients
 
 Let `A` be a set of finite impartial games closed under options and disjunctive
 sum, and write `o^-(G)` for the misère outcome. Define

@@ -20,9 +20,12 @@ Highest-value additions are the joins between already public subsystems:
 
 ## API and maintenance
 
-No unfinished API-maintenance work is currently tracked. New Python bindings
-must preserve per-backend type separation and update the generated stub in the
-same commit.
+| work | completion criterion |
+| --- | --- |
+| arbitrary-width nim multiplication | implement the proved affine transforms and primitive Artin--Schreier tower from `writeups/nim_fast_multiplication.tex`; exhaustively agree with the mex/direct oracle on small fields, differentially agree with the `u128` backend on every supported width, and measure the crossover while retaining the current path below it |
+
+New Python bindings must preserve per-backend type separation and update the
+generated stub in the same commit.
 
 ## Grundy language
 

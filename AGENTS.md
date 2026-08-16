@@ -85,7 +85,6 @@ The current open fronts are exactly:
 - arbitrary-graph isolated-dummy FIFO linking;
 - the universal `0/1/4` transfinite nim-excess rule, including its selected
   nim-reciprocity program;
-- quasi-linear multiplication in canonical finite-nimber coordinates;
 - natural-ruleset realization of finite misère quotients, including the exact
   quotient of misère Grundy's game.
 
@@ -94,6 +93,9 @@ matching-plus-isolates theorem and does not depend on general FIFO linking.
 The full `On_2` classification is a mathematical theorem after scalar
 extension; it does not make the finite `Nimber(u128)` backend algebraically
 closed or make the partial `Ordinal` backend construct every root.
+Quasi-linear multiplication in canonical finite-nimber coordinates has an
+explicit proved transform; its arbitrary-width implementation and crossover
+measurement are engineering work in `docs/ROADMAP.md`.
 
 ## Code conventions
 
