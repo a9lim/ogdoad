@@ -18,6 +18,7 @@ PAPERS = (
     "thermo_newton",
     "transfinite_arf",
     "semiring_stability",
+    "misere_natural_realization",
 )
 
 CITATION = re.compile(

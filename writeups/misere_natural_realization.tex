@@ -1,0 +1,739 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage[hidelinks]{hyperref}
+\urlstyle{same}
+\emergencystretch=2em
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem*{thmA}{Theorem A}
+\newtheorem*{thmB}{Theorem B}
+\newtheorem*{thmC}{Theorem C}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\N}{\mathbb N}
+\newcommand{\F}{\mathbb F}
+\newcommand{\Pow}{\operatorname{Pow}}
+\newcommand{\opts}{\operatorname{opts}}
+\newcommand{\cl}{\operatorname{cl}}
+\newcommand{\xor}{\mathbin{\mathsf{xor}}}
+
+\title{Natural Mis\`ere Quotients:\\
+Transition Traces, Tame Octal Realizations, and Grundy's Game}
+\author{GPT 5.6 Sol \and a9lim}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Siegel's valid-transition-table theorem characterizes finite mis\`ere
+quotients abstractly, but it does not decide which quotients arise from a
+uniform heap ruleset.  We isolate the missing homogeneity condition as an
+exact quotient-valued trace recurrence.  A least-rank separation argument
+shows that every valid transition table on a reduced bipartite monoid is
+functional over option-value sets.  Consequently every finite no-split
+octal code with finite quotient has an ultimately periodic pretending
+function, with an effective finite-state bound.  Ultimately periodic split
+traces also admit finite exact certificates, although periodicity is no
+longer automatic.
+
+We then give a uniform natural realization.  For every $n\ge2$, the finite
+subtraction code with $2^{n-1}$ consecutive digits equal to $3$ has exact
+mis\`ere quotient $\mathcal T_n$, the tame quotient of order $2^n+2$.  The
+proof supplies the quotient map for every heap and a direct winning strategy
+for every sum.  Thus the complete tame arm in Siegel's finite
+$|P|=2$ classification is naturally realized by finite codes.
+
+Finally we begin the exact analysis of mis\`ere Grundy's game.  Its quotient
+through heap $12$ is $\mathcal T_2$; heap $13$ causes the first extension,
+to a reduced quotient of order $12$, and heap $18$ extends this to a reduced
+quotient of order $24$.  These are symbolic all-multiplicity results, not
+bounded indistinguishability computations.  The full quotient and the
+uniform realization of the second $|P|=2$ family remain open.
+\end{abstract}
+
+\section{The natural realization problem}
+
+Let $A$ be a set of finite impartial games closed under options and
+disjunctive sum.  Under mis\`ere play the terminal game is an $N$-position.
+For $G,H\in A$, put
+\[
+ G\sim_A H
+ \quad\Longleftrightarrow\quad
+ o^-(G+X)=o^-(H+X)\quad\hbox{for every }X\in A.
+\]
+The quotient $Q(A)=A/{\sim_A}$ is a commutative monoid.  It comes with the
+distinguished subset $P$ of previous-player wins.  The pair $(Q,P)$ is
+\emph{reduced}: if $x\ne y$, then some $z$ has exactly one of $xz,yz$ in
+$P$.  Also $1\notin P$, because the terminal position is $N$.
+
+Plambeck and Siegel developed this quotient method and the generalized mex
+rule in \cite{plambecksiegel2008}; Siegel subsequently proved the abstract
+classification by valid transition tables in \cite{siegel2007}.  A
+transition pair is $(x,E)\in Q\times\Pow(Q)$, with product
+\begin{equation}
+ (x,E)(y,F)=(xy,yE\cup xF).
+\end{equation}
+A transition table $T$ on $(Q,P)$ is valid when it is complete, closed under
+the displayed product, parity-correct,
+\begin{equation}
+ (x,E)\in T
+ \quad\Longrightarrow\quad
+ x\in P\ \Longleftrightarrow\ E\ne\varnothing\text{ and }E\cap P=\varnothing,
+\end{equation}
+and well-founded: there is $R:Q\to\N$, with $R(1)=0$, such that every
+$x$ has some $(x,E)\in T$ satisfying $R(e)<R(x)$ for all $e\in E$.
+Siegel's theorem says that a reduced $(Q,P)$ with $1\notin P$ is an abstract
+finite mis\`ere quotient if and only if it admits such a table.
+
+The natural problem begins after that theorem.  A finite octal code is not
+an arbitrary finite list of games: each code digit acts on every later heap.
+The resulting translation-invariant tail is the additional structure that
+must be characterized.
+
+\section{Valid tables are deterministic}
+
+The first observation converts the natural problem from a nondeterministic
+labeling problem into a trace recurrence.
+
+\begin{theorem}[Option-set determinism]\label{thm:determinism}
+Let $T$ be a valid transition table on a reduced bipartite monoid $(Q,P)$.
+If
+\[
+ (x,E)\in T\quad\text{and}\quad(y,E)\in T,
+\]
+then $x=y$.
+\end{theorem}
+
+\begin{proof}
+Assume $x\ne y$.  Among all contexts separating $x$ and $y$, choose $z$
+with $R(z)$ least.  Take a descending pair $(z,F)\in T$.  Suppose, after
+interchanging $x,y$ if necessary, that $xz\in P$ and $yz\notin P$.
+Closure gives
+\[
+ (xz,zE\cup xF),\qquad (yz,zE\cup yF)\in T.
+\]
+Parity for $xz$ says that $zE\cup xF$ is nonempty and contains no element
+of $P$.  The second option set is nonempty as well: a witness coming from
+$zE$ is unchanged, while a witness $xf$ is replaced by $yf$.
+Since $yz\notin P$, parity therefore gives some $P$-element in
+$zE\cup yF$.  It cannot lie in $zE$, which is already contained in the
+$P$-free first option set.  Hence $yf\in P$ for some $f\in F$, while
+$xf\notin P$.  Thus $f$ also separates $x,y$, but $R(f)<R(z)$, a
+contradiction.
+\end{proof}
+
+Equivalently, every valid table defines a partial function
+\begin{equation}
+ \mu_T(E)=x\quad\Longleftrightarrow\quad (x,E)\in T.
+\end{equation}
+This strengthening of the option-image principle is purely algebraic: it
+does not assume that $T$ was first obtained from games.  The theorem and its
+least-rank proof are kernel-checked in the Lean module
+\texttt{Ogdoad.MisereTransition}.
+
+We also record the standard local obstruction in a form suited to heap
+traces.  Define the meximal set
+\[
+ M_x=\{y\in Q:\text{there is no }z\text{ with }xz,yz\in P\}.
+\]
+
+\begin{lemma}[Meximal obstruction]\label{lem:meximal}
+Every $(x,E)\in T$ satisfies $E\subseteq M_x$.
+\end{lemma}
+
+\begin{proof}
+If $e\in E$ and $xz,ez\in P$, choose any table pair $(z,F)$.  Closure puts
+$(xz,zE\cup xF)$ in $T$, and $ez\in zE$ is a $P$-valued option of the
+$P$-value $xz$, contradicting parity.
+\end{proof}
+
+In any nontrivial reduced quotient, $x\notin M_x$.  Thus a particularly
+cheap obstruction is $x\notin E$ for every transition pair $(x,E)$.
+
+\section{The exact octal trace}
+
+Write a finite octal code as three masks.  Removing $k$ counters may take a
+whole heap when $C_k$ holds, may leave one nonempty heap when $A_k$ holds,
+and may leave two nonempty heaps when $B_k$ holds.  These are respectively
+the $1,2,4$ bits of the $k$th octal digit.  Let $d$ be the last nonzero
+digit, put $x_0=1$, and seek $x_n=\Phi(H_n)$ for $n\ge1$.  The quotient
+image of the option set of a heap is exactly
+\begin{align}
+ E_n={}&\bigl(\{1\}\text{ if }C_n\bigr)
+ \cup\{x_{n-k}:A_k,\ k<n\}\\
+ &\cup\{x_i x_{n-k-i}:B_k,\ k\le n-2,\
+                 1\le i\le (n-k)/2\}.\nonumber
+\end{align}
+Equal parts are permitted in an octal split.
+
+\begin{theorem}[Exact trace criterion]\label{thm:trace}
+Fix a finite octal code $\Gamma$ and a finite reduced bipartite monoid
+$(Q,P)$.  Then $Q(\Gamma)\cong(Q,P)$ if and only if there are a valid table
+$T$ on $(Q,P)$ and a sequence $(x_n)_{n\ge0}$ such that
+\begin{enumerate}
+\item $x_0=1$;
+\item $(x_n,E_n)\in T$ for every $n\ge1$, with $E_n$ given by
+      the displayed octal-trace formula;
+\item the elements $x_n$ generate $Q$.
+\end{enumerate}
+For fixed $T$ and $\Gamma$, the sequence is unique whenever it exists.
+\end{theorem}
+
+\begin{proof}
+Necessity follows by taking the actual transition algebra and the quotient
+images of the heaps.  Conversely define $\Phi$ multiplicatively on heap
+multisets.  The transition pair of any position is the product of its heap
+pairs.  Closure of $T$ therefore puts
+$(\Phi(G),\Phi''G)$ in $T$ for every position $G$.  Induction on total
+counter count, using parity, gives
+\[
+ o^-(G)=P\quad\Longleftrightarrow\quad\Phi(G)\in P.
+\]
+Generation makes $\Phi$ onto.  Equal images are indistinguishable by the
+displayed equivalence; distinct images are distinguished by a context in
+$Q$, and surjectivity realizes that context by a position.  Thus the fibers
+are exactly the indistinguishability classes.  Uniqueness is
+Theorem~\ref{thm:determinism} applied recursively.
+\end{proof}
+
+This theorem identifies the general unresolved core precisely: a finite
+alphabet quadratic-convolution recurrence must remain defined forever.  It
+also separates exact certificates from bounded signatures.
+
+\section{No-split codes are finite-state}
+
+Suppose every digit lies in $\{0,1,2,3\}$, so $B_k$ is always false.  For
+$n>d$, whole-heap removal is also inactive, and
+\begin{equation}
+ E_n=\{x_{n-k}:A_k,\ 1\le k\le d\}.
+\end{equation}
+
+\begin{thmA}[Automatic periodicity]
+Let $\Gamma$ be a finite no-split octal code with last nonzero digit $d$.
+If $Q(\Gamma)$ is finite, then its single-heap quotient word
+$x_n=\Phi(H_n)$ is ultimately periodic.  A repeated state occurs among at
+most $|Q|^d+1$ consecutive $d$-windows after the exceptional prefix.
+\end{thmA}
+
+\begin{proof}
+The ordered window
+\[
+ W_n=(x_{n-d},\ldots,x_{n-1})\in Q^d
+\]
+determines $E_n$ by the preceding formula.  By
+Theorem~\ref{thm:determinism}, $E_n$ determines $x_n$.  Thus $W_n$
+determines $W_{n+1}$.  The deterministic map acts on at most $|Q|^d$
+states, so one state repeats and the entire subsequent orbit is periodic.
+\end{proof}
+
+\begin{corollary}\label{cor:decidable}
+For a fixed finite no-split code and a fixed finite reduced $(Q,P)$, exact
+realization is decidable.  The same is true when the code length is bounded
+in advance.
+\end{corollary}
+
+Indeed there are finitely many transition tables on $Q$; validity is a
+finite condition, and each induced trace either fails or enters a cycle.
+Generation and parity can then be checked on finite data.  The existential
+problem over codes of unbounded length is not settled by this argument.
+
+Splitting is the exact place where finite memory fails.  The new term
+\[
+ S_m=\{x_i x_j:i,j\ge1,\ i+j=m\}
+\]
+depends on an unbounded convolution of the prefix.  Nevertheless an already
+periodic trace remains finitely certifiable.
+
+\begin{proposition}[Periodic convolution]\label{prop:convolution}
+Assume $x_{n+p}=x_n$ for all $n\ge N$, where $N,p\ge1$.  Then
+\[
+ S_{m+p}=S_m\qquad(m\ge2N+p).
+\]
+Consequently the records $(x_n,E_n)$ of a length-$d$ octal code are
+periodic for all $n\ge2N+p+d$.
+\end{proposition}
+
+\begin{proof}
+For a pair $i+j=m+p$, one of $i,j$ is at least $N+p$; subtract $p$ from
+that component and use periodicity.  Conversely, for $i+j=m$, one component
+is at least $N$; add $p$ to it.  Commutativity permits reordering.  The
+one-remainder terms are easier, and whole-heap bits are inactive past $d$.
+\end{proof}
+
+Thus a proposed preperiod, period, valid table, finite trace through the
+convolution window, and generation check form an exact infinite-rule
+certificate.  This is a transition-table form of the periodicity argument
+in \cite{siegel2006notes,plambecksiegel2008}.
+
+\section{A natural realization of every tame quotient}
+
+For $n\ge2$, let
+\[
+ m=2^{n-1},\qquad L=m+1,
+\]
+and let $\Gamma_n$ be the finite octal code
+\[
+ \Gamma_n=0.\underbrace{33\cdots3}_{m\text{ digits}}.
+\]
+A move subtracts any number in $\{1,\ldots,m\}$ from one heap, deleting it
+if the remainder is zero and otherwise leaving the one remainder heap.
+There are no splits.
+
+Define
+\[
+ Q_n=\{1,a\}\sqcup\{z_v:v\in\F_2^n\},\qquad
+ P_n=\{a,z_0\}.
+\]
+Identify $v\in\F_2^n$ with an integer in $[0,2^n)$ and write vector addition
+as XOR.  Multiplication is
+\begin{equation}
+ a^2=1,\qquad z_u z_v=z_{u\xor v},\qquad
+ a z_v=z_{v\xor1}.
+\end{equation}
+This is Siegel's tame quotient $\mathcal T_n$: its kernel is
+$\{z_v\}\cong(\mathbb Z/2)^n$, and $|Q_n|=2^n+2$
+\cite{plambecksiegel2008,siegel2006notes}.
+
+\begin{thmB}[Tame-family realization]\label{thm:tame}
+For every $n\ge2$, the exact mis\`ere quotient of $\Gamma_n$ is
+$\mathcal T_n$.
+\end{thmB}
+
+\begin{proof}
+For a heap $H_h$, let $r(h)$ be the residue of $h$ modulo $L$ and define
+\begin{equation}
+ \Phi(H_h)=
+ \begin{cases}
+  1,&r(h)=0,\\
+  a,&r(h)=1,\\
+  z_{r(h)},&2\le r(h)\le m.
+ \end{cases}
+\end{equation}
+Extend $\Phi$ multiplicatively.
+
+We first prove the outcome criterion directly.  Discard residue-zero heaps.
+Let $t\in\F_2$ be the parity of the number of residue-one heaps, and let
+$R$ be the multiset of residues in $\{2,\ldots,m\}$.  From
+the displayed multiplication laws,
+\begin{equation}
+ \Phi(X)\in P_n\quad\Longleftrightarrow\quad
+ \begin{cases}
+  t=1,&R=\varnothing,\\
+  t\xor\displaystyle\bigoplus_{r\in R}r=0,&R\ne\varnothing.
+ \end{cases}
+\end{equation}
+
+Induct on total counter count.  A legal move changes one residue $r$ to a
+different residue $s$.  If $R=\varnothing$ and $t=1$, changing a residue
+$0$ or $1$ either flips the parity or creates a nonzero XOR, so every option
+fails this criterion.  If $R\ne\varnothing$ and the displayed
+XOR is zero, there must be at least two residues at least $2$: one such
+residue cannot cancel either $0$ or $1$.  A move changes the XOR by
+$r\xor s\ne0$, and at least one large residue remains.  Hence every option
+of a predicted $P$-position is predicted $N$.
+
+Conversely suppose the position is predicted $N$.  If $R=\varnothing$ and
+$t=0$, move a residue-one heap to residue zero when one exists.  Otherwise
+the nonempty position has a positive residue-zero heap; subtracting $m$
+moves it to residue one.  Either move makes $t=1$.
+
+Now suppose at least two residues at least $2$ occur, and write
+\[
+ w=t\xor\bigoplus_{r\in R}r\ne0.
+\]
+Choose a component residue $r$ whose binary expansion contains the highest
+set bit of $w$ and put $s=r\xor w$.  Such a component exists among the
+residues contributing to the XOR: it may be a residue-one component when
+the highest bit is the low bit, and otherwise it lies in $R$.  Then $s<r$,
+so subtracting
+$r-s\le m$ is legal, the new XOR is zero, and at least one large residue
+remains.  Finally, if exactly one large residue $r$ occurs, move it to
+residue $1-t<r$.  No large residue remains and the new residue-one parity is
+odd.  This proves the displayed criterion is the actual mis\`ere outcome
+for every position.
+
+The map is onto.  The heap residues provide $a$ and
+$z_2,z_4,\ldots,z_m$; also $z_2^2=z_0$ and $az_0=z_1$.  These are a binary
+basis for every $z_v$.  Finally $(Q_n,P_n)$ is reduced.  Distinct
+$z_u,z_v$ are separated by $z_u$.  The elements $1,a$ are separated by
+$1$; the context $a$ separates $1$ from $z_v$ unless $v=1$, when $z_1$
+does; and the context $1$ separates $a$ from $z_v$ unless $v=0$, when
+$z_0$ does.  Outcome correctness, surjectivity, and reduction identify the
+fibers of $\Phi$ with exact indistinguishability classes.
+\end{proof}
+
+For $n=2$, the construction is $0.33$ and gives the six-element quotient
+$\mathcal T_2$.  The theorem realizes the entire tame arm in Siegel's
+classification of finite quotients with $|P|=2$; the other arm consists of
+the tame extensions of the eight-element wild quotient $\mathcal R_8$
+\cite{siegel2007}.  The base $\mathcal R_8$ itself is realized by $0.75$
+\cite{plambecksiegel2008}, but a uniform finite-code realization of all its
+tame extensions is not supplied here.
+
+\section{Exact initial quotients of mis\`ere Grundy's game}
+
+In Grundy's game a heap may be split into two unequal positive heaps:
+\[
+ \opts(H_n)=\{H_i+H_{n-i}:1\le i<n-i\}.
+\]
+The rule preserves total counters but decreases the well-founded quantity
+$\sum_h\max(h-2,0)$.  Its mis\`ere form is a longstanding difficult example;
+the early analysis goes back to Grundy and Smith \cite{grundysmith1956} and
+is discussed in \cite{berlekampconwayguy2001}.
+
+We first give an exact transition certificate through heap $12$.  Write
+\[
+ \mathcal T_2=\langle a,b\mid a^2=1,\ b^3=b\rangle,
+ \qquad P=\{a,b^2\}.
+\]
+The heap values are
+\[
+ x_1=x_2=1,\qquad
+ x_n=
+ \begin{cases}
+ a,&n\equiv0\pmod3,\\
+ 1,&n\equiv1\pmod3,\\
+ b,&n\equiv2\pmod3
+ \end{cases}
+ \quad(3\le n\le12).
+\]
+Their distinct transition records are
+\begin{align*}
+ &(1,\varnothing),\ (a,\{1\}),\ (1,\{a\}),\
+ (b,\{1,a\}),\\
+ &(a,\{1,b\}),\ (1,\{a,b\}),\
+ (b,\{1,a,ab\}).
+\end{align*}
+Closing these records under the transition product gives the following
+$24$ pairs; each row lists the option sets paired with its left-hand value.
+\begin{center}
+\small
+\begin{tabular}{c@{\quad}l}
+\toprule
+$1$ & $\varnothing$; $\{a\}$; $\{a,b\}$; $\{a,ab\}$;
+       $\{a,b,ab\}$\\
+$b$ & $\{1,a\}$; $\{b^2,ab^2\}$; $\{1,a,ab\}$;
+       $\{b^2,ab,ab^2\}$; $\{1,b^2,a,ab\}$;
+       $\{1,a,ab,ab^2\}$; $\{1,b^2,a,ab,ab^2\}$\\
+$b^2$ & $\{b,ab\}$; $\{b,ab,ab^2\}$\\
+$a$ & $\{1\}$; $\{1,b\}$; $\{1,ab\}$; $\{1,b,ab\}$\\
+$ab$ & $\{1,b,a\}$; $\{b,b^2,ab^2\}$;
+       $\{1,b,b^2,a\}$; $\{1,b,a,ab^2\}$;
+       $\{1,b,b^2,a,ab^2\}$\\
+$ab^2$ & $\{b,b^2,ab\}$\\
+\bottomrule
+\end{tabular}
+\end{center}
+The table is closed and every pair obeys parity; $a,b$ occur as heap values
+and $\mathcal T_2$ is reduced.  The trace criterion therefore proves:
+
+\begin{proposition}\label{prop:grundy12}
+The exact mis\`ere quotient generated by $H_1,\ldots,H_{12}$ is
+$\mathcal T_2$.
+\end{proposition}
+
+Before extending this quotient, we isolate a substitution point that is
+easy to miss.  Write $G\equiv_-H$ when $G$ and $H$ have the same mis\`ere
+outcome after addition of every finite impartial game, not merely every
+game in the present heap universe.
+
+\begin{lemma}[Global substitution]\label{lem:global-substitution}
+Let $U$ be the additive closure of games $G_i$, and suppose that each $G_i$
+is globally equivalent to a representative $R_i$ lying in an additively
+closed subuniverse $V\subseteq U$.  Then inclusion induces an isomorphism
+$Q(V)\cong Q(U)$.
+\end{lemma}
+
+\begin{proof}
+Global equivalence is an additive congruence, so every $X\in U$ is globally
+equivalent to the sum $r(X)\in V$ obtained by replacing its components.
+If $A,B\in V$ agree against all $V$-contexts, then for every $X\in U$,
+\[
+ o^-(A+X)=o^-(A+r(X))=o^-(B+r(X))=o^-(B+X).
+\]
+The converse follows because $V\subseteq U$, and every $U$-class has a
+representative in $V$.
+\end{proof}
+
+The Grundy--Smith canonical reduction rules are global reductions.  Applied
+to the explicit option lists on heaps through $12$, they give
+\[
+ \begin{array}{c|l}
+ 0&H_1,H_2,H_4,H_7,H_{10}\\
+ a=*1&H_3,H_6,H_9,H_{12}\\
+ b=*2&H_5,H_8,H_{11}.
+ \end{array}
+\]
+These are the reductions displayed in \cite[pp.~419--421]{berlekampconwayguy2001}.
+Consequently adjoining $H_{13}$ cannot secretly refine one of these earlier
+identifications: they remain valid against the new context $H_{13}$ and
+all of its sums.
+
+Heap $13$ has option-value set $\{a,b,b^2\}$.  The alleged continuation
+$x_{13}=1$ is impossible: multiplying its transition by two copies of the
+$H_5$ transition produces
+\[
+ (b^2,\{b,b^2,ab,ab^2\}),
+\]
+which violates parity because both the value and one option lie in $P$.
+Concretely $H_4+2H_5$ is $P$, while $H_{13}+2H_5$ has the $P$-option
+$H_8+3H_5$ and is $N$.
+
+The extension can still be solved symbolically.  Let $c$ denote the new
+heap value, with transition $c\to\{a,b,b^2\}$.  For raw monomials
+$a^e b^j c^k$, direct induction on $(k,j,e)$ gives the following complete
+outcome law:
+\begin{equation}
+ a^e b^j c^k\in P
+ \Longleftrightarrow
+ \begin{cases}
+ k\text{ even},\ e\text{ even},\ j>0\text{ even};\quad\text{or}\\
+ k\text{ even},\ e\text{ odd},\ j=0;\quad\text{or}\\
+ k\text{ odd},\ e\text{ odd},\ j=0\text{ or }j\ge3\text{ odd}.
+ \end{cases}
+\end{equation}
+For completeness, the induction uses only
+\[
+ a\to1,\qquad b\to\{1,a\},\qquad c\to\{a,b,b^2\}.
+\]
+Here is the complete case induction.  Put $\epsilon=e\bmod2$.  For a listed
+$P$-state with $k$ even, either $(\epsilon,j)=(0,\text{positive even})$
+or $(1,0)$; the $a,b,c$ moves land respectively in the complementary
+parity classes, and the three $c$ replacements land at
+$(1,j),(0,j+1),(0,j+2)$ with $k$ odd.  None is listed.  For a listed state
+with $k$ odd, $\epsilon=1$ and $j=0$ or odd at least $3$; the $a$ move
+sets $\epsilon=0$, the $b$ moves make $j$ even, and the $c$ moves land at
+$(0,j),(1,j+1),(1,j+2)$ with $k$ even.  Again none is listed.
+
+Conversely, every unlisted nonterminal state has the following listed
+option.  When $k$ is even:
+\begin{center}
+\small
+\begin{tabular}{ccl}
+\toprule
+$\epsilon$ & $j$ & move to a $P$-state\\
+\midrule
+$0$ & $0$ & $c\to a$ (unless $k=0$, when the position is terminal)\\
+$0$ & $1$ & $b\to a$\\
+$0$ & odd $\ge3$ & $b\to1$\\
+$1$ & positive even & $a\to1$\\
+$1$ & $1$ & $b\to1$\\
+$1$ & odd $\ge3$ & $b\to a$\\
+\bottomrule
+\end{tabular}
+\end{center}
+When $k$ is odd, the witnesses are
+\begin{center}
+\small
+\begin{tabular}{ccl@{\qquad}ccl}
+\toprule
+$\epsilon$&$j$&move&$\epsilon$&$j$&move\\
+\midrule
+$0$&$0$&$c\to a$&$0$&positive even&$c\to b^2$\\
+$0$&odd&$c\to b$&$1$&$1$&$b\to1$\\
+$1$&$2$&$c\to a$&$1$&even $\ge4$&$b\to1$\\
+\bottomrule
+\end{tabular}
+\end{center}
+The omitted odd-$k$ cases are exactly the listed $P$ cases.  This proves the
+mis\`ere recursion for all multiplicities; no exponent cutoff is used.
+
+The outcome law also proves the presentation rather than merely suggesting
+it.  It first factors raw monomials through the sixteen forms
+$a^\epsilon b^j c^\eta$, with $\epsilon,\eta\in\{0,1\}$ and
+$j\in\{0,1,2,3\}$, using
+$a^2=c^2=1$ and $b^4=b^2$.  It is invariant under
+$b^2\sim ab^3c$.  The congruence generated by this relation pairs the eight
+forms in the $b^2$-ideal into four two-element orbits and leaves the eight
+forms with $j=0,1$ fixed.  Thus it has exactly twelve candidate classes.
+The resulting quotient has presentation
+\begin{equation}
+ Q_{13}=\langle a,b,c\mid a^2=c^2=1,\ b^4=b^2,\
+                 b^2=ab^3c\rangle,
+ \qquad P_{13}=\{a,ac,b^2\}.
+\end{equation}
+It has the twelve normal forms
+\[
+ 1,c,b,bc,b^2,b^2c,b^3,b^3c,a,ac,ab,abc.
+\]
+Reduction is visible from their distinct $P$-translation rows:
+\begin{center}
+\small
+\begin{tabular}{c@{\;}l@{\qquad}c@{\;}l}
+\toprule
+$1$&$\{b^2,a,ac\}$&$c$&$\{b^2c,a,ac\}$\\
+$b$&$\{b,b^3\}$&$bc$&$\{bc,b^3c\}$\\
+$b^2$&$\{1,b^2,abc\}$&$b^2c$&$\{c,b^2c,ab\}$\\
+$b^3$&$\{b,b^3,ac\}$&$b^3c$&$\{bc,b^3c,a\}$\\
+$a$&$\{1,c,b^3c\}$&$ac$&$\{1,c,b^3\}$\\
+$ab$&$\{b^2c,ab\}$&$abc$&$\{b^2,abc\}$\\
+\bottomrule
+\end{tabular}
+\end{center}
+Here the row at $x$ is $\{z:xz\in P_{13}\}$.  All rows differ, so the
+bipartite monoid is reduced.  Thus the all-multiplicity outcome law proves:
+
+\begin{proposition}\label{prop:grundy13}
+The exact mis\`ere quotient generated by $H_1,\ldots,H_{13}$ is the
+twelve-element reduced bipartite monoid in the preceding presentation.
+\end{proposition}
+
+The next heaps have values
+\[
+ x_{14}=b,\quad x_{15}=a,\quad x_{16}=c,\quad x_{17}=b.
+\]
+Here these assertions are again global, not guesses made inside $Q_{13}$.
+With $0$ denoting the terminal game, the split rule gives
+\begin{align*}
+ \opts(H_{14})&=\{c,ab,a,0\},&
+ \opts(H_{15})&=\{c,b,0\},\\
+ \opts(H_{16})&=\{ac,b^2,b,a\},&
+ \opts(H_{17})&=\{c,ab,a,0\}.
+\end{align*}
+The reversible-option reductions of Grundy and Smith give respectively
+$H_{14}\equiv_-b$, $H_{15}\equiv_-a$, $H_{16}\equiv_-c$, and
+$H_{17}\equiv_-b$; these are also the four reductions printed in
+\cite[p.~421]{berlekampconwayguy2001}.  Heap $18$ has exact option set
+$\{0,b,c,bc\}$ and creates a generator $d=H_{18}$.  By
+Lemma~\ref{lem:global-substitution}, every position generated by
+$H_1,\ldots,H_{18}$ is globally equivalent to a count state
+$a^e b^j c^k d^r$, and every such count state occurs in that universe.
+
+The all-multiplicity recursion extends once more:
+\begin{equation}
+ \begin{aligned}
+ a^e b^j c^k d^r\in P
+ \quad\Longleftrightarrow\quad
+ &\bigl(r\text{ even and }a^e b^j c^k\text{ satisfies the}\bigr.\\
+ &\qquad\bigl.\text{preceding three-generator law}\bigr)\\
+ &\text{or }\bigl(r\text{ odd},\ e\text{ even},\ j=0\bigr).
+ \end{aligned}
+\end{equation}
+To check the recursion, use $d\to\{1,b,c,bc\}$.  If $r$ is even and the
+three-generator state is $P$, the preceding proof handles the $a,b,c$
+moves, while every $d$ move has odd $r$ and either odd $e$ or positive
+$j$.  If the three-generator state is $N$, use its displayed winning move.
+The only case with no $a,b,c$ component is terminal when $r=0$; for positive
+even $r$, the move $d\to1$ reaches the odd-$r$ clause.
+
+If $r$ is odd, a state in the displayed $P$ clause has even $e$ and $j=0$.
+An $a$ move makes $e$ odd, a $c$ move makes either $e$ odd or $j$ positive,
+and a $d$ move lands, at even $r$, in one of
+\[
+ (\epsilon,j,k)=(0,0,k),(0,1,k),(0,0,k+1),(0,1,k+1),
+\]
+all of which fail the three-generator criterion.  Conversely an odd-$r$
+$N$-state has a $P$ move in the following exhaustive cases:
+\begin{center}
+\small
+\begin{tabular}{ccl@{\qquad}ccl}
+\toprule
+$\epsilon$&$j$&move&$\epsilon$&$j$&move\\
+\midrule
+$1$&$0$&$a\to1$&$0$&$1$&$b\to1$\\
+$0$&even $\ge2$&$d\to1$ if $k$ even; $d\to c$ if $k$ odd
+ &$0$&odd $\ge3$&$d\to b$ if $k$ even; $d\to bc$ if $k$ odd\\
+$1$&$1$&$b\to a$
+ &$1$&even $\ge2$&$d\to bc$ if $k$ even; $d\to b$ if $k$ odd\\
+$1$&odd $\ge3$&$d\to c$ if $k$ even; $d\to1$ if $k$ odd&&&\\
+\bottomrule
+\end{tabular}
+\end{center}
+Each target is one of the three even-$r$ cases already proved.  This
+establishes the outcome formula for all $(e,j,k,r)\in\N^4$.
+
+As before, the formula itself identifies the finite presentation.  Before
+the last relation there are $32$ forms
+$a^\epsilon b^j c^\eta d^\rho$, with
+$\epsilon,\eta,\rho\in\{0,1\}$ and $0\le j\le3$, subject to
+$a^2=c^2=d^2=1$ and $b^4=b^2$.  The relation
+$b^2=ab^3c$ acts freely in the sixteen-element $b^2$-ideal, producing eight
+pairs, and leaves the sixteen forms with $j=0,1$ fixed.  Hence exactly
+$24$ candidate forms remain, and the outcome law descends to them.  The
+quotient is
+\begin{equation}
+ Q_{18}=Q_{13}\times\langle d\mid d^2=1\rangle,
+ \qquad P_{18}=\{a,ac,b^2,d,cd\}.
+\end{equation}
+Its $24$ normal forms are the twelve above and their products by $d$.
+For an explicit reduction certificate, let $R$ be the ordered set of twelve
+base forms, put $P_0=\{a,ac,b^2\}$ and $P_1=\{1,c\}$, and define
+\[
+ A_q=\{z\in R:qz\in P_0\},\qquad
+ B_q=\{z\in R:qz\in P_1\}.
+\]
+The first coordinate $A_q$ is the $Q_{13}$ row already displayed.  The
+second coordinates are
+\begin{center}
+\small
+\begin{tabular}{c@{\;}c@{\qquad}c@{\;}c@{\qquad}c@{\;}c}
+\toprule
+$q$&$B_q$&$q$&$B_q$&$q$&$B_q$\\
+\midrule
+$1$&$\{1,c\}$&$c$&$\{1,c\}$&$b$&$\varnothing$\\
+$bc$&$\varnothing$&$b^2$&$\varnothing$&$b^2c$&$\varnothing$\\
+$b^3$&$\varnothing$&$b^3c$&$\varnothing$&$a$&$\{a,ac\}$\\
+$ac$&$\{a,ac\}$&$ab$&$\varnothing$&$abc$&$\varnothing$\\
+\bottomrule
+\end{tabular}
+\end{center}
+The translation row of $q$ in $Q_{18}$ is $(A_q,B_q)$, while that of $qd$
+is $(B_q,A_q)$.  The twelve displayed pairs and their twelve swaps are all
+distinct, so every two normal forms have a separating context.  Hence:
+
+\begin{thmC}[Exact Grundy prefix]\label{thm:grundy18}
+The exact mis\`ere quotient generated by $H_1,\ldots,H_{18}$ is the
+$24$-element reduced bipartite monoid in the preceding presentation.
+\end{thmC}
+
+The statements concern entire submonoids generated by the indicated heaps;
+no multiplicity bound is present.  They do not decide whether the full
+Grundy quotient is finite.  They do show that the apparent period-three
+tame pattern fails for an exact, explicit reason at heap $13$, and they give
+the first two symbolic extension layers for a future infinite-family or
+stabilization argument.
+
+Only the individual-heap reductions displayed above are global.  The
+relations $c^2=d^2=1$, $b^4=b^2$, and $b^2=ab^3c$ are conclusions inside
+the localized quotient $Q_{18}$; they are not asserted as identities in the
+global semigroup of all mis\`ere impartial games.  (The relation $a^2=1$
+is global.)
+
+\section{Remaining boundary}
+
+The results divide the original problem into sharper pieces.
+\begin{enumerate}
+\item Every tame finite quotient $\mathcal T_n$ has a uniform finite-code
+      realization.  For the $|P|=2$ classification, the natural realization
+      question remains for the family obtained by tame extension of
+      $\mathcal R_8$.
+\item For no-split codes, finite quotient implies automatic periodicity and
+      exact verification is finite-state.  With splitting, the unresolved
+      object is the totality and synthesis of the finite-alphabet convolution
+      trace displayed in Section~3.
+\item For Grundy's game, $Q_{13}$ and $Q_{18}$ are exact.  A solution of the
+      full problem must either continue these presentations uniformly and
+      prove stabilization, or produce an infinite family of distinct
+      translation rows with explicit separating contexts.
+\end{enumerate}
+
+The Lean development currently checks the load-bearing transition
+determinism theorem, the meximal obstruction, and the periodic split-
+convolution lemma.  The tame-family strategy and the Grundy prefix
+presentations are proved in this note at paper level; their finite monoid
+models and exponent recursions are the next natural formalization targets.
+
+\bibliographystyle{plain}
+\bibliography{misere_natural_realization}
+
+\end{document}

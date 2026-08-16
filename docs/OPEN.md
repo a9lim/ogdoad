@@ -303,6 +303,30 @@ give a finite presentation, its `P`-portion, and a proved quotient map for all
 heap sizes. If it is infinite, exhibit an infinite family of pairwise
 distinguishable positions together with contexts that separate them.
 
+The current exact reduction is in
+[`../writeups/misere_natural_realization.tex`](../writeups/misere_natural_realization.tex).
+In a reduced valid transition table, the option-value set determines its
+value: a least-rank separating context would otherwise descend to a smaller
+separating option. Thus a fixed octal code and table determine one exact heap
+trace. The trace criterion is an if-and-only-if statement: all exact heap
+records must lie in the table and their values must generate the target
+monoid. For codes without split bits, a finite quotient forces this trace to
+be ultimately periodic, since its next value is a deterministic function of
+the last `d` values. Hence exact realization by a fixed finite no-split code
+is decidable. Splitting introduces the unbounded convolution
+`{x_i x_j : i + j = n}`; an already periodic trace still has a finite exact
+certificate, but automatic periodicity is not proved in that case.
+
+There is also a uniform positive family: for every `n >= 2`, the finite code
+with `2^(n-1)` consecutive digits equal to `3` has exact quotient `T_n`, the
+tame quotient of order `2^n + 2`. This realizes the entire tame arm of the
+finite `|P| = 2` classification. The parallel Grundy analysis is exact through
+heap 18: the quotient through heap 13 is a reduced monoid of order 12, and the
+quotient through heap 18 is a reduced monoid of order 24, with presentations,
+all-multiplicity outcome inductions, and separating translation rows in the
+note. These prefix theorems neither prove stabilization nor supply an infinite
+distinguishable family.
+
 ### Milestones and completion
 
 1. Implement the valid-transition-table or minimex criterion as an exact
@@ -330,6 +354,9 @@ infinite.
 The starting theory is the [Plambeck--Siegel quotient
 construction](https://arxiv.org/abs/math/0609825) and Siegel's
 [valid-transition-table classification](https://arxiv.org/abs/math/0703070).
+The algebraic determinism, meximal obstruction, and periodic split-convolution
+lemmas are checked in `formal/Ogdoad/MisereTransition.lean`; the tame-family
+strategy and exact Grundy-prefix presentations are presently paper proofs.
 The current `src/games/misere.rs` routines compare only bounded element and
 test sets, so their signatures and multiplication flags are observational
 evidence, not exact quotient certificates. The `misere_quotient` and

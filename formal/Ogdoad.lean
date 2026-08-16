@@ -104,3 +104,4 @@ import Ogdoad.WittRamifiedRestriction
 import Ogdoad.WittTransfer
 import Ogdoad.WittSingularBoundary
 import Ogdoad.SemiringQuadratic
+import Ogdoad.MisereTransition
