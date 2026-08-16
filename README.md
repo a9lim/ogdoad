@@ -123,6 +123,7 @@ The papers under `writeups/` form one current research suite:
 | `goldarf.tex` | quadratic-refinement realization in normal play, Gold specialization, Brown selector, and game-exterior obstruction |
 | `witt_realization.tex` | quadratic Witt coordinates over `F_2(t)`, finite impartial realization, explicit ramified naturality, and finite-static and singular no-go theorems |
 | `thermo_newton.tex` | thermic regrading under Norton multiplication and its separation from Newton tropicalization |
+| `semiring_stability.tex` | stable quadratic-pair classification over Hessenberg and supertropical semirings, the universal scalar-extension quotient, and the thermograph wall obstruction |
 | `linking_affine.tex` | proved reductions and exact remaining obstruction for isolated-dummy FIFO linking |
 | `excess.tex` | four-arm reduction and exact remaining selected-order problem for transfinite nim excess |
 

@@ -176,4 +176,36 @@ theorem additiveInvariant_eq_zero_of_eq_double
 
 end CancellativeTargetBoundary
 
+section ParityCollapse
+
+variable {G : Type*} [AddCommGroup G]
+
+/-- Once diagonalization has reduced every scalar-extension class to a natural
+multiple of one loop and the hyperbolic plane has imposed `2 • loop = 0`, the
+multiple depends only on rank parity.  The paper supplies the classical
+diagonalization and identifies the loop for the two supertropical companion
+lifts; this theorem checks the universal group-theoretic collapse. -/
+theorem twoTorsion_nsmul_eq_parity (loop : G) (htwo : 2 • loop = 0)
+    (n : Nat) : n • loop = (n % 2) • loop := by
+  induction n using Nat.strong_induction_on with
+  | h n ih =>
+      rcases n with _ | _ | n
+      · simp
+      · simp
+      · calc
+          (n + 2) • loop = n • loop + 2 • loop := by rw [add_nsmul]
+          _ = n • loop := by rw [htwo, add_zero]
+          _ = (n % 2) • loop := ih n (by omega)
+          _ = ((n + 2) % 2) • loop := by congr 1; omega
+
+/-- A parity detector proves that the two-torsion loop surviving the
+hyperbolic relation is nonzero. -/
+theorem loop_ne_zero_of_parityDetector (loop : G)
+    (parity : G →+ ZMod 2) (hloop : parity loop = 1) : loop ≠ 0 := by
+  intro hzero
+  rw [hzero, map_zero] at hloop
+  exact zero_ne_one hloop
+
+end ParityCollapse
+
 end Ogdoad.SemiringQuadratic

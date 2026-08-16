@@ -1,7 +1,7 @@
 # Open mathematical problems
 
-Ogdoad has five live research problems. The first two are universal
-conjectures with exact reductions; the remaining three are constructive or
+Ogdoad has four live research problems. The first two are universal
+conjectures with exact reductions; the remaining two are constructive or
 classification programs with explicit completion criteria. This document
 states their current form, known starting point, and missing step. The linked
 papers carry the detailed arguments. Finite experiments and an implemented API
@@ -252,95 +252,7 @@ The mathematical starting point is the fast arbitrary-tower construction of
 [De Feo--Schost](https://arxiv.org/abs/1002.2594). The implementation boundary
 is `src/scalar/finite_field/nimber/arithmetic.rs`.
 
-## 4. Stable quadratic forms over semirings
-
-For a commutative semiring `R`, a quadratic pair on a free `R`-module is a map
-`q` and a symmetric bilinear companion `b` satisfying
-
-```text
-q(a x) = a^2 q(x),
-q(x + y) = q(x) + q(y) + b(x, y).
-```
-
-Without additive inverses, `b` need not be determined by `q`; hyperbolicity,
-orthogonal complements, and group completion also stop being automatic. The
-basic companion, rigidity, isometry, scalar-extension, and unique-basis
-cancellation theories are already available in the semiring literature, so
-reproving their definitions is not the research target.
-
-Consider two coefficient worlds:
-
-- a tangible supertropical enhancement of Ogdoad's max/min-plus semirings,
-  retaining the ghost layer needed by supertropical quadratic-form theory; and
-- the Hessenberg semiring of ordinals under natural sum and natural product,
-  represented first on a closed finite-CNF fragment.
-
-The common stable structure and the Hessenberg arm are now settled in
-[`../writeups/semiring_stability.tex`](../writeups/semiring_stability.tex).
-Over an entire unique-base semiring, a finite free quadratic pair is an
-admissible vertex/edge-weighted graph modulo permutation and unit gauge.
-Orthogonal sum is disjoint union, so the isometry monoid is free commutative
-on connected graph types.  Regular pairs have only rank-one loop and rank-two
-edge blocks; basic metabolic stabilization deletes exactly the metabolic edge
-generators.
-
-For the closed Hessenberg fragments
-
-```text
-H_d = {alpha < omega^(omega^d)} ~= N[x_0,...,x_(d-1)],
-```
-
-additive cancellation makes the companion unique and balanced, and the
-trivial unit group forces every regular pair to be an orthogonal sum of copies
-of the hyperbolic plane.  Thus the regular Witt group is zero.  The all-pairs
-stable monoid is nevertheless free on every connected weighted-graph type except
-that hyperbolic plane; exact CNF normalization, component decomposition, and
-finite graph canonicalization give a decision procedure in every finite rank.
-
-The thermograph clause is also settled by a no-go theorem.  Adjoining one
-global tropical zero to the eventually constant rational piecewise-linear
-walls gives honest max/min-plus semifields.  A wall pair is a regular rank-one
-quadratic pair classified exactly by its gap `L - R`.  The self-negative hot
-switch `{1|-1}` has nonzero gap, so the basepoint-reduced stable wall class has
-infinite order while additivity would make it two-torsion.  Hence the natural
-paired max/min stable class is not additive under disjunctive sum.
-
-**Remaining problem.** Over the standard rational tangible supertropical
-cover, the note gives the complete rank-two companion ambiguity, regular
-loop/edge blocks, metabolic generators, and finite-rank gauge-orbit decision
-procedure.  What remains is the universal unbased scalar-extension quotient:
-
-1. Impose all ordinary change-of-basis relations on the canonical balanced
-   coefficientwise supertropicalizations, together with hyperbolic
-   stabilization, and compute the resulting universal quotient.
-2. Decide whether any classical Witt datum beyond rank parity survives.  Rank
-   parity does survive, while the raw stable graph class does not descend:
-   two bases of the classical hyperbolic plane give a split edge and two
-   nonmetabolic loops, and the canonical second pair is not even regular.
-3. Compare this canonical quotient with the alternative pair lift obtained by
-   tropicalizing the classical polar companion.  That choice can preserve
-   regularity in the hyperbolic example but still fails basis independence.
-
-### Boundaries and completion
-
-The current `Tropical<C>` type supplies a bipotent semiring but no tangible/
-ghost supertropical layer, and `Pl` thermograph walls lack a representable
-infinite identity. The thermic-regrading paper proves that thermography is not
-a Newton-style graded ring. These are constraints on a proposed theory, not
-reasons to insert either type into the existing ring-based Witt or Clifford
-APIs.
-
-A computation or collapse theorem for this universal quotient closes the
-remaining arm.  Merely adding a generic matrix type over `Semiring` does not.
-The starting references are
-[supertropical quadratic forms I](https://arxiv.org/abs/1309.5729),
-[supertropical quadratic forms II](https://arxiv.org/abs/1506.03404), and the
-[unique-basis cancellation theorem](https://arxiv.org/abs/1509.01039).  The
-thermographic inputs are
-[`../writeups/thermo_newton.tex`](../writeups/thermo_newton.tex) and the new
-stable-pair note.
-
-## 5. Natural realization of finite misère quotients
+## 4. Natural realization of finite misère quotients
 
 Let `A` be a set of finite impartial games closed under options and disjunctive
 sum, and write `o^-(G)` for the misère outcome. Define

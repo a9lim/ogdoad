@@ -58,10 +58,11 @@ decision procedure.
 For the standard rational tangible supertropical cover we give the analogous
 gauge-orbit presentation, the complete rank-two companion ambiguity, and the
 regular metabolic generators.  Coefficientwise supertropicalization is
-functorial only for based forms.  Two bases of the classical hyperbolic plane
-give respectively a split edge and two nonmetabolic loops; with the canonical
-balanced companion the latter are not even regular.  Thus no proposed stable
-class here descends to the classical Witt group without further collapse.
+functorial only for based forms.  We compute the universal further collapse:
+for every field of characteristic different from two and every rational
+tangible supervaluation, the basis-independent ring-image quotient is exactly
+\(\mathbb Z/2\), detected by rank parity, for both the canonical balanced and
+polar-companion lifts.  No other classical Witt datum survives.
 
 Finally, completing thermograph walls by one global tropical zero produces
 honest max-plus and min-plus coefficient semifields.  Each wall pair defines a
@@ -109,8 +110,11 @@ other than the regular metabolic edge orbits.  Regular pairs have only loop
 and edge blocks, and rank-two companion ambiguity is explicit.
 \item Canonical coefficientwise supertropicalization neither descends from
 based forms to unbased isometry classes nor preserves regularity under an
-arbitrary classical change of basis.  Rank parity survives; classification of
-the universal basis-independent quotient beyond parity remains open.
+arbitrary classical change of basis.  For a source field of characteristic
+different from two, imposing all classical basis relations makes its
+universal nonsingular ring-image quotient exactly
+\(\mathbb Z/2\), detected by rank parity.  The same is true for the alternative
+polar-companion lift.
 \item The max/min thermograph walls do define regular rank-one stable classes
 over completed piecewise-linear tropical semifields.  Their class is the wall
 gap, but it cannot be additive in the Conway game group.
@@ -118,11 +122,10 @@ gap, but it cannot be additive in the Conway game group.
 \end{thmA}
 
 The Hessenberg arm is a complete classification and collapse theorem.  The
-supertropical block theorem is also complete for the stated stable quotient;
-the remaining issue there is the universal quotient forced by arbitrary
-unbased scalar extension.  The wall theorem is a no-go theorem for the
-natural max/min construction, not a claim that every possible synchronized
-cross-quotient is impossible.
+supertropical block theorem and the universal classical ring-image quotient
+are complete for the stated coefficient cover.  The wall theorem is a no-go
+theorem for the natural max/min construction, not a claim that every possible
+synchronized cross-quotient is impossible.
 
 \section{The unique-base stable monoid}
 
@@ -391,12 +394,13 @@ semiring reason, so regularity or perfect cross-pairing is indispensable.
 
 Let \(U_{\Rationals}\) be the standard tangible max-plus supertropical cover
 \[
- \{0\}\sqcup\{t^\gamma:\gamma\in\Rationals\}
+\{0\}\sqcup\{t^\gamma:\gamma\in\Rationals\}
  \sqcup\{(t^\gamma)^\nu:\gamma\in\Rationals\}.
 \]
 Unequal values add by dominance; a tie becomes the corresponding ghost.  The
-tangible elements \(t^\gamma\) are exactly the scalar units, and the value
-group is dense and two-divisible.  The min-plus statement is obtained by
+tangible elements \(t^\gamma\) are exactly the scalar units.  Write
+\(e=1+1\) for the ghost of one.  The
+value group is dense and two-divisible.  The min-plus statement is obtained by
 \(\gamma\mapsto-\gamma\).  Free modules have unique bases
 \cite[Theorem~0.9]{ikr2016qf1}.
 
@@ -468,8 +472,10 @@ therefore specify pairs, not only functional quadratic forms.
 \subsection{The scalar-extension obstruction}
 
 Let \(K\) be a field of characteristic different from two and let
-\(\varphi:K\to U_{\Rationals}\) be the standard tangible supervaluation with
-trivial underlying value on \(K^\times\).  Coefficientwise
+\(\varphi:K\to U_{\Rationals}\) be a tangible supervaluation into the standard
+rational cover.  Thus \(\varphi(a)=t^{v(a)}\) for \(a\ne0\), where
+\(v:K^\times\to\Rationals\), and the tangible unit group of
+\(U_{\Rationals}\) is square-divisible.  Coefficientwise
 supertropicalization is functorial for an ordered based form and monoidal under
 orthogonal sum \cite[Definition~9.3]{ikr2016qf1}.  It is not an invariant of
 the unbased form.
@@ -512,13 +518,143 @@ regularity in this example but not basis independence.  This distinction is
 also the basis-dependence phenomenon studied explicitly in
 \cite[Section~8]{ikr2018qf2}.
 
-Rank modulo two is a stable homomorphism: every metabolic generator has even
-rank, and every basis change preserves rank.  It is therefore a classical
-Witt datum surviving either lift.  The example proves that the raw stable
-group is too fine.  We do not claim here that parity is the universal final
-quotient for arbitrary nonregular canonical images; determining whether more
-classical Witt data survives all basis relations remains the unresolved part
-of the supervaluation arm.
+We now impose exactly the missing relations.  For
+\(\epsilon\in\{\mathrm{bal},\mathrm{pol}\}\), let
+\(S_\epsilon(K,\varphi)\) be the subgroup of
+\(W_{\mathrm{all}}(U_{\Rationals})\) generated by the based lifts
+\(T_\epsilon(q,E)\) of nonsingular classical forms.  Let
+\(\overline S_\epsilon(K,\varphi)\) be its quotient by all relations
+\[
+ [T_\epsilon(q,E)]=[T_\epsilon(q,E')]
+\]
+for two bases of the same form, together with classical hyperbolic
+stabilization.  This is the universal target for an additive
+basis-independent invariant extracted from the indicated coefficientwise
+lift.
+
+\begin{theorem}[Universal ring-image collapse]\label{thm:ringcollapse}
+For every \(K,\varphi\) as above,
+\[
+ \overline S_{\mathrm{bal}}(K,\varphi)\cong\Integers/2,
+ \qquad
+ \overline S_{\mathrm{pol}}(K,\varphi)\cong\Integers/2.
+\]
+Both isomorphisms are rank modulo two.  Consequently no square class,
+discriminant, Hasse invariant, signature, Witt index, coefficient valuation,
+or residue datum survives the universal unbased ring-image quotient.
+\end{theorem}
+
+\begin{proof}
+Diagonalize a nonsingular form:
+\[
+ q\cong\langle a_1,\ldots,a_n\rangle,
+ \qquad a_i\ne0.
+\]
+For each \(i\), choose a tangible unit \(u_i\) with
+\(u_i^2=\varphi(a_i)^{-1}\).  In the canonical balanced lift, scaling the
+\(i\)-th basis vector by \(u_i\) normalizes its rank-one pair to
+\[
+ D:\qquad q(\epsilon)=1,\quad \beta(\epsilon,\epsilon)=e.
+\]
+Hence every \(n\)-dimensional canonical image is basis-related to
+\(D^{\perp n}\).
+
+For the polar-companion lift, multiplicativity gives
+\[
+ \varphi(2a_i)=\varphi(2)\varphi(a_i).
+\]
+The same scaling normalizes every line to the single pair
+\[
+ A_{\varphi(2)}:\qquad
+ q(\epsilon)=1,\quad b(\epsilon,\epsilon)=\varphi(2).
+\]
+Thus the polar image of every \(n\)-dimensional form is basis-related to
+\(A_{\varphi(2)}^{\perp n}\).  In particular, valuations and square classes
+change neither generator.
+
+For the hyperbolic plane \(q(xe+yf)=xy\), the basis \((e,f)\) gives the split
+edge \(H(0,0;1)\), which is zero in the stable group.  The basis
+\((e+f,e-f)\) gives \(r^2-s^2\), hence two copies of \(D\), respectively two
+copies of \(A_{\varphi(2)}\).  Therefore the relevant generator \(L\) obeys
+\(2L=0\), proving that each quotient is at most \(\Integers/2\).
+
+Rank modulo two is additive, unchanged by basis change, and zero on every
+basic metabolic pair.  It sends \(L\) to one, so \(L\ne0\) and no stronger
+relation is possible.  This also proves the stated universal property.
+\end{proof}
+
+The theorem concerns the subgroup generated by classical scalar-extension
+images.  It does not collapse the intrinsic group
+\(W_{\mathrm{all}}(U_{\Rationals})\): connected noncanonical weight or layer
+types that no nonsingular classical lift realizes remain independent free
+generators.  In particular, the isolated zero line survives in the ambient
+group even though it is absent from the nonsingular ring-image subgroup.
+
+There is also a sharp regularity distinction.  The polar lift has a regular
+diagonal presentation, and its regular ring-image quotient is again
+\(\Integers/2\).  A generic polar presentation is nevertheless nonregular.
+For the canonical balanced lift, a nonzero diagonal companion coefficient is
+ghost and not a unit.  A regular canonical ring image must therefore have
+zero diagonal and perfect-matching off-diagonal support, which makes the
+classical form hyperbolic and the image split.  Thus its regular ring-image
+subgroup is zero; the all-pairs category in
+Theorem~\ref{thm:ringcollapse} is essential.
+
+If degenerate classical forms are included, the standard cover still leaves
+only total-rank parity.  Indeed, the polar matrices
+\[
+ \begin{pmatrix}1&1\\1&1\end{pmatrix},
+ \qquad
+ \begin{pmatrix}1&1\\1&-1\end{pmatrix}
+\]
+have identical coefficientwise images, while their ranks are one and two.
+After classical diagonalization this identifies the zero line \(Z\) with
+\(L\); hence every finite free form has class \(\rank(V)L\).
+
+\begin{proposition}[Trivially valued characteristic two]\label{prop:char2collapse}
+Let \(K\) have characteristic two and let \(\varphi(0)=0\),
+\(\varphi(K^\times)=1\).  For the canonical balanced and polar-companion lifts
+considered separately, the nonsingular universal ring-image quotient is
+\[
+ \begin{cases}
+  \Integers/2,&K=\mathbb F_2,\\
+  0,&|K|>2.
+ \end{cases}
+\]
+The surviving \(\mathbb F_2\)-class is the Arf invariant.
+\end{proposition}
+
+\begin{proof}
+The polar form is nondegenerate alternating, so a symplectic basis decomposes
+\(q\) into planes
+\[
+ a_ix^2+xy+b_iy^2.
+\]
+Only the zero patterns of \((a_i,b_i)\) remain after \(\varphi\).  The
+\((0,0)\)-plane is split.  A plane with exactly one nonzero endpoint is also
+killed: for the balanced lift this follows by comparing the bases
+\((e,f)\) and \((e,e+f)\) of \(q=xy\), while for the polar lift it is already
+basic metabolic.
+
+It remains only the plane with both endpoints nonzero.  If \(|K|>2\), choose
+\(\lambda\notin\{0,1\}\).  The hyperbolic basis
+\[
+ e+f,\qquad e+\lambda f
+\]
+has two nonzero quadratic labels and nonzero mutual polar label, so the
+remaining generator is itself zero.  Over \(\mathbb F_2\), that generator is
+the anisotropic plane \(x^2+xy+y^2\).  Its coefficient support determines the
+Arf bit \cite{arf1941}.  For two copies with bases
+\((e_1,f_1,e_2,f_2)\), the vectors
+\[
+ f_1+f_2,\quad f_1+e_2,\quad
+ e_1+e_2+f_2,\quad e_1+f_1+e_2+f_2
+\]
+are isotropic and form two mutually orthogonal symplectic pairs.  Thus two
+anisotropic planes are hyperbolic, giving order two, while Arf proves that one
+does not vanish.  Symplectic decomposition proves the assertion in every
+rank.
+\end{proof}
 
 \section{Thermograph walls}
 
@@ -625,14 +761,19 @@ model for \(\Hess_d\);
 \item that a symmetric balanced permutation Gram matrix is a
 fixed-point-free involution with zero quadratic basis labels; and
 \item that an additive invariant into a cancellative monoid vanishes on any
-observation identified with its double.
+observation identified with its double; and
+\item that multiples of a generator killed by the hyperbolic relation
+\(2L=0\) depend only on parity, while a homomorphism to \(\Integers/2\)
+detecting \(L\) proves noncollapse.
 \end{enumerate}
 The kernel therefore checks the algebraic core of
 Theorem~\ref{thm:hesscollapse} and the cancellation step in the freezing
-obstruction.  The Cantor-normal-form identification, the unique-base theorem,
-finite graph decomposition, supertropical companion classification, and
-standard thermograph facts remain proved here or cited external mathematics,
-not Lean theorems.
+obstruction, together with the universal group-theoretic step of
+Theorem~\ref{thm:ringcollapse}.  Classical diagonalization, the
+Cantor-normal-form identification, the unique-base theorem, finite graph
+decomposition, supertropical companion classification, and standard
+thermograph facts remain proved here or cited external mathematics, not Lean
+theorems.
 
 Ogdoad's current \texttt{Ordinal} backend implements Conway nim arithmetic
 and ordinary noncommutative Cantor arithmetic.  It is not a Hessenberg
@@ -649,16 +790,18 @@ theory.  In the Hessenberg fragments this gives both extremes at once: the
 regular Witt theory collapses completely, while the singular stable envelope
 is a large free invariant with a finite decision procedure.  Over the rational
 supertropical cover the same graph theorem gives exact blocks, companions,
-and metabolic relations, but coefficientwise supervaluation freezes the
-chosen classical basis and cannot descend without further quotienting.
+and metabolic relations.  Coefficientwise supervaluation freezes the chosen
+classical basis, but the universal quotient imposing all source basis changes
+is now explicit: for both standard companion lifts it is exactly rank parity
+in characteristic different from two.
 
 Thermograph walls do form honest rank-one quadratic pairs after the minimal
 tropical completion, and their stable class is exactly the wall gap.  The
 self-negative hot switch proves that this geometrically natural class is
-incompatible with additivity.  The remaining live question is now narrower:
-determine the universal basis-independent quotient of the nonregular
-supertropical scalar-extension image, and decide whether it retains anything
-beyond rank parity.
+incompatible with additivity.  Thus the three coefficient-world questions
+posed here are closed: Hessenberg regular collapse with a nontrivial singular
+envelope, exact supertropical stable blocks with the universal ring-image
+quotient, and the thermograph wall obstruction.
 
 \bibliographystyle{plain}
 \bibliography{semiring_stability}

@@ -86,8 +86,6 @@ The current open fronts are exactly:
 - the universal `0/1/4` transfinite nim-excess rule, including its selected
   nim-reciprocity program;
 - quasi-linear multiplication in canonical finite-nimber coordinates;
-- stable quadratic-form invariants over the supertropical and Hessenberg
-  semirings;
 - natural-ruleset realization of finite misère quotients, including the exact
   quotient of misère Grundy's game.
 
