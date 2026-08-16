@@ -376,7 +376,8 @@ The algebraic scaffold is the characteristic-two Milnor--Scharlau sequence of
 [Aravire--Jacob](https://msp.org/pjm/2006/228-1/pjm-v228-n1-p02-s.pdf). The
 existing implementation surfaces are
 `src/forms/local_global/function_field_char2.rs` and
-`src/forms/springer/char2/`. The proof is in `writeups/goldarf.tex`. Lean
+`src/forms/springer/char2/`. The proof is in
+`writeups/witt_realization.tex`. Lean
 formalizes the exact-sequence splitting, trace-bit injection, and singular
 cancellation boundary in `formal/Ogdoad/WittRealizationExact.lean`; it does not
 formalize the Aravire--Jacob sequence or the ramified coordinate transformation.

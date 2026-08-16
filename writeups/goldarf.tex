@@ -53,15 +53,12 @@ monomial defines a central Gold--Heisenberg extension whose squares and
 commutators recover the quadratic and polar forms; at trace-one scale over
 $\F_4$, this extension is the quaternion group $Q_8$.
 
-We also give canonical finite game coordinates for the nonsingular quadratic
-Witt group of the imperfect field $\F_2(t)$, prove that the sole reciprocity
-relation is the parity of the ramified Arf bits, and separate this
-classification-to-game compiler from the stronger local-access problem.
-A cancellation theorem rules out an additive faithful extension to arbitrary
-quasilinear radicals.  Alongside this result, a single partizan selector
-decodes every $\mathbb Z/4$-valued Brown refinement, whereas any
-coefficient-faithful Clifford datum coherent on all short-game values vanishes
-on torsion.  The algebraic cores and boundaries are formalized in Lean.
+We also place the construction between two sharp boundaries.  A single
+partizan selector decodes every $\mathbb Z/4$-valued Brown refinement through
+its four outcome classes, whereas any coefficient-faithful Clifford datum
+coherent on all short-game values vanishes on torsion and collapses over the
+usual coefficient rings.  The finite realization and these boundary
+theorems are formalized in Lean.
 \end{abstract}
 
 \section{Introduction}
@@ -126,10 +123,8 @@ prove the realization theorem.  Section~\ref{sec:observation} establishes
 the sharp observation lower bound.  Sections~\ref{sec:gold} and
 \ref{sec:heisenberg} specialize the construction to Gold forms.  The Brown
 selector of Section~\ref{sec:brown} extends the outcome encoding from one bit
-to $\mathbb Z/4$.  Section~\ref{sec:witt-function} determines the nonsingular
-Witt coordinates over $\F_2(t)$ and proves the singular additive obstruction,
-while Section~\ref{sec:exterior} proves the obstruction to extending finite
-Clifford data coherently across all short games.
+to $\mathbb Z/4$, while Section~\ref{sec:exterior} proves the obstruction to
+extending such finite constructions coherently across all short games.
 
 Only matching-plus-isolates boards occur in the proof.  The arbitrary-graph
 isolated-dummy FIFO conjecture is strictly stronger and plays no role in the
@@ -755,205 +750,6 @@ recovers the correlated Gauss sum in the Walsh decomposition.  The selector rema
 defined when that sum vanishes, although in that case no Brown phase is
 assigned by Gauss-sum normalization.
 
-\section{The rational function-field Witt quotient}\label{sec:witt-function}
-
-The finite-field realization has a different extension to the imperfect field
-$K=\F_2(t)$.  This extension is classifying rather than pointwise: it realizes
-the quadratic Witt class, not the value $Q(x)$ of a chosen representative at a
-loading.  We first determine the exact coordinates that an additive game
-family must carry.
-
-Let $v$ range over the monic irreducible polynomials $p\in\F_2[t]$ and the
-infinite place.  Put
-\[
- \pi_p=p(t),\qquad \pi_\infty=t^{-1},
-\]
-and let $K_v$ and $\kappa_v$ be the corresponding completion and residue
-field.  Thus $\kappa_p=\F_2[t]/(p)$ and $\kappa_\infty=\F_2$.  Since every
-$\kappa_v$ is finite, the local Aravire--Jacob decomposition specializes to
-\[
- W_q(K_v)\cong
- W_q(\kappa_v)\oplus R_v\oplus
- \langle\pi_v\rangle W_q(\kappa_v),
- \qquad
- R_v=\bigoplus_{\substack{n\ge1\\ n\ \mathrm{odd}}}
-       \kappa_v\pi_v^{-n}.
-\]
-Here $W_q(\kappa_v)\cong\F_2$ by the Arf invariant.  Consequently the
-characteristic-two second-residue target is
-\[
- W_1(K_v):=\operatorname{coker}
-   \bigl(W_q(\kappa_v)\longrightarrow W_q(K_v)\bigr)
- \cong R_v\oplus\F_2,
-\]
-not merely $W_q(\kappa_v)$.  We write
-\[
- \operatorname{loc}_v(\alpha)
-   =(\phi_{0,v},\psi_v,\phi_{1,v}),
- \qquad
- \psi_v=\sum_{n\ \mathrm{odd}}c_{v,n}\pi_v^{-n},
-\]
-so the second residue is $\partial_v\alpha=(\psi_v,\phi_{1,v})$.
-Aravire and Jacob prove that compatible choices of these maps and their
-transfers form an exact sequence
-\cite[Theorems~1.3 and~6.2]{aravirejacob2006}.
-
-We need one finite-field calculation to make its last arrow explicit.
-
-\begin{lemma}[Finite-field transfer]\label{lem:finite-transfer}
-Let $E/\F_2$ be finite and let $s:E\to\F_2$ be a nonzero linear
-functional.  Under the Arf identifications
-$W_q(E)\cong\F_2\cong W_q(\F_2)$, the Scharlau transfer
-$s_*:W_q(E)\to W_q(\F_2)$ is the identity.
-\end{lemma}
-
-\begin{proof}
-Write $s(z)=\Tr(cz)$ with $c\ne0$.  Since $E$ is perfect, choose $d$ with
-$d^2=c$.  The simultaneous substitution $X=dx$, $Y=dy$ changes the transfer
-of $[1,a]$ along $s$ into
-\[
- T_a(X,Y)=\Tr(X^2+XY+aY^2).
-\]
-Choose $a$ with $\Tr(a)=1$, so $[1,a]$ generates $W_q(E)$, and choose
-trace-dual bases $(e_i)$ and $(f_i)$ of $E/\F_2$.  The vectors
-$(e_i,0),(0,f_i)$ are a symplectic basis for the polar form of $T_a$.
-Therefore
-\[
- \begin{aligned}
- \operatorname{Arf}(T_a)
-   &=\sum_i\Tr(e_i^2)\Tr(af_i^2)\\
-   &=\Tr\!\left(a\sum_i\Tr(e_i)f_i^2\right).
- \end{aligned}
-\]
-Trace duality gives $1=\sum_i\Tr(e_i)f_i$.  Squaring this identity in
-characteristic two gives $1=\sum_i\Tr(e_i)f_i^2$, and hence
-$\operatorname{Arf}(T_a)=\Tr(a)=1$.  Thus the transfer carries the unique
-nonzero Witt class to the unique nonzero Witt class.
-\end{proof}
-
-The Aravire--Jacob transfer kills $R_v$ and applies Lemma~\ref{lem:finite-transfer}
-to the ramified residue class.  Its global relation is therefore simply
-\[
- \sum_v\phi_{1,v}=0.
-\]
-
-\begin{theorem}[Canonical Witt coordinates]\label{thm:witt-coordinates}
-The map
-\[
- \Theta:W_q(\F_2(t))\longrightarrow
- \F_2\oplus\bigoplus_v(R_v\oplus\F_2),
- \qquad
- \Theta(\alpha)=
- \bigl(\phi_{0,\infty}(\alpha),
-       ((\psi_v(\alpha),\phi_{1,v}(\alpha)))_v\bigr)
-\]
-is an additive isomorphism onto
-\[
- \F_2\oplus
- \left\{((\psi_v,\epsilon_v))_v:
-   \text{finite support and }\sum_v\epsilon_v=0\right\}.
-\]
-\end{theorem}
-
-\begin{proof}
-The Milnor--Scharlau sequence gives
-\[
-0\longrightarrow W_q(\F_2)\longrightarrow W_q(K)
- \xrightarrow{\oplus_v\partial_v}
- \bigoplus_vW_1(K_v)
- \xrightarrow{\oplus_v s_v^*}W_q(\F_2)\longrightarrow0.
-\]
-The unramified coordinate $\phi_{0,\infty}$ is additive and restricts to the
-identity on the constant-field subgroup: a constant class has local
-coordinates $(\alpha,0,0)$ at $\infty$.
-
-If $\Theta(\alpha)=0$, exactness first gives $\alpha$ as a constant class and
-the infinite unramified coordinate then makes that constant zero.  Conversely,
-let $r$ be a finite residue tuple satisfying the transfer relation.  Exactness
-gives $\beta$ with residue $r$.  Adding the unique constant class
-$a-\phi_{0,\infty}(\beta)$ changes no second residue and changes the first
-coordinate to the prescribed $a\in\F_2$.  This proves both surjectivity and
-uniqueness.  Lemma~\ref{lem:finite-transfer} identifies the displayed kernel
-with the single parity relation.
-\end{proof}
-
-There is a basis-free finite binary presentation of these coordinates.  For
-each odd $n$ and each $z\in\kappa_v$, set
-\[
- b_{v,n,z}(\alpha)
-   =\Tr_{\kappa_v/\F_2}(z c_{v,n}),
-\]
-and retain the bits $b_{\mathrm c}=\phi_{0,\infty}$ and
-$b_{v,\mathrm r}=\phi_{1,v}$.  The trace pairing is nondegenerate, so all
-$b_{v,n,z}$ together recover $c_{v,n}$.  Each class has only finitely many
-nonzero bits: it has finite place and pole support, and every residue field is
-finite.
-
-Let $\epsilon(0)=0$ and $\epsilon(1)=*=\{0\mid0\}$.  Applying $\epsilon$ to
-every nonzero labelled bit gives a finite sparse family of impartial games.
-Since $*+*=0$, this family is additive under coordinatewise disjunctive sum;
-Theorem~\ref{thm:witt-coordinates} makes it faithful, basis-independent, and
-zero on hyperbolic planes.  It is a Witt-class-to-star compiler, not a new
-local-access arena: it computes the residue invariant before emitting its
-canonical one-move representatives.
-
-The trace presentation is natural for unramified residue extension.  If
-$\ell/\kappa$ is finite, then
-\[
- \Tr_{\ell/\F_2}(z'c)=
- \Tr_{\kappa/\F_2}(\Tr_{\ell/\kappa}(z')c),
-\]
-with the adjoint identity for residue-field transfer.  Ramified scalar
-extension is subtler.  A substitution
-$\pi_v=u\varpi_w^e$ can turn an odd pole into an even pole; Artin--Schreier
-normalization then creates lower odd terms and possibly a constant term.  A
-fully functorial local-access construction must prove this triangular
-coordinate transformation rather than silently identify the two uniformizers.
-
-There are two sharp specification boundaries.
-
-\begin{proposition}[Gold and Witt descent]\label{prop:gold-witt-boundary}
-A Witt-invariant additive family cannot literally reproduce every loaded
-Gold arena.  It can recover only its Witt/Arf shadow.
-\end{proposition}
-
-\begin{proof}
-The hyperbolic plane $H(x,y)=xy$ is zero in $W_q(\F_2)$, so every
-Witt-invariant additive realization sends it to the zero family.  But
-$H(1,1)=1$, and Theorem~\ref{thm:realization} makes the corresponding loaded
-Gold root an $N$-position.  Thus the pointwise loaded family does not descend
-to the Witt group.  At class level there is no conflict: the Arf bit encoded by
-Theorem~\ref{thm:witt-coordinates} is exactly the bit controlling the
-Gold--Arf outcome bias.
-\end{proof}
-
-\begin{theorem}[Singular additive obstruction]\label{thm:singular-obstruction}
-No isometry-invariant, orthogonal-sum-additive family of impartial game values
-can faithfully encode the restriction of a characteristic-two quadratic form
-to its polar radical.
-\end{theorem}
-
-\begin{proof}
-For $c\ne0$, let $L_c=\langle c\rangle$ and $Z=\langle0\rangle$.  The change
-of variables $(u,v)=(x+y,y)$ gives
-\[
- L_c\perp L_c\cong L_c\perp Z,
- \qquad c x^2+c y^2=c(x+y)^2.
-\]
-At every coordinate, additivity sends this isometry to
-$g_c+g_c=g_c+g_0$ in the group of impartial values.  Cancellation gives
-$g_c=g_0$.  Hence the entire outcome family identifies the nonzero
-quasilinear line with the zero line, although their restrictions to the polar
-radical differ.  The quasilinear isometry monoid is noncancellative, while
-impartial values under disjunctive sum are cancellative.
-\end{proof}
-
-Thus the nonsingular Witt quotient has canonical finite game coordinates.
-The remaining constructive problem is to realize them under a Gold-style
-local-access contract and to prove ramified base-change naturality.  An
-extension to arbitrary singular metrics must either give up disjunctive-sum
-additivity or ask only for the cancellative quotient of the quasilinear data.
-
 \section{The ambient-coherent game-exterior obstruction}\label{sec:exterior}
 
 The additive group of short partizan game values is not a ring under Conway
@@ -1051,10 +847,6 @@ theorem chain at the following boundaries.
 \item \texttt{BrownGame}, \texttt{BrownSelectorPGame}, and
       \texttt{GameExterior} prove the binary Brown split, intrinsic selector,
       coefficient divisibility, and torsion-collapse consequences.
-\item \texttt{WittRealizationExact} proves the exact-sequence coordinate
-      isomorphism from an explicit constant detector, injectivity of the
-      basis-free finite-field trace-bit presentation, and the cancellation
-      obstruction to a faithful additive singular target.
 \end{itemize}
 
 The literal realization theorem includes the computed Witt basis,
@@ -1065,10 +857,7 @@ loaded root, not merely a collection of algebraic ingredients.  The
 phase-aware compiler in \texttt{GoldSemantics.lean} is an independent
 comparison surface and is not required by this proof.
 
-Three interfaces remain deliberately external.  The Aravire--Jacob exact
-sequence and its canonical infinite-place detector are cited inputs; Lean
-proves the exact linear-algebra consequence rather than defining quadratic
-Witt groups.  Moews's theorem on the
+Two interfaces remain deliberately external.  Moews's theorem on the
 two-divisible, two-primary-torsion structure of the short-game group is a
 cited hypothesis of the game-exterior formalization.  Mathlib's abstract
 finite fields are not definitionally identified with the Rust finite-nimber
@@ -1090,23 +879,13 @@ arithmetic supplies the full datum, the Arf invariant measures the losing-set
 bias, and the associated trace cocycle realizes the same form through group
 squares and commutators, with the trace-one $\F_4$ cell equal to $Q_8$.
 
-Over $\F_2(t)$, the unramified infinity bit and all second residues give
-canonical faithful $0/*$ coordinates, with one parity reciprocity relation.
-That result is a classifying compiler; a refinement-independent local-access
-arena still requires the ramified Artin--Schreier coordinate-change theorem.
-Moreover, the relation
-$\langle c\rangle\perp\langle c\rangle\cong
- \langle c\rangle\perp\langle0\rangle$
-shows that no additive impartial invariant can retain every quasilinear
-radical value.
-
-The partizan Brown selector and the ambient-coherence obstruction give two
-further boundaries.  Modulo $4$, one game carries both binary components
-through its four outcomes.  Across the entire short-game group, divisibility
-and torsion force coefficient-faithful quadratic data to collapse.  The
-resulting picture separates pointwise finite-field realization, Witt-class
-coordinates over an imperfect field, singular noncancellation, and
-unrestricted value-level coherence.
+The partizan Brown selector and the ambient-coherence obstruction describe
+the two natural extensions of this result.  Modulo $4$, one game carries both
+binary components through its four outcomes.  Across the entire short-game
+group, however, divisibility and torsion force coefficient-faithful quadratic
+data to collapse.  The resulting picture is therefore sharp: finite-field
+quadratic structure has an exact game realization, while unrestricted
+value-level coherence does not.
 
 \small
 \bibliographystyle{plain}

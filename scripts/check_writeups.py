@@ -12,6 +12,7 @@ from pathlib import Path
 
 PAPERS = (
     "goldarf",
+    "witt_realization",
     "excess",
     "linking_affine",
     "thermo_newton",

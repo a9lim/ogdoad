@@ -120,7 +120,8 @@ The papers under `writeups/` form one current research suite:
 | paper | result |
 | --- | --- |
 | `transfinite_arf.tex` | classification over perfect Artin--Schreier-surjective characteristic-two fields and its full-nimber specialization |
-| `goldarf.tex` | quadratic-refinement realization in normal play, Gold specialization, imperfect-field Witt coordinates, singular cancellation, Brown selector, and game-exterior obstruction |
+| `goldarf.tex` | quadratic-refinement realization in normal play, Gold specialization, Brown selector, and game-exterior obstruction |
+| `witt_realization.tex` | quadratic Witt coordinates over `F_2(t)`, finite impartial realization, ramified naturality frontier, and singular additive obstruction |
 | `thermo_newton.tex` | thermic regrading under Norton multiplication and its separation from Newton tropicalization |
 | `linking_affine.tex` | proved reductions and exact remaining obstruction for isolated-dummy FIFO linking |
 | `excess.tex` | four-arm reduction and exact remaining selected-order problem for transfinite nim excess |
