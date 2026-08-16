@@ -32,8 +32,6 @@ noncomputable section
 
 set_option linter.unusedSectionVars false
 
-abbrev F2 := ZMod 2
-
 variable {E : Type*} [Field E] [Finite E] [CharP E 2] [Algebra F2 E]
 
 /-- The unique trace-pairing coefficient representing an `F_2`-linear
@@ -108,7 +106,7 @@ theorem trace_sq (x : E) :
       rw [map_pow]
     _ = algebraMap F2 E (Algebra.trace F2 E x) := by
       rw [show (Algebra.trace F2 E x) ^ 2 = Algebra.trace F2 E x by
-        simpa [pow_two] using Ogdoad.Fifo.zmod2_sq_eq_self
+        simpa [pow_two] using Ogdoad.zmod2_sq_eq_self
           (Algebra.trace F2 E x)]
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
@@ -132,7 +130,7 @@ theorem sum_trace_smul_traceDual_sq (b : Basis ι F2 E) :
       algebraMap F2 E (Algebra.trace F2 E (b i)) by
     rw [← map_pow]
     congr 1
-    simpa [pow_two] using Ogdoad.Fifo.zmod2_sq_eq_self
+    simpa [pow_two] using Ogdoad.zmod2_sq_eq_self
       (Algebra.trace F2 E (b i))]
 
 /-- The transferred trace plane has the same Arf coordinate as its source

@@ -1,4 +1,4 @@
-import Mathlib.Algebra.Module.ZMod
+import Ogdoad.Algebra.ZModTwo
 
 /-!
 # The game-native Gold--Heisenberg extension
@@ -24,8 +24,6 @@ noncomputable section
 set_option linter.unusedSectionVars false
 
 namespace Ogdoad.GoldExtraspecial
-
-abbrev F2 := ZMod 2
 
 @[simp] theorem two_eq_zero : (2 : F2) = 0 := by decide
 

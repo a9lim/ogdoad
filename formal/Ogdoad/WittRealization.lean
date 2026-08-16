@@ -43,8 +43,6 @@ set_option linter.unusedSectionVars false
 set_option linter.unusedSimpArgs false
 set_option linter.unnecessarySimpa false
 
-abbrev F2 := ZMod 2
-
 /-- Finite principal parts with no constant or positive even pole. -/
 def oddPrincipalPartSubmodule (k : Type*) [Field k] [Algebra F2 k] :
     Submodule F2 (WittRamification.PrincipalPart k) where
@@ -254,7 +252,7 @@ def bitBool (z : F2) : Bool := decide (z = 1)
 theorem bitBool_eq_false_iff (z : F2) : bitBool z = false ↔ z = 0 := by
   by_cases hz : z = 1
   · simp [bitBool, hz]
-  · have : z = 0 := Ogdoad.Fifo.zmod2_eq_zero_of_ne_one z hz
+  · have : z = 0 := Ogdoad.zmod2_eq_zero_of_ne_one z hz
     simp [bitBool, this]
 
 /-- The literal normal-play `0/*` arena for one observation.  Its FIFO core
@@ -295,8 +293,8 @@ theorem same_outcomes_iff (x y : PresentedWitt Place kappa) :
     · have hy0 : bit y o ≠ 0 := by
         intro hy
         exact hx0 (hz.mpr hy)
-      rw [Ogdoad.Fifo.zmod2_eq_one_of_ne_zero _ hx0,
-        Ogdoad.Fifo.zmod2_eq_one_of_ne_zero _ hy0]
+      rw [Ogdoad.zmod2_eq_one_of_ne_zero _ hx0,
+        Ogdoad.zmod2_eq_one_of_ne_zero _ hy0]
   · rintro rfl
     exact fun _ ↦ Iff.rfl
 

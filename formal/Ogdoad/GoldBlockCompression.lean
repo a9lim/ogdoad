@@ -1,3 +1,4 @@
+import Ogdoad.Algebra.ZModTwo
 import Mathlib.LinearAlgebra.QuadraticForm.Basic
 import Mathlib.LinearAlgebra.LinearIndependent.Basic
 
@@ -22,8 +23,6 @@ noncomputable section
 open scoped BigOperators
 
 namespace Ogdoad.GoldBlock
-
-abbrev F2 := ZMod 2
 
 variable {M : Type*} [AddCommGroup M] [Module F2 M]
 

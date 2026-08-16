@@ -1,0 +1,89 @@
+import Ogdoad.Fifo
+import Ogdoad.FifoCausal
+import Ogdoad.FifoSymmetry
+import Ogdoad.FifoNormalization
+import Ogdoad.FifoStrategy
+import Ogdoad.FifoAffine
+import Ogdoad.FifoCrossDescent
+import Ogdoad.FifoCrossClose
+import Ogdoad.FifoMixedCross
+import Ogdoad.FifoSameOpenBraid
+import Ogdoad.FifoDummyExitCarrier
+import Ogdoad.FifoCrossExitIncidence
+import Ogdoad.FifoOuterFan
+import Ogdoad.FifoProtectedFan
+import Ogdoad.FifoInterlace
+import Ogdoad.FifoDummyDeletion
+import Ogdoad.FifoRootSelector
+import Ogdoad.FifoNeutralPair
+import Ogdoad.FifoMinHotCurvature
+import Ogdoad.FifoHub
+import Ogdoad.FifoEmptyQueue
+import Ogdoad.FifoTreeTrace
+import Ogdoad.FifoBlockInduction
+import Ogdoad.FifoOutcome
+import Ogdoad.FifoOutcomeBlock
+import Ogdoad.FifoOutcomeSwitch
+import Ogdoad.FifoPairState
+import Ogdoad.FifoStrategyBadAncestry
+import Ogdoad.FifoStrategyBadAncestryClear
+import Ogdoad.FifoFirstSeatRoot
+import Ogdoad.FifoBadArcCycle
+import Ogdoad.FifoFirstSeatStrategy
+import Ogdoad.FifoFunctionalDigraphBoundary
+import Ogdoad.FifoDummyFront
+import Ogdoad.FifoDummyFrontAffine
+import Ogdoad.FifoSeparatorFlow
+import Ogdoad.FifoThreeSiblingBoundary
+import Ogdoad.FifoRootCongruence
+import Ogdoad.FifoBlockReversalBoundary
+import Ogdoad.FifoCanonicalPositionalOdd
+import Ogdoad.FifoCellSwapOutcomeBoundary
+import Ogdoad.FifoCommonDummyEventBoundary
+import Ogdoad.FifoCongruenceOutcomeBoundary
+import Ogdoad.FifoConsumedDummyBoundary
+import Ogdoad.FifoConsumedDummyShearBoundary
+import Ogdoad.FifoControlledDivergence
+import Ogdoad.FifoDistinctOpenForkBoundary
+import Ogdoad.FifoGaussianElimination
+import Ogdoad.FifoGlobalSpliceBoundary
+import Ogdoad.FifoLastChargedCloseBoundary
+import Ogdoad.FifoLiveDummyOpenFork
+import Ogdoad.FifoOddSpikeDummyReply
+import Ogdoad.FifoOddSpikeFactor
+import Ogdoad.FifoPairGaussian
+import Ogdoad.FifoPairZeroMomentAdjacentBoundary
+import Ogdoad.FifoPairZeroMomentNormal
+import Ogdoad.FifoPairZeroMomentSafety
+import Ogdoad.FifoParityControlledRoot
+import Ogdoad.FifoParityCounterNormal
+import Ogdoad.FifoParitySeat
+import Ogdoad.FifoParitySeatCloseFirst
+import Ogdoad.FifoParitySeatDeviationBoundary
+import Ogdoad.FifoPositionalSelectedEdgeBoundary
+import Ogdoad.FifoPositionalStateDAGBoundary
+import Ogdoad.FifoPrivateLeafBoundary
+import Ogdoad.FifoProtectedBlockBoundary
+import Ogdoad.FifoProtectedFactorBoundary
+import Ogdoad.FifoPublicPolicyAffine
+import Ogdoad.FifoPublicPolicyDuality
+import Ogdoad.FifoPublicPolicyTopologyBoundary
+import Ogdoad.FifoPublicPrefixQueueCutBoundary
+import Ogdoad.FifoPublicQueueCutCounterexample
+import Ogdoad.FifoPublicSeparatorAncestry
+import Ogdoad.FifoPublicSeparatorAutomaton
+import Ogdoad.FifoPublicSeparatorQueueDebt
+import Ogdoad.FifoRootGadgetBoundary
+import Ogdoad.FifoSeparatorBadSynchronizationBoundary
+import Ogdoad.FifoSeparatorControlledBridgeBoundary
+import Ogdoad.FifoSingletonForkBoundary
+import Ogdoad.FifoMatching
+
+/-!
+# Unified arbitrary-graph FIFO frontier
+
+This is the one import surface for the complete Lean-checked FIFO development
+used by `writeups/linking_affine.tex`.  The individual files remain small proof
+modules; other papers should import only the specific solved components they
+need, such as `FifoMatching`, rather than this entire open frontier.
+-/

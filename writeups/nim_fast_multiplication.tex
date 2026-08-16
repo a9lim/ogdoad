@@ -484,7 +484,9 @@ are $n\log^{O(1)}n$.
 
 \section{Formal and implementation boundary}
 
-The Lean module \texttt{Ogdoad.NimFastMultiplication} checks the following
+The import-only paper entry point combines the shared
+\texttt{Algebra.ArtinSchreier} module with the paper-specific
+\texttt{NimFastMultiplication} module.  Together they check the following
 algebraic joins used above:
 \begin{itemize}
 \item the finite-field equivalence between trace one and irreducibility of

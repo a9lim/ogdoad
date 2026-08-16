@@ -1,4 +1,4 @@
-import Mathlib
+import Ogdoad.Algebra.ZModTwo
 
 /-!
 # The exact-sequence core of characteristic-two Witt realization
@@ -47,8 +47,6 @@ instantiate `ResidueSequence`; the results here then apply without change.
 -/
 
 namespace Ogdoad.WittRealizationExact
-
-abbrev F2 := ZMod 2
 
 section FiniteFieldTraceBits
 

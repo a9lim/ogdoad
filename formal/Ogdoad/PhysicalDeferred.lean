@@ -22,8 +22,6 @@ open Module
 
 namespace Ogdoad.PhysicalDeferred
 
-abbrev F2 := ZMod 2
-
 variable {V : Type*} [Fintype V] [LinearOrder V]
 
 noncomputable def inducedEdgeCharge (G : SimpleGraph V) (S : Finset V) : F2 := by
@@ -658,7 +656,7 @@ theorem quadratic_support_expansion (Q : QuadraticMap F2 M F2)
   let S := (b.repr x).support
   have hcoeff : ∀ i ∈ S, b.repr x i = 1 := by
     intro i hi
-    exact Ogdoad.Fifo.zmod2_eq_one_of_ne_zero _ (Finsupp.mem_support_iff.mp hi)
+    exact Ogdoad.zmod2_eq_one_of_ne_zero _ (Finsupp.mem_support_iff.mp hi)
   have hx : ∑ i ∈ S, b i = x := by
     calc
       ∑ i ∈ S, b i = ∑ i ∈ S, b.repr x i • b i := by

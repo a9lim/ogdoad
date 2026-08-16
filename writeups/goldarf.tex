@@ -826,7 +826,9 @@ theorem therefore address different naturality conditions.
 \section{Formal verification and implementation boundary}\label{sec:formal}
 
 The Lean development accompanying Ogdoad \cite{ogdoad2026} formalizes the
-theorem chain at the following boundaries.
+theorem chain at the following boundaries.  Its import-only entry point is
+\texttt{Ogdoad.Papers.}\allowbreak\texttt{GoldArf}; shared results remain owned by reusable
+modules rather than being copied into the paper surface.
 \begin{itemize}
 \item \texttt{SymplecticBasis}, \texttt{WittFrame}, and
       \texttt{GoldMatchingAlgebra} prove the deterministic orthogonal
@@ -839,9 +841,11 @@ theorem chain at the following boundaries.
 \item \texttt{GoldNoEvaluator}, \texttt{GoldBlockCompression}, and
       \texttt{GoldForkPadding} prove the span lower bound, its sharp block
       construction, and outcome-preserving fork padding.
-\item \texttt{GoldDiagonal}, \texttt{GoldExtraspecial}, and
+\item \texttt{Algebra.ArtinSchreier}, \texttt{GoldDiagonal},
+      \texttt{GoldExtraspecial}, and
       \texttt{GoldExtraspecialTrace} prove the finite-field diagonal source,
-      the cocycle extension and its trace specialization, and
+      with the reusable Artin--Schreier trace-kernel and lifting algebra owned
+      by the shared module, the cocycle extension and its trace specialization, and
       Corollary~\ref{cor:q8} as an explicit group isomorphism over Mathlib's
       $\operatorname{GF}(4)$.
 \item \texttt{BrownGame}, \texttt{BrownSelectorPGame}, and

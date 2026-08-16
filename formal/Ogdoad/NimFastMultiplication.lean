@@ -1,4 +1,4 @@
-import Ogdoad.GoldDiagonal
+import Ogdoad.Algebra.ArtinSchreier
 
 /-!
 # Fast multiplication in canonical nim coordinates: algebraic glue
@@ -9,8 +9,7 @@ literal characteristic-two Conway tower:
 
 * an Artin--Schreier generator may be shifted by a downstairs solution of the
   source difference;
-* the finite-field trace-one criterion makes the next quadratic polynomial
-  irreducible, and relative trace one carries the source trace upward;
+* relative trace one carries the source trace upward;
 * the direct quadratic product has the stated three-variable-product split;
 * the corresponding two-coordinate basis change is an involution and evaluates
   to the same field element;
@@ -19,24 +18,15 @@ literal characteristic-two Conway tower:
   original basis coordinates.
 
 No complexity claim, concrete nimber construction, or De Feo--Schost algorithm
-is formalized here.
+is formalized here.  The paper entry point imports the reusable finite-field
+trace-one irreducibility criterion from `Ogdoad.Algebra.ArtinSchreier`.
 -/
 
 namespace Ogdoad.NimFastMultiplication
 
 noncomputable section
 
-open Polynomial
 open scoped CharTwo
-
-private theorem zmod2_eq_one_of_ne_zero (x : ZMod 2) (hx : x ≠ 0) : x = 1 := by
-  apply ZMod.val_injective
-  have hxval : x.val ≠ 0 := by
-    intro h
-    exact hx ((ZMod.val_eq_zero x).mp h)
-  have hxlt : x.val < 2 := x.val_lt
-  change x.val = 1
-  omega
 
 section ArtinSchreierShift
 
@@ -47,7 +37,7 @@ then the shifted generator `u + delta` has source `a`. -/
 theorem shifted_generator_source (u delta g a : K)
     (hu : u ^ 2 + u = g) (hdelta : delta ^ 2 + delta = a + g) :
     (u + delta) ^ 2 + (u + delta) = a := by
-  rw [GoldDiagonal.artinSchreier_add, hu, hdelta]
+  rw [ArtinSchreier.add, hu, hdelta]
   calc
     g + (a + g) = a + (g + g) := by ac_rfl
     _ = a := by rw [CharTwo.add_self_eq_zero, add_zero]
@@ -80,62 +70,6 @@ theorem evalPair_shift (u delta : K) (p : K × K) :
   ring
 
 end ArtinSchreierShift
-
-section ArtinSchreierIrreducibility
-
-variable {K : Type*} [Field K] [CharP K 2]
-
-/-- The quadratic Artin--Schreier polynomial with source `a`. -/
-abbrev artinSchreierPoly (a : K) : K[X] := X ^ 2 + X + C a
-
-@[simp]
-theorem isRoot_artinSchreierPoly_iff (a x : K) :
-    (artinSchreierPoly a).IsRoot x ↔ x ^ 2 + x = a := by
-  rw [Polynomial.IsRoot.def]
-  simp only [artinSchreierPoly, eval_add, eval_pow, eval_X, eval_C]
-  rw [add_eq_zero_iff_eq_neg, CharTwo.neg_eq]
-
-omit [CharP K 2] in
-@[simp]
-theorem natDegree_artinSchreierPoly (a : K) :
-    (artinSchreierPoly a).natDegree = 2 := by
-  simpa [artinSchreierPoly] using
-    (natDegree_quadratic (a := (1 : K)) (b := 1) (c := a) one_ne_zero)
-
-omit [CharP K 2] in
-theorem monic_artinSchreierPoly (a : K) :
-    (artinSchreierPoly a).Monic := by
-  have h := Polynomial.isMonicOfDegree_add_add_two (R := K) (1 : K) a
-  simpa [artinSchreierPoly] using h.monic
-
-/-- Over a finite characteristic-two field, `X² + X + a` is irreducible
-exactly when `a` has absolute trace one. -/
-theorem artinSchreierPoly_irreducible_iff_trace_eq_one
-    [Finite K] [Algebra (ZMod 2) K] (a : K) :
-    Irreducible (artinSchreierPoly a) ↔
-      Algebra.trace (ZMod 2) K a = 1 := by
-  have hp0 : artinSchreierPoly a ≠ 0 :=
-    (monic_artinSchreierPoly a).ne_zero
-  rw [Polynomial.irreducible_iff_roots_eq_zero_of_degree_le_three
-    (p := artinSchreierPoly a)
-    (by rw [natDegree_artinSchreierPoly])
-    (by rw [natDegree_artinSchreierPoly]; omega)]
-  rw [Multiset.eq_zero_iff_forall_notMem]
-  simp only [Polynomial.mem_roots hp0, isRoot_artinSchreierPoly_iff]
-  constructor
-  · intro hnoroot
-    apply zmod2_eq_one_of_ne_zero
-    intro hzero
-    obtain ⟨w, hw⟩ :=
-      (GoldDiagonal.trace_eq_zero_iff_exists_artinSchreier (K := K)).mp hzero
-    exact hnoroot w hw
-  · intro hone w hw
-    have hzero : Algebra.trace (ZMod 2) K a = 0 :=
-      (GoldDiagonal.trace_eq_zero_iff_exists_artinSchreier (K := K)).mpr ⟨w, hw⟩
-    rw [hone] at hzero
-    exact one_ne_zero hzero
-
-end ArtinSchreierIrreducibility
 
 section TraceCarry
 

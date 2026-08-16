@@ -9255,15 +9255,6 @@ section RelativeTraceAxes
 
 variable {K : Type*} [Field K] [CharP K 2]
 
-/-- Additivity of the Artin--Schreier map in characteristic two.  This is
-the algebraic identity behind the centered relative-trace collision in the
-singleton-even arm. -/
-theorem artinSchreier_add (x y : K) :
-    (x ^ 2 + x) + (y ^ 2 + y) = (x + y) ^ 2 + (x + y) := by
-  have h2 : (2 : K) = 0 := CharP.cast_eq_zero K 2
-  ring_nf
-  simp [h2]
-
 omit [CharP K 2] in
 /-- Centering two transported torus points turns their additive collision
 coordinate into the Mobius coordinate of their ratio. -/

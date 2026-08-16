@@ -23,8 +23,6 @@ namespace Ogdoad.GoldExtraspecialTrace
 
 open Ogdoad.GoldExtraspecial
 
-abbrev F2 := ZMod 2
-
 variable {K : Type*} [Field K] [Finite K] [CharP K 2]
   [Algebra F2 K] [FiniteDimensional F2 K]
 
@@ -88,7 +86,6 @@ theorem goldQuadratic_add (a : ℕ) (c x y : K) :
     goldQuadratic a c (x + y) =
       goldQuadratic a c x + goldQuadratic a c y + goldPolar a c x y := by
   rw [← goldHalfPolar_diagonal]
-  change goldHalfPolar a c (x + y) (x + y) = _
   simp only [map_add, AddMonoidHom.add_apply]
   rw [goldHalfPolar_diagonal, goldHalfPolar_diagonal]
   have hsymm := goldHalfPolar_symmetrization a c x y

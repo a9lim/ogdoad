@@ -15,8 +15,6 @@ open scoped BigOperators
 
 namespace Ogdoad.GoldMatching
 
-abbrev F2 := ZMod 2
-
 variable {M : Type*} [AddCommGroup M] [Module F2 M]
 
 /-- A quadratic map is additive on a finite orthogonal family. -/
@@ -52,12 +50,12 @@ theorem quadratic_hyperbolic_plane
   have ha : a * a = a := by
     by_cases ha0 : a = 0
     · simp [ha0]
-    · have ha1 : a = 1 := Ogdoad.Fifo.zmod2_eq_one_of_ne_zero a ha0
+    · have ha1 : a = 1 := Ogdoad.zmod2_eq_one_of_ne_zero a ha0
       simp [ha1]
   have hb : b * b = b := by
     by_cases hb0 : b = 0
     · simp [hb0]
-    · have hb1 : b = 1 := Ogdoad.Fifo.zmod2_eq_one_of_ne_zero b hb0
+    · have hb1 : b = 1 := Ogdoad.zmod2_eq_one_of_ne_zero b hb0
       simp [hb1]
   rw [QuadraticMap.map_add Q, QuadraticMap.map_smul,
     QuadraticMap.map_smul, QuadraticMap.polar_smul_left,
