@@ -97,3 +97,4 @@ import Ogdoad.BrownSelectorPGame
 import Ogdoad.GoldDiagonal
 import Ogdoad.GoldExtraspecial
 import Ogdoad.GoldExtraspecialTrace
+import Ogdoad.WittRealizationExact
