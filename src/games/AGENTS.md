@@ -60,6 +60,10 @@ ring element.
   matching frame.
 - General isolated-dummy FIFO linking remains open. Bounded graph censuses are
   evidence only.
+- Abstract finite misère-quotient realization is characterized by valid
+  transition tables. The open front is realization by natural heap rulesets,
+  especially finite-code octal games, plus the exact quotient of misère
+  Grundy's game. Bounded test signatures are evidence only.
 - The intrinsic Brown selector is one partizan game, not a synchronized product
   or terminal relabeling.
 - Thermography and valued-field Newton polygons share tropical algebra but do
