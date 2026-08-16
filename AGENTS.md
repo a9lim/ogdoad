@@ -74,7 +74,8 @@ Use four levels:
 - **implemented and tested:** a property exercised by Rust/Python tests or an
   exact certificate;
 - **proved here:** a paper theorem, with the Lean boundary stated separately;
-- **open:** an explicit conjecture in `docs/OPEN.md`.
+- **open:** an explicit conjecture or constructive/classification problem in
+  `docs/OPEN.md`.
 
 Do not upgrade a finite census, source-pinned table, experimental script, or
 Lean definition of a proposition into a universal theorem.
@@ -82,7 +83,12 @@ Lean definition of a proposition into a universal theorem.
 The current open fronts are exactly:
 
 - arbitrary-graph isolated-dummy FIFO linking;
-- the universal `0/1/4` transfinite nim-excess rule.
+- the universal `0/1/4` transfinite nim-excess rule, including its selected
+  nim-reciprocity program;
+- quasi-linear multiplication in canonical finite-nimber coordinates;
+- game-valued Witt realization over `F_2(t)`;
+- stable quadratic-form invariants over the supertropical and Hessenberg
+  semirings.
 
 In particular, the Gold--Arf construction uses the proved
 matching-plus-isolates theorem and does not depend on general FIFO linking.

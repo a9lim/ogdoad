@@ -49,18 +49,15 @@ The crate remains unpublished until step 3 is complete.
 
 ## Research directions
 
-Longer-horizon mathematical programs. No entry here is a sharp statement; each
-names its first concrete target. An entry graduates when it yields a precise
-conjecture with a proved reduction — that statement then moves to `OPEN.md`,
-with the front list in `AGENTS.md` updated in the same commit.
+Longer-horizon mathematical programs. No entry here is yet sharp enough for
+the live research docket; each names its first concrete target. An entry
+graduates when it has a precise conjecture, construction problem, or
+classification target with an auditable completion criterion. It then moves to
+`OPEN.md`, with the front list in `AGENTS.md` updated in the same commit.
 
 | direction | first concrete target |
 | --- | --- |
-| nim reciprocity | an explicit Frobenius action in Conway-tower coordinates; success would evaluate the marked coordinates of `OPEN.md` §2 uniformly along ancestry and subsume all four selected-order arms |
-| fast nimber multiplication | essentially-linear multiplication in nim coordinates on the Fermat tower, or a documented barrier; either outcome feeds the `scalar` backends directly |
 | lexicode residuals | sharpen one of: asymptotic goodness of lexicodes; greedy reachability of a rootless rank-24 endpoint (the current constructor terminates at a root-full even unimodular lattice); the exact field-linearity boundary for nim-alphabet lexicodes |
-| Witt realization over imperfect fields | extend the Gold--Arf realization pattern from finite nimber fields (perfect) to `F_2(t)`, where bilinear and quadratic classification diverge and the `Metric` `q`/`b` split carries independent content |
-| semiring forms | a bilinear/quadratic layer over the `Semiring` siblings: supertropical forms (Izhakian--Knebusch--Rowen) on the idempotent side, the Hessenberg ordinal semiring on the other; motivated by the thermic-regrading obstruction — the thermic structure is not a ring, so ring-based Witt theory cannot see it. The Clifford scalar-ring boundary is untouched |
 | misère realization | which finite commutative monoids occur as indistinguishability quotients; the bounded machinery in `games::misere` turns quotient censuses into conjecture material, with misère Grundy's game the canonical wild target |
 | ko thermography | a machine-checked thermograph for loopy games with kos, validated against the known generalized-thermography examples, then its tropical structure; the linking arena's one-step ko is the in-house test case |
 
