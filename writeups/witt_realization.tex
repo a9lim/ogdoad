@@ -22,7 +22,7 @@
 \newcommand{\rad}{\operatorname{rad}}
 
 \title{Quadratic Witt Classes over $\F_2(t)$:\\
-Ramified Residue Coordinates and Impartial Realization Boundaries}
+Residue Coordinates, Ramification, and Impartial Realization}
 \author{GPT 5.6 Sol \and a9lim}
 \date{}
 
@@ -30,69 +30,75 @@ Ramified Residue Coordinates and Impartial Realization Boundaries}
 \maketitle
 
 \begin{abstract}
-The quadratic Witt group of the imperfect field $K=\F_2(t)$ carries wild
-local information absent from the finite-field Arf classification.  Using the
-characteristic-two Milnor--Scharlau sequence of Aravire and Jacob, we prove
-that a class is determined canonically by its unramified coordinate at
-infinity together with all second residues.  At a place $v$, the second
-residue consists of a finite odd-pole expansion over the residue field and one
-ramified Arf bit.  We prove directly that every nonzero finite-field Scharlau
-transfer preserves the Arf generator.  Consequently the single global
-relation is the parity of the ramified bits.
+Let $K=\F_2(t)$.  Its quadratic Witt group contains wild local data that is
+invisible to the one-bit Arf classification over finite fields.  Starting from
+the characteristic-two Milnor--Scharlau sequence of Aravire and Jacob, we give
+a canonical global coordinate theorem: a nonsingular Witt class is determined
+by its unramified coordinate at infinity, its finite odd-pole residues, and
+its ramified Arf bits, subject only to one parity relation.  The key transfer
+calculation is proved directly from trace duality.
 
-Finite-field trace characters turn every wild coefficient into a basis-free
-finite family of binary observations.  Sending zero to the zero game and one
-to $*$ gives a faithful, orthogonal-sum-additive family of impartial
-normal-play values for every nonsingular Witt class.  We derive the full
-finite triangular coordinate transformation under a ramified extension
-$\pi=u\varpi^e$, including its trace-character adjoint.
+These coordinates admit a faithful additive normal-play realization.  Each
+residue-field coefficient is observed by all trace characters, and each
+resulting bit is represented by the literal impartial values $0$ and $*$.
+Every class therefore emits a finite sparse labelled family, orthogonal sum
+becomes coordinatewise disjunctive sum, and equality of outcome families is
+exactly Witt equivalence.  We also compute the finite triangular coordinate
+law for ramified scalar extension $\pi=u\varpi^e$ and its adjoint action on
+trace labels.
 
-The stronger request for one fixed finite refinement-independent local-access
-family is impossible already for binary planes: the refinements
-$[1,P^{-1}]$, with $P$ irreducible, have one fixed polar form and infinitely
-many distinct place coordinates.  Thus a finite sparse family must either
-select its labels from the refinement, becoming a transducer, or be replaced
-by an infinite on-demand family.  Finally, no additive impartial invariant
-can extend faithfully to arbitrary singular quadratic spaces: the quasilinear
-relation
-$\langle c\rangle\perp\langle c\rangle\cong
-\langle c\rangle\perp\langle0\rangle$ forces cancellation of the radical
-coefficient.
+Two sharp boundaries complete the result.  No fixed finite family can be
+faithful on all refinements of even one binary polar space, and no additive
+map to a cancellative game-value monoid can retain arbitrary quasilinear
+radical data.  The Lean development constructs the complete presented
+coordinate-to-game compiler and checks the transfer, ramification, finiteness,
+and singular-isometry cores; the cited Aravire--Jacob classification is the
+single external bridge to $W_q(\F_2(t))$.
 \end{abstract}
 
 \section{Introduction}
 
-Over a finite field of characteristic two, the quadratic Witt group is
-classified by one Arf bit \cite{arf1941,elmankarpenkomerkurjev2008}.  This
-finite situation admits an exact normal-play interpretation: after restriction
-of scalars to $\F_2$, a binary quadratic refinement can be compiled into an
-impartial arena whose losing loadings are its zero set \cite{ogdoad2026}.
-Neither statement extends naively to $K=\F_2(t)$.  The field is imperfect, and
-odd negative Laurent powers survive Artin--Schreier reduction at every place.
-The resulting wild terms are genuine Witt coordinates, not implementation
-noise.
+Over a finite field of characteristic two, a nonsingular quadratic Witt class
+is controlled by one Arf bit \cite{arf1941,elmankarpenkomerkurjev2008}.  That
+bit has an immediate impartial interpretation: $0$ is a previous-player win,
+$*=\{0\mid0\}$ is a next-player win, and disjunctive sum is xor
+\cite{conway1976}.  It is tempting to expect the same one-bit picture over the
+rational function field $\F_2(t)$.  The obstruction is not game-theoretic.
+It is arithmetic: $\F_2(t)$ is imperfect, and odd negative Laurent powers
+survive Artin--Schreier reduction at every place.
 
-Aravire and Jacob construct characteristic-two second residues and transfers
-and prove the exact sequence \cite[Theorem~6.2]{aravirejacob2006}
+The correct realization problem is therefore a coordinate problem.  One must
+first identify the global Witt class from its local data, then turn every
+local coefficient into invariant binary observations, and only then attach
+games.  This order separates a genuine additive realization from the Boolean
+serialization of one chosen formula for a quadratic form.
+
+The arithmetic input is the characteristic-two Milnor--Scharlau sequence of
+Aravire and Jacob \cite[Theorem~6.2]{aravirejacob2006}:
 \[
 0\longrightarrow W_q(\F_2)\longrightarrow W_q(K)
  \xrightarrow{\oplus_v\partial_v}
  \bigoplus_v W_1(K_v)
  \xrightarrow{\oplus_v s_v^*}W_q(\F_2)\longrightarrow0.
 \]
-The notation is important: $W_1(K_v)$ is a quotient of the Witt group of the
-completion, not the Witt group of its residue field.  Its wild summand is
-infinite-dimensional, although every individual residue has finite support.
+Here $W_1(K_v)$ is a quotient of the Witt group of the completion, not the
+Witt group of the residue field.  Its wild summand is infinite-dimensional,
+but every individual class has finite place and pole support.  We show that
+the endpoint transfer reads only the ramified Arf bit.  The infinite place
+then supplies a canonical retraction of the constant-field inclusion, giving
+an explicit global splitting rather than an abstract choice of basis.
 
-This paper extracts the exact normal-play consequence of that sequence,
-computes ramified scalar extension on the resulting coordinates, and settles
-two stronger requests negatively: a fixed finite local-access family cannot
-cover the full refinement torsor, and arbitrary quasilinear radical data
-cannot survive an additive game law.
+The realization built from this splitting is deliberately sparse.  Its label
+universe is infinite because the set of places and pole orders is infinite;
+the family emitted by any one class is finite.  This distinction leads to the
+first optimality theorem: finite per instance is possible, while one fixed
+finite directory for all refinements is not.  A second, independent
+obstruction appears for singular forms, whose orthogonal-sum monoid is already
+noncancellative in dimension one.
 
 \begin{thmA}
-Fix $K=\F_2(t)$ and the canonical uniformizers $p(t)$ at finite places and
-$t^{-1}$ at infinity.
+Fix $K=\F_2(t)$, use the monic irreducible polynomial $p(t)$ as uniformizer at
+the finite place $p$, and use $t^{-1}$ at infinity.
 \begin{enumerate}
 \item There is a canonical additive isomorphism
 \[
@@ -101,13 +107,16 @@ W_q(K)\cong
 \left\{((\psi_v,\epsilon_v))_v:
   \text{finite support and }\sum_v\epsilon_v=0\right\},
 \]
-where $\psi_v$ is the wild odd-pole residue and $\epsilon_v$ the ramified Arf
-bit.
-\item These coordinates have a finite, basis-free, faithful realization by
-the impartial values $0$ and $*$, additive under orthogonal sum.
+where $\psi_v$ is a finite odd-pole residue over $\kappa_v$ and
+$\epsilon_v$ is the ramified Arf bit.
+\item Trace characters give a basis-free finite sparse compiler into labelled
+copies of the impartial values $0$ and $*$.  It is additive under orthogonal
+sum, and two compiled outcome families agree exactly when their source classes
+are Witt equivalent.
 \item Under $k((\pi))\hookrightarrow\ell((\varpi))$ with
 $\pi=u\varpi^e$, restriction is an explicit finite triangular transformation
-of the odd-pole coefficients, functorial in towers and adjoint on trace labels.
+of the odd-pole coefficients.  It is functorial in towers and has an explicit
+contravariant adjoint on trace labels.
 \item No fixed finite refinement-independent P/N family is faithful on all
 refinements of even one nonsingular binary polar space.  Likewise, no
 isometry-invariant orthogonal-sum homomorphism into a cancellative game-value
@@ -115,11 +124,16 @@ monoid can distinguish every quasilinear radical restriction.
 \end{enumerate}
 \end{thmA}
 
-The first item uses the cited Milnor--Scharlau exact sequence.  The
-finite-field transfer calculation, coordinate splitting, game realization,
-ramified transformation, and both impossibility theorems are proved here.
+The exact sequence and local decomposition are cited inputs.  The
+finite-field transfer calculation, canonical splitting, trace-bit compiler,
+ramified coordinate transformation, and both optimality theorems are proved
+here.  The formalization follows the same boundary: it treats the cited
+classification as one explicit equivalence and constructs every subsequent
+map and game internally.
 
-\section{Local characteristic-two coordinates}
+\section{Local residues and global reciprocity}
+
+\subsection{The local normal form}
 
 Let $v$ range over the monic irreducible polynomials
 $p\in\F_2[t]$ and the infinite place.  Define
@@ -165,10 +179,12 @@ Only finitely many places occur for one global class, and each $\psi_v$ is a
 finite sum.  The uniformizer is part of this description: changing it changes
 the displayed odd-pole coordinates even when the underlying class is fixed.
 
-\section{Finite-field Scharlau transfer}
+\subsection{The endpoint transfer}
 
-We now identify the final map in the global sequence.  The proof uses only
-the nondegenerate trace pairing of a finite field extension
+The local decomposition has many wild coordinates, but the final arrow in the
+global exact sequence is much simpler.  Its identification is the step that
+turns reciprocity into one parity equation.  The proof uses only the
+nondegenerate trace pairing of a finite-field extension
 \cite{lidlniederreiter1997}.
 
 \begin{lemma}[Transfer preserves the Arf generator]\label{lem:transfer}
@@ -222,11 +238,11 @@ s_v^*(\psi_v,\phi_{1,v})=\phi_{1,v}.
 Thus wild coefficients are locally essential but globally unconstrained; the
 only reciprocity relation is parity of the ramified bits.
 
-\section{Canonical global coordinates}
+\subsection{The canonical global splitting}
 
-The exact sequence determines classes modulo constants.  A distinguished
-unramified local coordinate supplies the missing constant without choosing a
-vector-space basis.
+The residue tuple determines a global class only modulo the constant-field
+image.  The unramified coordinate at the fixed infinite place supplies the
+missing coordinate canonically; no vector-space complement is chosen.
 
 \begin{theorem}[Infinity plus second residues]\label{thm:coordinates}
 Define
@@ -274,11 +290,12 @@ the fixed infinite place is an explicit retraction, so no basis extension or
 choice of residue lifts appears in $\Theta$.
 \end{remark}
 
-\section{A finite impartial realization}
+\section{The sparse impartial compiler}
 
-The wild coefficient $c_{v,n}\in\kappa_v$ is not itself a bit.  Expanding it
-in a power basis would be finite but would introduce a coordinate choice.
-The trace pairing gives a redundant basis-free presentation instead.
+Theorem~\ref{thm:coordinates} reduces the realization problem to binary
+observation of finite-field coefficients.  A power-basis expansion would do
+this finitely but noncanonically.  Trace duality gives a redundant,
+basis-free replacement.
 
 \begin{definition}[Trace-bit presentation]
 For $z\in\kappa_v$, define
@@ -295,14 +312,16 @@ b_{v,\mathrm r}(\alpha)=\phi_{1,v}(\alpha).
 \end{definition}
 
 Each bit is additive in $\alpha$.  Nondegeneracy of the trace pairing says
-that $c_{v,n}=0$ exactly when every $b_{v,n,z}$ vanishes.  The complete bit
-family is faithful by Theorem~\ref{thm:coordinates}.  It also has finite
-support: one class has finitely many places and pole orders, and each
-$\kappa_v$ is finite.
+that $c_{v,n}=0$ exactly when every $b_{v,n,z}$ vanishes.  The complete
+labelled bit function is therefore faithful by
+Theorem~\ref{thm:coordinates}.  It is sparse: one class has finitely many
+active places and pole orders, and each residue field is finite, so only
+finitely many labels can carry a nonzero bit.
 
 Let $0$ denote the optionless impartial game and let $*=\{0\mid0\}$.  These
 are the nimbers $0$ and $1$, so $*+*=0$ under disjunctive sum
-\cite{conway1976}.
+\cite{conway1976}.  Equivalently, each bit is a literal empty-core arena whose
+terminal one-move tail is present exactly at charge one.
 
 \begin{theorem}[Sparse impartial compiler]\label{thm:compiler}
 For every nonsingular quadratic Witt class $\alpha$ over $\F_2(t)$, replace
@@ -326,16 +345,18 @@ every labelled bit proves the orthogonal-sum identity.  Theorem
 $W_q(K)$; the zero class consists precisely of hyperbolic forms.
 \end{proof}
 
-This construction is not the Boolean serialization of one displayed rational
-function.  Every bit is a homomorphism defined on the Witt group after passage
-through the exact residue sequence, so it is invariant under isometry and
-hyperbolic stabilization.  It is nevertheless a classifier-to-star compiler:
-the residue has been computed before the one-move game is emitted.
+The order of construction is essential.  Every emitted bit is a homomorphism
+on the Witt group, defined only after passage through the residue theorem; it
+is therefore invariant under isometry and hyperbolic stabilization.  The
+compiler does not claim to discover a residue by local play.  It computes the
+canonical class coordinates and realizes their values by games.  The precise
+cost of requiring a refinement-blind local arena is addressed in
+Section~\ref{sec:finite-obstruction}.
 
-\section{Ramified coordinate change}\label{sec:ramification}
+\section{Ramified scalar extension}\label{sec:ramification}
 
-We now compute the coordinate transformation that was left implicit in the
-classification-to-game compiler.  Let
+The compiler is functorial only after the coordinate law under scalar
+extension is known.  We now compute that law locally.  Let
 \[
 K=k((\pi))\hookrightarrow L=\ell((\varpi)),
 \qquad \pi=u\varpi^e,
@@ -348,6 +369,8 @@ u^{-n}=\sum_{r\ge0}b_{n,r}\varpi^r.
 \]
 Inverse Frobenius in the perfect field $\ell$ is denoted by $x\mapsto
 x^{2^{-s}}$.
+
+\subsection{Finite Artin--Schreier normalization}
 
 The elementary Artin--Schreier reduction is finite and triangular.  If
 $A=\sum_jA_j\varpi^j$ has finite principal part, then its canonical odd-pole
@@ -380,6 +403,8 @@ $\psi=\sum_{n>0\text{ odd}}c_n\pi^{-n}$, define
 \end{align*}
 All sums are finite, and $C_d=0$ for
 $d>e\max\operatorname{supp}(\psi)$.
+
+\subsection{The restriction law}
 
 \begin{theorem}[Ramified restriction law]\label{thm:ramified}
 In the local coordinates
@@ -434,6 +459,8 @@ transformation represent actual scalar restriction followed by the unique
 odd-pole normal form.  Uniqueness makes them equal.
 \end{proof}
 
+\subsection{Trace-label adjunction}
+
 The trace labels admit an explicit contravariant transformation.  For
 $\lambda\in\F_2$ and a finite family $z_d\in\ell$, set
 \[
@@ -452,7 +479,7 @@ Frobenius invariance and trace transitivity give
 Hence base change is a basis-free relabelling of the trace-bit games, and the
 adjoints compose contravariantly in towers.
 
-There is a necessary qualification concerning the word ``transfer.''  The
+There is one necessary qualification concerning the word ``transfer.''  The
 Aravire--Jacob endpoint map $W_1(K)\to W_q(k)$ kills the wild summand and reads
 the ramified bit.  Theorem~\ref{thm:ramified} therefore gives the usual
 ramification-weighted diagram
@@ -466,7 +493,16 @@ $\langle\pi\rangle$ multiple.  Thus a stronger transfer claim must specify a
 normalized functional; the endpoint diagram and trace-character adjunction
 above are the canonical statements.
 
-\section{The finite local-access obstruction}\label{sec:finite-obstruction}
+\section{Optimality and realization boundaries}
+
+The preceding construction is complete for nonsingular Witt classes, but it
+does not satisfy every stronger realization requirement one might impose.
+Three distinctions are forced by the algebra: finite support is not the same
+as a fixed finite label universe, Witt invariance is not pointwise evaluation,
+and the nonsingular Witt group is not the monoid of all singular quadratic
+spaces.  We make each boundary precise.
+
+\subsection{No fixed finite local-access family}\label{sec:finite-obstruction}
 
 The finite compiler of Theorem~\ref{thm:compiler} omits its zero coordinates
 after inspecting the class.  A strict Gold-style local realization would ask
@@ -504,13 +540,13 @@ is independent of how many diagonal queries a transition makes.
 \end{proof}
 
 The obstruction isolates the exact alternatives.  A family indexed by every
-place and pole label can keep refinement-independent boards, but it is
-infinite, although each class has finite nonzero support.  Selecting only that
-support produces a finite family, but the selection depends on the
-refinement and is therefore a sparse classifier or transducer.  Restricting
-the input to a fixed finite set of places and a bounded conductor also yields
-a finite static family.  These are coherent relaxations; none satisfies the
-literal conjunction ruled out by the theorem.
+place and pole label can keep refinement-independent boards, but its label
+universe is infinite, although each class has finite nonzero support.
+Selecting only that support gives the finite refinement-dependent sparse
+compiler of Theorem~\ref{thm:compiler}.  Restricting the input to a fixed
+finite set of places and a bounded conductor instead gives a finite static
+family.  These are coherent relaxations; none satisfies the literal
+conjunction ruled out by the theorem.
 
 For one requested coordinate, an on-demand local arena is available.  Choose
 a public symplectic frame $(u_i,v_i)$.  The class is the orthogonal sum of
@@ -529,7 +565,7 @@ suspension normalizes the value to exactly $0$ or $*$.  This uses two local
 diagonal queries per source transition, but it is an on-demand coordinate
 arena, not a fixed finite family covering every possible place.
 
-\section{The Gold--Arf boundary}
+\subsection{Pointwise realization versus Witt realization}
 
 The distinction between pointwise quadratic realization and Witt realization
 is structural, not merely an implementation choice.
@@ -557,7 +593,7 @@ coordinate of Theorem~\ref{thm:coordinates} retains.  Thus the compatible
 meaning of ``recover Gold--Arf'' is agreement of the Witt coordinate and
 outcome bias, not literal equality of all loaded boards.
 
-\section{A singular additive obstruction}
+\subsection{Singular forms and cancellation}
 
 The nonsingular Witt group is cancellative.  Arbitrary singular quadratic
 spaces form a different object: quasilinear directions already make their
@@ -599,63 +635,86 @@ orthogonal-sum additivity and classify only the cancellative quotient of the
 quasilinear monoid, or retain the full radical restriction in a separate
 nonadditive report.  Requiring both is inconsistent.
 
-\section{Formal verification and implementation boundary}
+\section{Formal verification and external boundary}\label{sec:formal}
 
-The Ogdoad Lean modules \texttt{WittRealizationExact} and
-\texttt{WittRamification} formalize the parts of the proof that do not require
-a quadratic Witt-group library \cite{ogdoad2026}.  Given linear maps fitting
-the exact-sequence hypotheses, the first proves:
-\begin{itemize}
-\item the residue image is exactly the transfer kernel;
-\item equal residues differ by a unique constant;
-\item an explicit constant detector gives the linear equivalence
-$W\simeq C\times\ker(\mathrm{transfer})$;
-\item $z\mapsto(\lambda\mapsto\Tr(\lambda z))$ is a basis-free injective
-finite-field presentation; and
-\item an absorption relation $a+a=a+z$ defeats every additive injection into
-a cancellative target.
-\end{itemize}
+The Lean development is imported by \texttt{formal/Ogdoad.lean} and contains
+no \texttt{sorry}, \texttt{admit}, or custom axiom declarations
+\cite{ogdoad2026}.  Its organization follows the proof rather than merely
+recording isolated lemmas.
 
-The second module represents a finite principal part by pole order and proves:
-\begin{itemize}
-\item an elementary Artin--Schreier move kills one even top pole and changes
-only a strictly lower order;
-\item descending normalization terminates, removes every bounded positive
-even pole, preserves the constant coefficient, and is triangular in pole
-order;
-\item every normalization is connected to its input by a finite chain of
-exact Artin--Schreier moves; and
-\item no map from an infinite class family to a fixed finite P/N outcome vector
-is injective.
-\end{itemize}
+The module \texttt{WittRealizationExact} proves the abstract exact-sequence
+algebra: the residue image is the transfer kernel, equal residues differ by a
+unique constant, and a constant detector gives the splitting
+$W\simeq C\times\ker(\mathrm{transfer})$.  The module
+\texttt{WittRealization} then defines the concrete presented coordinate space
+of Theorem~\ref{thm:coordinates}, including the parity-zero ramified data.  It
+constructs every constant, ramified, and trace-character observation; proves
+additivity, finite support, and faithfulness; realizes each bit by the literal
+empty-core $0/*$ arena; and proves the end-to-end equivalence
+\[
+ \text{all labelled P/N outcomes agree}
+ \quad\Longleftrightarrow\quad
+ \text{the presented classes are equal}.
+\]
+A single explicit classification equivalence transports this theorem to the
+actual quadratic Witt group.  The same module constructs the one-place spike
+family and proves the fixed-finite-outcome obstruction at the coordinate
+level.
 
-Lean does not formalize the Aravire--Jacob sequence, the local quadratic Witt
-groups, Lemma~\ref{lem:transfer}, the unit-series substitution in
-Theorem~\ref{thm:ramified}, or the infinitude of the rank-two family; those
-remain paper-level mathematics grounded in the cited exact sequence and
-finite-field theory.  The Rust local decomposition computes the triple
-$(\phi_0,\psi,\phi_1)$ with canonical uniformizers.  It does not yet expose the
-global coordinate theorem as a public Witt-class API or implement ramified
-coordinate transport.
+The arithmetic and boundary calculations are checked in four further
+modules.  \texttt{WittTransfer} proves that every nonzero finite-field linear
+functional is trace against a nonzero square, verifies the simultaneous plane
+change, and proves the trace-dual Arf sum of
+Lemma~\ref{lem:transfer}.  \texttt{WittRamification} proves termination,
+reachability, odd-pole normality, constant preservation, and triangularity of
+descending Artin--Schreier normalization.  On top of it,
+\texttt{WittRamifiedRestriction} performs the finite unit-jet substitution,
+proves the sharp support bound, preserves its new constant term through
+normalization, and identifies the trace contribution $\eta_{e,u}$.
+Finally, \texttt{WittSingularBoundary} constructs the actual shear isometry
+$L_c\perp L_c\cong L_c\perp Z$ used in
+Theorem~\ref{thm:singular}.
+
+The remaining boundary is narrow and explicit.  Mathlib has no
+characteristic-two quadratic Witt-group API, so Lean does not construct
+$W_q(\F_2(t))$ or prove the cited Aravire--Jacob exact sequence and local
+decomposition.  Their identification with the concrete presented coordinate
+space is supplied through the one classification equivalence above.  For the
+ramified theorem, Lean checks the complete finite substitution and
+normalization algorithm, but identifying the supplied unit jet with an actual
+power-series unit and transporting the unramified and ramified quadratic
+generators remain local-field mathematics in the paper.  Likewise, the
+coordinate one-place spikes are checked internally, while their realization
+by the planes $[1,P^{-1}]$ and the infinitude of monic irreducibles are the
+standard global-field bridge used in the proof of the obstruction.
+
+The Rust implementation computes the local triple
+$(\phi_0,\psi,\phi_1)$ with canonical uniformizers for a supplied place.  It
+does not yet expose the global coordinate theorem as a public Witt-class API
+or implement the ramified coordinate transport of
+Theorem~\ref{thm:ramified}.
 
 \section{Conclusion}
 
 The nonsingular realization problem has a complete classification answer.
-The infinite unramified coordinate and all second residues give canonical
-coordinates for $W_q(\F_2(t))$.  Finite trace characters present the wild
-odd-pole terms basis-freely, and the games $0$ and $*$ realize the resulting
-finite-support bit vector exactly.  Reciprocity is one parity equation on the
-ramified Arf bits.  Under ramified scalar extension, the unit jet and finite
-inverse-Frobenius recurrence give the exact triangular coordinate law.
+The unramified coordinate at infinity and all second residues give canonical
+coordinates for $W_q(\F_2(t))$.  Finite-field trace characters present the
+wild odd-pole terms basis-freely, and the games $0$ and $*$ realize the
+resulting finite-support bit vector exactly.  Reciprocity is one parity
+equation on the ramified Arf bits.  Under ramified scalar extension, the unit
+jet and finite inverse-Frobenius recurrence give the exact triangular
+coordinate law and its contravariant action on labels.
 
 The stricter finite local-access request fails for a simpler reason: one fixed
 binary polar form supports infinitely many Witt-distinct place refinements,
 so no fixed finite P/N directory can be faithful.  An infinite on-demand
-coordinate family, a refinement-dependent sparse transducer, or a bounded
+coordinate family, the sparse compiler constructed here, or a bounded
 place-and-conductor stratum is coherent, but the original conjunction is not.
 Beyond the nonsingular group, the quasilinear absorption relation separately
-rules out the additive singular extension.  Both obstructions are algebraic
-and precede any choice of game rules.
+rules out a faithful additive singular extension.  Thus the coordinate
+theorem, its game realization, and its two limitations form one exact picture:
+the sparse nonsingular compiler is both faithful and as finite as the
+arithmetic permits.
 
 \small
 \bibliographystyle{plain}

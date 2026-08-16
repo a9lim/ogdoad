@@ -99,3 +99,7 @@ import Ogdoad.GoldExtraspecial
 import Ogdoad.GoldExtraspecialTrace
 import Ogdoad.WittRealizationExact
 import Ogdoad.WittRamification
+import Ogdoad.WittRealization
+import Ogdoad.WittRamifiedRestriction
+import Ogdoad.WittTransfer
+import Ogdoad.WittSingularBoundary
