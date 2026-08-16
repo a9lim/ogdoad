@@ -27,8 +27,8 @@
 \newcommand{\rank}{\operatorname{rank}}
 \newcommand{\Span}{\operatorname{span}}
 
-\title{Stable Quadratic Pairs over Unique-Base Semirings:\\
-Hessenberg Collapse, Supertropical Blocks, and a Wall Obstruction}
+\title{Quadratic Stability without Subtraction:\\
+Unique-Base Semirings, Scalar Extension, and Thermograph Walls}
 \author{GPT 5.6 Sol \and a9lim}
 \date{}
 
@@ -36,47 +36,47 @@ Hessenberg Collapse, Supertropical Blocks, and a Wall Obstruction}
 \maketitle
 
 \begin{abstract}
-We construct a stable theory of finite free quadratic pairs over semirings
-whose free modules have unique bases.  Such a pair is a finite weighted graph:
-vertices carry the quadratic and companion-diagonal coefficients, edges carry
-the off-diagonal companion coefficients, monomial basis changes act by a unit
-gauge, and orthogonal sum is disjoint union.  The isometry monoid is therefore
-free commutative on connected gauge-orbit types.  Regular pairs split into
-rank-one loops and rank-two edges; basic metabolic stabilization deletes
-exactly the metabolic edge generators.
+Over a semiring, polarization, cancellation, and group completion are distinct
+operations.  We separate them by working with finite free quadratic pairs
+$(q,b)$ over semirings with unique bases.  The pair is encoded by a weighted
+coefficient graph, monomial basis change acts by a unit gauge, and orthogonal
+sum is disjoint union.  Consequently the isometry monoid is free commutative
+on connected gauge-orbit types.  Regular pairs split into rank-one loops and
+rank-two edges, and basic metabolic stabilization deletes exactly the
+metabolic edge generators.
 
 For the closed Hessenberg fragment
 \(\Hess_d=\{\alpha<\omega^{\omega^d}\}\), natural sum and product identify
 \(\Hess_d\) with \(\Nat[x_0,\ldots,x_{d-1}]\).  Its only unit is one and
 additive cancellation makes the companion unique and balanced.  Every regular
 pair is consequently a sum of copies of one hyperbolic plane, so the regular
-Witt group is zero.  The all-pairs stable monoid remains nontrivial: it is
-free on all
-connected weighted graphs except the hyperbolic edge, and has an exact finite
-decision procedure.
+Witt group is zero.  The all-pairs stable monoid nevertheless remains free on
+every connected weighted-graph type except the hyperbolic edge and has an
+exact finite decision procedure.
 
 For the standard rational tangible supertropical cover we give the analogous
 gauge-orbit presentation, the complete rank-two companion ambiguity, and the
 regular metabolic generators.  Coefficientwise supertropicalization is
-functorial only for based forms.  We compute the universal further collapse:
-for every field of characteristic different from two and every rational
-tangible supervaluation, the basis-independent ring-image quotient is exactly
-\(\mathbb Z/2\), detected by rank parity, for both the canonical balanced and
-polar-companion lifts.  No other classical Witt datum survives.
+functorial only for based forms.  For every field of characteristic different
+from two and every rational tangible supervaluation, the universal
+basis-independent ring-image quotient is exactly \(\mathbb Z/2\), detected by
+rank parity, for both the canonical balanced and polar-companion lifts.
 
-Finally, completing thermograph walls by one global tropical zero produces
-honest max-plus and min-plus coefficient semifields.  Each wall pair defines a
-regular rank-one quadratic pair classified exactly by its wall gap.  The hot
-switch \(\{1\mid-1\}\) is self-negative but has nonzero gap, proving that the
-resulting stable wall class cannot be additive under disjunctive sum.
+Finally, the same framework tests a proposed game-valued application.
+Completing thermograph walls by one global tropical zero produces honest
+max-plus and min-plus coefficient semifields, and each wall pair defines a
+regular rank-one quadratic pair classified by its gap.  The self-negative hot
+switch \(\{1\mid-1\}\) has nonzero gap, so this stable wall class cannot be
+additive under disjunctive sum.
 \end{abstract}
 
 \section{Introduction}
 
-Over a ring, subtraction hides three different operations in the usual Witt
-construction: recovery of the polar form from the quadratic form, orthogonal
-cancellation, and passage from a monoid to a group.  None is automatic over a
-semiring.  The correct first object is therefore a quadratic pair \((q,b)\),
+Classical Witt theory uses subtraction at several logically different points:
+to recover a polar form from a quadratic form, to cancel orthogonal summands,
+and to pass from isometry classes to a group.  None of these moves is automatic
+over a semiring.  The correct first object is therefore a quadratic pair
+\((q,b)\),
 where
 \[
  q(ax)=a^2q(x),\qquad
@@ -86,13 +86,22 @@ and \(b\) is a specified symmetric bilinear companion
 \cite{ikr2016qf1}.  Isometries in this paper preserve both entries of the
 pair.
 
-The unique-base theorem of Izhakian, Knebusch, and Rowen is the organizing
-input: if the nonzero elements of a semiring are closed under addition and
+The organizing input is the unique-base theorem of Izhakian, Knebusch, and
+Rowen: if the nonzero elements of a semiring are closed under addition and
 multiplication, every basis of a free module differs from every other by a
 permutation and multiplication by scalar units
-\cite[Theorem~1.3]{ikr2016uniquebase}.  This replaces matrix reduction by
-finite graph theory.  It also makes clear why the regular theory and the
-singular envelope behave differently.
+\cite[Theorem~1.3]{ikr2016uniquebase}.  Matrix reduction is thereby replaced
+by finite graph theory.  Connected components control orthogonal
+decomposition, while invertible Gram matrices reduce to involutions of the
+unique basis.  This one mechanism governs both the regular theory and its much
+larger singular envelope.
+
+We use that mechanism to answer one question in three coefficient worlds:
+what does stable quadratic structure retain when subtraction is unavailable?
+Hessenberg natural arithmetic gives a rigid, cancellative example;
+supertropical arithmetic adds nonunique companions and a meaningful
+scalar-extension problem; thermograph walls test whether the resulting stable
+classes can carry addition from the Conway game group.
 
 The main conclusions are as follows.
 
@@ -121,17 +130,28 @@ gap, but it cannot be additive in the Conway game group.
 \end{enumerate}
 \end{thmA}
 
-The Hessenberg arm is a complete classification and collapse theorem.  The
-supertropical block theorem and the universal classical ring-image quotient
-are complete for the stated coefficient cover.  The wall theorem is a no-go
-theorem for the natural max/min construction, not a claim that every possible
-synchronized cross-quotient is impossible.
+The proof has a single spine.  Section~\ref{sec:graphs} constructs the graph
+presentation and stable quotient for an arbitrary unique-base semiring.
+Sections~\ref{sec:hessenberg} and~\ref{sec:supertropical} specialize it to
+Hessenberg and rational supertropical coefficients.
+Section~\ref{sec:walls} applies the same rank-one classification to
+thermograph walls.  Section~\ref{sec:formal} states exactly which joins are
+kernel-checked and which remain cited or paper-level mathematics.
 
-\section{The unique-base stable monoid}
+The Hessenberg result is a complete classification and collapse theorem.  The
+supertropical block theorem and universal classical ring-image quotient are
+complete for the stated rational tangible cover.  The wall result is a no-go
+theorem for the natural max/min construction; it does not rule out every
+possible synchronized quotient that deliberately kills the exhibited gap
+class.
+
+\section{Quadratic pairs over unique-base semirings}\label{sec:graphs}
 
 Let \(R\) be a commutative semiring such that \(R\setminus\{0\}\) is closed
 under addition and multiplication.  Let \(V=R^n\) with basis
 \(E=(e_1,\ldots,e_n)\), and let \(P=(V,q,b)\) be a quadratic pair.
+
+\subsection{Coefficient graphs and cancellation}
 
 \begin{definition}[Coefficient graph]\label{def:graph}
 The coefficient graph \(G_E(P)\) has vertex set \(\{1,\ldots,n\}\).  Vertex
@@ -194,6 +214,8 @@ of the component and cancellation theory in
 Write \(b^\flat:V\to V^*=\operatorname{Hom}_R(V,R)\) for
 \(b^\flat(x)=b(x,-)\).
 
+\subsection{Regular blocks and stabilization}
+
 \begin{definition}[Regular, split, and metabolic]\label{def:stable}
 A pair is \emph{regular} if \(b^\flat\) is an isomorphism.  A submodule is
 \emph{basic} if it is spanned by a subset of the unique basis.  A regular pair
@@ -252,11 +274,13 @@ decidable: decompose the graph, canonically compare the finitely many gauge
 orbits, delete the metabolic connected edge types, and sort the remaining
 multiset.
 
-\section{The Hessenberg arm}
+\section{Hessenberg natural arithmetic}\label{sec:hessenberg}
 
 Let \(\#\) and \(\otimes\) denote Hessenberg natural sum and product.  Their
 Cantor-normal-form definitions add coefficients and formally multiply
 monomials, using natural sum on the exponents \cite{carruth1942}.
+
+\subsection{Polynomial coordinates and companion rigidity}
 
 \begin{definition}[Closed finite-CNF fragment]
 For \(d\in\Nat\), put
@@ -313,6 +337,8 @@ Thus a rank-two pair has the unique form
  Q(a,c,d)(x,y)=ax^2+cxy+dy^2,\qquad
  b=\begin{pmatrix}2a&c\\c&2d\end{pmatrix}.
 \]
+
+\subsection{Regular collapse and the singular envelope}
 
 \begin{proposition}[Rank two]\label{prop:hessranktwo}
 The isometry class of \(Q(a,c,d)\) is the orbit of \((a,c,d)\) under
@@ -390,7 +416,9 @@ There is a useful warning about definitions.  If regularity is omitted and
 Such a definition would erase singular edge weights for an accidental
 semiring reason, so regularity or perfect cross-pairing is indispensable.
 
-\section{The rational supertropical arm}
+\section{Rational supertropical quadratic pairs}\label{sec:supertropical}
+
+\subsection{Intrinsic blocks and companion ambiguity}
 
 Let \(U_{\Rationals}\) be the standard tangible max-plus supertropical cover
 \[
@@ -416,8 +444,8 @@ admissible coefficient graphs modulo
  (u_i^2a_{\pi(i)},u_i^2d_{\pi(i)},u_iu_jc_{\pi(i)\pi(j)}).
 \]
 Every regular pair is an orthogonal sum of loop blocks \(A(a,d)\) and edge
-blocks \(H(a_1,a_2;c)\) from Theorem~\ref{thm:blocks}.  Its stable group is
-free abelian on all connected types except the edge types
+blocks \(H(a_1,a_2;c)\) from Theorem~\ref{thm:blocks}.  The all-pairs stable
+group is free abelian on all connected types except the edge types
 \[
  H(0,a;c),\qquad H(a,0;c),\qquad c\in U_{\Rationals}^\times,
 \]
@@ -656,7 +684,9 @@ does not vanish.  Symplectic decomposition proves the assertion in every
 rank.
 \end{proof}
 
-\section{Thermograph walls}
+\section{Thermograph walls and additivity}\label{sec:walls}
+
+\subsection{Tropical completion and wall pairs}
 
 Let \(\Gamma\) be the additive group of continuous functions
 \(f:[0,\infty)\to\mathbb R\) that are piecewise affine with finitely many
@@ -713,6 +743,8 @@ and belong to \(\Gamma\) \cite{siegel2013}.  Thus they define \(Q(G)=
 Q(L_G,R_G)\), whose isometry class is exactly the gap \(D_G=L_G-R_G\).
 The dual min-plus construction records the same gap after negation.
 
+\subsection{The disjunctive-sum obstruction}
+
 In the stable group of Definition~\ref{def:stable}, distinct rank-one loop
 types survive freely: a basic metabolic regular object has only edge blocks by
 Theorem~\ref{thm:blocks}.  The necessary basepoint reduction is
@@ -749,7 +781,7 @@ thermograph assigns the same value to \(\uparrow\) and \(2\uparrow\).  The
 identity \(x=2x\) then cancels to \(x=0\).  Thus wall-only additivity kills the
 entire common infinitesimal wall class even before the hot-switch argument.
 
-\section{Formal boundary and implementation boundary}
+\section{Formal verification and implementation scope}\label{sec:formal}
 
 The Lean module \texttt{Ogdoad.SemiringQuadratic} \cite{ogdoad2026} checks:
 \begin{enumerate}
@@ -766,12 +798,13 @@ for \(\Hess_d\);
 \item that every two-sided invertible square matrix over that polynomial
 semiring is a permutation matrix;
 \item the end-to-end polynomial proxy theorem
-\texttt{hessenbergPolynomial\_}\linebreak
-\texttt{regular\_isometric\_}\linebreak
-\texttt{hyperbolic}: bijectivity of the
-companion adjoint implies even rank and produces an explicit coefficient
-calculation together with an actual linear isometry of quadratic pairs to a
-canonical orthogonal sum of hyperbolic planes; and
+\begin{center}
+\texttt{hessenbergPolynomial\_regular\_isometric\_hyperbolic},
+\end{center}
+which shows that bijectivity of the companion adjoint implies even rank and
+produces an explicit coefficient calculation together with an actual linear
+isometry of quadratic pairs to a canonical orthogonal sum of hyperbolic
+planes;
 \item that an additive invariant into a cancellative monoid vanishes on any
 observation identified with its double; and
 \item Mathlib's classical diagonalization under \(2\ne0\), together with an
@@ -801,23 +834,23 @@ finite-CNF natural-arithmetic type and the explicit one-point completions
 
 \section{Conclusion}
 
-Unique bases turn stable quadratic-pair theory into connected weighted graph
-theory.  In the Hessenberg fragments this gives both extremes at once: the
-regular Witt theory collapses completely, while the singular stable envelope
+Unique bases turn the absence of subtraction from an ambiguity into a
+classification tool: stable quadratic pairs become connected weighted graphs
+modulo a scalar gauge.  In the Hessenberg fragments this yields both extremes
+at once.  The regular Witt theory is zero, while the singular stable envelope
 is a large free invariant with a finite decision procedure.  Over the rational
-supertropical cover the same graph theorem gives exact blocks, companions,
-and metabolic relations.  Coefficientwise supervaluation freezes the chosen
-classical basis, but the universal quotient imposing all source basis changes
-is now explicit: for both standard companion lifts it is exactly rank parity
-in characteristic different from two.
+supertropical cover the same theorem gives exact blocks, companion ambiguity,
+and metabolic relations.  Coefficientwise supervaluation remembers a chosen
+classical basis, but after imposing all source basis changes the universal
+classical image is exactly rank parity in characteristic different from two.
 
-Thermograph walls do form honest rank-one quadratic pairs after the minimal
-tropical completion, and their stable class is exactly the wall gap.  The
-self-negative hot switch proves that this geometrically natural class is
-incompatible with additivity.  Thus the three coefficient-world questions
-posed here are closed: Hessenberg regular collapse with a nontrivial singular
-envelope, exact supertropical stable blocks with the universal ring-image
-quotient, and the thermograph wall obstruction.
+Thermograph walls complete the picture.  After the minimal tropical
+completion they form honest regular rank-one pairs, and their isometry class
+is exactly the wall gap.  Yet the self-negative hot switch makes that nonzero
+class incompatible with additivity.  The common lesson is precise: the graph
+classification survives without subtraction, but classical basis invariance
+and game addition impose further quotient relations that the intrinsic
+semiring theory neither supplies nor conceals.
 
 \bibliographystyle{plain}
 \bibliography{semiring_stability}
