@@ -1,7 +1,7 @@
 # Open mathematical problems
 
-Ogdoad has six live research problems. The first two are universal
-conjectures with exact reductions; the remaining four are constructive or
+Ogdoad has five live research problems. The first two are universal
+conjectures with exact reductions; the remaining three are constructive or
 classification programs with explicit completion criteria. This document
 states their current form, known starting point, and missing step. The linked
 papers carry the detailed arguments. Finite experiments and an implemented API
@@ -252,137 +252,7 @@ The mathematical starting point is the fast arbitrary-tower construction of
 [De Feo--Schost](https://arxiv.org/abs/1002.2594). The implementation boundary
 is `src/scalar/finite_field/nimber/arithmetic.rs`.
 
-## 4. Witt realization over an imperfect characteristic-two field
-
-Let `K = F_2(t)`. A nonsingular quadratic form over `K` has alternating polar
-form `B`, but `B` does not determine the quadratic refinement. Moreover,
-`K != K^2`. The local second residue is not merely a residue-field Arf bit.
-For the canonical uniformizers `pi_P = P(t)` and `pi_infinity = 1/t`, the
-Aravire--Jacob decomposition is
-
-```text
-W_q(K_v) = W_q(k(v)) + R_v + <pi_v> W_q(k(v)),
-R_v = direct_sum_(n positive odd) k(v) pi_v^(-n).
-```
-
-Thus `W_1(K_v) = R_v + F_2`; its coordinates are the finite odd-pole map
-`psi_v` and the ramified Arf bit `phi1_v`. The existing
-`Char2LocalDecomp { phi0, psi, phi1 }` represents exactly this distinction.
-
-### Proved coordinate theorem
-
-Let `phi0_infinity` be the unramified coordinate at the infinite place. The
-characteristic-two Milnor--Scharlau sequence and the fact that finite-field
-Scharlau transfer preserves the nonzero Arf class give a canonical additive
-isomorphism
-
-```text
-W_q(F_2(t))
-  = F_2 + { ((psi_v, phi1_v))_v : finite support,
-             XOR_v phi1_v = 0 }.
-```
-
-The map sends a class to `(phi0_infinity, (psi_v, phi1_v)_v)`. Exactness says
-that equal second residues differ by a unique constant class, and
-`phi0_infinity` is the identity on constants. Conversely, exactness lifts
-every transfer-zero residue tuple and the unique constant corrects its
-infinite unramified coordinate.
-
-For the transfer calculation, write a nonzero functional on
-`E = F_(2^d)` as `s(z) = Tr(cz)` and absorb the square `c = r^2`. If
-`Tr(a) = 1`, transfer of `[1,a]` is
-
-```text
-T_a(x,y) = Tr(x^2 + xy + ay^2).
-```
-
-For trace-dual bases `(e_i)`, `(f_i)`, its Arf invariant is
-
-```text
-sum_i Tr(e_i^2) Tr(a f_i^2)
-  = Tr(a sum_i Tr(e_i) f_i^2)
-  = Tr(a) = 1.
-```
-
-The middle equality uses `1 = sum_i Tr(e_i) f_i` and its square. Hence the
-transfer kills every wild coordinate, is the identity on `phi1_v`, and the
-displayed XOR is the single reciprocity relation.
-
-There is also a canonical finite game encoding. Present a wild coefficient
-`c_(v,n)` by the basis-free trace bits
-
-```text
-b_(v,n,z) = Tr_(k(v)/F_2)(z c_(v,n)),  z in k(v),
-```
-
-and encode every constant, ramified, and trace bit by `0` or `*`. The trace
-pairing is nondegenerate, so this finite-support family is faithful. Since
-`* + * = 0`, orthogonal sum is coordinatewise disjunctive sum and hyperbolic
-planes map to zero. This is a classifier-to-star compiler: it descends to the
-Witt group, unlike a coefficient serialization of one displayed rational
-function, but it evaluates the class before constructing the games.
-
-**Problem.** Construct a functorial, finite family of impartial normal-play
-arenas for nonsingular spaces over `K` under the stronger local-access contract:
-
-1. statics and loading are derived from the public polar form and the canonical
-   place data, while refinement-sensitive transitions use bounded local
-   diagonal queries rather than a precomputed Witt classifier;
-2. the resulting sparse `P/N` family equals the canonical coordinate theorem,
-   is additive under orthogonal sum, and is invariant under change of
-   `K`-basis;
-3. the placewise construction proves the triangular Artin--Schreier coordinate
-   change under ramified scalar extension `pi_v = u varpi_w^e`, as well as the
-   restriction/transfer diagrams; and
-4. on constant finite-field trace forms its Witt/Arf coordinate agrees with
-   the outcome bias of the Gold--Arf realization after restriction of scalars.
-
-A literal recovery of every loaded Gold arena is incompatible with Witt
-descent: the hyperbolic plane `H(x,y)=xy` is Witt-zero but has `H(1,1)=1`.
-The compatible statement is recovery of the Arf/Witt shadow, not of the full
-pointwise loading family.
-
-An orthogonal-sum-additive extension that faithfully retains arbitrary
-quasilinear radical data is impossible. In characteristic two,
-
-```text
-<c> orthogonal_sum <c>  isometric_to  <c> orthogonal_sum <0>
-```
-
-by `(x,y) -> (x+y,y)`. An additive map to impartial game values lands in a
-cancellative group, so cancellation forces `<c>` and `<0>` to have the same
-image. A singular extension must therefore abandon coordinatewise
-disjunctive-sum additivity or retain only a cancellative quotient of the
-quasilinear data.
-
-### Missing step
-
-The algebraic classification and its canonical `0/*` outcome family are now
-settled. What remains is the non-precomputational arena: prove that the local
-odd-pole normalization can be exposed through a refinement-independent board
-with bounded diagonal access, and prove its ramified base-change law. For an
-unramified residue extension `ell/kappa`, the trace-bit naturality is already
-the adjunction
-
-```text
-Tr_(ell/F_2)(z' i(c))
-  = Tr_(kappa/F_2)(Tr_(ell/kappa)(z') c).
-```
-
-Ramification is the hard case because even poles created by substitution must
-be removed and can feed lower odd poles and the constant coordinate.
-
-The algebraic scaffold is the characteristic-two Milnor--Scharlau sequence of
-[Aravire--Jacob](https://msp.org/pjm/2006/228-1/pjm-v228-n1-p02-s.pdf). The
-existing implementation surfaces are
-`src/forms/local_global/function_field_char2.rs` and
-`src/forms/springer/char2/`. The proof is in
-`writeups/witt_realization.tex`. Lean
-formalizes the exact-sequence splitting, trace-bit injection, and singular
-cancellation boundary in `formal/Ogdoad/WittRealizationExact.lean`; it does not
-formalize the Aravire--Jacob sequence or the ramified coordinate transformation.
-
-## 5. Stable quadratic forms over semirings
+## 4. Stable quadratic forms over semirings
 
 For a commutative semiring `R`, a quadratic pair on a free `R`-module is a map
 `q` and a symmetric bilinear companion `b` satisfying
@@ -442,7 +312,7 @@ are [supertropical quadratic forms](https://arxiv.org/abs/1309.5729) and the
 in-house obstruction is
 [`../writeups/thermo_newton.tex`](../writeups/thermo_newton.tex).
 
-## 6. Natural realization of finite misère quotients
+## 5. Natural realization of finite misère quotients
 
 Let `A` be a set of finite impartial games closed under options and disjunctive
 sum, and write `o^-(G)` for the misère outcome. Define

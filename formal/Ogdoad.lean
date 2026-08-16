@@ -98,3 +98,4 @@ import Ogdoad.GoldDiagonal
 import Ogdoad.GoldExtraspecial
 import Ogdoad.GoldExtraspecialTrace
 import Ogdoad.WittRealizationExact
+import Ogdoad.WittRamification
