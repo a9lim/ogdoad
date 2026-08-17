@@ -172,6 +172,23 @@ of the following.
 - Applied to `T_h`, `y_(r,a)`, `gamma_k`, and `M_k`, it specializes to the
   marked primary coordinates in arms `Z`, `O`, `C`, and `D` respectively.
 
+There is an exact rank-one saturation boundary. After adjoining `mu_ell`,
+write a selected phase as `s` and index its absolute-Frobenius conjugates and
+cyclotomic lifts by `(j,c)`. Covariance gives
+
+```text
+s_(j,c) = s^(2^j c).
+```
+
+Consequently every multiplicative reciprocity word in this entire two-axis
+family is a single power `s^lambda`. If `lambda = 0 mod ell` it erases the
+selected phase; otherwise it is equivalent to the original test `s != 1`.
+The inverse-Frobenius/Teichmuller weighted projector recovers `s` exactly,
+but does not evaluate it. Thus a successful reciprocity proof must import an
+independently evaluable local class or a genuinely nonhomogeneous marked-
+ancestry identity; adding further norm, character, or orbit-product axes to
+the same Kummer class cannot create a second constraint.
+
 Success is a uniform nonvanishing/full-primary-order proof for every resulting
 coordinate, and therefore a proof of the `0/1/4` rule. Merely reconstructing a
 residue symbol or its orbit product does not close the problem: existing norm,

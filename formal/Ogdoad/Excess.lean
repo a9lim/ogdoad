@@ -9035,6 +9035,22 @@ theorem weighted_frobenius_word (x : G) (r : Nat)
       congr 1
       simp [Nat.mul_comm]
 
+/-- A two-axis family formed from one Kummer class is still rank one.  Here
+`j` is a Frobenius position, `c` is a character or conductor coefficient,
+and `w (j,c)` is an arbitrary natural multiplicity.  Their entire
+multiplicative reciprocity expression retains only one exponent of `x`. -/
+theorem two_axis_frobenius_word (x : G) (s : Finset (Nat × Nat))
+    (w : Nat × Nat → Nat) :
+    (∏ jc ∈ s, (x ^ (2 ^ jc.1 * jc.2)) ^ (w jc)) =
+      x ^ (∑ jc ∈ s, w jc * 2 ^ jc.1 * jc.2) := by
+  induction s using Finset.induction_on with
+  | empty => simp
+  | @insert jc s hj ih =>
+      rw [Finset.prod_insert hj, Finset.sum_insert hj, ih]
+      rw [← pow_mul, ← pow_add]
+      congr 1
+      simp only [Nat.mul_comm, Nat.mul_left_comm]
+
 /-- Raising a weighted Frobenius word to an Euler-test exponent evaluates
 the same word on the selected power-residue class `x ^ d`. -/
 theorem weighted_frobenius_euler (x : G) (r d : Nat)
@@ -9045,6 +9061,45 @@ theorem weighted_frobenius_euler (x : G) (r d : Nat)
   simp only [← pow_mul]
   congr 1
   exact Nat.mul_comm _ _
+
+/-- The oriented prefix of the absolute-Frobenius orbit of a marked phase.
+Unlike a complete orbit product, this retains a starting point.  The
+definition by itself does not evaluate that selected starting phase. -/
+def frobeniusPrefix (x : G) (m : Nat) : G :=
+  ∏ i ∈ Finset.range m, x ^ (2 ^ i)
+
+/-- An oriented Frobenius prefix is the geometric-series power of its marked
+starting phase.  This specializes `weighted_frobenius_word` to the unweighted
+consecutive word. -/
+theorem frobeniusPrefix_eq_pow (x : G) (m : Nat) :
+    frobeniusPrefix x m = x ^ (2 ^ m - 1) := by
+  induction m with
+  | zero => simp [frobeniusPrefix]
+  | succ m ih =>
+      rw [frobeniusPrefix, Finset.prod_range_succ]
+      change frobeniusPrefix x m * x ^ (2 ^ m) = _
+      rw [ih, ← pow_add, pow_succ]
+      congr 1
+      have hpos : 0 < 2 ^ m := pow_pos (by decide) m
+      omega
+
+/-- Oriented prefixes obey the Frobenius cocycle law.  A recursive
+Conway-ancestry formula could therefore evaluate a long prefix block by
+block, but this identity alone supplies no value for its marked phase. -/
+theorem frobeniusPrefix_add (x : G) (m n : Nat) :
+    frobeniusPrefix x (m + n) =
+      frobeniusPrefix x m * (frobeniusPrefix x n) ^ (2 ^ m) := by
+  rw [frobeniusPrefix_eq_pow, frobeniusPrefix_eq_pow,
+    frobeniusPrefix_eq_pow, ← pow_mul, ← pow_add]
+  congr 1
+  rw [pow_add]
+  have hm : 0 < 2 ^ m := pow_pos (by decide) m
+  have hn : 0 < 2 ^ n := pow_pos (by decide) n
+  rw [Nat.mul_sub_right_distrib, Nat.mul_comm (2 ^ n) (2 ^ m)]
+  simp only [one_mul]
+  have hle : 2 ^ m ≤ 2 ^ m * 2 ^ n := by
+    simpa using Nat.mul_le_mul_left (2 ^ m) hn
+  omega
 
 end WeightedFrobeniusWords
 
@@ -9116,6 +9171,52 @@ theorem weighted_frobenius_euler_eq_one_iff (x : G) (r d ell : Nat)
     ((∏ i ∈ s, (x ^ (r ^ i)) ^ (w i)) ^ d = 1) ↔ x ^ d = 1 := by
   rw [weighted_frobenius_euler]
   exact pow_eq_one_iff_of_coprime (x ^ d) hell hcop
+
+/-- The two-axis reciprocity family from one Kummer class detects no more
+than that one class: when its single evaluated exponent is a unit modulo
+`ell`, its product is one exactly when the marked `ell`-torsion phase is one.
+Thus adding a second indexing axis cannot manufacture an independent
+selected coordinate. -/
+theorem two_axis_frobenius_word_eq_one_iff (x : G) (ell : Nat)
+    (s : Finset (Nat × Nat)) (w : Nat × Nat → Nat)
+    (hell : x ^ ell = 1)
+    (hcop : ell.Coprime (∑ jc ∈ s, w jc * 2 ^ jc.1 * jc.2)) :
+    (∏ jc ∈ s, (x ^ (2 ^ jc.1 * jc.2)) ^ (w jc)) = 1 ↔ x = 1 := by
+  rw [two_axis_frobenius_word]
+  exact pow_eq_one_iff_of_coprime x hell hcop
+
+/-- A prefix whose geometric-series exponent is a unit modulo `ell`
+faithfully detects an `ell`-torsion marked phase.  This repackages, rather
+than proves, the selected nonvanishing required by the excess arms. -/
+theorem frobeniusPrefix_eq_one_iff (x : G) (ell m : Nat)
+    (hell : x ^ ell = 1) (hcop : ell.Coprime (2 ^ m - 1)) :
+    frobeniusPrefix x m = 1 ↔ x = 1 := by
+  rw [frobeniusPrefix_eq_pow]
+  exact pow_eq_one_iff_of_coprime x hell hcop
+
+/-- Once the residue degree closes, the complete absolute-Frobenius prefix
+product is forced to be one.  Consequently a full-orbit reciprocity product
+cannot decide whether the marked phase itself is trivial. -/
+theorem frobeniusPrefix_eq_one_of_period (x : G) (ell E : Nat)
+    (hell : x ^ ell = 1) (hperiod : ell ∣ 2 ^ E - 1) :
+    frobeniusPrefix x E = 1 := by
+  rw [frobeniusPrefix_eq_pow]
+  exact orderOf_dvd_iff_pow_eq_one.mp
+    (dvd_trans (orderOf_dvd_of_pow_eq_one hell) hperiod)
+
+/-- At an even residue degree, if half-Frobenius is inversion, the oriented
+half-prefix is the inverse square of the marked phase.  For odd `ell` this is
+a faithful re-encoding, not an evaluation, of that phase. -/
+theorem frobeniusPrefix_half_eq_inv_sq (x : G) (m : Nat)
+    (hhalf : x ^ (2 ^ m) = x⁻¹) :
+    frobeniusPrefix x m = x⁻¹ * x⁻¹ := by
+  rw [frobeniusPrefix_eq_pow]
+  have hpos : 0 < 2 ^ m := pow_pos (by decide) m
+  calc
+    x ^ (2 ^ m - 1) = x ^ (2 ^ m) * x⁻¹ := by
+      rw [show 2 ^ m = (2 ^ m - 1) + 1 by omega, pow_succ]
+      simp
+    _ = x⁻¹ * x⁻¹ := by rw [hhalf]
 
 /-- Torsion classes of coprime exponents cannot cancel in one
 multiplicative reciprocity product.  This is the abstract group core of the

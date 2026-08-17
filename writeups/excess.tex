@@ -760,6 +760,47 @@ subfield, while the local norm kills the exceptional torus.  Hence the two
 principal-ray factors cannot force one another through the shared prime over
 two.  Each requires its own marked unit-image calculation.
 
+Even a perfect one-dimensional Kummer--Artin pairing does not show that a
+prescribed prime has nonzero image in the Artin quotient.  The obstruction
+already occurs arithmetically.
+
+\begin{proposition}[perfect-pairing no-go]\label{prop:pairing-no-go}
+There exist a number field $K$ containing $\mu_3$, a global unit $u$ which is
+not a cube in $K$, and exactly one prime $\mathfrak q$ of $K$ above two; this
+prime splits completely in the nontrivial cyclic Kummer extension
+$K(\sqrt[3]{u})/K$.
+\end{proposition}
+
+\begin{proof}
+Take
+\[
+ K=\mathbb Q(\zeta_{12})=\mathbb Q(\zeta_3,\sqrt3),
+ \qquad u=2+\sqrt3.
+\]
+The Pell equation gives
+$\mathcal O_{\mathbb Q(\sqrt3)}^\times=\{\mathord\pm u^n:n\in\mathbb Z\}$,
+so $u$ is not a cube in the real quadratic subfield.  If $X^3-u$ acquired a
+root in its quadratic extension $K$, its cubic factorization over the real
+subfield would also have a linear factor.  Hence $u$ is not a cube in $K$,
+and adjoining a cube root gives a nontrivial cyclic cubic extension.
+
+Locally at two, $\mathbb Q_2(\zeta_3)/\mathbb Q_2$ is unramified quadratic
+and adjoining $i$ is ramified quadratic.  The two local quadratics are
+linearly disjoint, so $K\otimes\mathbb Q_2$ is a degree-four field; hence two
+has a unique prime $\mathfrak q$ in $K$.  In its residue field
+$\sqrt3\equiv1$, so $u\equiv1\pmod{\mathfrak q}$.  The polynomial $X^3-u$
+has the simple root $1$ modulo $\mathfrak q$, because its derivative at one
+is the unit $3$.  Hensel's lemma makes $u$ a cube in $K_{\mathfrak q}$; since
+$\mu_3\subset K_{\mathfrak q}$, the polynomial splits completely there and
+$\mathfrak q$ splits completely in $K(\sqrt[3]{u})$.
+\end{proof}
+
+Thus nontriviality of the Kummer line, one-dimensionality of its dual, and
+even uniqueness of the prime above two are compatible with zero marked
+pairing.  In the four arms, perfect duality reduces the target to
+nonvanishing of the Conway-selected prime class; it does not prove that
+nonvanishing.
+
 \section{Boundedness and the remaining theorem}\label{sec:bounded}
 
 Lenstra asked whether the finite excesses are absolutely bounded

@@ -108,6 +108,12 @@ four-arm `Z/O/C/D` reduction, including:
 - the corrected characteristic-two sparse norm;
 - trace, norm, Frobenius, Kummer, Dickson--Lucas, Singer, and cubical-support
   identities used by the selected-order reductions;
+- weighted two-axis Frobenius-word normalization: all multiplicative
+  reciprocity expressions in this model formed from one Kummer class remain
+  rank one, regardless of Frobenius, character, and multiplicity indices;
+- oriented Frobenius-prefix evaluation and its block cocycle, including the
+  faithful unit-exponent-prefix/full-orbit-trivial dichotomy; these identities
+  only re-encode a marked power-residue phase and do not evaluate it;
 - transparent finite primality, factor, modular, and order screens for the
   rows explicitly encoded in the file.
 
