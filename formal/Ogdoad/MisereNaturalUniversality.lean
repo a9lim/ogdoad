@@ -1,6 +1,4 @@
-import Ogdoad.MisereTransition
 import Ogdoad.MisereOctalCertificate
-import Mathlib.Tactic
 
 /-!
 # Finite-exception natural realization of finite misere quotients

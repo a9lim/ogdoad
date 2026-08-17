@@ -1,5 +1,3 @@
-import Ogdoad.MisereTransition
-import Ogdoad.MisereOctalCertificate
 import Ogdoad.MisereNaturalUniversality
 import Ogdoad.MisereTraceLanguage
 import Ogdoad.MisereGrundyObstruction

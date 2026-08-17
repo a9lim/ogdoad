@@ -1,4 +1,3 @@
-import Mathlib.Data.Set.Image
 import Mathlib.Tactic
 
 /-!

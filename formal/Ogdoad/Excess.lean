@@ -1,6 +1,5 @@
 import Mathlib
-import Mathlib.Algebra.Polynomial.HasseDeriv
-import Mathlib.Data.Nat.Choose.Lucas
+import Ogdoad.Certificate.BinaryPolynomial
 
 /-!
 # Lenstra-excess reductions
@@ -1839,29 +1838,35 @@ theorem birth_phase_finset_product_has_one_weight
       Finset.prod_congr rfl hphase
     _ = theta ^ (∑ i ∈ s, w i) := Finset.prod_pow_eq_pow_sum s w theta
 
-/-- A global product of two coprime-primary phases is nontrivial exactly
-when at least one primary phase is nontrivial. -/
+/-- Torsion classes of coprime exponents cannot cancel in one multiplicative
+product. A product relation is trivial only when both primary coordinates are
+trivial. -/
+theorem coprime_torsion_product_eq_one_iff
+    (x y : H) {a b : Nat}
+    (hx : x ^ a = 1) (hy : y ^ b = 1) (hab : a.Coprime b) :
+    x * y = 1 ↔ x = 1 ∧ y = 1 := by
+  constructor
+  · intro hxy
+    have hyx : y = x⁻¹ := eq_inv_of_mul_eq_one_right hxy
+    have hxb : x ^ b = 1 := by
+      have : (x⁻¹) ^ b = 1 := by simpa [hyx] using hy
+      simpa only [inv_pow, inv_eq_one] using this
+    have hoa : orderOf x ∣ a := orderOf_dvd_of_pow_eq_one hx
+    have hob : orderOf x ∣ b := orderOf_dvd_of_pow_eq_one hxb
+    have ho : orderOf x = 1 := by
+      apply Nat.eq_one_of_dvd_one
+      simpa [hab.gcd_eq_one] using Nat.dvd_gcd hoa hob
+    have hx1 : x = 1 := orderOf_eq_one_iff.mp ho
+    exact ⟨hx1, by simpa [hx1] using hxy⟩
+  · rintro ⟨rfl, rfl⟩
+    simp
+
+/-- Negated form of `coprime_torsion_product_eq_one_iff`. -/
 theorem coprime_phase_product_ne_one_iff
     (x y : H) {a b : Nat}
     (hx : x ^ a = 1) (hy : y ^ b = 1) (hab : a.Coprime b) :
     x * y ≠ 1 ↔ x ≠ 1 ∨ y ≠ 1 := by
-  have hprod : x * y = 1 ↔ x = 1 ∧ y = 1 := by
-    constructor
-    · intro hxy
-      have hyx : y = x⁻¹ := eq_inv_of_mul_eq_one_right hxy
-      have hxb : x ^ b = 1 := by
-        have : (x⁻¹) ^ b = 1 := by simpa [hyx] using hy
-        simpa only [inv_pow, inv_eq_one] using this
-      have hoa : orderOf x ∣ a := orderOf_dvd_of_pow_eq_one hx
-      have hob : orderOf x ∣ b := orderOf_dvd_of_pow_eq_one hxb
-      have ho : orderOf x = 1 := by
-        apply Nat.eq_one_of_dvd_one
-        simpa [hab.gcd_eq_one] using Nat.dvd_gcd hoa hob
-      have hx1 : x = 1 := orderOf_eq_one_iff.mp ho
-      exact ⟨hx1, by simpa [hx1] using hxy⟩
-    · rintro ⟨rfl, rfl⟩
-      simp
-  rw [ne_eq, hprod]
+  rw [ne_eq, coprime_torsion_product_eq_one_iff x y hx hy hab]
   tauto
 
 end CubicBirthSecants
@@ -1976,34 +1981,6 @@ theorem sixth_root_cube_ne_one (A : R)
   exact htwo this
 
 end SixthRootSupportArithmetic
-
-section CurrentPrimarySupport
-
-variable {G : Type*} [CommGroup G]
-
-/-- Phases of coprime primary orders cannot cancel.  Hence a product detects
-only the union of their supports, not that each coordinate is nontrivial. -/
-theorem current_primary_product_eq_one_iff
-    (x y : G) {a b : Nat}
-    (hx : x ^ a = 1) (hy : y ^ b = 1) (hab : a.Coprime b) :
-    x * y = 1 ↔ x = 1 ∧ y = 1 := by
-  constructor
-  · intro hxy
-    have hyx : y = x⁻¹ := eq_inv_of_mul_eq_one_right hxy
-    have hxb : x ^ b = 1 := by
-      have : (x⁻¹) ^ b = 1 := by simpa [hyx] using hy
-      simpa only [inv_pow, inv_eq_one] using this
-    have hoa : orderOf x ∣ a := orderOf_dvd_of_pow_eq_one hx
-    have hob : orderOf x ∣ b := orderOf_dvd_of_pow_eq_one hxb
-    have ho : orderOf x = 1 := by
-      apply Nat.eq_one_of_dvd_one
-      simpa [hab.gcd_eq_one] using Nat.dvd_gcd hoa hob
-    have hx1 : x = 1 := orderOf_eq_one_iff.mp ho
-    exact ⟨hx1, by simpa [hx1] using hxy⟩
-  · rintro ⟨rfl, rfl⟩
-    simp
-
-end CurrentPrimarySupport
 
 /-- The alternating `F₄` translate turns the selected depressed cubic into
 a norm-coherent twisted cubic. -/
@@ -4339,6 +4316,23 @@ theorem cubic_scaled_self_dual_core (x y z a : K)
   · rw [← hsum, add_pow_char, add_pow_char]
   · exact hpair
 
+/-- Characteristic-two expression of the cubic Moore determinant in the
+first two elementary symmetric coordinates. -/
+theorem cubic_moore_det_identity (x y z : K) :
+    x ^ 3 + y ^ 3 + z ^ 3 + x * y * z =
+      (x + y + z) ^ 3 +
+        (x + y + z) * (x * y + y * z + z * x) := by
+  have hfour : (4 : K) = 0 := by
+    change ((4 : Nat) : K) = 0
+    rw [CharP.cast_eq_mod K 2 4]
+    norm_num
+  ring_nf
+  rw [show (9 : K) = 1 by
+    change ((9 : Nat) : K) = 1
+    rw [CharP.cast_eq_mod K 2 9]
+    norm_num]
+  simp [hfour]
+
 /-- The determinant of the immediate cubic Moore/circulant matrix is the
 cube of the lower inverse selector.  Thus the selected normal-basis
 determinant contains no new current multiplicative coordinate. -/
@@ -4346,20 +4340,11 @@ theorem cubic_moore_det_core (x y z a : K)
     (hsum : x + y + z = a)
     (hpair : x * y + y * z + z * x = 0) :
     x ^ 3 + y ^ 3 + z ^ 3 + x * y * z = a ^ 3 := by
-  have hfour : (4 : K) = 0 := by
-    change ((4 : Nat) : K) = 0
-    rw [CharP.cast_eq_mod K 2 4]
-    norm_num
   calc
     x ^ 3 + y ^ 3 + z ^ 3 + x * y * z =
         (x + y + z) ^ 3 +
-          (x + y + z) * (x * y + y * z + z * x) := by
-            ring_nf
-            rw [show (9 : K) = 1 by
-              change ((9 : Nat) : K) = 1
-              rw [CharP.cast_eq_mod K 2 9]
-              norm_num]
-            simp [hfour]
+          (x + y + z) * (x * y + y * z + z * x) :=
+      cubic_moore_det_identity x y z
     _ = a ^ 3 := by rw [hpair, mul_zero, add_zero, hsum]
 
 /-- Translating the selected Singer cubic by one swaps its two lower
@@ -4385,20 +4370,11 @@ theorem cubic_moore_det_symmetric_core (x y z b c : K)
     (hsum : x + y + z = b)
     (hpair : x * y + y * z + z * x = c) :
     x ^ 3 + y ^ 3 + z ^ 3 + x * y * z = b ^ 3 + b * c := by
-  have hfour : (4 : K) = 0 := by
-    change ((4 : Nat) : K) = 0
-    rw [CharP.cast_eq_mod K 2 4]
-    norm_num
   calc
     x ^ 3 + y ^ 3 + z ^ 3 + x * y * z =
         (x + y + z) ^ 3 +
-          (x + y + z) * (x * y + y * z + z * x) := by
-            ring_nf
-            rw [show (9 : K) = 1 by
-              change ((9 : Nat) : K) = 1
-              rw [CharP.cast_eq_mod K 2 9]
-              norm_num]
-            simp [hfour]
+          (x + y + z) * (x * y + y * z + z * x) :=
+      cubic_moore_det_identity x y z
     _ = b ^ 3 + b * c := by rw [hsum, hpair]
 
 /-- Determinant of the constant-off-diagonal trace Gram matrix of the
@@ -4972,41 +4948,9 @@ Python experiment. -/
 def modulus : Nat := 0x4000000000000000000200000001
 def degree : Nat := 110
 
-def mulAux : Nat → Nat → Nat → Nat → Nat
-  | 0, _, _, acc => acc
-  | fuel + 1, a, b, acc =>
-      let acc' := if b % 2 = 1 then Nat.xor acc a else acc
-      let a2 := Nat.shiftLeft a 1
-      let a' := if a2.testBit degree then Nat.xor a2 modulus else a2
-      mulAux fuel a' (b / 2) acc'
-
-def mul (a b : Nat) : Nat := mulAux degree a b 0
-
-def powAux : Nat → Nat → Nat → Nat → Nat
-  | 0, _, _, acc => acc
-  | fuel + 1, a, e, acc =>
-      if e = 0 then acc
-      else
-        let acc' := if e % 2 = 1 then mul acc a else acc
-        powAux fuel (mul a a) (e / 2) acc'
-
-def fpow (a e : Nat) : Nat := powAux (degree + 2) a e 1
-
-def polyModAux : Nat → Nat → Nat → Nat
-  | 0, a, _ => a
-  | fuel + 1, a, b =>
-      if b = 0 ∨ Nat.log2 a < Nat.log2 b then a
-      else polyModAux fuel
-        (Nat.xor a (Nat.shiftLeft b (Nat.log2 a - Nat.log2 b))) b
-
-def polyMod (a b : Nat) : Nat := polyModAux 300 a b
-
-def polyGcdAux : Nat → Nat → Nat → Nat
-  | 0, a, _ => a
-  | fuel + 1, a, b =>
-      if b = 0 then a else polyGcdAux fuel b (polyMod a b)
-
-def polyGcd (a b : Nat) : Nat := polyGcdAux 300 a b
+abbrev mul := BinaryPolynomialCertificate.mul modulus degree
+abbrev fpow := BinaryPolynomialCertificate.fpow modulus degree
+abbrev polyGcd := BinaryPolynomialCertificate.polyGcd 300
 
 def epsilon : Nat := 0x533a83d1770ba6987acd705100a
 def zeta23 : Nat := 0x244532b647a337388955260d12d1
@@ -5599,25 +5543,8 @@ def eta : Nat := 1629469875507523981620540
 def epsilon : Nat := 1629469875507523981620541
 def beta : Nat := 2293671573472151973449566
 
-def mulAux : Nat → Nat → Nat → Nat → Nat
-  | 0, _, _, acc => acc
-  | fuel + 1, a, b, acc =>
-      let acc' := if b % 2 = 1 then Nat.xor acc a else acc
-      let a2 := Nat.shiftLeft a 1
-      let a' := if a2.testBit degree then Nat.xor a2 modulus else a2
-      mulAux fuel a' (b / 2) acc'
-
-def mul (a b : Nat) : Nat := mulAux degree a b 0
-
-def powAux : Nat → Nat → Nat → Nat → Nat
-  | 0, _, _, acc => acc
-  | fuel + 1, a, e, acc =>
-      if e = 0 then acc
-      else
-        let acc' := if e % 2 = 1 then mul acc a else acc
-        powAux fuel (mul a a) (e / 2) acc'
-
-def fpow (a e : Nat) : Nat := powAux (degree + 2) a e 1
+abbrev mul := BinaryPolynomialCertificate.mul modulus degree
+abbrev fpow := BinaryPolynomialCertificate.fpow modulus degree
 
 def etaTrace27 : Nat :=
   Nat.xor eta (Nat.xor (fpow eta q) (fpow eta (q ^ 2)))
@@ -5631,21 +5558,7 @@ def halfCirculant : Nat :=
   (List.range 79).foldl
     (fun acc j => Nat.xor acc (fpow epsilon (2 ^ (j + 1)))) 0
 
-def polyModAux : Nat → Nat → Nat → Nat
-  | 0, a, _ => a
-  | fuel + 1, a, b =>
-      if b = 0 ∨ Nat.log2 a < Nat.log2 b then a
-      else polyModAux fuel
-        (Nat.xor a (Nat.shiftLeft b (Nat.log2 a - Nat.log2 b))) b
-
-def polyMod (a b : Nat) : Nat := polyModAux 200 a b
-
-def polyGcdAux : Nat → Nat → Nat → Nat
-  | 0, a, _ => a
-  | fuel + 1, a, b =>
-      if b = 0 then a else polyGcdAux fuel b (polyMod a b)
-
-def polyGcd (a b : Nat) : Nat := polyGcdAux 200 a b
+abbrev polyGcd := BinaryPolynomialCertificate.polyGcd 200
 
 set_option maxRecDepth 100000 in
 set_option maxHeartbeats 0 in
@@ -5710,25 +5623,8 @@ def q : Nat := 2 ^ 16
 def z : Nat := 0x5ddbf713
 def z' : Nat := 0x4198613b
 
-def mulAux : Nat → Nat → Nat → Nat → Nat
-  | 0, _, _, acc => acc
-  | fuel + 1, a, b, acc =>
-      let acc' := if b % 2 = 1 then Nat.xor acc a else acc
-      let a2 := Nat.shiftLeft a 1
-      let a' := if a2.testBit degree then Nat.xor a2 modulus else a2
-      mulAux fuel a' (b / 2) acc'
-
-def mul (a b : Nat) : Nat := mulAux degree a b 0
-
-def powAux : Nat → Nat → Nat → Nat → Nat
-  | 0, _, _, acc => acc
-  | fuel + 1, a, e, acc =>
-      if e = 0 then acc
-      else
-        let acc' := if e % 2 = 1 then mul acc a else acc
-        powAux fuel (mul a a) (e / 2) acc'
-
-def fpow (a e : Nat) : Nat := powAux (degree + 2) a e 1
+abbrev mul := BinaryPolynomialCertificate.mul modulus degree
+abbrev fpow := BinaryPolynomialCertificate.fpow modulus degree
 
 def fibAux : Nat → Nat → Nat → Nat → Nat
   | 0, _, s₀, _ => s₀
@@ -8549,25 +8445,16 @@ argument supplying the two nonzero low-degree polynomials remains in prose. -/
 
 variable {F : Type*} [Field F] [CharP F 2]
 
-theorem z36_expansions
-    (c x y : F)
-    (hc : c ^ 6 + c ^ 3 + 1 = 0)
-    (hx : x ^ 2 + x = c ^ 3)
-    (hy : y ^ 3 = c) :
-    (x + y) ^ 37 =
-      (1 + c ^ 2 + c ^ 3) + c ^ 2 * x +
-      (c ^ 3 + c ^ 4) * y +
-      (c + c ^ 3 + c ^ 4) * (y * x) +
-      c * (y ^ 2 * x) := by
+/-- The common power-reduction block for the degree-nine cubic component at
+the `h = 36` level. Keeping it here prevents the two expansions and their
+minor certificates from carrying private copies of the same calculation. -/
+theorem z36_base_powers
+    (c : F) (hc : c ^ 6 + c ^ 3 + 1 = 0) :
+    c ^ 6 = c ^ 3 + 1 ∧
+      c ^ 7 = c ^ 4 + c ∧
+      c ^ 8 = c ^ 5 + c ^ 2 ∧
+      c ^ 9 = 1 := by
   have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
-  have hthree : (3 : F) = 1 := by
-    calc
-      (3 : F) = 2 + 1 := by norm_num
-      _ = 1 := by rw [htwo]; simp
-  have hfour : (4 : F) = 0 := by
-    calc
-      (4 : F) = 2 + 2 := by norm_num
-      _ = 0 := by rw [htwo]; simp
   have hc6 : c ^ 6 = c ^ 3 + 1 := by
     apply eq_of_sub_eq_zero
     rw [CharTwo.sub_eq_add]
@@ -8590,6 +8477,20 @@ theorem z36_expansions
       _ = 1 := by
         rw [hc6]
         linear_combination (c ^ 3) * htwo
+  exact ⟨hc6, hc7, hc8, hc9⟩
+
+/-- Frobenius reductions for the quadratic component used by both symbolic
+`h = 36` expansions. -/
+theorem z36_quadratic_powers
+    (c x : F) (hc : c ^ 6 + c ^ 3 + 1 = 0)
+    (hx : x ^ 2 + x = c ^ 3) :
+    x ^ 2 = x + c ^ 3 ∧
+      x ^ 4 = x + 1 ∧
+      x ^ 8 = x + c ^ 3 + 1 ∧
+      x ^ 16 = x ∧
+      x ^ 32 = x + c ^ 3 := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  obtain ⟨hc6, _, _, _⟩ := z36_base_powers c hc
   have hx2 : x ^ 2 = x + c ^ 3 := by
     calc
       x ^ 2 = c ^ 3 - x := (eq_sub_iff_add_eq).2 hx
@@ -8623,16 +8524,45 @@ theorem z36_expansions
       x ^ 32 = (x ^ 16) ^ 2 := by ring
       _ = x ^ 2 := by rw [hx16]
       _ = x + c ^ 3 := hx2
-  have hy4 : y ^ 4 = c * y := by
-    calc
+  exact ⟨hx2, hx4, hx8, hx16, hx32⟩
+
+/-- The cubic-component reductions shared by the two symbolic expansions. -/
+theorem z36_cubic_powers
+    (c y : F) (hc : c ^ 6 + c ^ 3 + 1 = 0) (hy : y ^ 3 = c) :
+    y ^ 4 = c * y ∧ y ^ 32 = c * y ^ 2 := by
+  obtain ⟨_, _, _, hc9⟩ := z36_base_powers c hc
+  constructor
+  · calc
       y ^ 4 = y ^ 3 * y := by ring
       _ = c * y := by rw [hy]
-  have hy32 : y ^ 32 = c * y ^ 2 := by
-    calc
+  · calc
       y ^ 32 = (y ^ 3) ^ 10 * y ^ 2 := by ring
       _ = c ^ 10 * y ^ 2 := by rw [hy]
       _ = (c ^ 9 * c) * y ^ 2 := by ring
       _ = c * y ^ 2 := by rw [hc9]; ring
+
+theorem z36_expansions
+    (c x y : F)
+    (hc : c ^ 6 + c ^ 3 + 1 = 0)
+    (hx : x ^ 2 + x = c ^ 3)
+    (hy : y ^ 3 = c) :
+    (x + y) ^ 37 =
+      (1 + c ^ 2 + c ^ 3) + c ^ 2 * x +
+      (c ^ 3 + c ^ 4) * y +
+      (c + c ^ 3 + c ^ 4) * (y * x) +
+      c * (y ^ 2 * x) := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hthree : (3 : F) = 1 := by
+    calc
+      (3 : F) = 2 + 1 := by norm_num
+      _ = 1 := by rw [htwo]; simp
+  have hfour : (4 : F) = 0 := by
+    calc
+      (4 : F) = 2 + 2 := by norm_num
+      _ = 0 := by rw [htwo]; simp
+  obtain ⟨hc6, _, _, _⟩ := z36_base_powers c hc
+  obtain ⟨hx2, hx4, _, _, hx32⟩ := z36_quadratic_powers c x hc hx
+  obtain ⟨hy4, hy32⟩ := z36_cubic_powers c y hc hy
   have hz4 : (x + y) ^ 4 = (x + 1) + c * y := by
     calc
       (x + y) ^ 4 = x ^ 4 + y ^ 4 := by
@@ -8669,65 +8599,14 @@ theorem z36_expansion_109
       (1 + c ^ 2 + c ^ 3 + c ^ 5) * y ^ 2 +
       (c ^ 2 + c ^ 3 + c ^ 4 + c ^ 5) * (y ^ 2 * x) := by
   have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
-  have hc6 : c ^ 6 = c ^ 3 + 1 := by
-    apply eq_of_sub_eq_zero
-    rw [CharTwo.sub_eq_add]
-    simpa [add_assoc] using hc
-  have hc7 : c ^ 7 = c ^ 4 + c := by
-    calc
-      c ^ 7 = c * c ^ 6 := by ring
-      _ = c * (c ^ 3 + 1) := by rw [hc6]
-      _ = c ^ 4 + c := by ring
-  have hc8 : c ^ 8 = c ^ 5 + c ^ 2 := by
-    calc
-      c ^ 8 = c ^ 2 * c ^ 6 := by ring
-      _ = c ^ 2 * (c ^ 3 + 1) := by rw [hc6]
-      _ = c ^ 5 + c ^ 2 := by ring
-  have hc9 : c ^ 9 = 1 := by
-    calc
-      c ^ 9 = c ^ 3 * c ^ 6 := by ring
-      _ = c ^ 3 * (c ^ 3 + 1) := by rw [hc6]
-      _ = c ^ 6 + c ^ 3 := by ring
-      _ = 1 := by rw [hc6]; linear_combination (c ^ 3) * htwo
-  have hx2 : x ^ 2 = x + c ^ 3 := by
-    calc
-      x ^ 2 = c ^ 3 - x := (eq_sub_iff_add_eq).2 hx
-      _ = c ^ 3 + x := CharTwo.sub_eq_add _ _
-      _ = x + c ^ 3 := add_comm _ _
-  have hx4 : x ^ 4 = x + 1 := by
-    calc
-      x ^ 4 = (x ^ 2) ^ 2 := by ring
-      _ = (x + c ^ 3) ^ 2 := by rw [hx2]
-      _ = x ^ 2 + c ^ 6 := by rw [add_sq, htwo]; ring
-      _ = (x + c ^ 3) + (c ^ 3 + 1) := by rw [hx2, hc6]
-      _ = x + 1 := by linear_combination (c ^ 3) * htwo
+  obtain ⟨hc6, hc7, hc8, hc9⟩ := z36_base_powers c hc
+  obtain ⟨hx2, hx4, hx8, _, hx32⟩ := z36_quadratic_powers c x hc hx
   have hx5 : x ^ 5 = c ^ 3 := by
     calc
       x ^ 5 = x * x ^ 4 := by ring
       _ = x * (x + 1) := by rw [hx4]
       _ = x ^ 2 + x := by ring
       _ = c ^ 3 := hx
-  have hx8 : x ^ 8 = x + c ^ 3 + 1 := by
-    calc
-      x ^ 8 = (x ^ 4) ^ 2 := by ring
-      _ = (x + 1) ^ 2 := by rw [hx4]
-      _ = x ^ 2 + 1 := by rw [add_sq, htwo]; ring
-      _ = x + c ^ 3 + 1 := by rw [hx2]
-  have hx16 : x ^ 16 = x := by
-    calc
-      x ^ 16 = (x ^ 8) ^ 2 := by ring
-      _ = (x + c ^ 3 + 1) ^ 2 := by rw [hx8]
-      _ = x ^ 2 + c ^ 6 + 1 := by
-        rw [show x + c ^ 3 + 1 = (x + c ^ 3) + 1 by ring]
-        rw [add_sq, add_sq, htwo]
-        ring
-      _ = (x + c ^ 3) + (c ^ 3 + 1) + 1 := by rw [hx2, hc6]
-      _ = x := by linear_combination (c ^ 3 + 1) * htwo
-  have hx32 : x ^ 32 = x + c ^ 3 := by
-    calc
-      x ^ 32 = (x ^ 16) ^ 2 := by ring
-      _ = x ^ 2 := by rw [hx16]
-      _ = x + c ^ 3 := hx2
   have hx64 : x ^ 64 = x + 1 := by
     calc
       x ^ 64 = (x ^ 32) ^ 2 := by ring
@@ -8735,10 +8614,7 @@ theorem z36_expansion_109
       _ = x ^ 2 + c ^ 6 := by rw [add_sq, htwo]; ring
       _ = (x + c ^ 3) + (c ^ 3 + 1) := by rw [hx2, hc6]
       _ = x + 1 := by linear_combination (c ^ 3) * htwo
-  have hy4 : y ^ 4 = c * y := by
-    calc
-      y ^ 4 = y ^ 3 * y := by ring
-      _ = c * y := by rw [hy]
+  obtain ⟨hy4, hy32⟩ := z36_cubic_powers c y hc hy
   have hy5 : y ^ 5 = c * y ^ 2 := by
     calc
       y ^ 5 = y ^ 3 * y ^ 2 := by ring
@@ -8755,12 +8631,6 @@ theorem z36_expansion_109
     calc
       y ^ 8 = (y ^ 3) ^ 2 * y ^ 2 := by ring
       _ = c ^ 2 * y ^ 2 := by rw [hy]
-  have hy32 : y ^ 32 = c * y ^ 2 := by
-    calc
-      y ^ 32 = (y ^ 3) ^ 10 * y ^ 2 := by ring
-      _ = c ^ 10 * y ^ 2 := by rw [hy]
-      _ = (c ^ 9 * c) * y ^ 2 := by ring
-      _ = c * y ^ 2 := by rw [hc9]; ring
   have hc21 : c ^ 21 = c ^ 3 := by
     calc
       c ^ 21 = (c ^ 9) ^ 2 * c ^ 3 := by ring
@@ -8856,15 +8726,7 @@ theorem z36_minor_37
     simpa using (CharP.cast_eq_mod F 2 3)
   have hfive : (5 : F) = 1 := by
     simpa using (CharP.cast_eq_mod F 2 5)
-  have hc6 : c ^ 6 = c ^ 3 + 1 := by
-    apply eq_of_sub_eq_zero
-    rw [CharTwo.sub_eq_add]
-    simpa [add_assoc] using hc
-  have hc7 : c ^ 7 = c ^ 4 + c := by
-    calc
-      c ^ 7 = c * c ^ 6 := by ring
-      _ = c * (c ^ 3 + 1) := by rw [hc6]
-      _ = c ^ 4 + c := by ring
+  obtain ⟨hc6, hc7, _, _⟩ := z36_base_powers c hc
   have heq :
       (1 + c ^ 2 + c ^ 3) * (c + c ^ 3 + c ^ 4) +
         c ^ 2 * (c ^ 3 + c ^ 4) = 1 + c ^ 3 + c ^ 4 := by
@@ -8891,26 +8753,7 @@ theorem z36_minor_109
     simpa using (CharP.cast_eq_mod F 2 6)
   have hseven : (7 : F) = 1 := by
     simpa using (CharP.cast_eq_mod F 2 7)
-  have hc6 : c ^ 6 = c ^ 3 + 1 := by
-    apply eq_of_sub_eq_zero
-    rw [CharTwo.sub_eq_add]
-    simpa [add_assoc] using hc
-  have hc7 : c ^ 7 = c ^ 4 + c := by
-    calc
-      c ^ 7 = c * c ^ 6 := by ring
-      _ = c * (c ^ 3 + 1) := by rw [hc6]
-      _ = c ^ 4 + c := by ring
-  have hc8 : c ^ 8 = c ^ 5 + c ^ 2 := by
-    calc
-      c ^ 8 = c ^ 2 * c ^ 6 := by ring
-      _ = c ^ 2 * (c ^ 3 + 1) := by rw [hc6]
-      _ = c ^ 5 + c ^ 2 := by ring
-  have hc9 : c ^ 9 = 1 := by
-    calc
-      c ^ 9 = c ^ 3 * c ^ 6 := by ring
-      _ = c ^ 3 * (c ^ 3 + 1) := by rw [hc6]
-      _ = c ^ 6 + c ^ 3 := by ring
-      _ = 1 := by rw [hc6]; linear_combination (c ^ 3) * htwo
+  obtain ⟨hc6, hc7, hc8, hc9⟩ := z36_base_powers c hc
   have hc10 : c ^ 10 = c := by
     calc
       c ^ 10 = c ^ 9 * c := by ring
@@ -9331,27 +9174,6 @@ theorem monoidHom_eq_one_of_coprime_torsion
   apply (pow_eq_one_iff_of_coprime (f x) ?_ hab).mp hy
   rw [← map_pow, hx, map_one]
 
-/-- Torsion classes of coprime exponents cannot cancel in one
-multiplicative reciprocity product.  This is the abstract group core of the
-paper's C/D Kummer-field separation: a product relation can be trivial only
-when its two primary coordinates are separately trivial. -/
-theorem coprime_torsion_product_eq_one_iff
-    (x y : G) {a b : Nat}
-    (hx : x ^ a = 1) (hy : y ^ b = 1) (hab : a.Coprime b) :
-    x * y = 1 ↔ x = 1 ∧ y = 1 := by
-  constructor
-  · intro hxy
-    have hxb : x ^ b = 1 := by
-      rw [eq_inv_of_mul_eq_one_left hxy]
-      simp [hy]
-    have hxone : x = 1 :=
-      (pow_eq_one_iff_of_coprime x hx hab).mp hxb
-    constructor
-    · exact hxone
-    · simpa [hxone] using hxy
-  · rintro ⟨rfl, rfl⟩
-    simp
-
 end CoprimePowerDetection
 
 section DepressedDicksonCubic
@@ -9477,11 +9299,11 @@ theorem centered_ratio_identity (alpha beta : K) (hbeta : beta ≠ 0)
     alpha / (alpha + beta) = (alpha / beta) / (alpha / beta + 1) := by
   field_simp
 
-/-- The Mobius coordinate `rho / (rho + 1)` is fixed by a field
-endomorphism exactly when `rho` is fixed.  In the finite-field application
-this is the half-field axis of a relative-trace collision. -/
-theorem mobius_fixed_iff (sigma : K →+* K) (rho : K) (hrho : rho ≠ 1) :
-    sigma (rho / (rho + 1)) = rho / (rho + 1) <-> sigma rho = rho := by
+/-- The two denominators used by the centered Mobius coordinate remain
+nonzero before and after an injective field endomorphism. -/
+theorem mobius_denominators
+    (sigma : K →+* K) (rho : K) (hrho : rho ≠ 1) :
+    rho + 1 ≠ 0 ∧ sigma rho + 1 ≠ 0 := by
   have hden : rho + 1 ≠ 0 := by
     intro h
     apply hrho
@@ -9497,6 +9319,14 @@ theorem mobius_fixed_iff (sigma : K →+* K) (rho : K) (hrho : rho ≠ 1) :
     apply hsigma
     have : sigma rho = -1 := eq_neg_of_add_eq_zero_left h
     simpa [CharTwo.neg_eq] using this
+  exact ⟨hden, hsden⟩
+
+/-- The Mobius coordinate `rho / (rho + 1)` is fixed by a field
+endomorphism exactly when `rho` is fixed.  In the finite-field application
+this is the half-field axis of a relative-trace collision. -/
+theorem mobius_fixed_iff (sigma : K →+* K) (rho : K) (hrho : rho ≠ 1) :
+    sigma (rho / (rho + 1)) = rho / (rho + 1) <-> sigma rho = rho := by
+  obtain ⟨hden, hsden⟩ := mobius_denominators sigma rho hrho
   rw [map_div₀, map_add, map_one]
   constructor
   · intro h
@@ -9511,21 +9341,7 @@ has norm one. -/
 theorem mobius_mate_iff (sigma : K →+* K) (rho : K) (hrho : rho ≠ 1) :
     sigma (rho / (rho + 1)) = rho / (rho + 1) + 1 <->
       sigma rho * rho = 1 := by
-  have hden : rho + 1 ≠ 0 := by
-    intro h
-    apply hrho
-    have : rho = -1 := eq_neg_of_add_eq_zero_left h
-    simpa [CharTwo.neg_eq] using this
-  have hsigma : sigma rho ≠ 1 := by
-    intro h
-    apply hrho
-    apply sigma.injective
-    simpa using h
-  have hsden : sigma rho + 1 ≠ 0 := by
-    intro h
-    apply hsigma
-    have : sigma rho = -1 := eq_neg_of_add_eq_zero_left h
-    simpa [CharTwo.neg_eq] using this
+  obtain ⟨hden, hsden⟩ := mobius_denominators sigma rho hrho
   have hmate : rho / (rho + 1) + 1 = 1 / (rho + 1) := by
     field_simp [hden]
     rw [← add_assoc, CharTwo.add_self_eq_zero, zero_add]

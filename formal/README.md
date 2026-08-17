@@ -23,6 +23,7 @@ import-only paper entry points:
 | layer | modules | contract |
 | --- | --- | --- |
 | shared algebra | `Algebra.ZModTwo`, `Algebra.ArtinSchreier` | Paper-independent binary-scalar facts, Artin--Schreier additivity and tower algebra, the finite-field trace exact sequence, and the trace-one irreducibility criterion. No FIFO, Gold, Witt, excess, or nim module is imported here. |
+| certificate support | `Certificate.BinaryPolynomial` | One executable bit-polynomial multiplication, powering, remainder, and gcd evaluator shared by named finite-field certificates. It supplies computation only; each consumer separately owns its modulus, irreducibility check, constants, and mathematical claim. |
 | reusable mathematical components | `Quadratic.CharTwo` (bundling `Off`, `SymplecticBasis`, `WittFrame`, and `CharTwoClassification`), `FifoMatching`, and the other theorem-bearing modules below | Each definition or theorem is proved once in the narrowest domain module that owns it. Domain bundles and paper modules import these components; they do not restate them. |
 | open-frontier bundle | `FifoFrontier` | The complete arbitrary-graph FIFO research surface used by the linking paper. Solved consumers such as Gold--Arf import only `FifoMatching`, not the whole frontier. |
 | paper entry points | `Papers.TransfiniteArf`, `Papers.GoldArf`, `Papers.WittRealization`, `Papers.LinkingAffine`, `Papers.Excess`, `Papers.NimFastMultiplication`, `Papers.SemiringStability`, `Papers.MisereNaturalRealization` | Import-only manifests matching the eight papers that currently have Lean content. These are the preferred focused build targets. |
@@ -34,7 +35,9 @@ Gold--Arf and fast nim multiplication import
 `Algebra.ArtinSchreier`; neither owns a private copy of the trace-kernel or
 trace-one polynomial facts. Witt realization, Gold--Arf, and the FIFO
 development share `Algebra.ZModTwo` rather than reaching through the FIFO
-namespace for binary-scalar lemmas.
+namespace for binary-scalar lemmas. The three exact binary-field certificates
+inside `Excess` share `Certificate.BinaryPolynomial`; they do not carry private
+copies of the evaluator.
 
 ## Closed results
 
