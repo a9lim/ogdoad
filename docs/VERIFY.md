@@ -56,6 +56,7 @@ are regenerated artifacts and must also receive page-level visual review.
 | `Surreal` | exact finite-support expressions only |
 | `Nimber` | exact `F_(2^128)` arithmetic |
 | `Ordinal` | exact inside the checked Kummer window; checked multiplication, inversion, and square roots refuse escape |
+| Hermitian restriction | `q(v)=h(v,v)` over the represented involution-fixed field, with trace used only for the polar form; dimension doubles and refuses past 128 |
 | bounded search | budget and exhaustion are reported separately from mathematical truth |
 
 The `associativity_*` tests and

@@ -1533,6 +1533,17 @@ impl PyHermitianForm {
             inner: self.inner.signature(|x| x.sign()),
         }
     }
+    /// Restrict `h` over `Surcomplex/Surreal` to the ordinary quadratic form
+    /// `q(v)=h(v,v)` over `Surreal`, doubling the dimension.
+    fn restrict_scalars(&self) -> PyResult<SurrealAlgebra> {
+        let metric = self
+            .inner
+            .restrict_scalars()
+            .map_err(|err| PyValueError::new_err(err.to_string()))?;
+        Ok(SurrealAlgebra {
+            inner: Arc::new(CliffordAlgebra::new(metric.dim(), metric)),
+        })
+    }
     fn __repr__(&self) -> String {
         format!("HermitianForm(dim={})", self.inner.dim())
     }
@@ -1723,6 +1734,31 @@ impl PyFiniteHermitianForm {
                 inner: form.classify(),
             })
         })
+    }
+    /// Restrict this Hermitian form to an ordinary quadratic algebra over its
+    /// fixed field.  The concrete return type is `Fp2Algebra`, `F4Algebra`,
+    /// `Fp3Algebra`, or `Fp5Algebra`, preserving backend separation.
+    fn restrict_scalars(&self, py: Python<'_>) -> PyResult<Py<PyAny>> {
+        macro_rules! restrict_into {
+            ($p:literal, $degree:literal, $alg:ident) => {{
+                let form = finite_hermitian_form_fpn::<$p, $degree>(&self.gram)?;
+                let metric = form
+                    .restrict_scalars()
+                    .map_err(|err| PyValueError::new_err(err.to_string()))?;
+                $alg {
+                    inner: Arc::new(CliffordAlgebra::new(metric.dim(), metric)),
+                }
+                .into_py_any(py)
+            }};
+        }
+
+        match (self.p, self.degree) {
+            (2, 2) => restrict_into!(2, 2, Fp2Algebra),
+            (2, 4) => restrict_into!(2, 4, F4Algebra),
+            (3, 2) => restrict_into!(3, 2, Fp3Algebra),
+            (5, 2) => restrict_into!(5, 2, Fp5Algebra),
+            _ => Err(unsupported_finite_hermitian_field_err()),
+        }
     }
     fn __repr__(&self) -> String {
         format!(

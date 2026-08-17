@@ -91,6 +91,12 @@ assert e0 * e1 + e1 * e0 == A.scalar(og.Nimber(1))
 S = og.SurrealAlgebra(q=[og.omega(), og.epsilon()])
 assert (S.gen(0) * S.gen(1)) ** 2 == S.scalar(og.Surreal.from_int(-1))
 
+# A Hermitian form restricts to the ordinary quadratic form q(v)=h(v,v)
+# over the involution-fixed field; dimension doubles.
+H = og.HermitianForm.diagonal([1, -1])
+Q = H.restrict_scalars()
+assert Q.dim == 4 and og.surreal_signature(Q) == (2, 2, 0)
+
 # Checked game constructors preserve their proof and validation boundaries.
 arena = og.WittFifoArena(diagonal=[True], polar=[0], input=1)
 assert arena.quadratic_value and arena.grundy(state_budget=100_000) != 0
@@ -110,7 +116,8 @@ includes finite quadratic modules and Nikulin criteria, extraspecial and
 Heisenberg--Weil objects, function-field Brauer--Wall classes, Niemeier data,
 finite-field Witt decompositions, lexicode turning games, conformal-algebra
 accessors, represented ordinal finite-subfield degrees, checked Witt--FIFO and
-Brown constructors, and sealed Guy--Smith periodicity certificates. Python
+Brown constructors, Hermitian restriction to typed ordinary quadratic
+backends, and sealed Guy--Smith periodicity certificates. Python
 `repr` delegates to canonical Rust rendering where the core provides it.
 
 ## Mathematical status

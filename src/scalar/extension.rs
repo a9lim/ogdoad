@@ -17,6 +17,11 @@
 //! The `Fpn` implementation delegates to the shared
 //! [`FiniteField`](crate::scalar::FiniteField) relative trace and norm.
 //!
+//! [`QuadraticInvolution`] is the companion capability for restriction of
+//! Hermitian forms.  It names the involution-fixed world rather than the one
+//! distinguished `FieldExtension::Base`, so it also covers the current
+//! `F_16/F_4` intermediate-field cell exactly.
+//!
 //! # Exclusions
 //!
 //! Two functors are outside the implemented interface:
@@ -34,6 +39,37 @@
 use crate::scalar::{
     nim_square, nim_trace, Fp, Fpn, Nimber, Ordered, Qq, Scalar, Surcomplex, WittVec,
 };
+
+/// A scalar algebra with a distinguished order-two involution and an explicitly
+/// represented fixed scalar world.
+///
+/// This is the structure needed to restrict a Hermitian form from `E` to the
+/// ordinary quadratic form `q(v) = h(v,v)` over the fixed world `F`.  It is
+/// deliberately separate from [`FieldExtension`]: `Fpn<P, 2k>` currently names
+/// `Fp<P>` as its distinguished extension base, while its middle-Frobenius
+/// involution fixes the intermediate field `Fpn<P, k>`.
+///
+/// The returned basis has exactly two elements because `E/F` is quadratic.
+/// [`project_fixed`](Self::project_fixed) returns `None` when its argument is not
+/// fixed by the involution or cannot be represented by the selected `Fixed`
+/// backend.
+pub trait QuadraticInvolution: Scalar {
+    /// The scalar world fixed by the involution.
+    type Fixed: Scalar;
+
+    /// The nontrivial involution of `E/F`.
+    fn involute(&self) -> Self;
+
+    /// A distinguished `F`-basis of `E`.
+    fn fixed_basis() -> [Self; 2];
+
+    /// Embed an element of the fixed world into `E`.
+    fn embed_fixed(value: &Self::Fixed) -> Self;
+
+    /// Project an involution-fixed element of `E` into the represented fixed
+    /// world.
+    fn project_fixed(value: &Self) -> Option<Self::Fixed>;
+}
 
 /// A finite separable field extension `E/F` over a distinguished base `F`, with the
 /// degree and the relative trace `Tr_{E/F}` and norm `N_{E/F}`.
@@ -63,6 +99,26 @@ pub trait FieldExtension: Scalar {
 //
 // Adjoin `i`, a root of `x²+1`. The `Ordered` bound restricts this implementation
 // to characteristic-zero ordered bases, where `x²+1` is irreducible.
+
+impl<S: Ordered> QuadraticInvolution for Surcomplex<S> {
+    type Fixed = S;
+
+    fn involute(&self) -> Self {
+        self.conj()
+    }
+
+    fn fixed_basis() -> [Self; 2] {
+        [Self::one(), Self::i()]
+    }
+
+    fn embed_fixed(value: &S) -> Self {
+        Surcomplex::new(value.clone(), S::zero())
+    }
+
+    fn project_fixed(value: &Self) -> Option<S> {
+        value.im.is_zero().then(|| value.re.clone())
+    }
+}
 
 impl<S: Ordered> FieldExtension for Surcomplex<S> {
     type Base = S;
@@ -103,6 +159,72 @@ impl<const P: u128, const N: usize> FieldExtension for Fpn<P, N> {
     fn norm(&self) -> Fp<P> {
         use crate::scalar::FiniteField;
         Fp::<P>::from_u128(self.relative_norm(1).coeff(0))
+    }
+}
+
+impl<const P: u128> QuadraticInvolution for Fpn<P, 2> {
+    type Fixed = Fp<P>;
+
+    fn involute(&self) -> Self {
+        use crate::scalar::FiniteField;
+        self.frobenius()
+    }
+
+    fn fixed_basis() -> [Self; 2] {
+        [Self::one(), Self::generator()]
+    }
+
+    fn embed_fixed(value: &Fp<P>) -> Self {
+        Self::constant(value.value())
+    }
+
+    fn project_fixed(value: &Self) -> Option<Fp<P>> {
+        use crate::scalar::FiniteField;
+        if value.frobenius() != *value || value.coeffs()[1] != 0 {
+            return None;
+        }
+        Some(Fp::<P>::from_u128(value.coeff(0)))
+    }
+}
+
+// `F_16/F_4` is the one currently public Hermitian cell whose fixed field is
+// not the prime field named by `FieldExtension::Base`.  The two `Fpn` backends
+// use independently generated polynomial bases, so this implementation records
+// an explicit isomorphism: a primitive generator of `F_4^*` maps to the unique
+// order-three subgroup generator obtained from a primitive element of `F_16`.
+impl QuadraticInvolution for Fpn<2, 4> {
+    type Fixed = Fpn<2, 2>;
+
+    fn involute(&self) -> Self {
+        use crate::scalar::FiniteField;
+        self.frobenius_iter(2)
+    }
+
+    fn fixed_basis() -> [Self; 2] {
+        [Self::one(), Self::primitive_element()]
+    }
+
+    fn embed_fixed(value: &Self::Fixed) -> Self {
+        use crate::scalar::FiniteField;
+        if value.is_zero() {
+            return Self::zero();
+        }
+        let fixed_generator = FiniteField::pow(&Self::primitive_element(), 5);
+        let base_generator = Fpn::<2, 2>::primitive_element();
+        let exponent = base_generator
+            .discrete_log(*value)
+            .expect("nonzero F_4 element has a discrete log to a primitive generator");
+        FiniteField::pow(&fixed_generator, exponent)
+    }
+
+    fn project_fixed(value: &Self) -> Option<Self::Fixed> {
+        if value.involute() != *value {
+            return None;
+        }
+        (0..4).find_map(|code| {
+            let base = Fpn::<2, 2>::from_coeffs(&[code & 1, (code >> 1) & 1]);
+            (Self::embed_fixed(&base) == *value).then_some(base)
+        })
     }
 }
 
@@ -385,6 +507,37 @@ mod tests {
             FieldExtension::norm(&c),
             Fp::<3>::from_u128(2).mul(&Fp::<3>::from_u128(2))
         );
+    }
+
+    #[test]
+    fn f16_f4_quadratic_involution_has_an_exact_fixed_field_isomorphism() {
+        type F4 = Fpn<2, 2>;
+        type F16 = Fpn<2, 4>;
+
+        let elements: Vec<F4> = (0..4)
+            .map(|code| F4::from_coeffs(&[code & 1, (code >> 1) & 1]))
+            .collect();
+        for a in &elements {
+            let embedded_a = <F16 as QuadraticInvolution>::embed_fixed(a);
+            assert_eq!(embedded_a.involute(), embedded_a);
+            assert_eq!(
+                <F16 as QuadraticInvolution>::project_fixed(&embedded_a),
+                Some(*a)
+            );
+            for b in &elements {
+                assert_eq!(
+                    <F16 as QuadraticInvolution>::embed_fixed(&a.add(b)),
+                    embedded_a.add(&<F16 as QuadraticInvolution>::embed_fixed(b))
+                );
+                assert_eq!(
+                    <F16 as QuadraticInvolution>::embed_fixed(&a.mul(b)),
+                    embedded_a.mul(&<F16 as QuadraticInvolution>::embed_fixed(b))
+                );
+            }
+        }
+
+        let basis = <F16 as QuadraticInvolution>::fixed_basis();
+        assert_ne!(basis[1].involute(), basis[1]);
     }
 
     // ---------- Qq over Qp (the unramified local extension, Witt Frobenius) ----------

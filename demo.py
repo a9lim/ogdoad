@@ -425,10 +425,21 @@ print("  char-2 alternating [[0,1],[1,0]]:", pl.classify_symplectic_nimber([[0, 
 H = pl.HermitianForm.from_gram([[pl.Surcomplex(2, 0), pl.Surcomplex(0, 1)],
                                 [pl.Surcomplex(0, -1), pl.Surcomplex(2, 0)]])
 print("  Hermitian [[2,i],[-i,2]]:", H.signature(), "diagonal", H.diagonalize())
+restricted_H = pl.HermitianForm.diagonal([1, -1, 0]).restrict_scalars()
+print("  restriction to ordinary No-form:", restricted_H.dim,
+      pl.surreal_signature(restricted_H))
 print("  diagonal Hermitian ⟨1,-1,0⟩:", pl.HermitianForm.diagonal([1, -1, 0]).signature())
-finite_H = pl.FiniteHermitianForm.diagonal(3, 2, [1, 1, 0]).classify()
+finite_H_form = pl.FiniteHermitianForm.diagonal(3, 2, [1, 1, 0])
+finite_H = finite_H_form.classify()
 print("  finite Hermitian F9/F3       :", (finite_H.rank, finite_H.radical_dim,
                                            finite_H.base_field_order, finite_H.extension_field_order))
+finite_restriction = finite_H_form.restrict_scalars()
+print("  F9/F3 ordinary restriction   :", finite_restriction.dim,
+      pl.classify_finite_algebra(finite_restriction))
+char2_restriction = pl.FiniteHermitianForm.diagonal(2, 4, [1]).restrict_scalars()
+char2_restriction_class = pl.classify_finite_algebra(char2_restriction)
+print("  F16/F4 norm restriction      :", char2_restriction.dim, char2_restriction_class)
+assert char2_restriction_class.arf == 1 and char2_restriction_class.rank == 2
 print("  form Rust constructors       :",
       pl.SymplecticForm.from_gram([[0, 1], [-1, 0]]).classify().planes(),
       (lambda sig: (sig.pos, sig.neg, sig.radical))(

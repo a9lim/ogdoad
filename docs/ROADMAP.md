@@ -12,7 +12,6 @@ Highest-value additions are the joins between already public subsystems:
 | --- | --- |
 | Clifford centers | construct centers and even centers as discriminant etale algebras and compare their classes with the Brauer--Wall coordinates |
 | Milnor symbols | expose the degree-at-most-two mod-two symbols underlying the existing residue and `e_n` maps |
-| Hermitian restriction | compose trace/restriction of scalars with the ordinary quadratic classifiers |
 | ramified Springer | add a named ramified-extension path with correct value-group parity and independent tests |
 | finite-field invariants | lift level, Pythagoras number, and u-invariant reporting from prime fields to supported extensions |
 | characteristic-two spinor norm | construct the additive spinor norm from vector-symmetry factorizations |
