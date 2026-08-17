@@ -1,4 +1,5 @@
 import Ogdoad.MisereTransition
+import Ogdoad.MisereOctalCertificate
 import Mathlib.Tactic
 
 /-!
@@ -457,5 +458,203 @@ theorem no_periodic_strict_lag
   have harg : N + p * d = N + d * p := by simp [Nat.mul_comm]
   rw [harg, heq] at hlt
   exact Nat.lt_irrefl _ hlt
+
+section OctalPadObstruction
+
+open Ogdoad.MisereOctalCertificate
+
+/-- A one-remainder digit at place `k` gives every later heap a legal option.
+This is independent of the quotient labels assigned to the heaps. -/
+theorem one_bit_forces_nonempty
+    {A : Type*} (x : Nat → A) {one : Set Nat} {k N : Nat}
+    (hk : k ∈ one) (hkn : k < N) :
+    (oneRemainderOptions x one N).Nonempty := by
+  exact ⟨x (N - k), k, hk, hkn, rfl⟩
+
+/-- A split digit at place `k` gives every heap of size at least `k+2` a
+legal split option. -/
+theorem two_bit_forces_nonempty
+    (x : Nat → Q) {two : Set Nat} {k N : Nat}
+    (hk : k ∈ two) (hkn : k + 2 ≤ N) :
+    (twoRemainderOptions x two N).Nonempty := by
+  refine ⟨x 1 * x (N - k - 1), k, hk, hkn, ?_⟩
+  exact ⟨1, N - k - 1, by omega, by omega, by omega, rfl⟩
+
+/-- If a heap at least two places beyond the mask bound is terminal, then the
+code has no persistent one-remainder or split bits.  Whole-heap bits do not
+enter: they are source-local and inactive past their own digit. -/
+theorem persistent_masks_empty_of_terminal_past_bound
+    (x : Nat → Q) {whole one two : Set Nat} {d N : Nat}
+    (hbounded : MasksBounded whole one two d)
+    (hN : d + 2 ≤ N)
+    (hterminal : octalOptions x whole one two N = ∅) :
+    one = ∅ ∧ two = ∅ := by
+  rcases hbounded with ⟨_, hone, htwo⟩
+  constructor
+  · apply not_nonempty_iff_eq_empty.mp
+    rintro ⟨k, hk⟩
+    have hkn : k < N := lt_of_le_of_lt (hone k hk) (by omega)
+    obtain ⟨q, hq⟩ := one_bit_forces_nonempty x hk hkn
+    have hqoctal : q ∈ octalOptions x whole one two N := by
+      simp only [octalOptions, Set.mem_union]
+      exact Or.inl (Or.inr hq)
+    rw [hterminal] at hqoctal
+    exact hqoctal
+  · apply not_nonempty_iff_eq_empty.mp
+    rintro ⟨k, hk⟩
+    have hkn : k + 2 ≤ N := le_trans (Nat.add_le_add_right (htwo k hk) 2) hN
+    obtain ⟨q, hq⟩ := two_bit_forces_nonempty x hk hkn
+    have hqoctal : q ∈ octalOptions x whole one two N := by
+      simp only [octalOptions, Set.mem_union]
+      exact Or.inr hq
+    rw [hterminal] at hqoctal
+    exact hqoctal
+
+/-- In a deterministic valid table with two distinct nonidentity values, a
+chosen descending record must contain a nonidentity option.  Otherwise both
+values would have the same singleton option set `{1}` and determinism would
+identify them. -/
+theorem exists_nonidentity_option_of_three_values
+    {P : Set Q} {T : Set (Transition Q)} {R : Q → Nat}
+    (hreduced : Reduced P) (hclosed : Closed T)
+    (hparity : ParityTable P T) (hranked : Ranked T R)
+    (hR1 : R 1 = 0)
+    (E : Q → Set Q)
+    (htable : ∀ q, Transition.mk q (E q) ∈ T)
+    (hdesc : ∀ q e, e ∈ E q → R e < R q)
+    (hthree : ∃ x y : Q, x ≠ 1 ∧ y ≠ 1 ∧ x ≠ y) :
+    ∃ q e : Q, q ≠ 1 ∧ e ∈ E q ∧ e ≠ 1 := by
+  classical
+  have hE1 : E 1 = ∅ := by
+    apply not_nonempty_iff_eq_empty.mp
+    rintro ⟨e, he⟩
+    have hlt := hdesc 1 e he
+    rw [hR1] at hlt
+    omega
+  by_contra hnone
+  push Not at hnone
+  obtain ⟨x, y, hx1, hy1, hxy⟩ := hthree
+  have option_set_eq_singleton (q : Q) (hq1 : q ≠ 1) : E q = {1} := by
+    have hnonempty : (E q).Nonempty := by
+      by_contra hempty
+      have hEq : E q = ∅ := not_nonempty_iff_eq_empty.mp hempty
+      have hqeq : q = 1 := value_eq_of_options_eq
+        hreduced hclosed hparity hranked (htable q) (htable 1)
+        (by simp [hEq, hE1])
+      exact hq1 hqeq
+    apply Subset.antisymm
+    · intro e he
+      simpa using hnone q e hq1 he
+    · rintro e rfl
+      obtain ⟨z, hz⟩ := hnonempty
+      have hz1 : z = 1 := hnone q z hq1 hz
+      simpa [← hz1] using hz
+  have hxeq : E x = {1} := option_set_eq_singleton x hx1
+  have hyeq : E y = {1} := option_set_eq_singleton y hy1
+  have : x = y := value_eq_of_options_eq
+    hreduced hclosed hparity hranked (htable x) (htable y)
+    (by rw [hxeq, hyeq])
+  exact hxy this
+
+/-- A nonidentity option of an earlier octal heap forces the later heap to be
+nonterminal.  A whole-heap removal contributes only `1`; a one- or
+two-remainder witness remains legal when the source heap is enlarged. -/
+theorem nonidentity_option_persists_to_later_heap
+    (x : Nat → Q) {whole one two : Set Nat} {n N : Nat} {e : Q}
+    (he : e ∈ octalOptions x whole one two n) (he1 : e ≠ 1)
+    (hnN : n < N) :
+    (octalOptions x whole one two N).Nonempty := by
+  simp only [octalOptions, Set.mem_union] at he
+  rcases he with (hwhole | hone) | htwo
+  · exact (he1 hwhole.1).elim
+  · rcases hone with ⟨k, hk, hkn, _⟩
+    obtain ⟨q, hq⟩ := one_bit_forces_nonempty x hk (lt_trans hkn hnN)
+    refine ⟨q, ?_⟩
+    simp only [octalOptions, Set.mem_union]
+    exact Or.inl (Or.inr hq)
+  · rcases htwo with ⟨k, hk, hkn, _⟩
+    obtain ⟨q, hq⟩ := two_bit_forces_nonempty x hk
+      (le_trans hkn (Nat.le_of_lt hnN))
+    refine ⟨q, ?_⟩
+    simp only [octalOptions, Set.mem_union]
+    exact Or.inr hq
+
+/-- **Actual-geometry pad obstruction.** If every chosen ranked record is
+encoded exactly by a representative heap lying before an inert pad, then a
+table with two distinct nonidentity values is impossible.  Unlike
+`finite_exception_inert_pad_obstruction`, this uses the compiler's ordering of
+all representatives before the pad and needs no bound on the octal masks. -/
+theorem finite_exception_later_inert_pad_obstruction
+    {P : Set Q} {T : Set (Transition Q)} {R : Q → Nat}
+    (hreduced : Reduced P) (hclosed : Closed T)
+    (hparity : ParityTable P T) (hranked : Ranked T R)
+    (hR1 : R 1 = 0)
+    (E : Q → Set Q)
+    (htable : ∀ q, Transition.mk q (E q) ∈ T)
+    (hdesc : ∀ q e, e ∈ E q → R e < R q)
+    (hthree : ∃ x y : Q, x ≠ 1 ∧ y ≠ 1 ∧ x ≠ y)
+    (x : Nat → Q) (representative : Q → Nat)
+    {whole one two : Set Nat} {N : Nat}
+    (hencode : ∀ q, octalOptions x whole one two (representative q) = E q)
+    (hbefore : ∀ q, representative q < N)
+    (hterminal : octalOptions x whole one two N = ∅) : False := by
+  obtain ⟨q, e, _, he, he1⟩ := exists_nonidentity_option_of_three_values
+    hreduced hclosed hparity hranked hR1 E htable hdesc hthree
+  have heoctal : e ∈ octalOptions x whole one two (representative q) := by
+    rw [hencode q]
+    exact he
+  obtain ⟨z, hz⟩ := nonidentity_option_persists_to_later_heap
+    x heoctal he1 (hbefore q)
+  rw [hterminal] at hz
+  exact hz
+
+/-- **Pad obstruction for the finite-exception compiler.** Suppose each
+chosen ranked prefix option set is encoded exactly by an octal heap.  With two
+distinct nonidentity values, one prefix record contains a nonidentity option.
+Such an option cannot come from a whole-heap bit, so some persistent one- or
+two-remainder bit is active.  It then contradicts a later inert pad beyond the
+code support.
+
+This rules out only a verbatim octal encoding of the normal-form compiler; it
+does not rule out a different encoding with an active bridge. -/
+theorem finite_exception_inert_pad_obstruction
+    {P : Set Q} {T : Set (Transition Q)} {R : Q → Nat}
+    (hreduced : Reduced P) (hclosed : Closed T)
+    (hparity : ParityTable P T) (hranked : Ranked T R)
+    (hR1 : R 1 = 0)
+    (E : Q → Set Q)
+    (htable : ∀ q, Transition.mk q (E q) ∈ T)
+    (hdesc : ∀ q e, e ∈ E q → R e < R q)
+    (hthree : ∃ x y : Q, x ≠ 1 ∧ y ≠ 1 ∧ x ≠ y)
+    (x : Nat → Q) (representative : Q → Nat)
+    {whole one two : Set Nat} {d N : Nat}
+    (hencode : ∀ q, octalOptions x whole one two (representative q) = E q)
+    (hbounded : MasksBounded whole one two d)
+    (hN : d + 2 ≤ N)
+    (hterminal : octalOptions x whole one two N = ∅) : False := by
+  obtain ⟨q, e, hq1, he, he1⟩ := exists_nonidentity_option_of_three_values
+    hreduced hclosed hparity hranked hR1 E htable hdesc hthree
+  have heoctal : e ∈ octalOptions x whole one two (representative q) := by
+    rw [hencode q]
+    exact he
+  have hpersistent : one.Nonempty ∨ two.Nonempty := by
+    simp only [octalOptions, Set.mem_union] at heoctal
+    rcases heoctal with (hwhole | hone) | htwo
+    · exact (he1 hwhole.1).elim
+    · rcases hone with ⟨k, hk, _⟩
+      exact Or.inl ⟨k, hk⟩
+    · rcases htwo with ⟨k, hk, _⟩
+      exact Or.inr ⟨k, hk⟩
+  have hempty := persistent_masks_empty_of_terminal_past_bound
+    x hbounded hN hterminal
+  rcases hpersistent with hone | htwo
+  · rw [hempty.1] at hone
+    rcases hone with ⟨k, hk⟩
+    exact hk
+  · rw [hempty.2] at htwo
+    rcases htwo with ⟨k, hk⟩
+    exact hk
+
+end OctalPadObstruction
 
 end Ogdoad.MisereNaturalUniversality

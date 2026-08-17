@@ -267,13 +267,31 @@ B_k, i+j = n-k      => x_n != x_i x_j.
 
 These are exact obstruction filters, not a characterization.
 
+The split recurrence also has an exact unary-language formulation. If
+`X_q = {n : x_n = q}`, then the language where `q` occurs as an option is a
+finite union of whole-removal constants, shifts of `X_q`, and shifted additive
+convolutions `X_u + X_v` over `uv = q`; Boolean cells recover each complete
+option-value set. The trace is total exactly when the union of cells on which
+the partial decoder is undefined is empty. This dictionary is checked in
+Lean. It does not collapse to a finite automaton: if the decoder is arbitrary
+rather than a valid misère table, totality is `Pi^0_1`-complete already for
+the fixed code `0.7`, by encoding unary unambiguous conjunctive-grammar
+emptiness in a truncated multiset monoid. Thus any fixed-code decision theorem
+must use closedness, parity, ranking, and reducedness essentially; finiteness
+and commutativity alone are insufficient.
+
 There is also a comparison normal-form theorem. Every nontrivial finite
 valid quotient has an exact one-species numerical heap realization with a
 finite source-local prefix, one inert padding heap, and the uniform tail move
 `H_n -> H_(n-1)`. This is not a finite-octal realization: encoding a prefix
 edge by an octal digit repeats that edge at every larger source heap. The
 theorem isolates this translated cross-talk but does not prove it is the only
-possible obstruction to a different octal gadget.
+possible obstruction to a different octal gadget. More sharply, when the
+quotient has more than two elements, no exact heapwise encoding of all chosen
+descending prefix records can retain the later inert pad: some record needs a
+nonidentity option, hence a persistent one- or two-remainder bit, and that bit
+also gives the pad an option. An active bridge or a contextual generator
+encoding remains possible.
 
 There is also a uniform positive family: for every `n >= 2`, the finite code
 with `2^(n-1)` consecutive digits equal to `3` has exact quotient `T_n`, the
@@ -283,7 +301,13 @@ heap 18: the quotient through heap 13 is a reduced monoid of order 12, and the
 quotient through heap 18 is a reduced monoid of order 24, with presentations,
 all-multiplicity outcome inductions, and separating translation rows in the
 note. These prefix theorems neither prove stabilization nor supply an infinite
-distinguishable family.
+distinguishable family. There is also a global conditional obstruction: if
+the full Grundy quotient is finite, finite Ramsey supplies unequal `i,j` with
+`x_i = x_j = x_(i+j) = c`, so a heap record contains `c^2` among its options.
+Closure and the no-self theorem force all consecutive positive powers of `c`
+to differ. Hence the power sequence has eventual period at least two and the
+kernel of the finite quotient is nontrivial. This is compatible with tame
+period-two behavior and is not yet an infinity proof.
 
 ### Milestones and completion
 
@@ -306,7 +330,9 @@ distinguishable family.
 The algorithmic gap has two independent layers. For fixed finite `(Q, P)`,
 fixed valid `T`, and fixed split code, determinism makes the trace a partial
 computable recurrence; deciding whether that recurrence is total is still
-open. Even if every fixed-code instance became decidable, monoid-level
+open. The arbitrary-decoder `Pi^0_1`-completeness theorem identifies validity
+as the precise missing restriction, but does not establish hardness for valid
+tables. Even if every fixed-code instance became decidable, monoid-level
 synthesis ranges over unbounded code lengths. A complete decision procedure
 therefore also needs a computable length bound or pumping normalization, or
 else an undecidability theorem.
@@ -321,10 +347,13 @@ The starting theory is the [Plambeck--Siegel quotient
 construction](https://arxiv.org/abs/math/0609825) and Siegel's
 [valid-transition-table classification](https://arxiv.org/abs/math/0703070).
 The algebraic determinism, meximal and no-self obstructions, exact quotient
-sufficiency, periodic complete-record certificate, and the typed
-prefix/pad/unary-tail normal form are checked in Lean. The numerical
-rank-order transport for that normal form, the tame-family strategy, and exact
-Grundy-prefix presentations are presently paper proofs.
+sufficiency, periodic complete-record certificate, typed
+prefix/pad/unary-tail normal form, inert-pad obstruction, unary-language
+dictionary, and algebraic power-period obstruction are checked in Lean. The
+formal-language hardness theorem, numerical rank-order transport for the
+normal form, tame-family strategy, kernel deduction, and exact Grundy-prefix
+presentations are presently paper proofs. The distinct-summand finite-color
+bridge is checked from Mathlib's Hindman theorem.
 The current `src/games/misere.rs` routines compare only bounded element and
 test sets, so their signatures and multiplication flags are observational
 evidence, not exact quotient certificates. The `misere_quotient` and
