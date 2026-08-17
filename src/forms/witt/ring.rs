@@ -17,6 +17,10 @@
 //! | 2 | **Hasse**/Clifford     | [`oddchar::hasse_invariant_finite_odd`] |
 //!
 //! Thus discriminant and Hasse appear as successive invariants `e₁` and `e₂`.
+//! [`Metric::milnor_e1`](crate::clifford::Metric::milnor_e1) and
+//! [`Metric::milnor_e2`](crate::clifford::Metric::milnor_e2) are the strict
+//! graded maps: they reject a form outside `I` or `I²`. [`EnStaircase`] remains
+//! the compact finite-field report and does not by itself certify those domains.
 //!
 //! ## Stabilization — where the staircase stops, per field
 //!
@@ -103,10 +107,12 @@ pub fn in_fundamental_ideal<S: Scalar>(metric: &Metric<S>) -> Option<bool> {
 // The cohomological invariant staircase.
 // ---------------------------------------------------------------------------
 
-/// The low cohomological invariants `(e₀, e₁, e₂)` of an odd-characteristic form,
-/// with the field's stabilization recorded. `e₀ = dim mod 2`, `e₁ =` signed-disc
-/// square-class (the genuine `H¹` invariant, reused from [`finite_odd_witt`]), and
-/// `e₂ =` the Hasse invariant — `+1` over a finite field, where `I² = 0`.
+/// A compact report of the low cohomological coordinates `(e₀, e₁, e₂)` of an
+/// odd-characteristic form, with the field's stabilization recorded. This report
+/// lists all coordinates together; use the strict `Metric::milnor_e_n` methods
+/// when the `I^n` domain is part of the claim. `e₀ = dim mod 2`, `e₁ =`
+/// signed-discriminant square class, and `e₂ =` the Hasse invariant — `+1` over a
+/// finite field, where `I² = 0`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct EnStaircase {
     /// `e₀ ∈ H⁰ = ℤ/2`: the dimension mod 2.

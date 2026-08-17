@@ -11,8 +11,8 @@
 //!   Brauer classes.
 //! * `cyclic` provides `Q/Z`-valued local invariants for unramified cyclic
 //!   algebras and tame Kummer symbols.
-//! * `milnor` assembles rational and odd-characteristic function-field residue
-//!   maps.
+//! * `milnor` exposes degree-at-most-two mod-two Milnor symbols, strict `e_n`
+//!   maps, and rational/function-field residue maps.
 //!
 //! Child modules are re-exported through this module.
 

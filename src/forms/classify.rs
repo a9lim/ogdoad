@@ -14,18 +14,25 @@
 //! `Rational`'s Witt invariant is the full Hasse–Minkowski datum and surcomplex's
 //! is `W(ℂ) = ℤ/2`; neither is a `WittClassG`, so those two backends implement
 //! [`ClassifyForm`] but not [`ClassifyWitt`].
+//!
+//! [`ClassifyMilnor`] dispatches the strict characteristic-not-two maps
+//! `e_n : I^n/I^(n+1) -> K^M_n/2` for `n <= 2`. Unlike a compact invariant
+//! report, these methods reject forms outside the requested fundamental-ideal
+//! power.
 
 use crate::clifford::{CliffordAlgebra, Metric};
 use crate::forms::{
     arf_fpn_char2, arf_invariant, arf_ordinal_finite, bw_class_complex, bw_class_finite_odd,
     bw_class_function_field, bw_class_nimber, bw_class_rational, bw_class_real,
-    classify_finite_odd, classify_rational, classify_surcomplex, classify_surreal, finite_odd_witt,
-    isometric_finite_odd, isometric_fpn_char2, isometric_nimber, isometric_ordinal_finite,
-    isometric_rational, isometric_real, isometric_surcomplex,
-    ordinal_metric_finite_subfield_degree, witt_decompose_finite_odd, witt_decompose_real,
-    ArfInvariants, BrauerWallClass, CliffordInvariants, FiniteOddField,
-    FunctionFieldBrauerWallClass, OddCharInvariants, OddWittDecomp, RationalBrauerWallClass,
-    RationalCliffordInvariants, RealWittDecomp, WittClassG,
+    classify_finite_odd, classify_rational, classify_surcomplex, classify_surreal,
+    finite_milnor_e1, finite_milnor_e2, finite_odd_witt, function_field_milnor_e1,
+    function_field_milnor_e2, isometric_finite_odd, isometric_fpn_char2, isometric_nimber,
+    isometric_ordinal_finite, isometric_rational, isometric_real, isometric_surcomplex,
+    ordinal_metric_finite_subfield_degree, rational_milnor_e1, rational_milnor_e2,
+    strict_milnor_e0, witt_decompose_finite_odd, witt_decompose_real, ArfInvariants,
+    BrauerWallClass, CliffordInvariants, FiniteOddField, FunctionFieldBrauerWallClass,
+    MilnorInvariantError, MilnorK0Class, Mod2MilnorField, OddCharInvariants, OddWittDecomp,
+    RationalBrauerWallClass, RationalCliffordInvariants, RealWittDecomp, WittClassG,
 };
 use crate::scalar::{
     Fp, Fpn, Nimber, Ordinal, Rational, RationalFunction, Scalar, Surcomplex, Surreal,
@@ -354,6 +361,22 @@ pub trait ClassifyBrauerWall: Scalar {
     fn bw_class(metric: &Metric<Self>) -> Result<Self::BrauerWallClass, ClassifyError>;
 }
 
+/// Strict degree-at-most-two mod-two Milnor invariants of a nonsingular form.
+/// The associated `K1Class` and `K2Class` come from [`Mod2MilnorField`], so each
+/// coefficient field keeps its exact square-class and Brauer carrier.
+pub trait ClassifyMilnor: Mod2MilnorField {
+    /// `e_0(q) = dim(q) mod 2`.
+    fn milnor_e0(metric: &Metric<Self>) -> Result<MilnorK0Class, MilnorInvariantError> {
+        strict_milnor_e0(metric)
+    }
+
+    /// The strict `e_1 : I/I^2 -> K^M_1/2` map.
+    fn milnor_e1(metric: &Metric<Self>) -> Result<Self::K1Class, MilnorInvariantError>;
+
+    /// The strict `e_2 : I^2/I^3 -> K^M_2/2` map.
+    fn milnor_e2(metric: &Metric<Self>) -> Result<Self::K2Class, MilnorInvariantError>;
+}
+
 impl ClassifyForm for Surreal {
     type Class = CliffordInvariants;
     fn classify(metric: &Metric<Self>) -> Result<CliffordInvariants, ClassifyError> {
@@ -633,6 +656,46 @@ impl ClassifyBrauerWall for Ordinal {
     }
 }
 
+impl ClassifyMilnor for Rational {
+    fn milnor_e1(metric: &Metric<Self>) -> Result<Self::K1Class, MilnorInvariantError> {
+        rational_milnor_e1(metric)
+    }
+
+    fn milnor_e2(metric: &Metric<Self>) -> Result<Self::K2Class, MilnorInvariantError> {
+        rational_milnor_e2(metric)
+    }
+}
+
+impl<const P: u128> ClassifyMilnor for Fp<P> {
+    fn milnor_e1(metric: &Metric<Self>) -> Result<Self::K1Class, MilnorInvariantError> {
+        finite_milnor_e1(metric)
+    }
+
+    fn milnor_e2(metric: &Metric<Self>) -> Result<Self::K2Class, MilnorInvariantError> {
+        finite_milnor_e2(metric)
+    }
+}
+
+impl<const P: u128, const N: usize> ClassifyMilnor for Fpn<P, N> {
+    fn milnor_e1(metric: &Metric<Self>) -> Result<Self::K1Class, MilnorInvariantError> {
+        finite_milnor_e1(metric)
+    }
+
+    fn milnor_e2(metric: &Metric<Self>) -> Result<Self::K2Class, MilnorInvariantError> {
+        finite_milnor_e2(metric)
+    }
+}
+
+impl<S: FiniteOddField> ClassifyMilnor for RationalFunction<S> {
+    fn milnor_e1(metric: &Metric<Self>) -> Result<Self::K1Class, MilnorInvariantError> {
+        function_field_milnor_e1(metric)
+    }
+
+    fn milnor_e2(metric: &Metric<Self>) -> Result<Self::K2Class, MilnorInvariantError> {
+        function_field_milnor_e2(metric)
+    }
+}
+
 fn ordinal_char2_field_degree(metric: &Metric<Ordinal>) -> Option<u128> {
     ordinal_metric_finite_subfield_degree(metric)
 }
@@ -679,6 +742,23 @@ impl<S: ClassifyBrauerWall> Metric<S> {
     }
 }
 
+impl<S: ClassifyMilnor> Metric<S> {
+    /// The strict degree-zero mod-two Milnor invariant.
+    pub fn milnor_e0(&self) -> Result<MilnorK0Class, MilnorInvariantError> {
+        S::milnor_e0(self)
+    }
+
+    /// The strict `e_1 : I/I^2 -> K^M_1/2` invariant.
+    pub fn milnor_e1(&self) -> Result<S::K1Class, MilnorInvariantError> {
+        S::milnor_e1(self)
+    }
+
+    /// The strict `e_2 : I^2/I^3 -> K^M_2/2` invariant.
+    pub fn milnor_e2(&self) -> Result<S::K2Class, MilnorInvariantError> {
+        S::milnor_e2(self)
+    }
+}
+
 impl<S: ClassifyForm> CliffordAlgebra<S> {
     /// Classify the algebra's underlying form (see [`ClassifyForm`]).
     pub fn classify(&self) -> Result<S::Class, ClassifyError> {
@@ -711,6 +791,23 @@ impl<S: ClassifyBrauerWall> CliffordAlgebra<S> {
     /// Brauer-Wall class of the algebra.
     pub fn bw_class(&self) -> Result<S::BrauerWallClass, ClassifyError> {
         S::bw_class(&self.metric)
+    }
+}
+
+impl<S: ClassifyMilnor> CliffordAlgebra<S> {
+    /// The strict degree-zero mod-two Milnor invariant of the underlying form.
+    pub fn milnor_e0(&self) -> Result<MilnorK0Class, MilnorInvariantError> {
+        S::milnor_e0(&self.metric)
+    }
+
+    /// The strict degree-one mod-two Milnor invariant of the underlying form.
+    pub fn milnor_e1(&self) -> Result<S::K1Class, MilnorInvariantError> {
+        S::milnor_e1(&self.metric)
+    }
+
+    /// The strict degree-two mod-two Milnor invariant of the underlying form.
+    pub fn milnor_e2(&self) -> Result<S::K2Class, MilnorInvariantError> {
+        S::milnor_e2(&self.metric)
     }
 }
 

@@ -1,4 +1,27 @@
-//! Milnor residue maps assembled as global Witt invariants.
+//! Mod-two Milnor symbols and Milnor residue maps assembled as global Witt
+//! invariants.
+//!
+//! The symbol layer exposes the part of Milnor K-theory already computed by the
+//! crate's form and Brauer surfaces:
+//!
+//! ```text
+//! K^M_0(F)/2 = Z/2,
+//! K^M_1(F)/2 = F*/F*^2,
+//! K^M_2(F)/2 = H^2(F, Z/2) = Br(F)[2]       (char(F) != 2).
+//! ```
+//!
+//! [`Mod2MilnorField`] constructs the pure symbols `{a}` and `{a,b}`. The
+//! degree-one carriers are square classes; the degree-two carriers reuse the
+//! exact quaternion/Brauer classes already maintained by the rational and
+//! odd-characteristic function-field layers. [`ClassifyMilnor`] exposes the
+//! strict graded maps `e_0`, `e_1`, and `e_2` on metrics: unlike a reporting
+//! tuple, `e_n` returns [`MilnorInvariantError::OutsideFundamentalIdeal`] unless
+//! the form actually lies in `I^n`.
+//!
+//! This module deliberately stops at degree two and characteristic not two.
+//! Characteristic-two quadratic Witt theory uses the Kato/Artin--Schreier
+//! filtration rather than this Milnor filtration, and wild local norm-residue
+//! symbols remain outside the implemented surface.
 //!
 //! The Springer layer computes per-place residue buckets; this module assembles
 //! the Witt-group-level maps supplied by Milnor's exact sequence
@@ -45,12 +68,632 @@
 //! are outside this Witt-residue map.
 
 use crate::forms::{
-    legendre, relevant_primes, try_chi_kappa, try_kappa_order, try_relevant_places_ff,
-    try_residue_unit_at, try_valuation_at_ff, unit_part, val_p, FiniteOddField, FunctionFieldPlace,
-    WittClassG,
+    as_diagonal, bw_class_function_field, bw_class_rational, finite_odd_witt, is_global_square_ff,
+    legendre, relevant_primes, try_chi_kappa, try_hilbert_symbol_qp, try_kappa_order,
+    try_relevant_places_ff, try_residue_unit_at, try_square_free, try_tame_symbol_exponent_ff,
+    try_valuation_at_ff, unit_part, val_p, Brauer2Class, FiniteOddField, FunctionFieldBrauer2Class,
+    FunctionFieldPlace, WittClassG,
 };
-use crate::scalar::{Poly, RationalFunction, Scalar};
+use crate::scalar::{
+    is_prime_u128, ExactFieldScalar, Fp, Fpn, Poly, Rational, RationalFunction, Scalar,
+};
 use std::collections::BTreeMap;
+
+// ---------------------------------------------------------------------------
+// Degree <= 2 mod-two Milnor classes and pure symbols.
+// ---------------------------------------------------------------------------
+
+/// A class in `K^M_0(F)/2 = Z/2`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct MilnorK0Class(u128);
+
+impl MilnorK0Class {
+    /// Construct the parity class of an integer.
+    pub fn from_parity(value: u128) -> Self {
+        MilnorK0Class(value & 1)
+    }
+
+    /// Construct the degree-zero class of a vector-space dimension.
+    pub fn from_dimension(dim: usize) -> Self {
+        MilnorK0Class((dim & 1) as u128)
+    }
+
+    /// The representative bit, `0` or `1`.
+    pub fn value(self) -> u128 {
+        self.0
+    }
+
+    /// Addition in `Z/2`.
+    pub fn sum(self, other: Self) -> Self {
+        MilnorK0Class(self.0 ^ other.0)
+    }
+
+    /// Multiplication in `Z/2`.
+    pub fn product(self, other: Self) -> Self {
+        MilnorK0Class(self.0 & other.0)
+    }
+
+    /// Return the canonical display representation.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for MilnorK0Class {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "MilnorK0Mod2({})", self.0)
+    }
+}
+
+/// A class in `K^M_1(Q)/2 = Q*/Q*^2`, stored as a nonzero square-free `i128`
+/// representative. A rational `n/d` has the same square class as `n*d`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RationalMilnorK1Class {
+    representative: i128,
+}
+
+impl RationalMilnorK1Class {
+    /// Construct `{a}` for a nonzero rational `a`. `None` on zero or bounded
+    /// `i128` overflow while reducing the square class.
+    pub fn from_rational(a: &Rational) -> Option<Self> {
+        if a.is_zero() {
+            return None;
+        }
+        let representative = try_square_free(a.numer().checked_mul(a.denom())?)?;
+        Some(RationalMilnorK1Class { representative })
+    }
+
+    fn from_representative(representative: i128) -> Option<Self> {
+        let representative = try_square_free(representative)?;
+        (representative != 0).then_some(RationalMilnorK1Class { representative })
+    }
+
+    /// The canonical square-free representative.
+    pub fn representative(self) -> i128 {
+        self.representative
+    }
+
+    /// Whether this is the trivial square class.
+    pub fn is_trivial(self) -> bool {
+        self.representative == 1
+    }
+
+    /// Addition in `K^M_1/2`, induced by multiplication in `Q*`.
+    /// `None` if the bounded representative product overflows.
+    pub fn try_add(self, other: Self) -> Option<Self> {
+        RationalMilnorK1Class::from_representative(
+            self.representative.checked_mul(other.representative)?,
+        )
+    }
+
+    /// Return the canonical display representation.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for RationalMilnorK1Class {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "MilnorK1Mod2(Q; {})", self.representative)
+    }
+}
+
+/// A class in `K^M_1(F_q)/2 = F_q*/F_q*^2` for an odd finite field, including
+/// residue extensions whose concrete scalar type is selected dynamically by a
+/// place. The class bit is `0` for a square and `1` for a nonsquare.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct FiniteFieldMilnorK1Class {
+    characteristic: u128,
+    field_order: u128,
+    nonsquare: u128,
+}
+
+impl FiniteFieldMilnorK1Class {
+    fn new(characteristic: u128, field_order: u128, nonsquare: u128) -> Option<Self> {
+        (characteristic != 2 && nonsquare <= 1).then_some(FiniteFieldMilnorK1Class {
+            characteristic,
+            field_order,
+            nonsquare,
+        })
+    }
+
+    /// Characteristic prime of the finite field.
+    pub fn characteristic(self) -> u128 {
+        self.characteristic
+    }
+
+    /// Order of the finite field.
+    pub fn field_order(self) -> u128 {
+        self.field_order
+    }
+
+    /// The square-class bit: `0` for square, `1` for nonsquare.
+    pub fn nonsquare(self) -> u128 {
+        self.nonsquare
+    }
+
+    /// Whether this is the trivial square class.
+    pub fn is_trivial(self) -> bool {
+        self.nonsquare == 0
+    }
+
+    /// Addition in `K^M_1/2`. `None` when the operands name different fields.
+    pub fn try_add(self, other: Self) -> Option<Self> {
+        if self.characteristic != other.characteristic || self.field_order != other.field_order {
+            return None;
+        }
+        FiniteFieldMilnorK1Class::new(
+            self.characteristic,
+            self.field_order,
+            self.nonsquare ^ other.nonsquare,
+        )
+    }
+
+    /// Return the canonical display representation.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for FiniteFieldMilnorK1Class {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "MilnorK1Mod2(F_{}; {})",
+            self.field_order, self.nonsquare
+        )
+    }
+}
+
+/// The unique class in `K^M_2(F_q)/2 = 0` for a finite field of odd
+/// characteristic. Field metadata prevents accidental cross-field addition.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct FiniteFieldMilnorK2Class {
+    characteristic: u128,
+    field_order: u128,
+}
+
+impl FiniteFieldMilnorK2Class {
+    fn new(characteristic: u128, field_order: u128) -> Option<Self> {
+        (characteristic != 2).then_some(FiniteFieldMilnorK2Class {
+            characteristic,
+            field_order,
+        })
+    }
+
+    /// Characteristic prime of the finite field.
+    pub fn characteristic(self) -> u128 {
+        self.characteristic
+    }
+
+    /// Order of the finite field.
+    pub fn field_order(self) -> u128 {
+        self.field_order
+    }
+
+    /// Every degree-two mod-two Milnor class over a finite field is trivial.
+    pub fn is_trivial(self) -> bool {
+        true
+    }
+
+    /// Addition in the trivial group. `None` when the operands name different
+    /// fields.
+    pub fn try_add(self, other: Self) -> Option<Self> {
+        (self == other).then_some(self)
+    }
+
+    /// Return the canonical display representation.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl std::fmt::Display for FiniteFieldMilnorK2Class {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "MilnorK2Mod2(F_{}; 0)", self.field_order)
+    }
+}
+
+/// A class in `K^M_1(F_q(t))/2`, stored by a nonzero representative. Equality
+/// is equality modulo global squares, not literal rational-function equality.
+#[derive(Debug, Clone)]
+pub struct FunctionFieldMilnorK1Class<S: FiniteOddField> {
+    representative: RationalFunction<S>,
+}
+
+impl<S: FiniteOddField> FunctionFieldMilnorK1Class<S> {
+    fn new(representative: RationalFunction<S>) -> Option<Self> {
+        (!representative.is_zero()).then_some(FunctionFieldMilnorK1Class { representative })
+    }
+
+    /// A representative of the global square class.
+    pub fn representative(&self) -> &RationalFunction<S> {
+        &self.representative
+    }
+
+    /// Whether the representative is a global square.
+    pub fn is_trivial(&self) -> bool {
+        is_global_square_ff(&self.representative)
+    }
+
+    /// Addition in `K^M_1/2`, induced by multiplication in `F_q(t)*`.
+    pub fn add(&self, other: &Self) -> Self {
+        FunctionFieldMilnorK1Class {
+            representative: self.representative.mul(&other.representative),
+        }
+    }
+
+    /// Return the canonical display representation.
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl<S: FiniteOddField> PartialEq for FunctionFieldMilnorK1Class<S> {
+    fn eq(&self, other: &Self) -> bool {
+        let Some(other_inv) = other.representative.inv() else {
+            return false;
+        };
+        is_global_square_ff(&self.representative.mul(&other_inv))
+    }
+}
+
+impl<S: FiniteOddField> Eq for FunctionFieldMilnorK1Class<S> {}
+
+impl<S: FiniteOddField> std::fmt::Display for FunctionFieldMilnorK1Class<S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "MilnorK1Mod2(F_{}(t); {})",
+            S::field_order(),
+            self.representative
+        )
+    }
+}
+
+/// `K^M_2(Q)/2`, realized by the norm-residue map as the rational two-torsion
+/// Brauer group.
+pub type RationalMilnorK2Class = Brauer2Class;
+
+/// `K^M_2(F_q(t))/2`, realized by the norm-residue map as the function-field
+/// two-torsion Brauer group.
+pub type FunctionFieldMilnorK2Class<S> = FunctionFieldBrauer2Class<S>;
+
+/// Exact characteristic-not-two fields for which Ogdoad exposes degree-one and
+/// degree-two mod-two Milnor symbols.
+pub trait Mod2MilnorField: ExactFieldScalar {
+    /// Carrier of `K^M_1(Self)/2`.
+    type K1Class;
+    /// Carrier of `K^M_2(Self)/2`.
+    type K2Class;
+
+    /// Whether this monomorphization is inside the implemented
+    /// characteristic-not-two field domain.
+    fn supports_mod2_milnor() -> bool;
+
+    /// The degree-one pure symbol `{a}`. `None` for `a = 0` or when bounded
+    /// square-class arithmetic leaves the represented domain.
+    fn milnor_symbol_1(a: &Self) -> Option<Self::K1Class>;
+
+    /// The degree-two pure symbol `{a,b}`. `None` if either argument is zero or
+    /// when the exact Brauer calculation leaves the represented domain.
+    fn milnor_symbol_2(a: &Self, b: &Self) -> Option<Self::K2Class>;
+}
+
+fn finite_milnor_symbol_1<F: FiniteOddField>(a: &F) -> Option<FiniteFieldMilnorK1Class> {
+    F::ensure_supported()?;
+    if a.is_zero() {
+        return None;
+    }
+    FiniteFieldMilnorK1Class::new(
+        F::characteristic_prime(),
+        F::field_order(),
+        u128::from(!F::is_square_value(*a)),
+    )
+}
+
+fn finite_milnor_symbol_2<F: FiniteOddField>(a: &F, b: &F) -> Option<FiniteFieldMilnorK2Class> {
+    F::ensure_supported()?;
+    if a.is_zero() || b.is_zero() {
+        return None;
+    }
+    FiniteFieldMilnorK2Class::new(F::characteristic_prime(), F::field_order())
+}
+
+impl Mod2MilnorField for Rational {
+    type K1Class = RationalMilnorK1Class;
+    type K2Class = RationalMilnorK2Class;
+
+    fn supports_mod2_milnor() -> bool {
+        true
+    }
+
+    fn milnor_symbol_1(a: &Self) -> Option<Self::K1Class> {
+        RationalMilnorK1Class::from_rational(a)
+    }
+
+    fn milnor_symbol_2(a: &Self, b: &Self) -> Option<Self::K2Class> {
+        let a = RationalMilnorK1Class::from_rational(a)?.representative();
+        let b = RationalMilnorK1Class::from_rational(b)?.representative();
+        Brauer2Class::quaternion(a, b)
+    }
+}
+
+impl<const P: u128> Mod2MilnorField for Fp<P> {
+    type K1Class = FiniteFieldMilnorK1Class;
+    type K2Class = FiniteFieldMilnorK2Class;
+
+    fn supports_mod2_milnor() -> bool {
+        <Self as FiniteOddField>::is_supported_odd_field()
+    }
+
+    fn milnor_symbol_1(a: &Self) -> Option<Self::K1Class> {
+        finite_milnor_symbol_1(a)
+    }
+
+    fn milnor_symbol_2(a: &Self, b: &Self) -> Option<Self::K2Class> {
+        finite_milnor_symbol_2(a, b)
+    }
+}
+
+impl<const P: u128, const N: usize> Mod2MilnorField for Fpn<P, N> {
+    type K1Class = FiniteFieldMilnorK1Class;
+    type K2Class = FiniteFieldMilnorK2Class;
+
+    fn supports_mod2_milnor() -> bool {
+        <Self as FiniteOddField>::is_supported_odd_field()
+    }
+
+    fn milnor_symbol_1(a: &Self) -> Option<Self::K1Class> {
+        finite_milnor_symbol_1(a)
+    }
+
+    fn milnor_symbol_2(a: &Self, b: &Self) -> Option<Self::K2Class> {
+        finite_milnor_symbol_2(a, b)
+    }
+}
+
+impl<S: FiniteOddField> Mod2MilnorField for RationalFunction<S> {
+    type K1Class = FunctionFieldMilnorK1Class<S>;
+    type K2Class = FunctionFieldMilnorK2Class<S>;
+
+    fn supports_mod2_milnor() -> bool {
+        S::is_supported_odd_field()
+    }
+
+    fn milnor_symbol_1(a: &Self) -> Option<Self::K1Class> {
+        S::ensure_supported()?;
+        FunctionFieldMilnorK1Class::new(a.clone())
+    }
+
+    fn milnor_symbol_2(a: &Self, b: &Self) -> Option<Self::K2Class> {
+        S::ensure_supported()?;
+        FunctionFieldBrauer2Class::quaternion(a, b)
+    }
+}
+
+/// Construct the degree-one pure symbol `{a}` generically.
+pub fn milnor_symbol_1<F: Mod2MilnorField>(a: &F) -> Option<F::K1Class> {
+    F::milnor_symbol_1(a)
+}
+
+/// Construct the degree-two pure symbol `{a,b}` generically.
+pub fn milnor_symbol_2<F: Mod2MilnorField>(a: &F, b: &F) -> Option<F::K2Class> {
+    F::milnor_symbol_2(a, b)
+}
+
+// ---------------------------------------------------------------------------
+// Strict e_n maps on the fundamental-ideal filtration.
+// ---------------------------------------------------------------------------
+
+/// Why a strict mod-two Milnor invariant of a metric is undefined.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum MilnorInvariantError {
+    /// The metric could not be diagonalized in the implemented
+    /// characteristic-not-two field domain.
+    DiagonalizerFailure,
+    /// The diagonalized form has a nonzero radical, so it does not represent a
+    /// class in the nonsingular Witt ring.
+    SingularForm {
+        /// Dimension of the radical.
+        radical_dim: usize,
+    },
+    /// `e_n` was requested for a form outside `I^n`.
+    OutsideFundamentalIdeal {
+        /// Requested power `n`.
+        power: usize,
+    },
+    /// The field parameters or bounded exact arithmetic are outside the
+    /// implemented symbol surface.
+    UnsupportedFieldOrArithmetic,
+}
+
+impl std::fmt::Display for MilnorInvariantError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MilnorInvariantError::DiagonalizerFailure => {
+                f.write_str("metric could not be diagonalized for mod-two Milnor invariants")
+            }
+            MilnorInvariantError::SingularForm { radical_dim } => {
+                write!(
+                    f,
+                    "Milnor invariants require a nonsingular form (radical_dim={radical_dim})"
+                )
+            }
+            MilnorInvariantError::OutsideFundamentalIdeal { power } => {
+                write!(f, "form is outside the fundamental-ideal power I^{power}")
+            }
+            MilnorInvariantError::UnsupportedFieldOrArithmetic => {
+                f.write_str("field or bounded arithmetic is outside the mod-two Milnor surface")
+            }
+        }
+    }
+}
+
+fn strict_diagonal<S: Scalar>(
+    metric: &crate::clifford::Metric<S>,
+) -> Result<crate::clifford::Metric<S>, MilnorInvariantError> {
+    let diagonal = as_diagonal(metric).ok_or(MilnorInvariantError::DiagonalizerFailure)?;
+    let radical_dim = diagonal.q().iter().filter(|x| x.is_zero()).count();
+    if radical_dim != 0 {
+        return Err(MilnorInvariantError::SingularForm { radical_dim });
+    }
+    Ok(diagonal)
+}
+
+pub(crate) fn strict_milnor_e0<F: Mod2MilnorField>(
+    metric: &crate::clifford::Metric<F>,
+) -> Result<MilnorK0Class, MilnorInvariantError> {
+    if !F::supports_mod2_milnor() {
+        return Err(MilnorInvariantError::UnsupportedFieldOrArithmetic);
+    }
+    let diagonal = strict_diagonal(metric)?;
+    Ok(MilnorK0Class::from_dimension(diagonal.dim()))
+}
+
+pub(crate) fn finite_milnor_e1<F: FiniteOddField>(
+    metric: &crate::clifford::Metric<F>,
+) -> Result<FiniteFieldMilnorK1Class, MilnorInvariantError> {
+    F::ensure_supported().ok_or(MilnorInvariantError::UnsupportedFieldOrArithmetic)?;
+    let diagonal = strict_diagonal(metric)?;
+    let WittClassG::OddChar {
+        e0,
+        sclass,
+        field_order,
+        ..
+    } = finite_odd_witt(&diagonal).ok_or(MilnorInvariantError::UnsupportedFieldOrArithmetic)?
+    else {
+        unreachable!("finite_odd_witt returns the odd-characteristic variant")
+    };
+    if e0 != 0 {
+        return Err(MilnorInvariantError::OutsideFundamentalIdeal { power: 1 });
+    }
+    FiniteFieldMilnorK1Class::new(F::characteristic_prime(), field_order, sclass)
+        .ok_or(MilnorInvariantError::UnsupportedFieldOrArithmetic)
+}
+
+pub(crate) fn finite_milnor_e2<F: FiniteOddField>(
+    metric: &crate::clifford::Metric<F>,
+) -> Result<FiniteFieldMilnorK2Class, MilnorInvariantError> {
+    let e1 = finite_milnor_e1(metric)?;
+    if !e1.is_trivial() {
+        return Err(MilnorInvariantError::OutsideFundamentalIdeal { power: 2 });
+    }
+    FiniteFieldMilnorK2Class::new(e1.characteristic(), e1.field_order())
+        .ok_or(MilnorInvariantError::UnsupportedFieldOrArithmetic)
+}
+
+pub(crate) fn rational_milnor_e1(
+    metric: &crate::clifford::Metric<Rational>,
+) -> Result<RationalMilnorK1Class, MilnorInvariantError> {
+    let diagonal = strict_diagonal(metric)?;
+    let bw =
+        bw_class_rational(&diagonal).ok_or(MilnorInvariantError::UnsupportedFieldOrArithmetic)?;
+    if bw.dimension_parity() != 0 {
+        return Err(MilnorInvariantError::OutsideFundamentalIdeal { power: 1 });
+    }
+    RationalMilnorK1Class::from_representative(bw.signed_discriminant())
+        .ok_or(MilnorInvariantError::UnsupportedFieldOrArithmetic)
+}
+
+pub(crate) fn rational_milnor_e2(
+    metric: &crate::clifford::Metric<Rational>,
+) -> Result<RationalMilnorK2Class, MilnorInvariantError> {
+    let diagonal = strict_diagonal(metric)?;
+    let bw =
+        bw_class_rational(&diagonal).ok_or(MilnorInvariantError::UnsupportedFieldOrArithmetic)?;
+    if bw.dimension_parity() != 0 || bw.signed_discriminant() != 1 {
+        return Err(MilnorInvariantError::OutsideFundamentalIdeal { power: 2 });
+    }
+    Ok(bw.clifford_brauer_class().clone())
+}
+
+pub(crate) fn function_field_milnor_e1<S: FiniteOddField>(
+    metric: &crate::clifford::Metric<RationalFunction<S>>,
+) -> Result<FunctionFieldMilnorK1Class<S>, MilnorInvariantError> {
+    let diagonal = strict_diagonal(metric)?;
+    let bw = bw_class_function_field(&diagonal)
+        .ok_or(MilnorInvariantError::UnsupportedFieldOrArithmetic)?;
+    if bw.dimension_parity() != 0 {
+        return Err(MilnorInvariantError::OutsideFundamentalIdeal { power: 1 });
+    }
+    FunctionFieldMilnorK1Class::new(bw.signed_discriminant().clone())
+        .ok_or(MilnorInvariantError::UnsupportedFieldOrArithmetic)
+}
+
+pub(crate) fn function_field_milnor_e2<S: FiniteOddField>(
+    metric: &crate::clifford::Metric<RationalFunction<S>>,
+) -> Result<FunctionFieldMilnorK2Class<S>, MilnorInvariantError> {
+    let diagonal = strict_diagonal(metric)?;
+    let bw = bw_class_function_field(&diagonal)
+        .ok_or(MilnorInvariantError::UnsupportedFieldOrArithmetic)?;
+    if bw.dimension_parity() != 0 || !is_global_square_ff(bw.signed_discriminant()) {
+        return Err(MilnorInvariantError::OutsideFundamentalIdeal { power: 2 });
+    }
+    Ok(bw.clifford_brauer_class().clone())
+}
+
+// ---------------------------------------------------------------------------
+// Tame residue maps on pure symbols.
+// ---------------------------------------------------------------------------
+
+/// The discrete-valuation boundary `partial_p {a} = v_p(a) mod 2` from
+/// `K^M_1(Q)/2` to `K^M_0(F_p)/2`.
+pub fn milnor_residue_symbol_1_q(a: &Rational, p: u128) -> Option<MilnorK0Class> {
+    if a.is_zero() || !is_prime_u128(p) {
+        return None;
+    }
+    let pi = i128::try_from(p).ok()?;
+    let valuation = val_p(a.numer(), pi) as i128 - val_p(a.denom(), pi) as i128;
+    Some(MilnorK0Class::from_parity(valuation.rem_euclid(2) as u128))
+}
+
+/// The tame boundary of `{a,b}` at an odd rational prime, returned as a square
+/// class in `K^M_1(F_p)/2`. The dyadic wild symbol is deliberately not supplied.
+pub fn milnor_residue_symbol_2_q(
+    a: &Rational,
+    b: &Rational,
+    p: u128,
+) -> Option<FiniteFieldMilnorK1Class> {
+    if p == 2 || !is_prime_u128(p) {
+        return None;
+    }
+    let a = RationalMilnorK1Class::from_rational(a)?.representative();
+    let b = RationalMilnorK1Class::from_rational(b)?.representative();
+    let nonsquare = u128::from(try_hilbert_symbol_qp(a, b, p)? == -1);
+    FiniteFieldMilnorK1Class::new(p, p, nonsquare)
+}
+
+/// The discrete-valuation boundary `partial_v {a} = v(a) mod 2` from
+/// `K^M_1(F_q(t))/2` to `K^M_0(kappa(v))/2`.
+pub fn milnor_residue_symbol_1_ff<S: FiniteOddField>(
+    a: &RationalFunction<S>,
+    place: &FunctionFieldPlace<S>,
+) -> Option<MilnorK0Class> {
+    if a.is_zero() {
+        return None;
+    }
+    Some(MilnorK0Class::from_parity(
+        try_valuation_at_ff(a, place)?.rem_euclid(2) as u128,
+    ))
+}
+
+/// The tame boundary of `{a,b}` at a place of `F_q(t)`, returned as the
+/// residue-field square class. It is the quadratic (`n = 2`) slice of the
+/// existing tame Kummer symbol.
+pub fn milnor_residue_symbol_2_ff<S: FiniteOddField>(
+    a: &RationalFunction<S>,
+    b: &RationalFunction<S>,
+    place: &FunctionFieldPlace<S>,
+) -> Option<FiniteFieldMilnorK1Class> {
+    let nonsquare = try_tame_symbol_exponent_ff(2, a, b, place)?;
+    FiniteFieldMilnorK1Class::new(
+        S::characteristic_prime(),
+        try_kappa_order(place)?,
+        nonsquare,
+    )
+}
 
 /// The split Milnor invariant of a diagonal form over odd `F_q(t)`.
 ///
@@ -223,7 +866,210 @@ mod tests {
     use super::*;
     use crate::clifford::Metric;
     use crate::forms::{springer_decompose_qp, try_is_isotropic_q};
-    use crate::scalar::{Fp, Qp, RationalFunction};
+    use crate::scalar::{Fp, Fpn, Qp, Rational, RationalFunction};
+
+    fn q(n: i128) -> Rational {
+        Rational::from_int(n)
+    }
+
+    #[test]
+    fn degree_zero_is_zmod_two() {
+        let zero = MilnorK0Class::from_dimension(4);
+        let one = MilnorK0Class::from_dimension(5);
+        assert_eq!(zero.value(), 0);
+        assert_eq!(one.value(), 1);
+        assert_eq!(one.sum(one), zero);
+        assert_eq!(one.product(one), one);
+        assert_eq!(one.product(zero), zero);
+        assert_eq!(one.to_string(), "MilnorK0Mod2(1)");
+    }
+
+    #[test]
+    fn rational_k1_is_the_canonical_square_class() {
+        let two = milnor_symbol_1(&q(2)).unwrap();
+        let eight = milnor_symbol_1(&q(8)).unwrap();
+        let three = milnor_symbol_1(&q(3)).unwrap();
+        let six = milnor_symbol_1(&q(6)).unwrap();
+        assert_eq!(two, eight, "square factors do not change {{a}}");
+        assert_eq!(two.try_add(three), Some(six));
+        assert_eq!(
+            milnor_symbol_1(&Rational::new(2, 3)),
+            milnor_symbol_1(&q(6))
+        );
+        assert!(milnor_symbol_1(&Rational::zero()).is_none());
+        assert_eq!(two.to_string(), "MilnorK1Mod2(Q; 2)");
+    }
+
+    #[test]
+    fn rational_k2_obeys_symbol_relations() {
+        let (a, b, c) = (q(2), q(3), q(5));
+        let ab = a.mul(&b);
+        let lhs = milnor_symbol_2(&ab, &c).unwrap();
+        let rhs = milnor_symbol_2(&a, &c)
+            .unwrap()
+            .add(&milnor_symbol_2(&b, &c).unwrap());
+        assert_eq!(lhs, rhs, "{{ab,c}} = {{a,c}} + {{b,c}}");
+        assert_eq!(
+            milnor_symbol_2(&a, &b),
+            milnor_symbol_2(&b, &a),
+            "degree-two mod-two symbols are symmetric"
+        );
+        for n in -8..=8 {
+            if n == 0 || n == 1 {
+                continue;
+            }
+            let x = q(n);
+            let one_minus_x = q(1).add(&x.neg());
+            assert!(
+                milnor_symbol_2(&x, &one_minus_x).unwrap().is_split(),
+                "Steinberg: {{a,1-a}}=0 at a={n}"
+            );
+        }
+        assert!(
+            milnor_symbol_2(&a, &a.neg()).unwrap().is_split(),
+            "{{a,-a}}=0"
+        );
+        assert!(milnor_symbol_2(&Rational::zero(), &b).is_none());
+    }
+
+    #[test]
+    fn finite_field_symbols_are_square_class_and_trivial_k2() {
+        let two = Fp::<5>::from_int(2);
+        let four = Fp::<5>::from_int(4);
+        let k1_two = milnor_symbol_1(&two).unwrap();
+        let k1_four = milnor_symbol_1(&four).unwrap();
+        assert_eq!(k1_two.nonsquare(), 1);
+        assert!(k1_four.is_trivial());
+        assert!(milnor_symbol_2(&two, &four).unwrap().is_trivial());
+        assert_eq!(k1_two.to_string(), "MilnorK1Mod2(F_5; 1)");
+
+        type F9 = Fpn<3, 2>;
+        for i in 1..F9::field_order() {
+            let x = <F9 as FiniteOddField>::from_index(i);
+            let square = x.mul(&x);
+            assert!(milnor_symbol_1(&square).unwrap().is_trivial());
+            assert!(milnor_symbol_2(&x, &square).unwrap().is_trivial());
+        }
+
+        assert!(milnor_symbol_1(&Fp::<2>::one()).is_none());
+        assert!(milnor_symbol_2(&Fp::<2>::one(), &Fp::<2>::one()).is_none());
+    }
+
+    #[test]
+    fn strict_en_maps_have_their_actual_ideal_domains() {
+        let two = q(2);
+        let three = q(3);
+        let p1 = crate::forms::pfister1(&two);
+        assert_eq!(p1.milnor_e0().unwrap().value(), 0);
+        assert_eq!(p1.milnor_e1().unwrap(), milnor_symbol_1(&two).unwrap());
+        assert_eq!(
+            p1.milnor_e2(),
+            Err(MilnorInvariantError::OutsideFundamentalIdeal { power: 2 })
+        );
+
+        let p2 = crate::forms::pfister(&[two.clone(), three.clone()]);
+        assert!(p2.milnor_e1().unwrap().is_trivial());
+        assert_eq!(
+            p2.milnor_e2().unwrap(),
+            milnor_symbol_2(&two, &three).unwrap(),
+            "e2(<<a,b>>) = {{a,b}}"
+        );
+        let algebra = crate::clifford::CliffordAlgebra::new(p2.dim(), p2.clone());
+        assert_eq!(algebra.milnor_e2(), p2.milnor_e2());
+
+        let odd = Metric::diagonal(vec![q(1), q(2), q(3)]);
+        assert_eq!(
+            odd.milnor_e1(),
+            Err(MilnorInvariantError::OutsideFundamentalIdeal { power: 1 })
+        );
+        let singular = Metric::diagonal(vec![q(1), q(0)]);
+        assert_eq!(
+            singular.milnor_e0(),
+            Err(MilnorInvariantError::SingularForm { radical_dim: 1 })
+        );
+    }
+
+    #[test]
+    fn strict_en_maps_cover_finite_and_function_fields() {
+        let a = Fp::<5>::from_int(2);
+        let b = Fp::<5>::from_int(3);
+        let p2 = crate::forms::pfister(&[a, b]);
+        assert!(p2.milnor_e1().unwrap().is_trivial());
+        assert!(p2.milnor_e2().unwrap().is_trivial());
+
+        let t = rf(&[0, 1], &[1]);
+        let two = rf(&[2], &[1]);
+        let ff_p1 = crate::forms::pfister1(&t);
+        assert_eq!(ff_p1.milnor_e1().unwrap(), milnor_symbol_1(&t).unwrap());
+        let ff_p2 = crate::forms::pfister(&[t.clone(), two.clone()]);
+        assert!(ff_p2.milnor_e1().unwrap().is_trivial());
+        assert_eq!(
+            ff_p2.milnor_e2().unwrap(),
+            milnor_symbol_2(&t, &two).unwrap()
+        );
+    }
+
+    #[test]
+    fn function_field_k1_equality_is_modulo_global_squares() {
+        let t = rf(&[0, 1], &[1]);
+        let t1 = rf(&[1, 1], &[1]);
+        let square = t1.mul(&t1);
+        assert_eq!(
+            milnor_symbol_1(&t),
+            milnor_symbol_1(&t.mul(&square)),
+            "multiplication by (t+1)^2 preserves the square class"
+        );
+        assert!(milnor_symbol_1(&t)
+            .unwrap()
+            .add(&milnor_symbol_1(&t).unwrap())
+            .is_trivial());
+        assert_eq!(milnor_symbol_2(&t, &t1), milnor_symbol_2(&t1, &t));
+        let one_minus_t = F5::one().add(&t.neg());
+        assert!(milnor_symbol_2(&t, &one_minus_t).unwrap().is_split());
+    }
+
+    #[test]
+    fn pure_symbol_residues_reuse_the_existing_local_symbols() {
+        let eighteen_fifths = Rational::new(18, 5);
+        assert_eq!(
+            milnor_residue_symbol_1_q(&eighteen_fifths, 3)
+                .unwrap()
+                .value(),
+            0
+        );
+        assert_eq!(
+            milnor_residue_symbol_1_q(&eighteen_fifths, 5)
+                .unwrap()
+                .value(),
+            1
+        );
+        for p in [3, 5, 7, 11] {
+            let residue = milnor_residue_symbol_2_q(&q(2), &q(3), p).unwrap();
+            assert_eq!(
+                residue.nonsquare(),
+                u128::from(try_hilbert_symbol_qp(2, 3, p).unwrap() == -1)
+            );
+        }
+        assert!(milnor_residue_symbol_2_q(&q(-1), &q(-1), 2).is_none());
+
+        let t = rf(&[0, 1], &[1]);
+        let two = rf(&[2], &[1]);
+        let at_t = FunctionFieldPlace::Finite(poly(&[0, 1]));
+        assert_eq!(milnor_residue_symbol_1_ff(&t, &at_t).unwrap().value(), 1);
+        let residue = milnor_residue_symbol_2_ff(&t, &two, &at_t).unwrap();
+        assert_eq!(
+            residue.nonsquare(),
+            try_tame_symbol_exponent_ff(2, &t, &two, &at_t).unwrap()
+        );
+        assert_eq!(residue.field_order(), 5);
+        assert_eq!(
+            milnor_symbol_2(&t, &two)
+                .unwrap()
+                .ramified_places()
+                .contains(&at_t),
+            !residue.is_trivial()
+        );
+    }
 
     /// `∂₅` via the capped `Q₅` Springer engine: the Witt class of the odd-valuation
     /// (parity-1) residue layer, built independently of the `i128` route.
