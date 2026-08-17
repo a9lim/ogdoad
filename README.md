@@ -50,7 +50,7 @@ Representation limits are part of the API:
 | --- | --- |
 | `src/scalar/` | coefficient traits and exact, finite, valued, global, surreal, and ordinal backends |
 | `src/clifford/` | metrics, blades, multivectors, products, versors, spinors, and geometric-algebra constructions |
-| `src/forms/` | quadratic-form classification, Witt/Brauer and low Milnor-symbol theory, Springer and local--global arithmetic |
+| `src/forms/` | quadratic-form classification, Clifford centers, Witt/Brauer and low Milnor-symbol theory, Springer and local--global arithmetic |
 | `src/forms/integral/` | lattices, discriminant forms, codes, theta series, genera, neighbors, and Weyl bridges |
 | `src/games/` | impartial, partizan, misere, loopy, thermographic, Witt--FIFO/Brown, octal-certificate, Hackenbush, and game-exterior constructions |
 | `src/py/` | optional per-backend PyO3 bindings; scalar worlds never mix at runtime |

@@ -19,20 +19,29 @@
 //! `e_n : I^n/I^(n+1) -> K^M_n/2` for `n <= 2`. Unlike a compact invariant
 //! report, these methods reject forms outside the requested fundamental-ideal
 //! power.
+//!
+//! [`ClassifyCliffordCenters`] constructs `Z(Cl(q))` and `Z(Cl^0(q))` as
+//! discriminant quadratic etale algebras, including the characteristic-two
+//! Artin--Schreier presentation, and checks their class against the existing
+//! Brauer--Wall coordinates.
 
 use crate::clifford::{CliffordAlgebra, Metric};
 use crate::forms::{
     arf_fpn_char2, arf_invariant, arf_ordinal_finite, bw_class_complex, bw_class_finite_odd,
-    bw_class_function_field, bw_class_nimber, bw_class_rational, bw_class_real,
-    classify_finite_odd, classify_rational, classify_surcomplex, classify_surreal,
-    finite_milnor_e1, finite_milnor_e2, finite_odd_witt, function_field_milnor_e1,
-    function_field_milnor_e2, isometric_finite_odd, isometric_fpn_char2, isometric_nimber,
-    isometric_ordinal_finite, isometric_rational, isometric_real, isometric_surcomplex,
-    ordinal_metric_finite_subfield_degree, rational_milnor_e1, rational_milnor_e2,
-    strict_milnor_e0, witt_decompose_finite_odd, witt_decompose_real, ArfInvariants,
-    BrauerWallClass, CliffordInvariants, FiniteOddField, FunctionFieldBrauerWallClass,
-    MilnorInvariantError, MilnorK0Class, Mod2MilnorField, OddCharInvariants, OddWittDecomp,
-    RationalBrauerWallClass, RationalCliffordInvariants, RealWittDecomp, WittClassG,
+    bw_class_function_field, bw_class_nimber, bw_class_rational, bw_class_real, centers_complex,
+    centers_fp, centers_fpn, centers_function_field, centers_nimber, centers_ordinal,
+    centers_rational, centers_real, classify_finite_odd, classify_rational, classify_surcomplex,
+    classify_surreal, finite_milnor_e1, finite_milnor_e2, finite_odd_witt,
+    function_field_milnor_e1, function_field_milnor_e2, isometric_finite_odd, isometric_fpn_char2,
+    isometric_nimber, isometric_ordinal_finite, isometric_rational, isometric_real,
+    isometric_surcomplex, ordinal_metric_finite_subfield_degree, rational_milnor_e1,
+    rational_milnor_e2, strict_milnor_e0, witt_decompose_finite_odd, witt_decompose_real,
+    ArfInvariants, ArtinSchreierCenterDiscriminant, BrauerWallClass, CliffordCenterError,
+    CliffordCenterInvariants, CliffordInvariants, ComplexCenterDiscriminant,
+    FiniteFieldCenterDiscriminant, FiniteOddField, FunctionFieldBrauerWallClass,
+    FunctionFieldMilnorK1Class, MilnorInvariantError, MilnorK0Class, Mod2MilnorField,
+    OddCharInvariants, OddWittDecomp, RationalBrauerWallClass, RationalCliffordInvariants,
+    RationalMilnorK1Class, RealCenterDiscriminant, RealWittDecomp, WittClassG,
 };
 use crate::scalar::{
     Fp, Fpn, Nimber, Ordinal, Rational, RationalFunction, Scalar, Surcomplex, Surreal,
@@ -377,6 +386,23 @@ pub trait ClassifyMilnor: Mod2MilnorField {
     fn milnor_e2(metric: &Metric<Self>) -> Result<Self::K2Class, MilnorInvariantError>;
 }
 
+/// Full and even Clifford centers on a scalar-dispatched exact field domain.
+pub trait ClassifyCliffordCenters: Scalar {
+    /// Square or Artin--Schreier class controlling the quadratic center.
+    type CenterDiscriminant;
+    /// The field-specific Brauer--Wall carrier used for the coherence check.
+    type CenterBrauerWallClass;
+
+    /// Construct `Z(Cl(q))` and `Z(Cl^0(q))` and compare their discriminant
+    /// class with the existing Brauer--Wall coordinates.
+    fn clifford_centers(
+        metric: &Metric<Self>,
+    ) -> Result<
+        CliffordCenterInvariants<Self, Self::CenterDiscriminant, Self::CenterBrauerWallClass>,
+        CliffordCenterError,
+    >;
+}
+
 impl ClassifyForm for Surreal {
     type Class = CliffordInvariants;
     fn classify(metric: &Metric<Self>) -> Result<CliffordInvariants, ClassifyError> {
@@ -696,6 +722,118 @@ impl<S: FiniteOddField> ClassifyMilnor for RationalFunction<S> {
     }
 }
 
+impl ClassifyCliffordCenters for Surreal {
+    type CenterDiscriminant = RealCenterDiscriminant;
+    type CenterBrauerWallClass = BrauerWallClass;
+
+    fn clifford_centers(
+        metric: &Metric<Self>,
+    ) -> Result<
+        CliffordCenterInvariants<Self, Self::CenterDiscriminant, Self::CenterBrauerWallClass>,
+        CliffordCenterError,
+    > {
+        centers_real(metric)
+    }
+}
+
+impl ClassifyCliffordCenters for Surcomplex<Surreal> {
+    type CenterDiscriminant = ComplexCenterDiscriminant;
+    type CenterBrauerWallClass = BrauerWallClass;
+
+    fn clifford_centers(
+        metric: &Metric<Self>,
+    ) -> Result<
+        CliffordCenterInvariants<Self, Self::CenterDiscriminant, Self::CenterBrauerWallClass>,
+        CliffordCenterError,
+    > {
+        centers_complex(metric)
+    }
+}
+
+impl ClassifyCliffordCenters for Rational {
+    type CenterDiscriminant = RationalMilnorK1Class;
+    type CenterBrauerWallClass = RationalBrauerWallClass;
+
+    fn clifford_centers(
+        metric: &Metric<Self>,
+    ) -> Result<
+        CliffordCenterInvariants<Self, Self::CenterDiscriminant, Self::CenterBrauerWallClass>,
+        CliffordCenterError,
+    > {
+        centers_rational(metric)
+    }
+}
+
+impl<const P: u128> ClassifyCliffordCenters for Fp<P> {
+    type CenterDiscriminant = FiniteFieldCenterDiscriminant<Self>;
+    type CenterBrauerWallClass = BrauerWallClass;
+
+    fn clifford_centers(
+        metric: &Metric<Self>,
+    ) -> Result<
+        CliffordCenterInvariants<Self, Self::CenterDiscriminant, Self::CenterBrauerWallClass>,
+        CliffordCenterError,
+    > {
+        centers_fp(metric)
+    }
+}
+
+impl<const P: u128, const N: usize> ClassifyCliffordCenters for Fpn<P, N> {
+    type CenterDiscriminant = FiniteFieldCenterDiscriminant<Self>;
+    type CenterBrauerWallClass = BrauerWallClass;
+
+    fn clifford_centers(
+        metric: &Metric<Self>,
+    ) -> Result<
+        CliffordCenterInvariants<Self, Self::CenterDiscriminant, Self::CenterBrauerWallClass>,
+        CliffordCenterError,
+    > {
+        centers_fpn(metric)
+    }
+}
+
+impl<S: FiniteOddField> ClassifyCliffordCenters for RationalFunction<S> {
+    type CenterDiscriminant = FunctionFieldMilnorK1Class<S>;
+    type CenterBrauerWallClass = FunctionFieldBrauerWallClass<S>;
+
+    fn clifford_centers(
+        metric: &Metric<Self>,
+    ) -> Result<
+        CliffordCenterInvariants<Self, Self::CenterDiscriminant, Self::CenterBrauerWallClass>,
+        CliffordCenterError,
+    > {
+        centers_function_field(metric)
+    }
+}
+
+impl ClassifyCliffordCenters for Nimber {
+    type CenterDiscriminant = ArtinSchreierCenterDiscriminant<Self>;
+    type CenterBrauerWallClass = BrauerWallClass;
+
+    fn clifford_centers(
+        metric: &Metric<Self>,
+    ) -> Result<
+        CliffordCenterInvariants<Self, Self::CenterDiscriminant, Self::CenterBrauerWallClass>,
+        CliffordCenterError,
+    > {
+        centers_nimber(metric)
+    }
+}
+
+impl ClassifyCliffordCenters for Ordinal {
+    type CenterDiscriminant = ArtinSchreierCenterDiscriminant<Self>;
+    type CenterBrauerWallClass = BrauerWallClass;
+
+    fn clifford_centers(
+        metric: &Metric<Self>,
+    ) -> Result<
+        CliffordCenterInvariants<Self, Self::CenterDiscriminant, Self::CenterBrauerWallClass>,
+        CliffordCenterError,
+    > {
+        centers_ordinal(metric)
+    }
+}
+
 fn ordinal_char2_field_degree(metric: &Metric<Ordinal>) -> Option<u128> {
     ordinal_metric_finite_subfield_degree(metric)
 }
@@ -759,6 +897,19 @@ impl<S: ClassifyMilnor> Metric<S> {
     }
 }
 
+impl<S: ClassifyCliffordCenters> Metric<S> {
+    /// Construct the full and even Clifford centers and compare them with the
+    /// Brauer--Wall coordinates.
+    pub fn clifford_centers(
+        &self,
+    ) -> Result<
+        CliffordCenterInvariants<S, S::CenterDiscriminant, S::CenterBrauerWallClass>,
+        CliffordCenterError,
+    > {
+        S::clifford_centers(self)
+    }
+}
+
 impl<S: ClassifyForm> CliffordAlgebra<S> {
     /// Classify the algebra's underlying form (see [`ClassifyForm`]).
     pub fn classify(&self) -> Result<S::Class, ClassifyError> {
@@ -808,6 +959,19 @@ impl<S: ClassifyMilnor> CliffordAlgebra<S> {
     /// The strict degree-two mod-two Milnor invariant of the underlying form.
     pub fn milnor_e2(&self) -> Result<S::K2Class, MilnorInvariantError> {
         S::milnor_e2(&self.metric)
+    }
+}
+
+impl<S: ClassifyCliffordCenters> CliffordAlgebra<S> {
+    /// Construct the full and even centers of this Clifford algebra and compare
+    /// them with its Brauer--Wall coordinates.
+    pub fn centers(
+        &self,
+    ) -> Result<
+        CliffordCenterInvariants<S, S::CenterDiscriminant, S::CenterBrauerWallClass>,
+        CliffordCenterError,
+    > {
+        S::clifford_centers(&self.metric)
     }
 }
 

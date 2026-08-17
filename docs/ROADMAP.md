@@ -10,7 +10,6 @@ Highest-value additions are the joins between already public subsystems:
 
 | work | completion criterion |
 | --- | --- |
-| Clifford centers | construct centers and even centers as discriminant etale algebras and compare their classes with the Brauer--Wall coordinates |
 | ramified Springer | add a named ramified-extension path with correct value-group parity and independent tests |
 | finite-field invariants | lift level, Pythagoras number, and u-invariant reporting from prime fields to supported extensions |
 | characteristic-two spinor norm | construct the additive spinor norm from vector-symmetry factorizations |
