@@ -173,6 +173,63 @@ theorem value_eq_of_options_eq
     exact hdesc f hf
   omega
 
+/-- Every quotient value has a context that carries it into the `P`-portion.
+The nonempty-option case follows already from parity of the square transition:
+unless `x` or `x * x` is in `P`, some option `x * e` must be.  An empty
+descending option set identifies `x` with the terminal value by transition
+determinism. -/
+theorem exists_context_mem_P
+    {P : Set Q} {T : Set (Transition Q)} {R : Q → Nat}
+    (hP : P.Nonempty) (hterminal : Transition.mk 1 ∅ ∈ T)
+    (hreduced : Reduced P) (hclosed : Closed T)
+    (hparity : ParityTable P T) (hranked : Ranked T R) (x : Q) :
+    ∃ z, x * z ∈ P := by
+  classical
+  obtain ⟨E, hxT, _⟩ := hranked x
+  by_cases hE : E.Nonempty
+  · by_cases hxP : x ∈ P
+    · exact ⟨1, by simpa using hxP⟩
+    · let tx : Transition Q := Transition.mk x E
+      have hsq : product tx tx ∈ T := hclosed hxT hxT
+      by_cases hxxP : x * x ∈ P
+      · exact ⟨x, hxxP⟩
+      · obtain ⟨e, he⟩ := hE
+        have hoptionsNonempty : (product tx tx).options.Nonempty :=
+          ⟨x * e, Or.inl ⟨e, he, rfl⟩⟩
+        have hnotsafe : ¬∀ q ∈ (product tx tx).options, q ∉ P := by
+          intro hsafe
+          exact hxxP ((hparity hsq).mpr ⟨hoptionsNonempty, hsafe⟩)
+        push Not at hnotsafe
+        obtain ⟨q, hq, hqP⟩ := hnotsafe
+        rcases hq with hq | hq
+        · obtain ⟨e, he, rfl⟩ := hq
+          exact ⟨e, hqP⟩
+        · obtain ⟨e, he, rfl⟩ := hq
+          exact ⟨e, hqP⟩
+  · have hEempty : E = ∅ := not_nonempty_iff_eq_empty.mp hE
+    have hx1 : x = 1 :=
+      value_eq_of_options_eq hreduced hclosed hparity hranked
+        hxT hterminal (by simpa using hEempty)
+    obtain ⟨p, hp⟩ := hP
+    exact ⟨p, by simpa [hx1] using hp⟩
+
+/-- No transition value can occur among its own option values.  Otherwise the
+meximal obstruction would forbid the `P`-reaching context supplied by
+`exists_context_mem_P`. -/
+theorem value_not_mem_own_options
+    {P : Set Q} {T : Set (Transition Q)} {R : Q → Nat}
+    (hP : P.Nonempty) (hterminal : Transition.mk 1 ∅ ∈ T)
+    (hreduced : Reduced P) (hclosed : Closed T)
+    (hparity : ParityTable P T) (hranked : Ranked T R)
+    {t : Transition Q} (ht : t ∈ T) :
+    t.value ∉ t.options := by
+  intro hself
+  have hmex : t.value ∈ Meximal P t.value :=
+    options_subset_meximal hclosed hparity hranked ht hself
+  obtain ⟨z, hzP⟩ :=
+    exists_context_mem_P hP hterminal hreduced hclosed hparity hranked t.value
+  exact hmex z ⟨hzP, hzP⟩
+
 section PeriodicConvolution
 
 /-- Products contributed by positive two-heap splits with total size `m`.

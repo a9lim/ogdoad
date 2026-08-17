@@ -253,7 +253,27 @@ be ultimately periodic, since its next value is a deterministic function of
 the last `d` values. Hence exact realization by a fixed finite no-split code
 is decidable. Splitting introduces the unbounded convolution
 `{x_i x_j : i + j = n}`; an already periodic trace still has a finite exact
-certificate, but automatic periodicity is not proved in that case.
+certificate through the explicit bound `2N + p + d`, but automatic
+periodicity is not proved in that case. Every value in a nontrivial valid
+table has a context carrying it into `P`; combined with the meximal condition,
+this proves that no transition value can occur among its own options. For an
+octal trace this gives the absolute exclusions
+
+```text
+C_n                 => x_n != 1
+A_k, k < n          => x_n != x_(n-k)
+B_k, i+j = n-k      => x_n != x_i x_j.
+```
+
+These are exact obstruction filters, not a characterization.
+
+There is also a comparison normal-form theorem. Every nontrivial finite
+valid quotient has an exact one-species numerical heap realization with a
+finite source-local prefix, one inert padding heap, and the uniform tail move
+`H_n -> H_(n-1)`. This is not a finite-octal realization: encoding a prefix
+edge by an octal digit repeats that edge at every larger source heap. The
+theorem isolates this translated cross-talk but does not prove it is the only
+possible obstruction to a different octal gadget.
 
 There is also a uniform positive family: for every `n >= 2`, the finite code
 with `2^(n-1)` consecutive digits equal to `3` has exact quotient `T_n`, the
@@ -283,6 +303,14 @@ distinguishable family.
    induction, then verify surjectivity, reduction, and the `P`-portion. A
    stable bounded table is not enough.
 
+The algorithmic gap has two independent layers. For fixed finite `(Q, P)`,
+fixed valid `T`, and fixed split code, determinism makes the trace a partial
+computable recurrence; deciding whether that recurrence is total is still
+open. Even if every fixed-code instance became decidable, monoid-level
+synthesis ranges over unbounded code lengths. A complete decision procedure
+therefore also needs a computable length bound or pumping normalization, or
+else an undecidability theorem.
+
 The octal-realization arm closes with the requested if-and-only-if theorem and
 certified construction/obstruction algorithm. The Grundy arm closes with one
 of the two exact finite/infinite certificates above. Calling a quotient
@@ -292,9 +320,11 @@ infinite.
 The starting theory is the [Plambeck--Siegel quotient
 construction](https://arxiv.org/abs/math/0609825) and Siegel's
 [valid-transition-table classification](https://arxiv.org/abs/math/0703070).
-The algebraic determinism, meximal obstruction, and periodic split-convolution
-lemmas are checked in `formal/Ogdoad/MisereTransition.lean`; the tame-family
-strategy and exact Grundy-prefix presentations are presently paper proofs.
+The algebraic determinism, meximal and no-self obstructions, exact quotient
+sufficiency, periodic complete-record certificate, and the typed
+prefix/pad/unary-tail normal form are checked in Lean. The numerical
+rank-order transport for that normal form, the tame-family strategy, and exact
+Grundy-prefix presentations are presently paper proofs.
 The current `src/games/misere.rs` routines compare only bounded element and
 test sets, so their signatures and multiplication flags are observational
 evidence, not exact quotient certificates. The `misere_quotient` and

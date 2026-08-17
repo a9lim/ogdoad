@@ -25,7 +25,7 @@
 \newcommand{\xor}{\mathbin{\mathsf{xor}}}
 
 \title{Natural Mis\`ere Quotients:\\
-Exact Octal Traces, Tame Realization, and Grundy's Game}
+Exact Octal Certificates, Heap Normal Forms, and Grundy's Game}
 \author{GPT 5.6 Sol \and a9lim}
 \date{}
 
@@ -38,12 +38,18 @@ mis\`ere quotients.  Natural realization asks for more: one uniform heap rule
 must generate the table at every heap size.  We express this homogeneity as
 an exact quotient-valued trace recurrence.  A least-rank separation argument
 proves that the option-value set determines its value in every reduced valid
-table.  Hence a fixed no-split code with finite quotient has an ultimately
-periodic pretending function and a finite exact verification procedure.
-Splitting introduces an unbounded convolution, but an asserted periodic
-split trace still has a finite certificate.
+table.  Every value in such a table also has a context reaching the
+$P$-portion, so no transition value can occur among its own options.  Hence a
+fixed no-split code with finite quotient has an ultimately periodic pretending
+function and a finite exact verification procedure.  Splitting introduces an
+unbounded convolution, but an asserted periodic split trace still has a finite
+certificate.
 
-This framework yields two exact applications.  For every $n\ge2$, the code
+We also prove a comparison theorem: every nontrivial finite quotient has an
+exact one-species heap realization with finitely many source-local exceptions
+and the uniform tail move $H_n\to H_{n-1}$.  This is not an octal realization;
+it isolates the translated cross-talk created by octal digits.  For every
+$n\ge2$, the code
 with $2^{n-1}$ consecutive digits equal to $3$ has quotient $\mathcal T_n$,
 the tame quotient of order $2^n+2$; the proof gives the quotient map and the
 outcome strategy for arbitrary heap multiplicities.  For mis\`ere Grundy's
@@ -62,12 +68,14 @@ $k$th digit imposes the same translation-invariant move on every sufficiently
 large heap.  The natural realization problem is to identify the extra
 algebraic condition imposed by that uniform tail.
 
-The answer developed here has three layers.  First, reduced transition tables
-are deterministic in their option-value sets.  Second, the octal rule turns
-that determinism into an exact recurrence for the single-heap quotient word.
-Third, the recurrence can be solved either uniformly, as for the tame family,
-or prefix by prefix with all multiplicities retained, as for Grundy's game.
-The main results are the following.
+The proof architecture has four layers.  Reduced transition tables are
+deterministic in their option-value sets and forbid self-options.  The octal
+rule turns those facts into an exact recurrence and obstruction calculus for
+the single-heap quotient word.  A finite-exception normal form separates
+abstract heap realization from strict octal homogeneity.  Finally, the trace
+recurrence can be solved either uniformly, as for the tame family, or prefix
+by prefix with all multiplicities retained, as for Grundy's game.  The main
+results are the following.
 
 \begin{thmA}
 \begin{enumerate}
@@ -75,10 +83,16 @@ The main results are the following.
 option-value set.  A finite octal code realizes a finite reduced bipartite
 monoid exactly when its induced heap trace is total, lies in such a table,
 and generates the monoid.
+\item No table transition has its value among its option values.  Thus every
+whole-, one-, and two-remainder octal digit imposes an explicit inequality on
+the heap trace.
 \item If the code has no split bits and its quotient is finite, the heap trace
 is ultimately periodic.  Exact realization by a fixed no-split code is
 therefore decidable.  If a split trace is already ultimately periodic, its
 infinite tail is likewise certified by finitely many records.
+\item Every nontrivial finite quotient has an exact finite-exception unary-heap
+normal form: finitely many source-local prefix rules followed by the uniform
+tail $H_n\to H_{n-1}$.
 \item For every $n\ge2$, the code
 \(0.\underbrace{33\cdots3}_{2^{n-1}\text{ digits}}\) has exact quotient
 $\mathcal T_n$.  Thus every tame quotient in the finite $|P|=2$
@@ -89,11 +103,13 @@ the presentations and reduced translation tables given below.
 \end{enumerate}
 \end{thmA}
 
-The first two items are a characterization and a decision theorem for their
-stated inputs; the third is a uniform realization theorem; the fourth is an
-exact prefix theorem.  None asserts that split traces are automatically
+The first three items give exact algebraic and finite-certificate reductions;
+the fourth is a realization theorem in a comparison class, not for finite
+octal codes; the fifth is a uniform octal realization theorem; and the sixth
+is an exact prefix theorem.  None asserts that split traces are automatically
 periodic or that the full Grundy quotient is finite.
 Sections~\ref{sec:tables} and~\ref{sec:traces} build the trace calculus,
+Section~\ref{sec:normalform} gives the comparison normal form,
 Section~\ref{sec:tame} realizes the tame family, and
 Section~\ref{sec:grundy} gives the Grundy extensions.
 Section~\ref{sec:boundary} states the formal and open boundaries.
@@ -192,8 +208,33 @@ $(xz,zE\cup xF)$ in $T$, and $ez\in zE$ is a $P$-valued option of the
 $P$-value $xz$, contradicting parity.
 \end{proof}
 
-In any nontrivial reduced quotient, $x\notin M_x$.  Thus a particularly
-cheap obstruction is $x\notin E$ for every transition pair $(x,E)$.
+The fact needed to exclude self-options is stronger than reducedness alone;
+validity supplies it.
+
+\begin{proposition}[$P$-reaching contexts and loop-free records]
+\label{prop:noself}
+Let $T$ be a valid transition table on a nontrivial reduced bipartite monoid
+$(Q,P)$.  For every $x\in Q$ there is a $z\in Q$ with $xz\in P$.
+Consequently every $(x,E)\in T$ satisfies $x\notin E$.
+\end{proposition}
+
+\begin{proof}
+Choose a descending record $(x,E)$.  If $E=\varnothing$, determinism against
+the terminal record $(1,\varnothing)$ gives $x=1$.  Nontrivial reducedness
+implies $P\ne\varnothing$, so any $p\in P$ is a $P$-reaching context.
+Suppose $E\ne\varnothing$.  If $x\in P$, take $z=1$; if $x^2\in P$, take
+$z=x$.  Otherwise closure puts $(x^2,xE)$ in $T$.  Its option set is
+nonempty, so parity and $x^2\notin P$ force $xe\in P$ for some $e\in E$.
+Thus every value has a $P$-reaching context.
+
+The meximal obstruction gives $E\subseteq M_x$.  If $x\in E$, then
+$x\in M_x$, contradicting a context $z$ for which both copies of $xz$ lie
+in $P$.
+\end{proof}
+
+The one-element quotient has only the terminal record and satisfies the same
+no-self conclusion trivially.  Reducedness without a valid table would not be
+enough for the $P$-reaching statement.
 
 \section{Exact octal traces}\label{sec:traces}
 
@@ -212,6 +253,20 @@ image of the option set of a heap is exactly
                  1\le i\le (n-k)/2\}.\nonumber
 \end{align}
 Equal parts are permitted in an octal split.
+
+Proposition~\ref{prop:noself} immediately gives three absolute exclusions for
+every exact trace:
+\begin{align}
+ C_n&\Longrightarrow x_n\ne1,\\
+ A_k,\ k<n&\Longrightarrow x_n\ne x_{n-k},\\
+ B_k,\ i,j\ge1,\ i+j=n-k
+   &\Longrightarrow x_n\ne x_i x_j.
+\end{align}
+These are not bounded-search heuristics: the indicated value occurs in
+$E_n$, so equality would make the heap record a forbidden self-option.  For
+example, if the tail has period $p$, no active one-remainder offset can be a
+multiple of $p$; applying the second exclusion sufficiently far into the tail
+gives an immediate contradiction.
 
 \begin{theorem}[Exact trace criterion]\label{thm:trace}
 Fix a finite octal code $\Gamma$ and a finite reduced bipartite monoid
@@ -307,10 +362,79 @@ is at least $N$; add $p$ to it.  Commutativity permits reordering.  The
 one-remainder terms are easier, and whole-heap bits are inactive past $d$.
 \end{proof}
 
-Thus a proposed preperiod, period, valid table, finite trace through the
-convolution window, and generation check form an exact infinite-rule
-certificate.  This is a transition-table form of the periodicity argument
-in \cite{siegel2006notes,plambecksiegel2008}.
+More explicitly, if the code is supported through digit $d$, then checking
+one full period of records after any bound $B\ge2N+p+d$ certifies every later
+heap record.  Thus a proposed preperiod, period, valid table, finite trace
+through that first tail period, and generation check form an exact
+infinite-rule certificate.  This is a transition-table form of the
+periodicity argument in \cite{siegel2006notes,plambecksiegel2008}.
+
+\section{A finite-exception heap normal form}\label{sec:normalform}
+
+The abstract table theorem does admit a uniform one-species heap realization
+once the finite prefix is allowed to be source-local.  This comparison result
+pinpoints why the direct construction does not immediately become octal.
+
+\begin{theorem}[Finite-exception unary-heap normal form]
+\label{thm:normalform}
+Let $(Q,P)$ be a nontrivial finite reduced bipartite commutative monoid.
+Suppose $T$ is a closed parity-correct transition table and $R:Q\to\N$, with
+$R(1)=0$, such that every $q\in Q$ has a record $(q,E_q)\in T$ satisfying
+$R(e)<R(q)$ for all $e\in E_q$.  Then there are $N$ and a finite-description
+impartial ruleset on numerical heaps $H_1,H_2,\ldots$ such that
+\begin{enumerate}
+\item for $n\le N$, every option of $H_n$ is a single heap $H_j$ with $j<n$;
+\item $H_N$ is terminal;
+\item for every $n>N$, $\opts(H_n)=\{H_{n-1}\}$; and
+\item the exact mis\`ere quotient of all finite sums of these heaps is
+      isomorphic to $(Q,P)$.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+First find a star record.  Choose a nonidentity value $a$ of least rank and a
+descending record $(a,E)$.  Every member of $E$ has smaller rank, hence is
+$1$.  The set $E$ cannot be empty, since determinism against
+$(1,\varnothing)$ would give $a=1$.  Therefore $(a,\{1\})\in T$.
+
+For each $q\in Q$, choose a descending record $(q,E_q)$.  Enumerate the
+elements of $Q$ in nondecreasing rank and make one prefix heap $B_q$ with
+options $B_e$ for $e\in E_q$.  Every target is an earlier heap.  Append one
+inert padding heap $I$, followed by heaps $U_0,U_1,\ldots$ with
+\[
+ \opts(U_0)=\{I\},\qquad \opts(U_{k+1})=\{U_k\}.
+\]
+Assign the values
+\[
+ \Phi(B_q)=q,\qquad \Phi(I)=1,\qquad
+ \Phi(U_k)=a^{k+1}.
+\]
+Closure of $T$ and $(a,\{1\})\in T$ give by induction
+\[
+ (a^{k+1},\{a^k\})\in T,
+\]
+so every single-heap record lies in $T$.  The transition record of a sum is
+the product of its component records and therefore also lies in $T$.
+All moves strictly lower the sum of the displayed heap ranks.  Induction on
+that rank and parity show
+\[
+ o^-(G)=P\quad\Longleftrightarrow\quad\Phi(G)\in P
+\]
+for every position $G$.  Each $q$ is represented by $B_q$, so $\Phi$ is
+surjective.  Equal values are indistinguishable, while reducedness and
+surjectivity realize a separating context for unequal values.  Hence the
+fibers of $\Phi$ are exactly the indistinguishability classes.
+\end{proof}
+
+This is an eventually translation-invariant finite-exception heap normal
+form, not a finite-octal realization.  Turning a prefix edge
+$H_i\to H_{i-d}$ into an octal digit at offset $d$ also creates translated
+moves from every larger heap.  The construction supplies no values for those
+additional targets.  Controlling that cross-talk---possibly by a different,
+generator-level encoding---remains an unresolved bridge.  The comparison
+class and finite octal games are therefore not ordered by inclusion: the
+former permits arbitrary source-local prefix moves but only a unary tail,
+whereas the latter permits persistent multi-removal and split moves.
 
 \section{Uniform realization of the tame family}\label{sec:tame}
 
@@ -760,10 +884,19 @@ The results divide the original problem into sharper pieces.
       realization.  For the $|P|=2$ classification, the natural realization
       question remains for the family obtained by tame extension of
       $\mathcal R_8$.
-\item For no-split codes, finite quotient implies automatic periodicity and
-      exact verification is finite-state.  With splitting, the unresolved
-      object is the totality and synthesis of the finite-alphabet convolution
-      trace displayed in Section~\ref{sec:traces}.
+\item Fix a finite $(Q,P)$, a valid table $T$, and a finite code $\Gamma$.
+      At stage $n$, the preceding values determine $E_n$, and determinism
+      supplies at most one possible $x_n$.  Exact realization through $T$ is
+      therefore precisely totality of this partial recurrence plus generation
+      of $Q$.  For no-split codes this is finite-state.  With splitting, the
+      first unresolved problem is deciding totality of the unbounded
+      convolution recurrence for a fixed $T$ and $\Gamma$.
+\item Even a decision theorem for every fixed split code would leave a second
+      problem: synthesis ranges over codes of unbounded length.  A decidable
+      monoid-level characterization needs a computable length bound or pumping
+      normalization, unless natural realization is instead proved
+      undecidable.  There are only finitely many tables on fixed $Q$, so table
+      enumeration introduces no third gap.
 \item For Grundy's game, $Q_{13}$ and $Q_{18}$ are exact.  A solution of the
       full problem must either continue these presentations uniformly and
       prove stabilization, or produce an infinite family of distinct
@@ -772,11 +905,17 @@ The results divide the original problem into sharper pieces.
 
 The import-only entry point
 \texttt{Ogdoad.Papers.}\allowbreak\texttt{MisereNaturalRealization}
-exposes the Lean development, which currently checks the load-bearing transition
-determinism theorem, the meximal obstruction, and the periodic split-
-convolution lemma.  The tame-family strategy and the Grundy prefix
-presentations are proved in this note at paper level; their finite monoid
-models and exponent recursions are the next natural formalization targets.
+exposes the Lean development.  It checks transition determinism, meximal
+inclusion, $P$-reaching contexts, the no-self-option theorem and all three
+octal digit exclusions.  It also checks the generic rank/parity proof that a
+surjective multiplicative value map has exactly the quotient fibers claimed,
+the complete-option-record periodicity bound and finite infinite-tail
+certificate, and the abstract prefix/pad/unary-tail construction underlying
+Theorem~\ref{thm:normalform}.  The transport from typed prefix heaps to their
+numerical rank-order enumeration is paper-level, as is passage from ordered
+heap lists to multisets.  The tame-family strategy and the Grundy prefix
+presentations also remain paper proofs; their finite monoid models and
+exponent recursions are the next natural formalization targets.
 
 \section{Conclusion}
 
@@ -785,6 +924,13 @@ totality problem for a quotient-valued heap trace.  Transition-table
 determinism makes that trace canonical: no-split codes become finite-state,
 while split codes expose exactly the convolution that prevents the same
 automatic periodicity argument.
+
+The finite-exception normal form shows that a uniform infinite tail alone is
+not the difficulty: every finite quotient admits such a realization.  The
+octal constraint couples each intended finite-prefix edge to infinitely many
+translated edges, and the no-self inequalities give the first absolute
+rejection test for that coupling.  What remains is to decide totality for a
+fixed convolution trace and then control unbounded code synthesis.
 
 Within this framework the tame family is complete.  One explicit sequence of
 finite codes realizes every $\mathcal T_n$, with an outcome proof valid for
