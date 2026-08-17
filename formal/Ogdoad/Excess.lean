@@ -404,6 +404,22 @@ theorem orderOf_eq_prime_of_pow_eq_one {G : Type*} [Monoid G]
   have hord_dvd : orderOf a ∣ p := orderOf_dvd_iff_pow_eq_one.mpr hpow
   exact (hp.dvd_iff_eq hord_ne_one).mp hord_dvd |>.symm
 
+/-- Beyond the initial level, every element annihilated by the `n`-th
+Fermat number is already a cube in its own cyclic subgroup.  Hence a cubic
+Kummer or Tate class cannot distinguish full from proper conductor in the
+singleton-even target torus: `F_n` is coprime to `F_0 = 3`. -/
+theorem fermat_torsion_is_cube {G : Type*} [Group G]
+    (x : G) (n : Nat) (hn : n ≠ 0)
+    (htors : x ^ Nat.fermatNumber n = 1) :
+    IsPthPower 3 x := by
+  have hFcop : (Nat.fermatNumber n).Coprime 3 := by
+    simpa using Nat.coprime_fermatNumber_fermatNumber
+      (m := n) (n := 0) hn
+  have hord : orderOf x ∣ Nat.fermatNumber n :=
+    orderOf_dvd_iff_pow_eq_one.mpr htors
+  exact isPthPower_of_coprime_order
+    (Nat.Coprime.of_dvd_left hord hFcop)
+
 section CubicExceptionalResidue
 
 variable {R : Type*} [CommRing R]
@@ -4178,6 +4194,29 @@ section FermatRayPairingNoGo
 
 variable {F : Type*} [Field F]
 
+/-- The standard rank-two alternating exponent form is nondegenerate but
+vanishes on every diagonal.  Specializing to `F = ZMod ell` gives the
+algebraic core of a perfect Weil-pairing countermodel: a nonzero selected
+`ell`-torsion point may pair trivially with a prescribed nonzero point on the
+same isotropic line.  Perfectness only guarantees some detecting partner. -/
+theorem symplectic_pairing_nondegenerate_but_diagonal_zero :
+    let pairing := fun P Q : F × F => P.1 * Q.2 - P.2 * Q.1
+    (∀ P, P ≠ 0 → ∃ Q, pairing P Q ≠ 0) ∧
+      ∃ P, P ≠ 0 ∧ pairing P P = 0 := by
+  dsimp only
+  constructor
+  · intro P hP
+    by_cases hfirst : P.1 = 0
+    · have hsecond : P.2 ≠ 0 := by
+        intro hzero
+        apply hP
+        ext <;> simp [hfirst, hzero]
+      refine ⟨(1, 0), ?_⟩
+      simpa [hfirst] using neg_ne_zero.mpr hsecond
+    · refine ⟨(0, 1), ?_⟩
+      simpa using hfirst
+  · refine ⟨(1, 0), ?_, ?_⟩ <;> simp
+
 /-- Even a nonzero weight-one equivariant map can kill the complete
 orbit of a distinguished class.  The first coordinate models the ramified
 local-unit line detected by the Witt coefficient; the second models the
@@ -4504,6 +4543,48 @@ theorem twist_eq_inv_mul
   apply (mul_left_cancel₀ hb)
   rw [h]
   field_simp
+
+/-- Jacobi convolution with a marked nonzero additive total. -/
+def jacobiSumAt
+    {F R : Type*} [Field F] [Fintype F] [CommRing R]
+    (chi psi : MulChar F R) (a : F) : R :=
+  ∑ x : F, chi x * psi (a - x)
+
+/-- Scaling the additive total of a Jacobi convolution retains only the
+product-character value at that total. -/
+theorem jacobiSumAt_eq_mul_jacobiSum
+    {F R : Type*} [Field F] [Fintype F] [CommRing R]
+    (chi psi : MulChar F R) (a : F) (ha : a ≠ 0) :
+    jacobiSumAt chi psi a =
+      chi a * psi a * jacobiSum chi psi := by
+  classical
+  rw [jacobiSumAt, jacobiSum]
+  calc
+    (∑ x : F, chi x * psi (a - x)) =
+        ∑ x : F, chi (a * x) * psi (a - a * x) := by
+      exact (Equiv.sum_comp (Equiv.mulLeft₀ a ha)
+        (fun x : F ↦ chi x * psi (a - x))).symm
+    _ = ∑ x : F, (chi a * psi a) * (chi x * psi (1 - x)) := by
+      apply Finset.sum_congr rfl
+      intro x _
+      rw [map_mul, show a - a * x = a * (1 - x) by ring, map_mul]
+      ring
+    _ = chi a * psi a * ∑ x : F, chi x * psi (1 - x) := by
+      rw [Finset.mul_sum]
+
+/-- When both inputs lie on one Kummer-character line, the additive Jacobi
+convolution has exactly the sum of their two character weights. -/
+theorem jacobiSumAt_pow_eq_pow_mul
+    {F R : Type*} [Field F] [Fintype F] [CommRing R]
+    (chi : MulChar F R) (r s : Nat) (a : F) (ha : a ≠ 0) :
+    jacobiSumAt (chi ^ r) (chi ^ s) a =
+      chi a ^ (r + s) * jacobiSum (chi ^ r) (chi ^ s) := by
+  rw [jacobiSumAt_eq_mul_jacobiSum (chi ^ r) (chi ^ s) a ha]
+  have hr : (chi ^ r) a = chi a ^ r := by
+    simpa using MulChar.pow_apply_coe chi r (Units.mk0 a ha)
+  have hs : (chi ^ s) a = chi a ^ s := by
+    simpa using MulChar.pow_apply_coe chi s (Units.mk0 a ha)
+  rw [hr, hs, ← pow_add]
 
 /-- A quotient-line sum with one exceptional weight evaluates exactly to
 `q`.  This is the finite combinatorial core of the paper's semiprimitive
@@ -8247,6 +8328,26 @@ variable {K : Type*} [Field K] [CharP K 2]
 /-- The inversion-quotient coordinate on the norm-one torus. -/
 def torusPhi (x : K) : K := x / (x + 1) ^ 2
 
+/-- On the auxiliary supersingular model `y²+y=x³`, the function
+`u=(y+1)/y` has inversion-quotient coordinate exactly `x³`.  This curve is
+not the selected Conway curve `y²+y=x³+x²` over `F₂`; together with
+`fermat_torsion_is_cube`, the identity rules out replacing the selected
+five-torsion function by this natural cubic divisor/Tate class. -/
+theorem auxiliary_supersingular_function_torusPhi_eq_cube
+    (x y : K) (hy : y ≠ 0) (hE : y ^ 2 + y = x ^ 3) :
+    torusPhi ((y + 1) / y) = x ^ 3 := by
+  simp only [torusPhi]
+  have htwo : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  have hy1 : (y + 1) / y + 1 = 1 / y := by
+    field_simp
+    ring_nf
+    simp [htwo]
+  rw [hy1]
+  field_simp
+  calc
+    y * (y + 1) = y ^ 2 + y := by ring
+    _ = x ^ 3 := hE
+
 /-- Tripling on the norm-one torus descends to a fixed rational map on
 the fibotomic coordinate. -/
 theorem torusPhi_cube
@@ -9218,6 +9319,18 @@ theorem frobeniusPrefix_half_eq_inv_sq (x : G) (m : Nat)
       simp
     _ = x⁻¹ * x⁻¹ := by rw [hhalf]
 
+/-- A homomorphism cannot transport a nontrivial torsion point between
+coprime annihilators.  Since adjacent Fermat numbers are coprime, this is the
+group-theoretic obstruction to interpreting the deterministic singleton-even
+resultant ancestry as an isogeny division tower. -/
+theorem monoidHom_eq_one_of_coprime_torsion
+    {H : Type*} [CommGroup H]
+    (f : G →* H) (x : G) (a b : Nat)
+    (hx : x ^ a = 1) (hy : (f x) ^ b = 1) (hab : a.Coprime b) :
+    f x = 1 := by
+  apply (pow_eq_one_iff_of_coprime (f x) ?_ hab).mp hy
+  rw [← map_pow, hx, map_one]
+
 /-- Torsion classes of coprime exponents cannot cancel in one
 multiplicative reciprocity product.  This is the abstract group core of the
 paper's C/D Kummer-field separation: a product relation can be trivial only
@@ -10013,6 +10126,267 @@ theorem marked_eigenvalue_must_match
     (hmarked : marked ≠ 0) :
     chi = omega := by
   exact mul_right_cancel₀ hmarked hcompat
+
+/-! An ordinary conjugacy class cannot retain the translation coordinate of
+an affine Frobenius lift.  The number-field realization of the affine Galois
+group remains paper-level; the following identities check the exact algebraic
+obstruction. -/
+
+/-- Conjugating `x ↦ q*x + t` by the translation `x ↦ x+a` changes its
+translation coordinate from `t` to `t + (1-q)*a`. -/
+theorem affine_translation_conjugation
+    {F : Type*} [Field F] (q t a x : F) :
+    a + (q * (x - a) + t) = q * x + (t + (1 - q) * a) := by
+  ring
+
+/-- Away from the identity scalar, translation conjugacy can gauge every
+affine Frobenius coordinate to zero. -/
+theorem affine_translation_coordinate_gauge
+    {F : Type*} [Field F] (q t : F) (hq : q ≠ 1) :
+    ∃ a : F, t + (1 - q) * a = 0 := by
+  refine ⟨t / (q - 1), ?_⟩
+  field_simp
+  ring
+
+/-- Therefore every conjugacy-invariant function on affine lifts with fixed
+nonidentity scalar part is blind to the selected translation coordinate. -/
+theorem affine_class_function_blind
+    {F S : Type*} [Field F]
+    (value : F → S) (q : F) (hq : q ≠ 1)
+    (hconj : ∀ t a, value t = value (t + (1 - q) * a)) :
+    ∀ t, value t = value 0 := by
+  intro t
+  obtain ⟨a, ha⟩ := affine_translation_coordinate_gauge q t hq
+  rw [hconj t a, ha]
+
+/-- Fourier line attached to an additive character on the labeled affine
+torsor. -/
+def affineFourierLine
+    {F M : Type*} [Field F] [CommGroup M]
+    (psi : AddChar F M) (r y : F) : M :=
+  psi (-r * y)
+
+/-- Pulling a Fourier line through `x ↦ q*x+t` exposes the translation as
+one frame-dependent off-diagonal phase instead of averaging it into a class
+function. -/
+theorem affineFourierLine_pullback
+    {F M : Type*} [Field F] [CommGroup M]
+    (psi : AddChar F M) (t q r y : F) :
+    affineFourierLine psi r (q⁻¹ * (y - t)) =
+      psi (r * q⁻¹ * t) * affineFourierLine psi (r * q⁻¹) y := by
+  unfold affineFourierLine
+  rw [show -r * (q⁻¹ * (y - t)) =
+      r * q⁻¹ * t + -(r * q⁻¹) * y by ring]
+  exact AddChar.map_add_eq_mul psi _ _
+
+/-- On the line indexed by the scalar part itself, the pullback coefficient is
+the translation phase in the chosen affine frame.  It is not gauge invariant;
+the closed-path holonomy below is the intrinsic selected phase. -/
+theorem affineFourierLine_gauge_coefficient
+    {F M : Type*} [Field F] [CommGroup M]
+    (psi : AddChar F M) (t q y : F) (hq : q ≠ 0) :
+    affineFourierLine psi q (q⁻¹ * (y - t)) =
+      psi t * affineFourierLine psi 1 y := by
+  rw [affineFourierLine_pullback]
+  have hcancel : q * q⁻¹ = 1 := mul_inv_cancel₀ hq
+  rw [hcancel]
+  simp [affineFourierLine]
+
+/-- Every additive affine cocycle on a commutative multiplier group is a
+single coboundary as soon as one nonidentity multiplier is fixed. -/
+theorem affine_cocycle_is_coboundary
+    {F : Type*} [Field F]
+    (t : Fˣ → F)
+    (hcocycle : ∀ q r, t (q * r) = t q + (q : F) * t r)
+    (q₀ : Fˣ) (hq₀ : (q₀ : F) ≠ 1) :
+    ∀ q, t q = (1 - (q : F)) * (t q₀ / (1 - (q₀ : F))) := by
+  intro q
+  have hcomm :
+      t q + (q : F) * t q₀ =
+        t q₀ + (q₀ : F) * t q := by
+    rw [← hcocycle q q₀, mul_comm, hcocycle]
+  have hden : (1 : F) - (q₀ : F) ≠ 0 := sub_ne_zero.mpr (Ne.symm hq₀)
+  field_simp [hden]
+  linear_combination hcomm
+
+/-- Conversely, every marked affine origin produces a cocycle satisfying all
+composition laws. -/
+theorem affine_coboundary_is_cocycle
+    {F : Type*} [Field F] (a : F) :
+    ∀ q r : Fˣ,
+      (1 - ((q * r : Fˣ) : F)) * a =
+        (1 - (q : F)) * a + (q : F) * ((1 - (r : F)) * a) := by
+  intro q r
+  push_cast
+  ring
+
+/-- At any fixed nonidentity multiplier the cocycle value remains arbitrary:
+an appropriate marked origin realizes every field value. -/
+theorem affine_cocycle_value_surjective
+    {F : Type*} [Field F] (q : Fˣ) (hq : (q : F) ≠ 1) (u : F) :
+    ∃ a : F, (1 - (q : F)) * a = u := by
+  refine ⟨u / (1 - (q : F)), ?_⟩
+  have hden : (1 : F) - (q : F) ≠ 0 := sub_ne_zero.mpr (Ne.symm hq)
+  field_simp [hden]
+
+/-- Translation accumulated by the first `n` arrows
+`x ↦ q*x + t_j` in a labeled affine groupoid. -/
+def affinePathTranslation {F : Type*} [Field F]
+    (q : F) (t : Nat → F) : Nat → F
+  | 0 => 0
+  | n + 1 => q * affinePathTranslation q t n + t n
+
+/-- The recursive path translation is the oriented weighted sum of its
+one-step translations. -/
+theorem affinePathTranslation_eq_sum
+    {F : Type*} [Field F] (q : F) (t : Nat → F) (n : Nat) :
+    affinePathTranslation q t n =
+      ∑ j ∈ Finset.range n, q ^ (n - 1 - j) * t j := by
+  induction n with
+  | zero => simp [affinePathTranslation]
+  | succ n ih =>
+      rw [affinePathTranslation, ih, Finset.sum_range_succ]
+      rw [Finset.mul_sum]
+      congr 1
+      · apply Finset.sum_congr rfl
+        intro j hj
+        have hjlt : j < n := Finset.mem_range.mp hj
+        have hexp : n + 1 - 1 - j = (n - 1 - j) + 1 := by omega
+        rw [hexp, pow_succ']
+        ring
+      · simp
+
+/-- Changing the Kummer-root origin at vertex `j` by `a_j` changes the
+one-step arrow by `q*a_j-a_(j+1)`, and these changes telescope along a path. -/
+theorem affinePathTranslation_gauge
+    {F : Type*} [Field F] (q : F) (t a : Nat → F) (n : Nat) :
+    affinePathTranslation q
+        (fun j => t j + q * a j - a (j + 1)) n =
+      affinePathTranslation q t n + q ^ n * a 0 - a n := by
+  induction n with
+  | zero => simp [affinePathTranslation]
+  | succ n ih =>
+      simp only [affinePathTranslation, ih]
+      rw [pow_succ]
+      ring
+
+/-- Around a closed `E`-step Frobenius orbit, where `q^E=1` and the terminal
+root origin is the initial one, the accumulated pure translation is gauge
+invariant. -/
+theorem affineCycleHolonomy_gauge_invariant
+    {F : Type*} [Field F] (q : F) (t a : Nat → F) (E : Nat)
+    (hqE : q ^ E = 1) (haE : a E = a 0) :
+    affinePathTranslation q
+        (fun j => t j + q * a j - a (j + 1)) E =
+      affinePathTranslation q t E := by
+  rw [affinePathTranslation_gauge, hqE, haE]
+  ring
+
+/-- If all one-step arrows are powers of one affine lift, their full-cycle
+translation is zero; a nonzero Artin phase therefore requires true groupoid
+holonomy rather than a single affine complement. -/
+theorem affineCycle_constant_translation_zero
+    {F : Type*} [Field F] (q t : F) (E : Nat)
+    (hqE : q ^ E = 1) (hq : q ≠ 1) :
+    affinePathTranslation q (fun _ => t) E = 0 := by
+  let a := t / (q - 1)
+  have hden : q - 1 ≠ 0 := sub_ne_zero.mpr hq
+  have ha : q * a - a = t := by
+    dsimp [a]
+    field_simp [hden]
+  have hgauge := affineCycleHolonomy_gauge_invariant q
+    (fun _ => 0) (fun _ => a) E hqE rfl
+  simp only [zero_add, ha] at hgauge
+  have hzero : ∀ n, affinePathTranslation q (fun _ => 0) n = 0 := by
+    intro n
+    induction n with
+    | zero => rfl
+    | succ n ih => simp [affinePathTranslation, ih]
+  exact hgauge.trans (hzero E)
+
+/-- A closed Frobenius holonomy is exactly the finite-field Euler/Kummer
+phase of its radicand. -/
+theorem kummer_holonomy_eq_euler_phase
+    {F : Type*} [Field F] (alpha beta zeta : F) (ell Q : Nat)
+    (hQ : 1 ≤ Q) (hdiv : ell ∣ Q - 1) (halpha : alpha ≠ 0)
+    (hrad : alpha ^ ell = beta)
+    (hhol : alpha ^ Q = zeta * alpha) :
+    beta ^ ((Q - 1) / ell) = zeta := by
+  have hphase : alpha ^ (Q - 1) = zeta := by
+    apply mul_right_cancel₀ halpha
+    calc
+      alpha ^ (Q - 1) * alpha = alpha ^ Q := by
+        rw [← pow_succ]
+        congr 1
+        omega
+      _ = zeta * alpha := hhol
+  calc
+    beta ^ ((Q - 1) / ell) =
+        (alpha ^ ell) ^ ((Q - 1) / ell) := by rw [hrad]
+    _ = alpha ^ (ell * ((Q - 1) / ell)) := by rw [pow_mul]
+    _ = alpha ^ (Q - 1) := by rw [Nat.mul_div_cancel' hdiv]
+    _ = zeta := hphase
+
+/-- Along an open path every one-step translation can be normalized to zero;
+the obstruction is precisely the endpoint mismatch, equal to the holonomy. -/
+theorem affinePath_prefix_normalization
+    {F : Type*} [Field F] (q : F) (t : Nat → F) :
+    ∀ j, t j + q * affinePathTranslation q t j -
+        affinePathTranslation q t (j + 1) = 0 := by
+  intro j
+  simp [affinePathTranslation]
+  ring
+
+/-- Every field value occurs as the holonomy of an `E`-edge cycle once
+`E>0`; all proper edges may be chosen trivial and the value put on the closing
+edge.  Local prefix data therefore do not constrain the Artin phase. -/
+theorem affineCycleHolonomy_surjective
+    {F : Type*} [Field F] (q H : F) (E : Nat) (hE : 0 < E) :
+    ∃ t : Nat → F, affinePathTranslation q t E = H := by
+  obtain ⟨n, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.ne_of_gt hE)
+  refine ⟨fun j => if j = n then H else 0, ?_⟩
+  rw [affinePathTranslation_eq_sum]
+  rw [Finset.sum_eq_single n]
+  · simp
+  · intro b hb hbn
+    simp [hbn]
+  · simp
+
+/-- Scaling every arrow scales the path holonomy. -/
+theorem affinePathTranslation_scale
+    {F : Type*} [Field F] (q lambda : F) (t : Nat → F) (n : Nat) :
+    affinePathTranslation q (fun j => lambda * t j) n =
+      lambda * affinePathTranslation q t n := by
+  induction n with
+  | zero => simp [affinePathTranslation]
+  | succ n ih =>
+      simp only [affinePathTranslation, ih]
+      ring
+
+/-- An affine map between two Frobenius-torsor paths transports holonomy by
+its linear part plus only an endpoint term. -/
+theorem affinePath_intertwiner_holonomy
+    {F : Type*} [Field F] (q lambda : F) (t b : Nat → F) (n : Nat) :
+    affinePathTranslation q
+        (fun j => lambda * t j + b (j + 1) - q * b j) n =
+      lambda * affinePathTranslation q t n + b n - q ^ n * b 0 := by
+  rw [show (fun j => lambda * t j + b (j + 1) - q * b j) =
+      (fun j => lambda * t j + q * (-b j) - (-b (j + 1))) by
+        funext j
+        ring]
+  rw [affinePathTranslation_gauge, affinePathTranslation_scale]
+  ring
+
+/-- On closed Frobenius cycles, all affine-origin terms telescope, so an
+affine ancestry map can only scale the intrinsic Artin phase. -/
+theorem affineCycle_intertwiner_holonomy
+    {F : Type*} [Field F] (q lambda : F) (t b : Nat → F) (E : Nat)
+    (hqE : q ^ E = 1) (hbE : b E = b 0) :
+    affinePathTranslation q
+        (fun j => lambda * t j + b (j + 1) - q * b j) E =
+      lambda * affinePathTranslation q t E := by
+  rw [affinePath_intertwiner_holonomy, hqE, hbE]
+  ring
 
 end GlobalSplitRayReduction
 

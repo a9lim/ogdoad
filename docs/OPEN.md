@@ -133,6 +133,14 @@ decomposition, and the principal-ray/circular-unit factorization in the cubic
 and exceptional arms. It also proves several finite tensor-rank zero cases and
 shows why generic trace, norm, conductor, factor-shape, reciprocity, and
 unselected Kummer information cannot recover the marked Conway coordinate.
+The selected singleton-even realization lies on
+`y^2+y=x^3+x^2`; its function is supported on fixed five-torsion rather than
+the Fermat-torsion point, so for positive levels it is not an `F_n`-Weil or
+reduced-Tate pairing function attached to that point. The tempting curve
+`y^2+y=x^3` is not isomorphic to the selected curve over `F_2`, and its
+same-looking function has a trivial cubic Kummer class on positive-level
+Fermat torsion. Perfectness of an alternating pairing still does not force a
+prescribed pairing to be nonzero.
 
 `formal/Ogdoad/Excess.lean` kernel-checks the algebraic reduction layer and
 finite certificates used by the paper. `DPrimeTarget` and the analogous
@@ -146,6 +154,16 @@ Conway tower. A complete proof must evaluate that marked coordinate uniformly
 along its ancestry. Ambient statements about all points in the field do not
 distinguish it from the formal countermodels with the same trace, norm,
 torsion, or conductor data.
+
+Cross-arm multiplicative induction has a sharp primary-vacuity boundary. If a
+strict ancestor lies in `F_(2^d)` with `f(ell) ∤ d`, exactness of `f(ell)` gives
+`ell ∤ 2^d - 1`, so the `ell`-power map on its multiplicative group is an
+automorphism and its Kummer image is trivial. Thus cross-arm words built from
+strict lower-level coordinates in such degrees are primary-vacuous. The next
+`ell`-component does not repair this, because its radicand is defined as
+`kappa_(f(ell)) + m_ell`; using its degree to identify `m_ell` with the
+predicted `0`, `1`, or `4` is circular. A surviving cross-arm argument needs
+a second, independently defined top-born `ell`-coordinate.
 
 ### Nim reciprocity program
 
@@ -188,6 +206,36 @@ but does not evaluate it. Thus a successful reciprocity proof must import an
 independently evaluable local class or a genuinely nonhomogeneous marked-
 ancestry identity; adding further norm, character, or orbit-product axes to
 the same Kummer class cannot create a second constraint.
+
+Standard additive and nonabelian packages do not evade this boundary. A
+Jacobi convolution at nonzero total `a` scales by the product-character value
+at `a`, so on one Kummer line it is again a fixed scalar times one power of
+the marked phase. In the split affine group, every one-step lift `(t,q)` with
+fixed `q != 1` is conjugate to `(0,q)`, so class functions on that single
+fixed-multiplier coset erase its frame coordinate. This does not apply to the
+full-orbit element below: its `E`-th power is a pure translation, and an Artin
+character over the cyclotomic base can distinguish zero from nonzero
+holonomy, although evaluating it is the original selected problem.
+A labeled off-diagonal Fourier coefficient exists after a root frame is
+chosen, but that one-step coordinate is gauge-dependent. The intrinsic object
+is the full `E`-step Frobenius-orbit holonomy
+
+```text
+T = sum_(j=0)^(E-1) 2^(E-1-j) t_j,
+```
+
+whose diagonal Fourier eigenvalue is the selected phase. Frame changes
+modify the `t_j` by a telescoping coboundary and leave `T` fixed. Affine
+composition does not evaluate it: every homomorphic cocycle is a coboundary
+with trivial full-period holonomy, while every field value can occur as the
+closing holonomy after the proper path has been normalized. Nim reciprocity
+must therefore supply an independent Conway-ancestry evaluation of this
+closed-cycle coordinate; constructing it from the selected symbol is only an
+exact reformulation. An affine ancestry intertwiner does not supply the
+missing source: its closed holonomy is only a scalar multiple of the source
+holonomy, because every vertex-origin term telescopes. Thus a strict ancestor
+with trivial `ell`-coordinate cannot create the required nonzero current
+coordinate through an affine recursion.
 
 Success is a uniform nonvanishing/full-primary-order proof for every resulting
 coordinate, and therefore a proof of the `0/1/4` rule. Merely reconstructing a

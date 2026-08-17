@@ -111,6 +111,22 @@ four-arm `Z/O/C/D` reduction, including:
 - weighted two-axis Frobenius-word normalization: all multiplicative
   reciprocity expressions in this model formed from one Kummer class remain
   rank one, regardless of Frobenius, character, and multiplicity indices;
+- affine-Frobenius conjugacy and marked Jacobi-sum scaling: class functions on
+  one split fixed-multiplier affine coset erase its translation coordinate, while
+  additive convolution retains only the summed weight of the same Kummer
+  phase; a labeled Fourier-line pullback exposes a gauge-dependent one-step
+  coordinate, while the full affine-path holonomy is gauge invariant; a
+  separate identity identifies a closed Kummer ratio with the Euler phase.
+  Every homomorphic affine composition cocycle
+  is a coboundary with zero full-period holonomy, and every closing holonomy
+  remains possible after the proper path has been normalized; affine
+  intertwiners contribute only a scalar multiple plus a telescoping endpoint
+  term;
+- the singleton-even auxiliary-cubic and abstract pairing no-gos:
+  positive-level Fermat torsion has trivial cubic Kummer class, a perfect
+  alternating pairing may vanish on a prescribed line, and coprime adjacent
+  annihilators kill a proposed ancestry homomorphism; the selected elliptic
+  curve, divisor, and Miller-function interpretation remain paper-level;
 - oriented Frobenius-prefix evaluation and its block cocycle, including the
   faithful unit-exponent-prefix/full-orbit-trivial dichotomy; these identities
   only re-encode a marked power-residue phase and do not evaluate it;

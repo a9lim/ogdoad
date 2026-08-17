@@ -376,12 +376,105 @@ packet examples have identical full parent order but deterministic children
 of different conductor.  Consequently any induction must use the complete
 marked orbit, not only the integer conductor.
 
-There is also a supersingular realization on the fixed curve
-$Y^2+Y=X^3$.  It identifies the selected quotient value with the ramified
-function $(Y+1)/Y$ at the recursively selected point.  The point has the
-expected Fermat annihilator, but the function value is not a Weil-pairing
-value, and torsion alone does not determine its order.  Equivalently, the
-remaining statement is exclusion of every proper-conductor packet along the
+This isolates the part not settled by the existing Conway-tower literature.
+Popovych proves lower bounds and verifies the required relative full orders
+through level eleven using the known Fermat factorizations
+\cite{popovych2018}.  Cagliero, Herman, and Szechtman prove an exact product
+formula for global order in terms of the relative orders, as well as a normal
+basis theorem for the associated tower elements
+\cite{caglierohermanszechtman2025}.  Neither result forces every relative
+factor $\delta_n$ to equal $F_n$; that all-level equality is precisely the
+remaining selected assertion here.
+
+There is an exact supersingular realization of the selected ancestry.
+
+\begin{proposition}[supersingular realization and pairing boundary]
+\label{prop:z-elliptic}
+On
+\[
+ \mathcal E:\quad y^2+y=x^3+x^2
+\]
+put $P_n=(c_n,c_{n+1})$.  Then $P_n\in\mathcal E$, and for $n\geq2$,
+\[
+ [F_n]P_n=O.
+\]
+More precisely, if $\pi$ is absolute Frobenius and $\iota=\pi+[1]$, then
+\[
+ \iota(x,y)=(x+1,y+x+1),\qquad
+ \iota^2=[-1],\qquad \pi^4=[-4].
+\]
+For $g=(y+1)/y$, one has
+\[
+ g(P_n)=\frac{c_{n+1}+1}{c_{n+1}},
+ \qquad \operatorname{ord}(g(P_n))=\delta_{n+1}.
+\]
+If $T=(0,0)$, then $T$ has order five and
+\[
+ \operatorname{div}(g)
+ =2[-T]+[2T]-2[T]-[-2T].
+\]
+Thus $g$ is the quotient of the two fixed doubling Miller functions at
+$-T$ and $T$, but it is not a Weil or reduced-Tate pairing function attached
+to the $F_n$-torsion point $P_n$ when $n\geq2$.
+\end{proposition}
+
+\begin{proof}
+The Conway recursion gives
+\[
+ c_{n+1}^2+c_{n+1}
+ =c_n(c_n^2+c_n)=c_n^3+c_n^2,
+\]
+so $P_n$ lies on $\mathcal E$.  The coordinate formula for
+$\iota(P)=\pi(P)+P$ follows from the chord law.  Applying it twice gives the
+inverse $(x,y)\mapsto(x,y+1)$, so
+$\pi^2+2\pi+2=0$ in $\operatorname{End}(\mathcal E)$ and hence
+$\pi^4=[-4]$.
+
+Put $H=2^{n+1}$.  The $2^H$-Frobenius fixes $c_n$ and sends $c_{n+1}$ to
+$c_{n+1}+1$, hence sends $P_n$ to $-P_n$.  For $n\geq2$,
+\[
+ \pi^H=(\pi^4)^{2^{n-1}}=[2^{2^n}],
+\]
+which gives $[2^{2^n}+1]P_n=O$.
+
+The formula for $g(P_n)$ is immediate from the coordinates, and its order is
+$\delta_{n+1}$ by the definition of $u_{n+1}$.  The five rational points of
+$\mathcal E/\mathbb F_2$ show that $T$ has order five.  Direct intersection
+with the two horizontal lines gives
+\[
+ \operatorname{div}(y)=2[T]+[-2T]-3[O],\qquad
+ \operatorname{div}(y+1)=2[-T]+[2T]-3[O],
+\]
+and subtraction gives the divisor of $g$.  Equivalently,
+$g=f_{2,-T}/f_{2,T}$ for functions normalized at $O$.  Its divisor is
+supported on fixed rational five-torsion, with coefficients $2,1,-2,-1$.
+For $n\geq2$, these valuations are not divisible by $F_n\geq17$, whereas the
+divisor of an $F_n$-Miller function and every $F_n$-th-power correction have
+all coefficients divisible by $F_n$.  Thus $g$ cannot be such a function
+attached to $P_n$, even modulo an $F_n$-th power.
+A Weil or reduced Tate pairing on $\mathcal E[F_n]$ takes values in
+$\mu_{F_n}$, whereas $g(P_n)$ has order dividing $F_{n+1}$.  Pairwise
+coprimality of the Fermat numbers and $\delta_{n+1}>1$ exclude equality.
+\end{proof}
+
+The proposition supplies exact CM annihilator control but not generator
+status.  For $n\geq3$, no elliptic endomorphism can carry $P_n$ to
+$P_{n-1}$: the image order would divide both coprime numbers $F_n$ and
+$F_{n-1}$, although $P_{n-1}\ne O$.  For $n=2$, the same conclusion follows
+from $\operatorname{ord}(P_1)=3$ and $\operatorname{ord}(P_2)\mid17$.
+Thus the relation
+$x(P_n)=y(P_{n-1})$ is not an isogeny division tower, and pairing functoriality
+along this proposed tower cannot propagate primitivity.  A perfect alternating
+pairing likewise guarantees some detecting partner, not nonvanishing on a
+prescribed line.
+
+The tempting cubic curve $Y^2+Y=X^3$ is not a coordinate rewrite of
+$\mathcal E$: the two curves have respectively three and five rational points
+over $\mathbb F_2$.  For $u=(Y+1)/Y$ on that auxiliary curve,
+$u/(u+1)^2=X^3$; every positive-level Fermat-torsion value is already a cube
+because $\gcd(F_n,3)=1$.  Its natural cubic Kummer class is therefore trivial
+and cannot replace the selected five-torsion function above.  The remaining
+statement is still exclusion of every proper-conductor packet along the
 complete resultant chain.  Trace, relative norm, irreducibility, and the
 etale Jacobian hold for proper packets as well as the full packet.
 
@@ -458,6 +551,37 @@ $p\mid\Phi_{r^a}(2^b)$ but $p\nmid2^{br^{a-1}}-1$, so the lower residue
 field has trivial $p$-Kummer quotient.  Its norm receives no information
 about the new selected class.
 \end{proof}
+
+The selected symbol has an exact Jacobi--Fourier expansion.  Let
+$Q=|F_a|$, let $H=\langle x_a\rangle\subset F_a^\times$ have order $N_a$,
+put $M=(Q-1)/N_a$, and let $\chi$ be a complex-valued order-$p$ power
+character.  Extend complex-valued multiplicative characters by zero at zero
+and define
+\[
+ f(h)=\chi(1-h),\qquad
+ \widehat f(\theta)=\sum_{h\in H}f(h)\theta(h)^{-1}
+ \quad(\theta\in\widehat H).
+\]
+For an extension $\psi_\theta$ of $\theta$ to $F_a^\times$, and with
+$H^\perp$ the character group of $F_a^\times/H$, one has
+\[
+ \widehat f(\theta)
+ =\frac1M\sum_{\lambda\in H^\perp}
+ J(\psi_\theta^{-1}\lambda,\chi),
+ \qquad
+ f(x_a)=\frac1{N_a}\sum_{\theta\in\widehat H}
+ \theta(x_a)\widehat f(\theta).
+\]
+Indeed, the character average
+$M^{-1}\sum_{\lambda\in H^\perp}\lambda$ is the indicator of $H$;
+inserting it in the first Fourier sum gives the Jacobi sums, and Fourier
+inversion gives the second identity.  This is a fully explicit reciprocity
+formula, but the selected label survives in $\theta(x_a)$ and the Jacobi
+unit phases.  Ideal factorization or valuation formulas for the Jacobi sums
+do not by themselves determine this inverse-DFT entry.  This separation of
+the ideal and $p$-adic unit conditions is also visible in Uehara's
+cyclotomic-unit criterion \cite{uehara1985}; it supplies an exact test, not a
+uniform nonvanishing theorem for the Conway-selected entry.
 
 This residue-symbol condition is a marked Artin-symbol assertion, not a
 statement about decomposition or conductor.  Its ray character splits into
@@ -801,6 +925,140 @@ pairing.  In the four arms, perfect duality reduces the target to
 nonvanishing of the Conway-selected prime class; it does not prove that
 nonvanishing.
 
+\section{Nim reciprocity saturation and marked holonomy}
+\label{sec:nim-reciprocity}
+
+The residue-symbol reductions suggest using reciprocity to evaluate the
+remaining phase.  There is a precise saturation boundary for that program.
+Let $\ell$ be an odd prime, let $s\in\mu_\ell$, and put
+$E=\operatorname{ord}_\ell(2)$.  The two-axis Frobenius--cyclotomic family
+is $s_{j,c}=s^{2^j c}$ for $0\leq j<E$ and
+$c\in\mathbb F_\ell^\times$.
+
+\begin{proposition}[reciprocity saturation]\label{prop:reciprocity-saturation}
+The following statements hold.
+\begin{enumerate}
+\item Every multiplicative word in the $s_{j,c}$ is $s^\lambda$, where
+\[
+ \lambda=\sum_{j,c}w_{j,c}2^jc\pmod\ell.
+\]
+It is blind when $\lambda=0$ and, when $\lambda\ne0$, equals one exactly when
+the original marked phase equals one.
+\item For multiplicative characters $\chi,\psi$ of a finite field and
+$a\ne0$, the Jacobi convolution
+\[
+ J_{\chi,\psi}(a)=\sum_x\chi(x)\psi(a-x)
+\]
+satisfies
+\[
+ J_{\chi,\psi}(a)=\chi(a)\psi(a)J_{\chi,\psi}(1).
+\]
+In particular, if both characters are powers of one order-$\ell$ character,
+the marked dependence is again one power of the same phase.
+\item In the affine group on $\mathbb F_\ell$, write $(t,q)$, with
+$q\in\mathbb F_\ell^\times$, for the map $x\mapsto qx+t$.  If $q\ne1$, all
+$(t,q)$ are conjugate.  Consequently every class function is independent of
+$t$.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+The first statement follows by collecting exponents.  For the second,
+substitute $x=ay$ and factor $\chi(a)\psi(a)$ from every summand.  For the
+third, conjugation by the translation $x\mapsto x+a$ changes $t$ to
+$t+(1-q)a$; taking $a=t/(q-1)$ makes this zero.
+\end{proof}
+
+Thus norm products, weighted Stickelberger words, and Gauss or Jacobi
+transforms either erase or re-encode one phase.  A class function on the
+single fixed-multiplier affine coset is blinder still: it forgets the
+translation coordinate in part~3.  None of these operations independently
+evaluates the selected phase.
+
+Ordinary cross-arm multiplicative words face the same boundary.  If a strict
+ancestor lies in a field $\mathbb F_{2^d}$ with $f(\ell)\nmid d$, exactness
+of the residue degree gives
+$\ell\nmid2^d-1$; the $\ell$-power map is therefore an automorphism on that
+ancestor group and its $\ell$-Kummer image is trivial.  Thus every cross-arm
+word built from strict lower-level coordinates in such degrees separates its
+coprime-primary torsion.  Nor does the next $\ell$-component give an induction:
+its defining radicand is
+$\alpha_\ell=\kappa_{f(\ell)}+m_\ell$, so irreducibility proves only that the
+actual winning translate is a non-$\ell$-th power.  Using that fact to identify
+$m_\ell$ with the conjectural $0$, $1$, or $4$ would already assume the target.
+
+The intrinsic coordinate is a full Frobenius-orbit holonomy, not a one-step
+affine translation.  Let $\beta\in\mathbb F_{2^E}^\times$ be the selected
+element, put $s=\beta^{(2^E-1)/\ell}$, choose $\alpha^\ell=\beta$ in an
+algebraic closure, fix a primitive $\zeta\in\mu_\ell$, and let
+$\varphi(z)=z^2$.  Then
+\[
+ \frac{\varphi^E(\alpha)}{\alpha}
+ =\alpha^{2^E-1}
+ =\beta^{(2^E-1)/\ell}=s.
+\]
+This ratio is unchanged when $\alpha$ is replaced by $\zeta^a\alpha$,
+because $\varphi^E$ fixes $\mu_\ell$.  If $s=\zeta^T$, the $E$-step action
+on the labeled roots is the pure translation $e_x\mapsto e_{x+T}$.  Hence on
+the Fourier lines
+\[
+ v_r=\sum_x\zeta^{-rx}e_x,
+ \qquad \varphi^E(v_r)=\zeta^{rT}v_r.
+\]
+The diagonal eigenvalue at $r=1$ is exactly the selected Kummer--Artin
+symbol.
+
+Equivalently, choose a root frame over each conjugate
+$\beta_j=\beta^{2^j}$ and write the one-step maps as
+$e_{j,x}\mapsto e_{j+1,2x+t_j}$.  Their cyclic holonomy is
+\[
+ T=\sum_{j=0}^{E-1}2^{E-1-j}t_j\pmod\ell.
+\]
+Changing frames by $\alpha_j\mapsto\zeta^{a_j}\alpha_j$ sends
+$t_j$ to $t_j+2a_j-a_{j+1}$; with $a_E=a_0$, these changes telescope because
+$2^E=1$ modulo $\ell$.  Thus $T$ is intrinsic, while the individual
+off-diagonal coefficients
+\[
+ \rho(t_j,2)v_r=\zeta^{r2^{-1}t_j}v_{r2^{-1}}
+\]
+are gauge-dependent.  Every proper edge can be normalized away recursively,
+but a closed gauge cannot erase the cyclic holonomy: all but one edge may be
+made trivial, with the remaining edge carrying $T$.
+
+This also explains the cocycle no-go.  A homomorphic splitting on a
+commutative multiplier subgroup obeys
+$t(qr)=t(q)+q t(r)$.  Fixing $q_0\ne1$ and comparing
+$t(qq_0)$ with $t(q_0q)$ gives
+\[
+ t(q)=(1-q)a,
+ \qquad a=\frac{t(q_0)}{1-q_0}.
+\]
+Every such cocycle is a coboundary and has trivial full-period transfer.
+Powers of one affine lift give this law on the subgroup generated by its
+multiplier.  A general labeled section has a factor set, but changing root
+frames changes that factor set by a coboundary; only its cyclic holonomy is
+gauge-invariant.
+
+Affine ancestry between two such torsor paths cannot create a missing phase.
+If the vertex maps are $x\mapsto\lambda x+b_j$, then the target translations
+have the form
+\[
+ u_j=\lambda t_j+b_{j+1}-2b_j,
+\]
+and the path holonomies satisfy
+\[
+ U_n=\lambda T_n+b_n-2^n b_0.
+\]
+On a closed $E$-cycle the endpoint term telescopes, so $U=\lambda T$.
+Consequently an affine recursion from a strict ancestor with trivial
+$\ell$-holonomy cannot prove a nonzero current phase; a successful relation
+must contain a genuinely non-affine or independently nonzero closing source.
+
+A successful nim-reciprocity proof must therefore retain and independently
+evaluate the marked holonomy $T$, equivalently $s$, along the literal Conway
+ancestry.  Constructing the holonomy from the selected phase is an exact
+reformulation, not yet its evaluation.
+
 \section{Boundedness and the remaining theorem}\label{sec:bounded}
 
 Lenstra asked whether the finite excesses are absolutely bounded
@@ -871,9 +1129,14 @@ norm transport. \\
 Four-arm algebra & Corrected exceptional norm, toric and Dickson
 semiconjugacies, selected cubic recurrence, cubical $Z/D$ identities, and
 $C/D$ orthogonality. \\
+Reciprocity saturation & Two-axis Frobenius-word reduction, oriented-prefix
+cocycle, affine class-function blindness, marked Jacobi scaling, labeled
+Fourier-line pullback, and gauge-invariant path holonomy. \\
 Singleton-even boundary & Packet substitutions and norms, child-image
 equation, ancestry derivative, Dickson--Lucas tangency factorization, and the
-distinction between Conway and Wiedemann Laurent recursions. \\
+distinction between Conway and Wiedemann Laurent recursions, together with
+the auxiliary cubic-class no-go, abstract prescribed-pairing countermodel,
+and coprime-annihilator map obstruction. \\
 Finite certificates & Recorded primality, factor, order, modular
 Stickelberger, and selected binary Artin-phase calculations supplied to the
 formal checker. \\
