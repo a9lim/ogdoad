@@ -11,8 +11,6 @@ Highest-value additions are the joins between already public subsystems:
 | work | completion criterion |
 | --- | --- |
 | ramified Springer | add a named ramified-extension path with correct value-group parity and independent tests |
-| finite-field invariants | lift level, Pythagoras number, and u-invariant reporting from prime fields to supported extensions |
-| characteristic-two spinor norm | construct the additive spinor norm from vector-symmetry factorizations |
 | explicit Brauer representatives | materialize cyclic or quaternion algebras for computed classes |
 
 ## API and maintenance

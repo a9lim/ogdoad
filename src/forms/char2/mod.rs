@@ -1,11 +1,11 @@
 //! Characteristic-2 quadratic-form invariants.
 //!
-//! The module contains five related constructions:
+//! The module contains five related shelves:
 //!
 //! * `arf` classifies the quadratic form / Clifford algebra through the Arf
 //!   invariant.
-//! * `dickson` classifies orthogonal transformations by the Dickson invariant,
-//!   the determinant replacement in characteristic 2.
+//! * `dickson` classifies orthogonal transformations by the additive spinor
+//!   norm / Dickson invariant and certifies vector-symmetry factorizations.
 //! * `brown` lifts the `ℤ/2` Arf bit to the `ℤ/8` Brown invariant of a
 //!   `Z/4`-valued quadratic refinement, with `β(2q') = 4 Arf(q')`.
 //! * `extraspecial` turns a nonsingular `F_2` quadratic form into the
@@ -16,8 +16,8 @@
 //!   that the char-2 local–global layer is generic over.
 //!
 //! The public exports stay flat (`forms::arf_invariant`,
-//! `forms::dickson_matrix`, `forms::FiniteChar2Field`, …), matching the rest of the
-//! forms pillar.
+//! `forms::char2_spinor_norm`, `forms::FiniteChar2Field`, …), matching the rest
+//! of the forms pillar.
 
 mod arf;
 mod brown;

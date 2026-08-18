@@ -140,6 +140,10 @@ print("  WittClass constructors:", pl.WittClass.zero(), -pl.WittClass(1), pl.Wit
 print("  WittClass metric constructor:", pl.WittClass.try_from_metric(A) == wA)
 print("  Dickson(swap)  =", pl.dickson_matrix([[0, 1], [1, 0]]), " (a reflection)")
 print("  Dickson(diag *2,*3 rotation) =", pl.dickson_matrix([[2, 0], [0, 3]]), " (in SO)")
+char2_factor = pl.factor_char2_isometry([0, 0], {(0, 1): 1}, [[0, 1], [1, 0]])
+print("  certified F2 symmetry factor:", char2_factor.factors,
+      "spinor", pl.char2_spinor_norm([0, 0], {(0, 1): 1}, [[0, 1], [1, 0]]),
+      "Clifford checked", char2_factor.clifford_verified)
 
 section("exterior algebra of the GAME group — lives where Clifford can't")
 # Λ needs only a ℤ-module; the game group is one, even for non-numbers (⋆, ↑).
@@ -405,10 +409,11 @@ stair = pl.OddFiniteFieldForm(5, [1, 2, 3]).e_staircase()
 print(f"  ⟨1,2,3⟩/F5: e0={stair.e0} (dim) e1={stair.e1} (disc) e2={stair.e2:+} (Hasse), I^{stair.stabilizes_at}=0")
 # Over ℝ the tower is infinite: eₙ reads the 2-adic expansion of the signature.
 print("  ⟨1,1,1,1⟩/ℝ (sig 4): eₙ for n=0..3 =", [pl.e_real(4, n) for n in range(4)])
-print("  numeric invariants of F5:",
-      "level", pl.level(5),
-      "pythagoras", pl.pythagoras_number(5),
-      "u", pl.u_invariant(5))
+finite_numeric = pl.finite_field_numeric_invariants(3, 2)
+print("  numeric invariants of F9:", finite_numeric,
+      "level", pl.level(3, 2),
+      "pythagoras", pl.pythagoras_number(3, 2),
+      "u", pl.u_invariant(3, 2))
 print("  WittClassG constructors:",
       pl.WittClassG.char0(3, 1), pl.WittClassG.oddchar_one(5, 0) * pl.WittClassG.oddchar_zero(5, 0),
       pl.WittClassG.char2(1).arf())

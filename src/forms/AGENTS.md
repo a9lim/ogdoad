@@ -14,13 +14,13 @@ that axis. Read `docs/OPEN.md` before changing a claim used by a live paper.
 | `oddchar/` | finite odd-characteristic invariants |
 | `char2/arf.rs` | symplectic reduction and Arf invariants |
 | `char2/brown.rs` | `Z/4`-valued quadratic refinements and Brown invariant |
-| `char2/{dickson,extraspecial,field}.rs` | Dickson parity, extraspecial groups, finite char-two abstraction |
+| `char2/{dickson,extraspecial,field}.rs` | additive spinor norm and symmetry certificates, extraspecial groups, finite char-two abstraction |
 | `witt/` | Witt rings/groups, rational and function-field Brauer data, Brauer--Wall, cyclic classes, Milnor residues |
 | `springer/` | valued-field residue decompositions, including characteristic two |
 | `local_global/` | rational, adelic, and function-field reciprocity/isotropy |
 | `trace_form.rs` | trace, twisted trace, Gold-form, and Scharlau-transfer bridges |
 | `symplectic.rs`, `hermitian.rs` | form-plus-involution siblings |
-| `field_invariants.rs` | level and u-invariant reports |
+| `field_invariants.rs` | level, Pythagoras-number, and regular u-invariant reports for supported finite fields |
 | `quadric_fit.rs` | research instrument fitting Boolean P-sets to quadrics |
 | `integral/` | lattice wing; see `integral/AGENTS.md` |
 

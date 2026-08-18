@@ -7,6 +7,51 @@
 
 use crate::scalar::Scalar;
 
+/// Rank of a row-major matrix by unit-pivot elimination.
+///
+/// Returns `None` when a nonzero residual matrix remains after all available
+/// unit pivots have been exhausted. Over a field this is ordinary matrix rank;
+/// over a ring it succeeds only when unit pivots suffice.
+pub(crate) fn unit_pivot_rank<S: Scalar>(mut m: Vec<Vec<S>>) -> Option<usize> {
+    let nrows = m.len();
+    let ncols = m.first().map_or(0, Vec::len);
+    if m.iter().any(|row| row.len() != ncols) {
+        return None;
+    }
+
+    let mut row = 0;
+    for col in 0..ncols {
+        let Some(piv) = (row..nrows).find(|&r| m[r][col].inv().is_some()) else {
+            continue;
+        };
+        m.swap(row, piv);
+        let pinv = m[row][col].inv().expect("pivot is invertible");
+        for c in 0..ncols {
+            m[row][c] = m[row][c].mul(&pinv);
+        }
+        for r in 0..nrows {
+            if r == row {
+                continue;
+            }
+            let factor = m[r][col].clone();
+            if factor.is_zero() {
+                continue;
+            }
+            for c in 0..ncols {
+                m[r][c] = m[r][c].sub(&factor.mul(&m[row][c]));
+            }
+        }
+        row += 1;
+        if row == nrows {
+            break;
+        }
+    }
+    if (row..nrows).any(|r| (0..ncols).any(|c| !m[r][c].is_zero())) {
+        return None;
+    }
+    Some(row)
+}
+
 /// Solve the square system `A x = b` by unit-pivot Gauss--Jordan elimination.
 ///
 /// Returns `None` if some pivot column has no invertible entry. Panics if `A`
@@ -166,6 +211,16 @@ mod tests {
             basis,
             vec![vec![r(-2), r(1), r(0)], vec![r(-3), r(0), r(1)]]
         );
+    }
+
+    #[test]
+    fn rank_handles_rectangular_field_matrices() {
+        assert_eq!(
+            unit_pivot_rank(vec![vec![r(1), r(2), r(3)], vec![r(2), r(4), r(6)]]),
+            Some(1)
+        );
+        assert_eq!(unit_pivot_rank::<Rational>(vec![]), Some(0));
+        assert_eq!(unit_pivot_rank(vec![vec![r(1)], vec![r(0), r(1)]]), None);
     }
 
     #[test]

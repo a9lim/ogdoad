@@ -114,10 +114,12 @@ The Python layer monomorphizes a documented slice of the Rust backends. It
 does not provide a runtime-tagged any-scalar algebra. Its typed report surface
 includes finite quadratic modules and Nikulin criteria, extraspecial and
 Heisenberg--Weil objects, function-field Brauer--Wall classes, Niemeier data,
-finite-field Witt decompositions, lexicode turning games, conformal-algebra
-accessors, represented ordinal finite-subfield degrees, checked Witt--FIFO and
-Brown constructors, Hermitian restriction to typed ordinary quadratic
-backends, and sealed Guy--Smith periodicity certificates. Python
+finite-field Witt decompositions and numeric-invariant reports,
+characteristic-two additive spinor norms and symmetry certificates, lexicode
+turning games, conformal-algebra accessors, represented ordinal finite-subfield
+degrees, checked Witt--FIFO and Brown constructors, Hermitian restriction to
+typed ordinary quadratic backends, and sealed Guy--Smith periodicity
+certificates. Python
 `repr` delegates to canonical Rust rendering where the core provides it.
 
 ## Mathematical status
