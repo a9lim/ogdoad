@@ -1017,6 +1017,50 @@ impl PyFiniteFieldInvariants {
     }
 }
 
+#[pyclass(
+    name = "FiniteFieldNumericInvariants",
+    module = "ogdoad",
+    skip_from_py_object
+)]
+#[derive(Clone)]
+struct PyFiniteFieldNumericInvariants {
+    inner: crate::forms::FiniteFieldNumericInvariants,
+}
+
+#[pymethods]
+impl PyFiniteFieldNumericInvariants {
+    #[getter]
+    fn characteristic(&self) -> u128 {
+        self.inner.characteristic
+    }
+    #[getter]
+    fn absolute_degree(&self) -> usize {
+        self.inner.absolute_degree
+    }
+    #[getter]
+    fn field_order(&self) -> u128 {
+        self.inner.field_order
+    }
+    #[getter]
+    fn level(&self) -> usize {
+        self.inner.level
+    }
+    #[getter]
+    fn pythagoras_number(&self) -> usize {
+        self.inner.pythagoras_number
+    }
+    #[getter]
+    fn u_invariant(&self) -> usize {
+        self.inner.u_invariant
+    }
+    fn display(&self) -> String {
+        self.inner.display()
+    }
+    fn __repr__(&self) -> String {
+        self.inner.display()
+    }
+}
+
 /// Classify a surreal Clifford algebra on the exact-square real-table subdomain
 /// as a matrix algebra over ℝ/ℂ/ℍ. Symmetric metrics are diagonalized when possible.
 #[pyfunction]
@@ -1337,6 +1381,55 @@ fn dickson_of_versor(v: &NimberMV) -> PyResult<u128> {
         .ok_or_else(|| PyValueError::new_err("not an invertible homogeneous versor"))
 }
 
+#[pyclass(
+    name = "Char2SymmetryFactorization",
+    module = "ogdoad",
+    skip_from_py_object
+)]
+#[derive(Clone)]
+struct PyChar2SymmetryFactorization {
+    degree: usize,
+    matrix: Vec<Vec<u128>>,
+    factors: Vec<Vec<u128>>,
+    dickson: u128,
+    clifford_verified: bool,
+    rendered: String,
+}
+
+#[pymethods]
+impl PyChar2SymmetryFactorization {
+    #[getter]
+    fn degree(&self) -> usize {
+        self.degree
+    }
+    #[getter]
+    fn matrix(&self) -> Vec<Vec<u128>> {
+        self.matrix.clone()
+    }
+    #[getter]
+    fn factors(&self) -> Vec<Vec<u128>> {
+        self.factors.clone()
+    }
+    #[getter]
+    fn factor_count(&self) -> usize {
+        self.factors.len()
+    }
+    #[getter]
+    fn dickson(&self) -> u128 {
+        self.dickson
+    }
+    #[getter]
+    fn clifford_verified(&self) -> bool {
+        self.clifford_verified
+    }
+    fn display(&self) -> String {
+        self.rendered.clone()
+    }
+    fn __repr__(&self) -> String {
+        self.rendered.clone()
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Alternating and Hermitian forms (the "form + involution" siblings)
 // ---------------------------------------------------------------------------
@@ -1533,6 +1626,17 @@ impl PyHermitianForm {
             inner: self.inner.signature(|x| x.sign()),
         }
     }
+    /// Restrict `h` over `Surcomplex/Surreal` to the ordinary quadratic form
+    /// `q(v)=h(v,v)` over `Surreal`, doubling the dimension.
+    fn restrict_scalars(&self) -> PyResult<SurrealAlgebra> {
+        let metric = self
+            .inner
+            .restrict_scalars()
+            .map_err(|err| PyValueError::new_err(err.to_string()))?;
+        Ok(SurrealAlgebra {
+            inner: Arc::new(CliffordAlgebra::new(metric.dim(), metric)),
+        })
+    }
     fn __repr__(&self) -> String {
         format!("HermitianForm(dim={})", self.inner.dim())
     }
@@ -1723,6 +1827,31 @@ impl PyFiniteHermitianForm {
                 inner: form.classify(),
             })
         })
+    }
+    /// Restrict this Hermitian form to an ordinary quadratic algebra over its
+    /// fixed field.  The concrete return type is `Fp2Algebra`, `F4Algebra`,
+    /// `Fp3Algebra`, or `Fp5Algebra`, preserving backend separation.
+    fn restrict_scalars(&self, py: Python<'_>) -> PyResult<Py<PyAny>> {
+        macro_rules! restrict_into {
+            ($p:literal, $degree:literal, $alg:ident) => {{
+                let form = finite_hermitian_form_fpn::<$p, $degree>(&self.gram)?;
+                let metric = form
+                    .restrict_scalars()
+                    .map_err(|err| PyValueError::new_err(err.to_string()))?;
+                $alg {
+                    inner: Arc::new(CliffordAlgebra::new(metric.dim(), metric)),
+                }
+                .into_py_any(py)
+            }};
+        }
+
+        match (self.p, self.degree) {
+            (2, 2) => restrict_into!(2, 2, Fp2Algebra),
+            (2, 4) => restrict_into!(2, 4, F4Algebra),
+            (3, 2) => restrict_into!(3, 2, Fp3Algebra),
+            (5, 2) => restrict_into!(5, 2, Fp5Algebra),
+            _ => Err(unsupported_finite_hermitian_field_err()),
+        }
     }
     fn __repr__(&self) -> String {
         format!(
@@ -1919,6 +2048,16 @@ macro_rules! with_finite_char2_field {
                 $body
             }
             _ => return Err(unsupported_char2_finite_field_err()),
+        }
+    }};
+}
+
+macro_rules! with_supported_finite_field {
+    ($p:expr, $degree:expr, |$field:ident| $body:expr) => {{
+        if $p == 2 {
+            with_finite_char2_field!($degree, |$field| $body)
+        } else {
+            with_finite_odd_field!($p, $degree, |$field| $body)
         }
     }};
 }
@@ -2162,6 +2301,94 @@ fn finite_char2_field_index<F: FiniteChar2Field>(x: F) -> u128 {
     (0..F::field_order())
         .find(|&i| F::from_index(i) == x)
         .expect("finite char-2 field element must be enumerated by from_index")
+}
+
+fn parse_char2_matrix<F: FiniteChar2Field>(matrix: &[Vec<u128>]) -> PyResult<Vec<Vec<F>>> {
+    F::ensure_supported().ok_or_else(unsupported_char2_finite_field_err)?;
+    let order = F::field_order();
+    matrix
+        .iter()
+        .map(|row| {
+            row.iter()
+                .map(|&value| {
+                    if value < order {
+                        Ok(F::from_index(value))
+                    } else {
+                        Err(PyValueError::new_err(format!(
+                            "field element index {value} is outside F_{order}"
+                        )))
+                    }
+                })
+                .collect()
+        })
+        .collect()
+}
+
+fn wrap_char2_factorization<F: FiniteChar2Field>(
+    degree: usize,
+    certificate: crate::forms::Char2SymmetryFactorization<F>,
+) -> PyChar2SymmetryFactorization {
+    let matrix = certificate
+        .matrix()
+        .iter()
+        .map(|row| {
+            row.iter()
+                .copied()
+                .map(finite_char2_field_index::<F>)
+                .collect()
+        })
+        .collect();
+    let factors = certificate
+        .factors()
+        .iter()
+        .map(|root| {
+            root.iter()
+                .copied()
+                .map(finite_char2_field_index::<F>)
+                .collect()
+        })
+        .collect();
+    PyChar2SymmetryFactorization {
+        degree,
+        matrix,
+        factors,
+        dickson: certificate.dickson(),
+        clifford_verified: certificate.verifies_clifford_action(),
+        rendered: certificate.display(),
+    }
+}
+
+/// The additive characteristic-two spinor norm of an isometry of `F_{2^degree}`.
+#[pyfunction]
+#[pyo3(signature = (q, b, matrix, degree=1))]
+fn char2_spinor_norm(
+    q: Vec<u128>,
+    b: BTreeMap<(usize, usize), u128>,
+    matrix: Vec<Vec<u128>>,
+    degree: usize,
+) -> PyResult<u128> {
+    with_finite_char2_metric!(degree, &q, &b, |metric| {
+        let parsed = parse_char2_matrix::<Field>(&matrix)?;
+        crate::forms::char2_spinor_norm(&metric, &parsed)
+            .map_err(|error| PyValueError::new_err(error.to_string()))
+    })
+}
+
+/// Certify a vector-symmetry factorization of an isometry of `F_{2^degree}`.
+#[pyfunction]
+#[pyo3(signature = (q, b, matrix, degree=1))]
+fn factor_char2_isometry(
+    q: Vec<u128>,
+    b: BTreeMap<(usize, usize), u128>,
+    matrix: Vec<Vec<u128>>,
+    degree: usize,
+) -> PyResult<PyChar2SymmetryFactorization> {
+    with_finite_char2_metric!(degree, &q, &b, |metric| {
+        let parsed = parse_char2_matrix::<Field>(&matrix)?;
+        crate::forms::factor_char2_isometry(&metric, &parsed)
+            .map(|certificate| wrap_char2_factorization(degree, certificate))
+            .map_err(|error| PyValueError::new_err(error.to_string()))
+    })
 }
 
 fn char2_ff_poly_indices<F: FiniteChar2Field>(poly: &Poly<F>) -> PyFFPoly {
@@ -3848,30 +4075,10 @@ fn unsupported_odd_prime_field_err() -> PyErr {
     PyValueError::new_err("supported odd prime fields: F_3, F_5, F_7, F_11, F_13")
 }
 
-macro_rules! with_prime_field {
-    ($p:expr, $body:ident) => {{
-        match $p {
-            2 => $body::<2>(),
-            3 => $body::<3>(),
-            5 => $body::<5>(),
-            7 => $body::<7>(),
-            11 => $body::<11>(),
-            13 => $body::<13>(),
-            _ => return Err(unsupported_prime_field_err()),
-        }
-    }};
-}
-
-fn level_for_prime<const P: u128>() -> PyResult<Option<usize>> {
-    Ok(crate::forms::level::<P>())
-}
-
-fn pythagoras_for_prime<const P: u128>() -> PyResult<Option<usize>> {
-    Ok(crate::forms::pythagoras_number::<P>())
-}
-
-fn u_invariant_for_prime<const P: u128>() -> PyResult<Option<usize>> {
-    Ok(crate::forms::u_invariant::<P>())
+fn numeric_invariants_for_field<F: crate::forms::FiniteFieldInvariantField>(
+) -> PyResult<crate::forms::FiniteFieldNumericInvariants> {
+    crate::forms::finite_field_numeric_invariants::<F>()
+        .ok_or_else(|| PyValueError::new_err("unsupported finite-field parameters"))
 }
 
 fn sum_of_squares_for_prime<const P: u128>(x: i128, n: usize) -> PyResult<bool> {
@@ -3888,27 +4095,47 @@ fn hilbert_symbol_prime<const P: u128>(a: i128, b: i128) -> PyResult<i128> {
     ))
 }
 
-/// The level/Stufe of the prime field `F_p`: the least `n` for which `-1` is a
-/// sum of `n` squares. Supported primes are `2, 3, 5, 7, 11, 13`; other inputs
-/// raise `ValueError`.
+/// Numeric finite-field invariants for `F_{p^degree}`.
 #[pyfunction]
-fn level(p: u128) -> PyResult<Option<usize>> {
-    with_prime_field!(p, level_for_prime)
+#[pyo3(signature = (p, degree=1))]
+fn finite_field_numeric_invariants(
+    p: u128,
+    degree: usize,
+) -> PyResult<PyFiniteFieldNumericInvariants> {
+    with_supported_finite_field!(p, degree, |F| {
+        Ok(PyFiniteFieldNumericInvariants {
+            inner: numeric_invariants_for_field::<F>()?,
+        })
+    })
 }
 
-/// The Pythagoras number of the prime field `F_p`: least `n` such that every sum
-/// of squares is already a sum of `n` squares.
+/// The level/Stufe of `F_{p^degree}`: the least `n` for which `-1` is a sum of
+/// `n` squares.
 #[pyfunction]
-fn pythagoras_number(p: u128) -> PyResult<Option<usize>> {
-    with_prime_field!(p, pythagoras_for_prime)
+#[pyo3(signature = (p, degree=1))]
+fn level(p: u128, degree: usize) -> PyResult<usize> {
+    with_supported_finite_field!(p, degree, |F| {
+        Ok(numeric_invariants_for_field::<F>()?.level)
+    })
 }
 
-/// The u-invariant of the prime field `F_p`: largest dimension of an anisotropic
-/// quadratic form. In characteristic 2 this returns `None` because the diagonal
-/// odd-characteristic model is not the right form theory.
+/// The Pythagoras number of `F_{p^degree}`.
 #[pyfunction]
-fn u_invariant(p: u128) -> PyResult<Option<usize>> {
-    with_prime_field!(p, u_invariant_for_prime)
+#[pyo3(signature = (p, degree=1))]
+fn pythagoras_number(p: u128, degree: usize) -> PyResult<usize> {
+    with_supported_finite_field!(p, degree, |F| {
+        Ok(numeric_invariants_for_field::<F>()?.pythagoras_number)
+    })
+}
+
+/// The quadratic u-invariant of `F_{p^degree}`. Characteristic two uses regular
+/// quadratic forms.
+#[pyfunction]
+#[pyo3(signature = (p, degree=1))]
+fn u_invariant(p: u128, degree: usize) -> PyResult<usize> {
+    with_supported_finite_field!(p, degree, |F| {
+        Ok(numeric_invariants_for_field::<F>()?.u_invariant)
+    })
 }
 
 /// Is `x` a sum of exactly `n` squares in the prime field `F_p`?
@@ -7790,6 +8017,8 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyRationalPlaceInvariant>()?;
     m.add_class::<PyRationalCliffordInvariants>()?;
     m.add_class::<PyFiniteFieldInvariants>()?;
+    m.add_class::<PyFiniteFieldNumericInvariants>()?;
+    m.add_class::<PyChar2SymmetryFactorization>()?;
     m.add_class::<PyWittClassError>()?;
     m.add_class::<PyWittClass>()?;
     m.add_class::<PyOddCharInvariants>()?;
@@ -7998,12 +8227,15 @@ pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(witt_class_error, m)?)?;
     m.add_function(wrap_pyfunction!(dickson_matrix, m)?)?;
     m.add_function(wrap_pyfunction!(dickson_of_versor, m)?)?;
+    m.add_function(wrap_pyfunction!(char2_spinor_norm, m)?)?;
+    m.add_function(wrap_pyfunction!(factor_char2_isometry, m)?)?;
     m.add_function(wrap_pyfunction!(classify_symplectic, m)?)?;
     m.add_function(wrap_pyfunction!(classify_symplectic_nimber, m)?)?;
     m.add_function(wrap_pyfunction!(witt_decompose_real, m)?)?;
     m.add_function(wrap_pyfunction!(isometric_ordinal_finite, m)?)?;
     m.add_function(wrap_pyfunction!(ordinal_witt, m)?)?;
     m.add_function(wrap_pyfunction!(artin_schreier_class_finite, m)?)?;
+    m.add_function(wrap_pyfunction!(finite_field_numeric_invariants, m)?)?;
     m.add_function(wrap_pyfunction!(level, m)?)?;
     m.add_function(wrap_pyfunction!(pythagoras_number, m)?)?;
     m.add_function(wrap_pyfunction!(u_invariant, m)?)?;

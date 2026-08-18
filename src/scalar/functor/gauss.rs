@@ -250,10 +250,9 @@ impl<S: ResidueField> ResidueField for Gauss<S> {
 
     fn residue(&self) -> Option<Self::Residue> {
         match self.valuation() {
-            None => Some(RationalFunction::zero()),
             Some(v) if v < 0 => None,
             Some(0) => gauss_angular_component(self),
-            Some(_) => Some(RationalFunction::zero()),
+            None | Some(_) => Some(RationalFunction::zero()),
         }
     }
 

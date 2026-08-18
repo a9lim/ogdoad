@@ -5,7 +5,7 @@ use super::*;
 pub(crate) fn value_to_expr<E: Display>(value: &Value<E>) -> GrundyResult<Expr> {
     match value {
         Value::Element(value) => parse_display_expr(&value.to_string()),
-        Value::Index(value) => Ok(index_literal_expr(*value)?),
+        Value::Index(value) => Ok(index_literal_expr(*value)),
         Value::Bool(value) => Ok(Expr::Bool(*value)),
         Value::Function(function) => Ok(function.to_expr()),
     }

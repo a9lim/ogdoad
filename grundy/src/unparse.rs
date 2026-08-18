@@ -297,7 +297,6 @@ fn unparse_binding(binding: &Binding) -> String {
 fn precedence(expr: &Expr) -> u8 {
     match expr {
         Expr::Lambda { .. } => 0,
-        Expr::Block { .. } => 13,
         Expr::If { .. } => 1,
         Expr::Binary {
             op: BinaryOp::Or, ..

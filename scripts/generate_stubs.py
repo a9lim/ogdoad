@@ -55,6 +55,12 @@ FUNCTION_OVERRIDES: dict[str, str] = {
     "is_isotropic_q": "(entries: Sequence[builtins.int]) -> builtins.bool",
     "hilbert_product": "(a: tuple[builtins.int, builtins.int], b: tuple[builtins.int, builtins.int]) -> builtins.int",
     "hilbert_symbol": "(p: builtins.int, a: builtins.int, b: builtins.int) -> builtins.int",
+    "finite_field_numeric_invariants": "(p: builtins.int, degree: builtins.int = 1) -> FiniteFieldNumericInvariants",
+    "level": "(p: builtins.int, degree: builtins.int = 1) -> builtins.int",
+    "pythagoras_number": "(p: builtins.int, degree: builtins.int = 1) -> builtins.int",
+    "u_invariant": "(p: builtins.int, degree: builtins.int = 1) -> builtins.int",
+    "char2_spinor_norm": "(q: Sequence[builtins.int], b: Mapping[tuple[builtins.int, builtins.int], builtins.int], matrix: Sequence[Sequence[builtins.int]], degree: builtins.int = 1) -> builtins.int",
+    "factor_char2_isometry": "(q: Sequence[builtins.int], b: Mapping[tuple[builtins.int, builtins.int], builtins.int], matrix: Sequence[Sequence[builtins.int]], degree: builtins.int = 1) -> Char2SymmetryFactorization",
     # nim field / finite-field toolkit (src/py/scalars.rs, all u128-based)
     "nim_add": "(a: builtins.int, b: builtins.int) -> builtins.int",
     "nim_mul": "(a: builtins.int, b: builtins.int) -> builtins.int",
@@ -107,6 +113,20 @@ FUNCTION_OVERRIDES: dict[str, str] = {
 # "Class.method" -> signature. A leading "@staticmethod " marks a staticmethod
 # (the `self` is then omitted from the signature string).
 MEMBER_OVERRIDES: dict[str, str] = {
+    "FiniteFieldNumericInvariants.characteristic": "(self) -> builtins.int",
+    "FiniteFieldNumericInvariants.absolute_degree": "(self) -> builtins.int",
+    "FiniteFieldNumericInvariants.field_order": "(self) -> builtins.int",
+    "FiniteFieldNumericInvariants.level": "(self) -> builtins.int",
+    "FiniteFieldNumericInvariants.pythagoras_number": "(self) -> builtins.int",
+    "FiniteFieldNumericInvariants.u_invariant": "(self) -> builtins.int",
+    "FiniteFieldNumericInvariants.display": "(self) -> builtins.str",
+    "Char2SymmetryFactorization.degree": "(self) -> builtins.int",
+    "Char2SymmetryFactorization.matrix": "(self) -> list[list[builtins.int]]",
+    "Char2SymmetryFactorization.factors": "(self) -> list[list[builtins.int]]",
+    "Char2SymmetryFactorization.factor_count": "(self) -> builtins.int",
+    "Char2SymmetryFactorization.dickson": "(self) -> builtins.int",
+    "Char2SymmetryFactorization.clifford_verified": "(self) -> builtins.bool",
+    "Char2SymmetryFactorization.display": "(self) -> builtins.str",
     # scalar constructors
     "Nimber.__init__": "(self, value: builtins.int) -> None",
     "Rational.__init__": "(self, num: builtins.int, den: builtins.int = 1) -> None",

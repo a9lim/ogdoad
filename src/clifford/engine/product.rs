@@ -39,7 +39,7 @@ impl<S: Scalar> Metric<S> {
             let c = self.bil(i, j);
             if !c.is_zero() {
                 let coeff = if k & 1 == 0 { c } else { c.neg() };
-                add_term(&mut out, t ^ (1 << j), coeff);
+                add_term(&mut out, t ^ (1 << j), &coeff);
             }
             k += 1;
         }
@@ -51,7 +51,7 @@ impl<S: Scalar> Metric<S> {
         let mut out = self.contract_vec_blade(i, t);
         if t & (1 << i) == 0 {
             let sign = wedge_sign::<S>(1 << i, t);
-            add_term(&mut out, t | (1 << i), sign);
+            add_term(&mut out, t | (1 << i), &sign);
         }
         out
     }

@@ -191,12 +191,7 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
                 }
             }
             Expr::Lambda { .. } => Err(fn_sort_error()),
-            Expr::Block { bindings, body } => match self.eval_block(bindings, body)? {
-                Value::Element(value) => Ok(value),
-                Value::Index(_) => Err(index_sort_error()),
-                Value::Bool(_) => Err(bool_sort_error()),
-                Value::Function(_) => Err(fn_sort_error()),
-            },
+            Expr::Block { bindings, body } => into_element(self.eval_block(bindings, body)?),
             Expr::Call { name, args } => self.eval_call(name, args),
             Expr::Unary { op, expr } => {
                 let value = self.eval_element(expr)?;
@@ -206,19 +201,8 @@ impl<S: PolyWorldCoeff> PolyRuntime<S> {
                     UnaryOp::Not => Err(bool_sort_error()),
                 }
             }
-            Expr::Apply { .. } => match self.eval_value(expr)? {
-                Value::Element(value) => Ok(value),
-                Value::Index(_) => Err(index_sort_error()),
-                Value::Bool(_) => Err(bool_sort_error()),
-                Value::Function(_) => Err(fn_sort_error()),
-            },
+            Expr::Apply { .. } | Expr::If { .. } => into_element(self.eval_value(expr)?),
             Expr::Binary { op, lhs, rhs } => self.eval_binary(*op, lhs, rhs),
-            Expr::If { .. } => match self.eval_value(expr)? {
-                Value::Element(value) => Ok(value),
-                Value::Index(_) => Err(index_sort_error()),
-                Value::Bool(_) => Err(bool_sort_error()),
-                Value::Function(_) => Err(fn_sort_error()),
-            },
             Expr::Relation { .. } => Err(GrundyError::new(
                 GrundyErrorKind::BoolSort,
                 Span::point(0),

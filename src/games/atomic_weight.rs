@@ -52,9 +52,8 @@ pub fn atomic_weight(g: &Game) -> Option<Game> {
     let a_canon = Game::new(a_left.clone(), a_right.clone()).canonical();
 
     // If A is not an integer, the candidate value stands.
-    let a_int = match integer_value(&a_canon) {
-        None => return Some(a_canon),
-        Some(k) => k,
+    let Some(a_int) = integer_value(&a_canon) else {
+        return Some(a_canon);
     };
 
     // Integer case: resolve by the far star ⋆N, N > every nimber in G.

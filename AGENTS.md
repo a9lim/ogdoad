@@ -41,8 +41,9 @@ crate-private. Their public modules re-export children shallowly.
   build.
 - `grundy/` is an unpublished workspace crate depending only on Ogdoad's public
   API.
-- `formal/` is a separately pinned Lean project. It proves named ingredients;
-  paper-level syntheses must state what Lean does and does not check.
+- `formal/` is a separately pinned Lean project. It proves named components
+  and selected end-to-end finite constructions; paper-level syntheses must
+  state what Lean does and does not check.
 
 ## Non-negotiable mathematical invariants
 
@@ -85,10 +86,6 @@ The current open fronts are exactly:
 - arbitrary-graph isolated-dummy FIFO linking;
 - the universal `0/1/4` transfinite nim-excess rule, including its selected
   nim-reciprocity program;
-- quasi-linear multiplication in canonical finite-nimber coordinates;
-- game-valued Witt realization over `F_2(t)`;
-- stable quadratic-form invariants over the supertropical and Hessenberg
-  semirings;
 - natural-ruleset realization of finite misère quotients, including the exact
   quotient of misère Grundy's game.
 
@@ -97,6 +94,9 @@ matching-plus-isolates theorem and does not depend on general FIFO linking.
 The full `On_2` classification is a mathematical theorem after scalar
 extension; it does not make the finite `Nimber(u128)` backend algebraically
 closed or make the partial `Ordinal` backend construct every root.
+Quasi-linear multiplication in canonical finite-nimber coordinates has an
+explicit proved transform; its arbitrary-width implementation and crossover
+measurement are engineering work in `docs/ROADMAP.md`.
 
 ## Code conventions
 

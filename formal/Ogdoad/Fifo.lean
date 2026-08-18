@@ -1,4 +1,4 @@
-import Mathlib
+import Ogdoad.Algebra.ZModTwo
 
 /-!
 # The FIFO linking theorem
@@ -67,21 +67,6 @@ def flip (G : SimpleGraph V) (U : Finset V) (v : V) : ZMod 2 :=
 def adjacencyBit (G : SimpleGraph V) (u v : V) : ZMod 2 := by
   classical
   exact if G.Adj u v then 1 else 0
-
-/-- A nonzero parity bit is the unit bit. -/
-theorem zmod2_eq_one_of_ne_zero (x : ZMod 2) (hx : x ≠ 0) : x = 1 := by
-  apply ZMod.val_injective
-  have hxval : x.val ≠ 0 := by
-    intro h
-    exact hx ((ZMod.val_eq_zero x).mp h)
-  have hxlt : x.val < 2 := x.val_lt
-  change x.val = 1
-  omega
-
-/-- A parity bit different from the unit bit is zero. -/
-theorem zmod2_eq_zero_of_ne_one (x : ZMod 2) (hx : x ≠ 1) : x = 0 := by
-  by_contra hx0
-  exact hx (zmod2_eq_one_of_ne_zero x hx0)
 
 omit [Fintype V] [DecidableEq V] in
 /-- The adjacency bit inherits symmetry from a simple graph. -/
@@ -1837,30 +1822,6 @@ theorem StoppedBadPair.child_of_zero_open
     subst z
     exact (Finset.notMem_erase y (S.erase x)) hz
   exact ⟨hyErase, hzErase, hyz, hwinchild⟩
-
-/-- Every scalar in `ZMod 2` is idempotent. -/
-theorem zmod2_sq_eq_self (t : ZMod 2) : t * t = t := by
-  by_cases ht : t = 0
-  · simp [ht]
-  · rw [zmod2_eq_one_of_ne_zero t ht]
-    simp
-
-/-- Distinct parity bits differ by the unit bit, so the affine equality
-indicator `x + 1 + y` vanishes. -/
-theorem zmod2_add_one_add_eq_zero_of_ne (x y : ZMod 2) (hxy : x ≠ y) :
-    x + 1 + y = 0 := by
-  have hsum0 : x + y ≠ 0 := by
-    intro h
-    have : x = y := by
-      calc
-        x = x + (y + y) := by rw [CharTwo.add_self_eq_zero, add_zero]
-        _ = (x + y) + y := by abel
-        _ = y := by rw [h, zero_add]
-    exact hxy this
-  have hsum1 : x + y = 1 := zmod2_eq_one_of_ne_zero _ hsum0
-  calc
-    x + 1 + y = (x + y) + 1 := by abel
-    _ = 0 := by rw [hsum1, CharTwo.add_self_eq_zero]
 
 omit [Fintype V] [DecidableEq V] in
 /-- Parity of an empty equality fibre.  This is the abstract algebra behind

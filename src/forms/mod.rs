@@ -9,11 +9,12 @@
 //! * [`char2`] provides Arf, Brown, Dickson, and extraspecial-group invariants.
 //!
 //! [`classify`] dispatches to these implementations from the scalar type.
-//! [`witt`] contains Witt and Brauer--Wall classes, [`springer`] contains valued-
-//! field residue decompositions, [`local_global`] contains reciprocity and
-//! isotropy criteria, and [`integral`] contains lattices and finite quadratic
-//! modules. [`symplectic`] and [`hermitian`] cover alternating and Hermitian forms;
-//! [`trace_form`] constructs trace and transfer forms from field extensions.
+//! [`witt`] contains Clifford centers and Witt/Brauer--Wall classes, [`springer`]
+//! contains valued-field residue decompositions, [`local_global`] contains
+//! reciprocity and isotropy criteria, and [`integral`] contains lattices and
+//! finite quadratic modules. [`symplectic`] and [`hermitian`] cover alternating
+//! and Hermitian forms; [`trace_form`] constructs trace and transfer forms from
+//! field extensions.
 //!
 //! Public items from each child module are re-exported here.
 

@@ -12,9 +12,11 @@ body:
           Clifford algebra needs a commutative scalar *ring*, and the full game
           group is only an abelian group. New scalar worlds must be commutative
           rings.
-        - The genuine open problems (arbitrary-graph FIFO linking and the
-          universal transfinite nim-excess rule) live in `docs/OPEN.md`. Those are research
-          questions, not feature requests — open a discussion instead.
+        - The open mathematical fronts (arbitrary-graph isolated-dummy FIFO
+          linking, the universal transfinite nim-excess `0/1/4` rule, and
+          natural-ruleset realization of finite misere quotients) live in
+          `docs/OPEN.md`. Those are research questions, not feature requests —
+          open a discussion instead.
 
         New backends, invariants, cross-pillar bridges, and binding/docs
         ergonomics are all in scope and welcome.

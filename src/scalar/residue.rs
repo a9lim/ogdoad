@@ -75,10 +75,9 @@ impl<const P: u128, const K: u128> ResidueField for Qp<P, K> {
     type Residue = Fp<P>;
     fn residue(&self) -> Option<Fp<P>> {
         match self.valuation() {
-            None => Some(Fp::<P>::zero()), // 0 ↦ 0
-            Some(v) if v < 0 => None,      // not integral
+            Some(v) if v < 0 => None, // not integral
             Some(0) => Some(Fp::<P>::from_u128(self.unit() % P)),
-            Some(_) => Some(Fp::<P>::zero()), // in 𝔪
+            None | Some(_) => Some(Fp::<P>::zero()), // 0 or in 𝔪
         }
     }
     fn residue_unit(&self) -> Option<Fp<P>> {
@@ -101,10 +100,9 @@ impl<const P: u128, const N: usize, const F: usize> ResidueField for Qq<P, N, F>
     type Residue = Fpn<P, F>;
     fn residue(&self) -> Option<Fpn<P, F>> {
         match self.valuation() {
-            None => Some(Fpn::<P, F>::zero()),
             Some(v) if v < 0 => None,
             Some(0) => self.unit_residue(),
-            Some(_) => Some(Fpn::<P, F>::zero()),
+            None | Some(_) => Some(Fpn::<P, F>::zero()),
         }
     }
     fn residue_unit(&self) -> Option<Fpn<P, F>> {
@@ -125,10 +123,9 @@ impl<S: ExactFieldScalar, const K: usize> ResidueField for Laurent<S, K> {
     type Residue = S;
     fn residue(&self) -> Option<S> {
         match self.valuation() {
-            None => Some(S::zero()),
             Some(v) if v < 0 => None,
             Some(0) => self.leading_coeff(), // coeff at t⁰ = the constant term
-            Some(_) => Some(S::zero()),
+            None | Some(_) => Some(S::zero()),
         }
     }
     fn residue_unit(&self) -> Option<S> {

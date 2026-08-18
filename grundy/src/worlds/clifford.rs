@@ -138,7 +138,7 @@ impl<S: GrundyScalar> CliffordRuntime<S> {
     fn eval_expr(&mut self, expr: &Expr) -> GrundyResult<Multivector<S>> {
         match expr {
             Expr::Bool(_) => Err(bool_sort_error()),
-            Expr::Index(_) => Err(index_sort_error()),
+            Expr::Index(_) | Expr::Dim => Err(index_sort_error()),
             Expr::GameForm { .. } => Err(game_only_error("game forms")),
             Expr::Int(n) => Ok(self.alg.scalar(S::bare_int(*n, Span::point(0))?)),
             Expr::Star(star) => Ok(self.alg.scalar(S::star(star, Span::point(0))?)),
@@ -157,14 +157,8 @@ impl<S: GrundyScalar> CliffordRuntime<S> {
             Expr::Container(items) => self.eval_container(items),
             Expr::Up => Err(game_only_error("`up`")),
             Expr::Down => Err(game_only_error("`down`")),
-            Expr::Dim => Err(index_sort_error()),
             Expr::Lambda { .. } => Err(fn_sort_error()),
-            Expr::Block { bindings, body } => match self.eval_block(bindings, body)? {
-                Value::Element(value) => Ok(value),
-                Value::Index(_) => Err(index_sort_error()),
-                Value::Bool(_) => Err(bool_sort_error()),
-                Value::Function(_) => Err(fn_sort_error()),
-            },
+            Expr::Block { bindings, body } => into_element(self.eval_block(bindings, body)?),
             Expr::Ident(name) => {
                 if let Some(value) = self.state.env.get(name) {
                     match value {
@@ -188,19 +182,8 @@ impl<S: GrundyScalar> CliffordRuntime<S> {
                     UnaryOp::Not => Err(bool_sort_error()),
                 }
             }
-            Expr::Apply { .. } => match self.eval_value(expr)? {
-                Value::Element(value) => Ok(value),
-                Value::Index(_) => Err(index_sort_error()),
-                Value::Bool(_) => Err(bool_sort_error()),
-                Value::Function(_) => Err(fn_sort_error()),
-            },
+            Expr::Apply { .. } | Expr::If { .. } => into_element(self.eval_value(expr)?),
             Expr::Binary { op, lhs, rhs } => self.eval_binary(*op, lhs, rhs),
-            Expr::If { .. } => match self.eval_value(expr)? {
-                Value::Element(value) => Ok(value),
-                Value::Index(_) => Err(index_sort_error()),
-                Value::Bool(_) => Err(bool_sort_error()),
-                Value::Function(_) => Err(fn_sort_error()),
-            },
             Expr::Relation { .. } => Err(GrundyError::new(
                 GrundyErrorKind::BoolSort,
                 Span::point(0),

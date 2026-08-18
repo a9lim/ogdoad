@@ -56,6 +56,9 @@ are regenerated artifacts and must also receive page-level visual review.
 | `Surreal` | exact finite-support expressions only |
 | `Nimber` | exact `F_(2^128)` arithmetic |
 | `Ordinal` | exact inside the checked Kummer window; checked multiplication, inversion, and square roots refuse escape |
+| Hermitian restriction | `q(v)=h(v,v)` over the represented involution-fixed field, with trace used only for the polar form; dimension doubles and refuses past 128 |
+| mod-two Milnor symbols | degrees `0..=2` over `Q`, supported odd finite fields, and `F_q(t)`; strict `e_n` maps require membership in `I^n`; characteristic-two Kato and wild local symbols are outside the surface |
+| Clifford centers | for nonsingular forms, materialized full/even central generators with Kummer or characteristic-two Artin--Schreier relation; split class and parity are independently compared with Brauer--Wall coordinates; degenerate centers are refused |
 | bounded search | budget and exhaustion are reported separately from mathematical truth |
 
 The `associativity_*` tests and

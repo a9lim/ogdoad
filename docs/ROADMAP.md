@@ -10,19 +10,30 @@ Highest-value additions are the joins between already public subsystems:
 
 | work | completion criterion |
 | --- | --- |
-| Clifford centers | construct centers and even centers as discriminant etale algebras and compare their classes with the Brauer--Wall coordinates |
-| Milnor symbols | expose the degree-at-most-two mod-two symbols underlying the existing residue and `e_n` maps |
-| Hermitian restriction | compose trace/restriction of scalars with the ordinary quadratic classifiers |
 | ramified Springer | add a named ramified-extension path with correct value-group parity and independent tests |
-| finite-field invariants | lift level, Pythagoras number, and u-invariant reporting from prime fields to supported extensions |
-| characteristic-two spinor norm | construct the additive spinor norm from vector-symmetry factorizations |
 | explicit Brauer representatives | materialize cyclic or quaternion algebras for computed classes |
+
+## Additional mathematics
+
+New self-contained mathematical areas begin with one auditable construction
+and an explicit law or certificate boundary. They remain engineering programs
+here unless they produce a sharp unresolved statement for `OPEN.md`.
+
+| work | completion criterion |
+| --- | --- |
+| quadratic algebras | implement the rank-two context `S[u]/(u^2 - t*u + n)` with canonical conjugation, trace, norm, partial inverse, and split/etale/nonreduced classification on supported fields; recover `Surcomplex` as the `u^2 = -1` specialization and materialize computed Clifford centers as operational quadratic algebras |
+| Hermitian lattices | add exact Gaussian- and Eisenstein-integral Hermitian Gram forms with dual, discriminant, and restriction-of-scalars bridges; implement the corresponding code Construction A, construct the Coxeter--Todd lattice, and independently verify its ordinary integral invariants through the existing lattice, genus, and theta surfaces |
+| representable matroids | construct finite-field representable matroids with rank, circuits, flats, duality, deletion/contraction, and a budgeted Tutte polynomial; verify Greene's theorem against independently computed code weight enumerators |
+| stabilizer codes | construct finite symplectic Pauli spaces and isotropic stabilizers, derive CSS codes from supported linear codes, and return bounded certificates for parameters and logical operators whose commutation and encoded dimension agree with the independent symplectic and Heisenberg representations |
 
 ## API and maintenance
 
-No unfinished API-maintenance work is currently tracked. New Python bindings
-must preserve per-backend type separation and update the generated stub in the
-same commit.
+| work | completion criterion |
+| --- | --- |
+| arbitrary-width nim multiplication | implement the proved affine transforms and primitive Artin--Schreier tower from `writeups/nim_fast_multiplication.tex`; exhaustively agree with the mex/direct oracle on small fields, differentially agree with the `u128` backend on every supported width, and measure the crossover while retaining the current path below it |
+
+New Python bindings must preserve per-backend type separation and update the
+generated stub in the same commit.
 
 ## Grundy language
 

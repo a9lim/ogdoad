@@ -26,7 +26,11 @@ pub(crate) fn eval_index<R: SharedRuntime>(runtime: &mut R, expr: &Expr) -> Grun
     match expr {
         Expr::Index(expr) => eval_index(runtime, expr),
         Expr::Int(n) => u128_to_i128(*n),
-        Expr::Bool(_) => Err(bool_sort_error()),
+        Expr::Bool(_)
+        | Expr::Unary {
+            op: UnaryOp::Not, ..
+        }
+        | Expr::Relation { .. } => Err(bool_sort_error()),
         Expr::Lambda { .. } => Err(fn_sort_error()),
         Expr::Block { bindings, body } => match runtime.eval_block(bindings, body)? {
             Value::Index(value) => Ok(value),
@@ -49,10 +53,16 @@ pub(crate) fn eval_index<R: SharedRuntime>(runtime: &mut R, expr: &Expr) -> Grun
             .ok_or_else(|| overflow("index negation overflowed i128")),
         Expr::Unary {
             op: UnaryOp::Inv, ..
-        } => Err(index_sort_error()),
-        Expr::Unary {
-            op: UnaryOp::Not, ..
-        } => Err(bool_sort_error()),
+        }
+        | Expr::Star(_)
+        | Expr::Omega
+        | Expr::Blade(_)
+        | Expr::Container(_)
+        | Expr::Up
+        | Expr::Down
+        | Expr::Dim
+        | Expr::GameForm { .. }
+        | Expr::Call { .. } => Err(index_sort_error()),
         Expr::Apply { .. } => match runtime.eval_value(expr)? {
             Value::Index(value) => Ok(value),
             Value::Element(_) => Err(index_sort_error()),
@@ -75,16 +85,6 @@ pub(crate) fn eval_index<R: SharedRuntime>(runtime: &mut R, expr: &Expr) -> Grun
             let rhs = eval_index(runtime, rhs)?;
             eval_index_binary(*op, lhs, rhs)
         }
-        Expr::Relation { .. } => Err(bool_sort_error()),
-        Expr::Star(_)
-        | Expr::Omega
-        | Expr::Blade(_)
-        | Expr::Container(_)
-        | Expr::Up
-        | Expr::Down
-        | Expr::Dim
-        | Expr::GameForm { .. }
-        | Expr::Call { .. } => Err(index_sort_error()),
     }
 }
 
@@ -97,7 +97,7 @@ pub(crate) fn parse_display_expr(src: &str) -> GrundyResult<Expr> {
     }
 }
 
-pub(crate) fn index_literal_expr(value: i128) -> GrundyResult<Expr> {
+pub(crate) fn index_literal_expr(value: i128) -> Expr {
     let inner = if value >= 0 {
         Expr::Int(value as u128)
     } else {
@@ -106,7 +106,7 @@ pub(crate) fn index_literal_expr(value: i128) -> GrundyResult<Expr> {
             expr: Box::new(Expr::Int(value.unsigned_abs())),
         }
     };
-    Ok(Expr::Index(Box::new(inner)))
+    Expr::Index(Box::new(inner))
 }
 
 pub(crate) fn wrap_index_expr(inner: Expr) -> Expr {
@@ -131,15 +131,6 @@ pub(crate) fn value_sort<E>(value: &Value<E>) -> DataSort {
         Value::Index(_) => DataSort::Index,
         Value::Bool(_) => DataSort::Bool,
         Value::Function(_) => unreachable!("Function values are not first-order binder sorts"),
-    }
-}
-
-pub(crate) fn env_sort<E>(value: &Value<E>) -> GrundyResult<DataSort> {
-    match value {
-        Value::Element(_) => Ok(DataSort::Element),
-        Value::Index(_) => Ok(DataSort::Index),
-        Value::Bool(_) => Ok(DataSort::Bool),
-        Value::Function(_) => Err(fn_sort_error()),
     }
 }
 

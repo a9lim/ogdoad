@@ -177,7 +177,7 @@ pub fn loopy_nim_values_certified(
 fn solve_mex_sidling(succ: &[Vec<usize>], is_side: &[bool]) -> Option<(Vec<u128>, usize)> {
     let n = succ.len();
     let finite: Vec<usize> = (0..n).filter(|&v| !is_side[v]).collect();
-    let mut order = finite.clone();
+    let mut order = finite;
     order.sort_by_key(|&v| succ[v].iter().filter(|&&w| !is_side[w]).count());
     let mut assigned = vec![false; n];
     for (v, &side) in is_side.iter().enumerate() {

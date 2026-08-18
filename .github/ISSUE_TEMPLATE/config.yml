@@ -2,7 +2,7 @@ blank_issues_enabled: false
 contact_links:
   - name: Open research problems
     url: https://github.com/a9lim/ogdoad/blob/main/docs/OPEN.md
-    about: Arbitrary-graph FIFO linking and the universal transfinite nim-excess rule are known open problems, not bugs. See docs/OPEN.md before filing.
+    about: FIFO linking, transfinite nim-excess, and natural finite-misere realization are research problems, not bugs. See docs/OPEN.md before filing.
   - name: Security vulnerability
     url: https://github.com/a9lim/ogdoad/security/policy
     about: Please report security issues privately (see SECURITY.md).

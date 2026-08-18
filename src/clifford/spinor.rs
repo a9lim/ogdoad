@@ -626,7 +626,7 @@ pub fn lazy_spinor_rep<S: Scalar>(alg: &CliffordAlgebra<S>) -> Option<LazySpinor
             }
             let ordinary = alg.ordinary_gauge_algebra();
             let metric = if ordinary.metric.b.is_empty() {
-                ordinary.metric.clone()
+                ordinary.metric
             } else {
                 diagonalize_with_transform(&ordinary.metric)?.0
             };

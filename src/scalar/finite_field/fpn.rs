@@ -254,9 +254,8 @@ fn poly_gcd(mut a: Vec<u128>, mut b: Vec<u128>, p: u128) -> Vec<u128> {
 }
 
 fn poly_make_monic(poly: Vec<u128>, p: u128) -> Vec<u128> {
-    let d = match poly_degree(&poly) {
-        Some(d) => d,
-        None => return Vec::new(),
+    let Some(d) = poly_degree(&poly) else {
+        return Vec::new();
     };
     let inv = mod_inverse_u128(poly[d], p).expect("nonzero finite-field coefficient");
     trim_poly(

@@ -755,8 +755,9 @@ def strategy_holds(k: int, edges, seat: int, menu_version: int = 5) -> bool:
     """Defender (flips-even) restricted to a prevention/debt menu, attacker
     unrestricted optimal; STRICT (an empty/illegal menu = defender loss).
     Menu-existential: True means a winning move always exists IN the menu.
-    Versions 3 and 4 reproduce the two superseded finite boundaries; version
-    5 is the current no-self-flip prevention envelope."""
+    Versions 3 and 4 encode narrower finite-boundary menus used as
+    negative-evidence controls; version 5 is the no-self-flip prevention
+    envelope."""
     if menu_version not in (3, 4, 5):
         raise ValueError(f"unknown menu version: {menu_version}")
     n = k + 1  # always with dummy

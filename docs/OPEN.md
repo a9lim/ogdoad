@@ -1,8 +1,8 @@
 # Open mathematical problems
 
-Ogdoad has six live research problems. The first two are universal
-conjectures with exact reductions; the remaining four are constructive or
-classification programs with explicit completion criteria. This document
+Ogdoad has three live research problems. The first two are universal
+conjectures with exact reductions; the third is a classification program with
+an explicit completion criterion. This document
 states their current form, known starting point, and missing step. The linked
 papers carry the detailed arguments. Finite experiments and an implemented API
 are evidence or infrastructure, never substitutes for the stated theorem or
@@ -133,6 +133,14 @@ decomposition, and the principal-ray/circular-unit factorization in the cubic
 and exceptional arms. It also proves several finite tensor-rank zero cases and
 shows why generic trace, norm, conductor, factor-shape, reciprocity, and
 unselected Kummer information cannot recover the marked Conway coordinate.
+The selected singleton-even realization lies on
+`y^2+y=x^3+x^2`; its function is supported on fixed five-torsion rather than
+the Fermat-torsion point, so for positive levels it is not an `F_n`-Weil or
+reduced-Tate pairing function attached to that point. The tempting curve
+`y^2+y=x^3` is not isomorphic to the selected curve over `F_2`, and its
+same-looking function has a trivial cubic Kummer class on positive-level
+Fermat torsion. Perfectness of an alternating pairing still does not force a
+prescribed pairing to be nonzero.
 
 `formal/Ogdoad/Excess.lean` kernel-checks the algebraic reduction layer and
 finite certificates used by the paper. `DPrimeTarget` and the analogous
@@ -146,6 +154,16 @@ Conway tower. A complete proof must evaluate that marked coordinate uniformly
 along its ancestry. Ambient statements about all points in the field do not
 distinguish it from the formal countermodels with the same trace, norm,
 torsion, or conductor data.
+
+Cross-arm multiplicative induction has a sharp primary-vacuity boundary. If a
+strict ancestor lies in `F_(2^d)` with `f(ell) ∤ d`, exactness of `f(ell)` gives
+`ell ∤ 2^d - 1`, so the `ell`-power map on its multiplicative group is an
+automorphism and its Kummer image is trivial. Thus cross-arm words built from
+strict lower-level coordinates in such degrees are primary-vacuous. The next
+`ell`-component does not repair this, because its radicand is defined as
+`kappa_(f(ell)) + m_ell`; using its degree to identify `m_ell` with the
+predicted `0`, `1`, or `4` is circular. A surviving cross-arm argument needs
+a second, independently defined top-born `ell`-coordinate.
 
 ### Nim reciprocity program
 
@@ -172,6 +190,53 @@ of the following.
 - Applied to `T_h`, `y_(r,a)`, `gamma_k`, and `M_k`, it specializes to the
   marked primary coordinates in arms `Z`, `O`, `C`, and `D` respectively.
 
+There is an exact rank-one saturation boundary. After adjoining `mu_ell`,
+write a selected phase as `s` and index its absolute-Frobenius conjugates and
+cyclotomic lifts by `(j,c)`. Covariance gives
+
+```text
+s_(j,c) = s^(2^j c).
+```
+
+Consequently every multiplicative reciprocity word in this entire two-axis
+family is a single power `s^lambda`. If `lambda = 0 mod ell` it erases the
+selected phase; otherwise it is equivalent to the original test `s != 1`.
+The inverse-Frobenius/Teichmuller weighted projector recovers `s` exactly,
+but does not evaluate it. Thus a successful reciprocity proof must import an
+independently evaluable local class or a genuinely nonhomogeneous marked-
+ancestry identity; adding further norm, character, or orbit-product axes to
+the same Kummer class cannot create a second constraint.
+
+Standard additive and nonabelian packages do not evade this boundary. A
+Jacobi convolution at nonzero total `a` scales by the product-character value
+at `a`, so on one Kummer line it is again a fixed scalar times one power of
+the marked phase. In the split affine group, every one-step lift `(t,q)` with
+fixed `q != 1` is conjugate to `(0,q)`, so class functions on that single
+fixed-multiplier coset erase its frame coordinate. This does not apply to the
+full-orbit element below: its `E`-th power is a pure translation, and an Artin
+character over the cyclotomic base can distinguish zero from nonzero
+holonomy, although evaluating it is the original selected problem.
+A labeled off-diagonal Fourier coefficient exists after a root frame is
+chosen, but that one-step coordinate is gauge-dependent. The intrinsic object
+is the full `E`-step Frobenius-orbit holonomy
+
+```text
+T = sum_(j=0)^(E-1) 2^(E-1-j) t_j,
+```
+
+whose diagonal Fourier eigenvalue is the selected phase. Frame changes
+modify the `t_j` by a telescoping coboundary and leave `T` fixed. Affine
+composition does not evaluate it: every homomorphic cocycle is a coboundary
+with trivial full-period holonomy, while every field value can occur as the
+closing holonomy after the proper path has been normalized. Nim reciprocity
+must therefore supply an independent Conway-ancestry evaluation of this
+closed-cycle coordinate; constructing it from the selected symbol is only an
+exact reformulation. An affine ancestry intertwiner does not supply the
+missing source: its closed holonomy is only a scalar multiple of the source
+holonomy, because every vertex-origin term telescopes. Thus a strict ancestor
+with trivial `ell`-coordinate cannot create the required nonzero current
+coordinate through an affine recursion.
+
 Success is a uniform nonvanishing/full-primary-order proof for every resulting
 coordinate, and therefore a proof of the `0/1/4` rule. Merely reconstructing a
 residue symbol or its orbit product does not close the problem: existing norm,
@@ -190,190 +255,7 @@ deciding the selected value.
 - The authoritative mathematical account is
   [`../writeups/excess.tex`](../writeups/excess.tex).
 
-## 3. Fast multiplication in canonical nim coordinates
-
-Put `n = 2^k` and
-
-```text
-K_k = {0, ..., 2^n - 1} = F_(2^n),
-```
-
-represented by the literal `n`-bit nimber word. If
-`c_i = 2^(2^i)`, these coordinates are the multivariate tower basis for
-
-```text
-c_i^2 + c_i = product_(j < i) c_j.
-```
-
-Thus finite nimbers are an explicit quadratic Artin--Schreier tower, not an
-arbitrary polynomial-basis presentation of the same abstract finite field.
-
-**Problem.** Construct a uniform family of exact multiplication algorithms
-
-```text
-mul_k : K_k x K_k -> K_k
-```
-
-whose inputs and output are canonical nim words and whose bit complexity is
-`M(n) log^O(1)(n)`, where `M(n)` is binary-polynomial multiplication cost.
-Auxiliary space and any level-dependent conversion data must also have
-`n log^O(1)(n)` size; preprocessing may be reported separately but may not hide
-a quadratic multiplication tensor or table.
-
-### Known starting point
-
-The standard direct tower recurrence takes `O(k 3^k)`, or
-`O(n^(log_2 3) log n)`, bit operations. The current `u128` backend instead
-distributes over the set bits and memoizes products of basis powers; it is an
-exact fixed-width implementation, not an asymptotic result.
-
-Quasi-linear arithmetic for arbitrary Artin--Schreier towers is already known:
-the substantive target is therefore not an existence conjecture about finite
-fields. It is an explicit specialization of the fast tower-isomorphism and
-basis-conversion machinery to the literal Conway generators above, with a
-proof that the returned bit string is the canonical nim product.
-
-### Completion criterion
-
-A completion consists of all four items.
-
-1. Give forward and inverse transforms between canonical nim coordinates and a
-   fast multiplication basis, uniformly in `k`.
-2. Prove the tower equations, transforms, multiplication, and stated time and
-   space bounds, including precomputation.
-3. Supply an arbitrary-width implementation with exhaustive agreement against
-   the mex/direct oracle on small fields and differential agreement against the
-   existing backend on its full supported word widths.
-4. Measure the crossover. Retaining the present `u128` path below it is
-   compatible with solving the problem; a faster fixed-width table alone is
-   not.
-
-The mathematical starting point is the fast arbitrary-tower construction of
-[De Feo--Schost](https://arxiv.org/abs/1002.2594). The implementation boundary
-is `src/scalar/finite_field/nimber/arithmetic.rs`.
-
-## 4. Witt realization over an imperfect characteristic-two field
-
-Let `K = F_2(t)`. A nonsingular quadratic form over `K` has alternating polar
-form `B`, but `B` does not determine the quadratic refinement. Moreover,
-`K != K^2`: singular/quasilinear directions and the restriction of `Q` to the
-polar radical carry information not captured by the finite-field Arf class
-used by the Gold--Arf construction.
-
-For nonsingular forms, the characteristic-two Milnor--Scharlau sequence gives
-a finite-support description of each individual class in `W_q(K)` by a
-constant-field class and second residues at the finite and infinite places,
-subject to a transfer relation:
-
-```text
-0 -> W_q(F_2) -> W_q(F_2(t))
-  -> direct_sum_v W_1(k(v)) -> W_q(F_2) -> 0.
-```
-
-The final arrow is the sum of the residue-field transfers. Ogdoad already
-computes the nearby local Artin--Schreier symbols, wild Springer coordinates,
-finite relevant-place set, and global isotropy verdict. Those results classify
-algebraic data; they do not yet realize the Witt class by game outcomes.
-
-**Problem.** Construct a functorial, finite family of impartial normal-play
-arenas `R(Q)` for every finite-dimensional quadratic space over `K` such that:
-
-1. the joint `P/N` outcome vector encodes the constant class and a chosen
-   finite presentation of every nonzero local residue coordinate;
-2. `R(Q orthogonal_sum Q')` is the coordinatewise sum of `R(Q)` and `R(Q')`,
-   hyperbolic planes map to zero, and equality of outcome vectors is equivalent
-   to Witt equivalence;
-3. the construction uses public polar data `B` and refinement-sensitive
-   diagonal queries `Q(e_i)` separately, and is invariant under change of
-   `K`-basis;
-4. its placewise pieces commute with scalar extension and Scharlau transfer,
-   and their single global relation is the transfer/reciprocity relation in the
-   exact sequence; and
-5. on constant finite-field trace forms it recovers the Gold--Arf realization
-   after restriction of scalars.
-
-The nonsingular target comes first. A complete extension to arbitrary
-`Metric<K>` must additionally encode the quasilinear radical and
-`Q|_(rad B)`; projecting to a nonsingular complement and reporting only an Arf
-class is explicitly not a solution.
-
-### Missing step
-
-The algebraic local--global sequence is known, and finite tuples of game
-outcomes can encode its finite residue groups. What is missing is a canonical
-arena construction whose local observations respect the sequence, orthogonal
-sum, and basis change simultaneously. A coefficient-by-coefficient Boolean
-encoding of one displayed rational function proves only that a finite instance
-can be serialized; it does not descend to `W_q(K)` and does not solve the
-problem.
-
-The algebraic scaffold is the characteristic-two Milnor--Scharlau sequence of
-[Aravire--Jacob](https://msp.org/pjm/2006/228-1/pjm-v228-n1-p02-s.pdf). The
-existing implementation surfaces are
-`src/forms/local_global/function_field_char2.rs` and
-`src/forms/springer/char2/`.
-
-## 5. Stable quadratic forms over semirings
-
-For a commutative semiring `R`, a quadratic pair on a free `R`-module is a map
-`q` and a symmetric bilinear companion `b` satisfying
-
-```text
-q(a x) = a^2 q(x),
-q(x + y) = q(x) + q(y) + b(x, y).
-```
-
-Without additive inverses, `b` need not be determined by `q`; hyperbolicity,
-orthogonal complements, and group completion also stop being automatic. The
-basic companion, rigidity, isometry, scalar-extension, and unique-basis
-cancellation theories are already available in the semiring literature, so
-reproving their definitions is not the research target.
-
-Consider two coefficient worlds:
-
-- a tangible supertropical enhancement of Ogdoad's max/min-plus semirings,
-  retaining the ghost layer needed by supertropical quadratic-form theory; and
-- the Hessenberg semiring of ordinals under natural sum and natural product,
-  represented first on a closed finite-CNF fragment.
-
-**Problem.** For each world, construct and compute a stable form invariant with
-the following properties, or prove that these requirements force it to
-collapse.
-
-1. Start from isometry classes of finite free quadratic pairs under orthogonal
-   sum. Specify regular, split, and metabolic objects without using subtraction,
-   and prove that the proposed stable quotient is a well-defined commutative
-   monoid or group completion.
-2. Classify rank-two pairs and their companion ambiguity, then give generators,
-   relations, and a decision procedure for the stable invariant on every
-   supported finite rank.
-3. Make supervaluation/scalar extension from ring-valued forms functorial and
-   determine exactly which classical Witt data survives supertropicalization.
-4. Determine whether the Hessenberg invariant is nontrivial beyond the
-   diagonal/Cantor-normal-form data forced by its unique basis and trivial unit
-   group.
-5. Test whether the max/min-plus pair of thermograph walls defines a stable
-   class. If it does not, isolate the minimal obstruction implied by freezing,
-   the Norton degree defect, or temperature-zero torsion.
-
-### Boundaries and completion
-
-The current `Tropical<C>` type supplies a bipotent semiring but no tangible/
-ghost supertropical layer, and `Pl` thermograph walls lack a representable
-infinite identity. The thermic-regrading paper proves that thermography is not
-a Newton-style graded ring. These are constraints on a proposed theory, not
-reasons to insert either type into the existing ring-based Witt or Clifford
-APIs.
-
-A successful nontrivial invariant, or a no-go theorem showing that the five
-requirements force collapse in one coefficient world, closes that arm. Merely
-adding a generic matrix type over `Semiring` does not. The starting references
-are [supertropical quadratic forms](https://arxiv.org/abs/1309.5729) and the
-[unique-basis cancellation theorem](https://arxiv.org/abs/1509.01039); the
-in-house obstruction is
-[`../writeups/thermo_newton.tex`](../writeups/thermo_newton.tex).
-
-## 6. Natural realization of finite misère quotients
+## 3. Natural realization of finite misère quotients
 
 Let `A` be a set of finite impartial games closed under options and disjunctive
 sum, and write `o^-(G)` for the misère outcome. Define
@@ -424,6 +306,74 @@ give a finite presentation, its `P`-portion, and a proved quotient map for all
 heap sizes. If it is infinite, exhibit an infinite family of pairwise
 distinguishable positions together with contexts that separate them.
 
+The current exact reduction is in
+[`../writeups/misere_natural_realization.tex`](../writeups/misere_natural_realization.tex).
+In a reduced valid transition table, the option-value set determines its
+value: a least-rank separating context would otherwise descend to a smaller
+separating option. Thus a fixed octal code and table determine one exact heap
+trace. The trace criterion is an if-and-only-if statement: all exact heap
+records must lie in the table and their values must generate the target
+monoid. For codes without split bits, a finite quotient forces this trace to
+be ultimately periodic, since its next value is a deterministic function of
+the last `d` values. Hence exact realization by a fixed finite no-split code
+is decidable. Splitting introduces the unbounded convolution
+`{x_i x_j : i + j = n}`; an already periodic trace still has a finite exact
+certificate through the explicit bound `2N + p + d`, but automatic
+periodicity is not proved in that case. Every value in a nontrivial valid
+table has a context carrying it into `P`; combined with the meximal condition,
+this proves that no transition value can occur among its own options. For an
+octal trace this gives the absolute exclusions
+
+```text
+C_n                 => x_n != 1
+A_k, k < n          => x_n != x_(n-k)
+B_k, i+j = n-k      => x_n != x_i x_j.
+```
+
+These are exact obstruction filters, not a characterization.
+
+The split recurrence also has an exact unary-language formulation. If
+`X_q = {n : x_n = q}`, then the language where `q` occurs as an option is a
+finite union of whole-removal constants, shifts of `X_q`, and shifted additive
+convolutions `X_u + X_v` over `uv = q`; Boolean cells recover each complete
+option-value set. The trace is total exactly when the union of cells on which
+the partial decoder is undefined is empty. This dictionary is checked in
+Lean. It does not collapse to a finite automaton: if the decoder is arbitrary
+rather than a valid misère table, totality is `Pi^0_1`-complete already for
+the fixed code `0.7`, by encoding unary unambiguous conjunctive-grammar
+emptiness in a truncated multiset monoid. Thus any fixed-code decision theorem
+must use closedness, parity, ranking, and reducedness essentially; finiteness
+and commutativity alone are insufficient.
+
+There is also a comparison normal-form theorem. Every nontrivial finite
+valid quotient has an exact one-species numerical heap realization with a
+finite source-local prefix, one inert padding heap, and the uniform tail move
+`H_n -> H_(n-1)`. This is not a finite-octal realization: encoding a prefix
+edge by an octal digit repeats that edge at every larger source heap. The
+theorem isolates this translated cross-talk but does not prove it is the only
+possible obstruction to a different octal gadget. More sharply, when the
+quotient has more than two elements, no exact heapwise encoding of all chosen
+descending prefix records can retain the later inert pad: some record needs a
+nonidentity option, hence a persistent one- or two-remainder bit, and that bit
+also gives the pad an option. An active bridge or a contextual generator
+encoding remains possible.
+
+There is also a uniform positive family: for every `n >= 2`, the finite code
+with `2^(n-1)` consecutive digits equal to `3` has exact quotient `T_n`, the
+tame quotient of order `2^n + 2`. This realizes the entire tame arm of the
+finite `|P| = 2` classification. The parallel Grundy analysis is exact through
+heap 18: the quotient through heap 13 is a reduced monoid of order 12, and the
+quotient through heap 18 is a reduced monoid of order 24, with presentations,
+all-multiplicity outcome inductions, and separating translation rows in the
+note. These prefix theorems neither prove stabilization nor supply an infinite
+distinguishable family. There is also a global conditional obstruction: if
+the full Grundy quotient is finite, finite Ramsey supplies unequal `i,j` with
+`x_i = x_j = x_(i+j) = c`, so a heap record contains `c^2` among its options.
+Closure and the no-self theorem force all consecutive positive powers of `c`
+to differ. Hence the power sequence has eventual period at least two and the
+kernel of the finite quotient is nontrivial. This is compatible with tame
+period-two behavior and is not yet an infinity proof.
+
 ### Milestones and completion
 
 1. Implement the valid-transition-table or minimex criterion as an exact
@@ -442,6 +392,16 @@ distinguishable positions together with contexts that separate them.
    induction, then verify surjectivity, reduction, and the `P`-portion. A
    stable bounded table is not enough.
 
+The algorithmic gap has two independent layers. For fixed finite `(Q, P)`,
+fixed valid `T`, and fixed split code, determinism makes the trace a partial
+computable recurrence; deciding whether that recurrence is total is still
+open. The arbitrary-decoder `Pi^0_1`-completeness theorem identifies validity
+as the precise missing restriction, but does not establish hardness for valid
+tables. Even if every fixed-code instance became decidable, monoid-level
+synthesis ranges over unbounded code lengths. A complete decision procedure
+therefore also needs a computable length bound or pumping normalization, or
+else an undecidability theorem.
+
 The octal-realization arm closes with the requested if-and-only-if theorem and
 certified construction/obstruction algorithm. The Grundy arm closes with one
 of the two exact finite/infinite certificates above. Calling a quotient
@@ -451,6 +411,14 @@ infinite.
 The starting theory is the [Plambeck--Siegel quotient
 construction](https://arxiv.org/abs/math/0609825) and Siegel's
 [valid-transition-table classification](https://arxiv.org/abs/math/0703070).
+The algebraic determinism, meximal and no-self obstructions, exact quotient
+sufficiency, periodic complete-record certificate, typed
+prefix/pad/unary-tail normal form, inert-pad obstruction, unary-language
+dictionary, and algebraic power-period obstruction are checked in Lean. The
+formal-language hardness theorem, numerical rank-order transport for the
+normal form, tame-family strategy, kernel deduction, and exact Grundy-prefix
+presentations are presently paper proofs. The distinct-summand finite-color
+bridge is checked from Mathlib's Hindman theorem.
 The current `src/games/misere.rs` routines compare only bounded element and
 test sets, so their signatures and multiplication flags are observational
 evidence, not exact quotient certificates. The `misere_quotient` and

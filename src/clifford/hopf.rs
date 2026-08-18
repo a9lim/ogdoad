@@ -63,7 +63,7 @@ pub fn coproduct<S: Scalar>(alg: &CliffordAlgebra<S>, mv: &Multivector<S>) -> Mu
             let sign = w.terms.get(&mask_s).cloned().unwrap_or_else(S::zero);
             if !sign.is_zero() {
                 let tens = t | (u << dim);
-                add_term(&mut out, tens, coeff.mul(&sign));
+                add_term(&mut out, tens, &coeff.mul(&sign));
             }
             if t == 0 {
                 break;

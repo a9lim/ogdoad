@@ -34,7 +34,7 @@ variable {V : Type*} [Fintype V] [DecidableEq V]
 /-! ## Fixed-policy nodes and charged-close extraction -/
 
 omit [Fintype V] in
-/-- The legacy `InOddStrategy` relation in `Fifo.lean` is indexed by an
+/-- The `InOddStrategy` relation in `Fifo.lean` is indexed by an
 `OddWins` proof and hence cannot distinguish two policies at the same state. -/
 theorem inOddStrategy_proof_irrelevant
     {G : SimpleGraph V} {seat : Bool} {s t : State V}
@@ -45,7 +45,7 @@ theorem inOddStrategy_proof_irrelevant
   rfl
 
 omit [Fintype V] in
-/-- The same collapse applies to the legacy CLOSE-first certificate: it can
+/-- The same collapse applies to the CLOSE-first certificate: it can
 state that such a witness exists at the public state, but not that a supplied
 `OddWins` proof denotes that particular policy. -/
 theorem oddStrategyCloseFirst_proof_irrelevant
@@ -57,7 +57,7 @@ theorem oddStrategyCloseFirst_proof_irrelevant
   rfl
 
 omit [Fintype V] in
-/-- Likewise, legacy clear-deviation membership is a public-state existence
+/-- Likewise, clear-deviation membership is a public-state existence
 claim rather than membership in a distinguishable fixed policy. -/
 theorem oddStrategyHasClearDeviation_proof_irrelevant
     {G : SimpleGraph V} {seat : Bool} {s : State V}

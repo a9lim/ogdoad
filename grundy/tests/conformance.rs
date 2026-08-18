@@ -70,13 +70,23 @@ fn word_conditionals_have_minimal_unambiguous_parentheses() {
     }
 
     for input in ["1 ? 2 : 3", ":", "1 + ?", "1 + :"] {
-        let err = parse_statement(input).expect_err("punctuation ternary is retired");
+        let err = parse_statement(input).expect_err("punctuation ternary is not accepted");
         assert_eq!(err.kind, GrundyErrorKind::Parse);
         assert_eq!(
             err.hint.as_deref(),
             Some("write conditionals as `if a then b else c`")
         );
     }
+}
+
+#[test]
+fn block_sorting_ignores_unreferenced_ambient_functions() {
+    let output = eval_to_string(
+        "integer 0",
+        "f := x ↦ x + 1\nif true then (a := 1; f@a) else 0",
+    )
+    .expect("the block and conditional have element sort");
+    assert_eq!(output, "2");
 }
 
 #[test]

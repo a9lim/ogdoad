@@ -38,8 +38,7 @@ pub(crate) fn atomic(s: &str) -> bool {
         match ch {
             '(' => depth += 1,
             ')' => depth -= 1,
-            ' ' if depth == 0 => return false,
-            '⋅' | '∧' | '↑' | '/' | '+' | '-' if depth == 0 => return false,
+            ' ' | '⋅' | '∧' | '↑' | '/' | '+' | '-' if depth == 0 => return false,
             _ => {}
         }
     }

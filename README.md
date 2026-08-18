@@ -50,7 +50,7 @@ Representation limits are part of the API:
 | --- | --- |
 | `src/scalar/` | coefficient traits and exact, finite, valued, global, surreal, and ordinal backends |
 | `src/clifford/` | metrics, blades, multivectors, products, versors, spinors, and geometric-algebra constructions |
-| `src/forms/` | quadratic-form classification, Witt/Brauer theory, Springer and local--global arithmetic |
+| `src/forms/` | quadratic-form classification, Clifford centers, Witt/Brauer and low Milnor-symbol theory, Springer and local--global arithmetic |
 | `src/forms/integral/` | lattices, discriminant forms, codes, theta series, genera, neighbors, and Weyl bridges |
 | `src/games/` | impartial, partizan, misere, loopy, thermographic, Witt--FIFO/Brown, octal-certificate, Hackenbush, and game-exterior constructions |
 | `src/py/` | optional per-backend PyO3 bindings; scalar worlds never mix at runtime |
@@ -91,6 +91,12 @@ assert e0 * e1 + e1 * e0 == A.scalar(og.Nimber(1))
 S = og.SurrealAlgebra(q=[og.omega(), og.epsilon()])
 assert (S.gen(0) * S.gen(1)) ** 2 == S.scalar(og.Surreal.from_int(-1))
 
+# A Hermitian form restricts to the ordinary quadratic form q(v)=h(v,v)
+# over the involution-fixed field; dimension doubles.
+H = og.HermitianForm.diagonal([1, -1])
+Q = H.restrict_scalars()
+assert Q.dim == 4 and og.surreal_signature(Q) == (2, 2, 0)
+
 # Checked game constructors preserve their proof and validation boundaries.
 arena = og.WittFifoArena(diagonal=[True], polar=[0], input=1)
 assert arena.quadratic_value and arena.grundy(state_budget=100_000) != 0
@@ -108,9 +114,12 @@ The Python layer monomorphizes a documented slice of the Rust backends. It
 does not provide a runtime-tagged any-scalar algebra. Its typed report surface
 includes finite quadratic modules and Nikulin criteria, extraspecial and
 Heisenberg--Weil objects, function-field Brauer--Wall classes, Niemeier data,
-finite-field Witt decompositions, lexicode turning games, conformal-algebra
-accessors, represented ordinal finite-subfield degrees, checked Witt--FIFO and
-Brown constructors, and sealed Guy--Smith periodicity certificates. Python
+finite-field Witt decompositions and numeric-invariant reports,
+characteristic-two additive spinor norms and symmetry certificates, lexicode
+turning games, conformal-algebra accessors, represented ordinal finite-subfield
+degrees, checked Witt--FIFO and Brown constructors, Hermitian restriction to
+typed ordinary quadratic backends, and sealed Guy--Smith periodicity
+certificates. Python
 `repr` delegates to canonical Rust rendering where the core provides it.
 
 ## Mathematical status
@@ -121,14 +130,19 @@ The papers under `writeups/` form one current research suite:
 | --- | --- |
 | `transfinite_arf.tex` | classification over perfect Artin--Schreier-surjective characteristic-two fields and its full-nimber specialization |
 | `goldarf.tex` | quadratic-refinement realization in normal play, Gold specialization, Brown selector, and game-exterior obstruction |
+| `witt_realization.tex` | quadratic Witt coordinates over `F_2(t)`, finite impartial realization, explicit ramified naturality, and finite-static and singular no-go theorems |
 | `thermo_newton.tex` | thermic regrading under Norton multiplication and its separation from Newton tropicalization |
+| `semiring_stability.tex` | stable quadratic-pair classification over Hessenberg and supertropical semirings, the universal scalar-extension quotient, and the thermograph wall obstruction |
 | `linking_affine.tex` | proved reductions and exact remaining obstruction for isolated-dummy FIFO linking |
-| `excess.tex` | four-arm reduction and exact remaining selected-order problem for transfinite nim excess |
+| `excess.tex` | exact four-arm selected-order reduction, proved arithmetic boundaries, and authoritative open status of the transfinite nim-excess `0/1/4` rule |
+| `nim_fast_multiplication.tex` | quasi-linear canonical-word multiplication via explicit affine transforms to a primitive Artin--Schreier tower |
+| `misere_natural_realization.tex` | exact octal trace calculus, finite-exception heap normal form, realization of every tame finite quotient, and exact misere Grundy quotients through heap 18 |
 
-The last two universal claims remain open. Their concise statements and sharp
-proof boundaries are in [`docs/OPEN.md`](docs/OPEN.md). Lean checks named
-ingredients and several end-to-end finite constructions, not the open
-propositions; see [`formal/README.md`](formal/README.md).
+The unresolved universal claims and their sharp proof boundaries are in
+[`docs/OPEN.md`](docs/OPEN.md). Lean checks named algebraic components and
+end-to-end finite constructions including the literal Gold--Arf root; cited
+bridges and the open propositions remain outside that boundary. See
+[`formal/README.md`](formal/README.md) for the theorem map.
 
 ## Verification
 

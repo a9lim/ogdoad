@@ -12,10 +12,14 @@ from pathlib import Path
 
 PAPERS = (
     "goldarf",
+    "witt_realization",
     "excess",
+    "nim_fast_multiplication",
     "linking_affine",
     "thermo_newton",
     "transfinite_arf",
+    "semiring_stability",
+    "misere_natural_realization",
 )
 
 CITATION = re.compile(

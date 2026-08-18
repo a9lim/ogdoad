@@ -5,9 +5,10 @@
 //! two, its class modulo squares is the classical spinor norm. In
 //! characteristic two, this
 //! raw product is not the additive Wall/Dye invariant and must not be reduced
-//! modulo Artin--Schreier elements. This module exposes grade parity there but
-//! does not implement the additive invariant, which requires a witnessed
-//! vector factorization.
+//! modulo Artin--Schreier elements. This module exposes grade parity there;
+//! [`crate::forms::char2_spinor_norm`] implements the matrix invariant, and
+//! [`crate::forms::factor_char2_isometry`] returns exact vector-symmetry
+//! certificates on the symmetry-generated domain.
 
 use crate::clifford::{CliffordAlgebra, Multivector};
 use crate::scalar::Scalar;

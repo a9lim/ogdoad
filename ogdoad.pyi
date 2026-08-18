@@ -770,6 +770,22 @@ class Char2PsiTerm:
     def pole_order(self) -> Any: ...
     def __repr__(self) -> builtins.str: ...
 
+class Char2SymmetryFactorization:
+    @property
+    def clifford_verified(self) -> builtins.bool: ...
+    @property
+    def degree(self) -> builtins.int: ...
+    @property
+    def dickson(self) -> builtins.int: ...
+    @property
+    def factor_count(self) -> builtins.int: ...
+    @property
+    def factors(self) -> list[list[builtins.int]]: ...
+    @property
+    def matrix(self) -> list[list[builtins.int]]: ...
+    def display(self) -> builtins.str: ...
+    def __repr__(self) -> builtins.str: ...
+
 class Char2WittDecomp:
     @property
     def arf(self) -> Any: ...
@@ -3500,6 +3516,22 @@ class FiniteFieldInvariants:
     def display(self, *args: Any, **kwargs: Any) -> Any: ...
     def __repr__(self) -> builtins.str: ...
 
+class FiniteFieldNumericInvariants:
+    @property
+    def absolute_degree(self) -> builtins.int: ...
+    @property
+    def characteristic(self) -> builtins.int: ...
+    @property
+    def field_order(self) -> builtins.int: ...
+    @property
+    def level(self) -> builtins.int: ...
+    @property
+    def pythagoras_number(self) -> builtins.int: ...
+    @property
+    def u_invariant(self) -> builtins.int: ...
+    def display(self) -> builtins.str: ...
+    def __repr__(self) -> builtins.str: ...
+
 class FiniteHermitianForm:
     def __init__(self, *args: Any, **kwargs: Any) -> None: ...
     @property
@@ -3514,6 +3546,11 @@ class FiniteHermitianForm:
     @staticmethod
     def diagonal(*args: Any, **kwargs: Any) -> Any: ...
     def direct_sum(self, *args: Any, **kwargs: Any) -> Any: ...
+    def restrict_scalars(self, *args: Any, **kwargs: Any) -> Any:
+        """Restrict this Hermitian form to an ordinary quadratic algebra over its
+        fixed field.  The concrete return type is `Fp2Algebra`, `F4Algebra`,
+        `Fp3Algebra`, or `Fp5Algebra`, preserving backend separation.
+        """
     def __repr__(self) -> builtins.str: ...
 
 class FiniteHermitianInvariants:
@@ -13588,6 +13625,10 @@ class HermitianForm:
     def from_gram(*args: Any, **kwargs: Any) -> Any: ...
     @staticmethod
     def from_skew(*args: Any, **kwargs: Any) -> Any: ...
+    def restrict_scalars(self, *args: Any, **kwargs: Any) -> Any:
+        """Restrict `h` over `Surcomplex/Surreal` to the ordinary quadratic form
+        `q(v)=h(v,v)` over `Surreal`, doubling the dimension.
+        """
     def signature(self, *args: Any, **kwargs: Any) -> Any: ...
     def __repr__(self) -> builtins.str: ...
 
@@ -37776,6 +37817,9 @@ def char2_monic_irreducible_factors(*args: Any, **kwargs: Any) -> Any:
     finite-field element indices, low degree first.
     """
 
+def char2_spinor_norm(q: Sequence[builtins.int], b: Mapping[tuple[builtins.int, builtins.int], builtins.int], matrix: Sequence[Sequence[builtins.int]], degree: builtins.int = 1) -> builtins.int:
+    """The additive characteristic-two spinor norm of an isometry of `F_{2^degree}`."""
+
 def classify_complex(n: builtins.int, r: builtins.int = 0) -> CliffordInvariants:
     """Classify a complex Clifford algebra directly from `(n, r)` (`n` nondegenerate
     dimensions, `r` null/radical) — the 2-fold table. Complement to
@@ -37894,6 +37938,12 @@ def extended_hamming_code(*args: Any, **kwargs: Any) -> Any: ...
 def extraspecial_group_f2(qd: Sequence[builtins.bool], bmat: Sequence[builtins.int]) -> Extraspecial2Group: ...
 
 def extraspecial_group_nimber(alg: NimberAlgebra) -> Extraspecial2Group: ...
+
+def factor_char2_isometry(q: Sequence[builtins.int], b: Mapping[tuple[builtins.int, builtins.int], builtins.int], matrix: Sequence[Sequence[builtins.int]], degree: builtins.int = 1) -> Char2SymmetryFactorization:
+    """Certify a vector-symmetry factorization of an isometry of `F_{2^degree}`."""
+
+def finite_field_numeric_invariants(p: builtins.int, degree: builtins.int = 1) -> FiniteFieldNumericInvariants:
+    """Numeric finite-field invariants for `F_{p^degree}`."""
 
 def fit_f2_quadratic(*args: Any, **kwargs: Any) -> Any:
     """Fit an F₂ quadratic form to a subset of `F_2^k`, returning the recovered
@@ -38058,10 +38108,9 @@ def leech_aut_order(*args: Any, **kwargs: Any) -> Any: ...
 
 def left_stop(*args: Any, **kwargs: Any) -> Any: ...
 
-def level(*args: Any, **kwargs: Any) -> Any:
-    """The level/Stufe of the prime field `F_p`: the least `n` for which `-1` is a
-    sum of `n` squares. Supported primes are `2, 3, 5, 7, 11, 13`; other inputs
-    raise `ValueError`.
+def level(p: builtins.int, degree: builtins.int = 1) -> builtins.int:
+    """The level/Stufe of `F_{p^degree}`: the least `n` for which `-1` is a sum of
+    `n` squares.
     """
 
 def lexicode(*args: Any, **kwargs: Any) -> Any: ...
@@ -38287,10 +38336,8 @@ def p_positions(*args: Any, **kwargs: Any) -> Any:
     Raises `ValueError` if any successor index is out of range.
     """
 
-def pythagoras_number(*args: Any, **kwargs: Any) -> Any:
-    """The Pythagoras number of the prime field `F_p`: least `n` such that every sum
-    of squares is already a sum of `n` squares.
-    """
+def pythagoras_number(p: builtins.int, degree: builtins.int = 1) -> builtins.int:
+    """The Pythagoras number of `F_{p^degree}`."""
 
 def qexp_from_int(*args: Any, **kwargs: Any) -> Any: ...
 
@@ -38466,10 +38513,9 @@ def type_ii_e8_sum_code(*args: Any, **kwargs: Any) -> Any: ...
 
 def type_ii_len16_code(*args: Any, **kwargs: Any) -> Any: ...
 
-def u_invariant(*args: Any, **kwargs: Any) -> Any:
-    """The u-invariant of the prime field `F_p`: largest dimension of an anisotropic
-    quadratic form. In characteristic 2 this returns `None` because the diagonal
-    odd-characteristic model is not the right form theory.
+def u_invariant(p: builtins.int, degree: builtins.int = 1) -> builtins.int:
+    """The quadratic u-invariant of `F_{p^degree}`. Characteristic two uses regular
+    quadratic forms.
     """
 
 def verify_milgram(*args: Any, **kwargs: Any) -> Any: ...

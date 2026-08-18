@@ -1,6 +1,5 @@
 import Mathlib
-import Mathlib.Algebra.Polynomial.HasseDeriv
-import Mathlib.Data.Nat.Choose.Lucas
+import Ogdoad.Certificate.BinaryPolynomial
 
 /-!
 # Lenstra-excess reductions
@@ -403,6 +402,22 @@ theorem orderOf_eq_prime_of_pow_eq_one {G : Type*} [Monoid G]
     exact mt orderOf_eq_one_iff.mp ha
   have hord_dvd : orderOf a ∣ p := orderOf_dvd_iff_pow_eq_one.mpr hpow
   exact (hp.dvd_iff_eq hord_ne_one).mp hord_dvd |>.symm
+
+/-- Beyond the initial level, every element annihilated by the `n`-th
+Fermat number is already a cube in its own cyclic subgroup.  Hence a cubic
+Kummer or Tate class cannot distinguish full from proper conductor in the
+singleton-even target torus: `F_n` is coprime to `F_0 = 3`. -/
+theorem fermat_torsion_is_cube {G : Type*} [Group G]
+    (x : G) (n : Nat) (hn : n ≠ 0)
+    (htors : x ^ Nat.fermatNumber n = 1) :
+    IsPthPower 3 x := by
+  have hFcop : (Nat.fermatNumber n).Coprime 3 := by
+    simpa using Nat.coprime_fermatNumber_fermatNumber
+      (m := n) (n := 0) hn
+  have hord : orderOf x ∣ Nat.fermatNumber n :=
+    orderOf_dvd_iff_pow_eq_one.mpr htors
+  exact isPthPower_of_coprime_order
+    (Nat.Coprime.of_dvd_left hord hFcop)
 
 section CubicExceptionalResidue
 
@@ -1823,29 +1838,35 @@ theorem birth_phase_finset_product_has_one_weight
       Finset.prod_congr rfl hphase
     _ = theta ^ (∑ i ∈ s, w i) := Finset.prod_pow_eq_pow_sum s w theta
 
-/-- A global product of two coprime-primary phases is nontrivial exactly
-when at least one primary phase is nontrivial. -/
+/-- Torsion classes of coprime exponents cannot cancel in one multiplicative
+product. A product relation is trivial only when both primary coordinates are
+trivial. -/
+theorem coprime_torsion_product_eq_one_iff
+    (x y : H) {a b : Nat}
+    (hx : x ^ a = 1) (hy : y ^ b = 1) (hab : a.Coprime b) :
+    x * y = 1 ↔ x = 1 ∧ y = 1 := by
+  constructor
+  · intro hxy
+    have hyx : y = x⁻¹ := eq_inv_of_mul_eq_one_right hxy
+    have hxb : x ^ b = 1 := by
+      have : (x⁻¹) ^ b = 1 := by simpa [hyx] using hy
+      simpa only [inv_pow, inv_eq_one] using this
+    have hoa : orderOf x ∣ a := orderOf_dvd_of_pow_eq_one hx
+    have hob : orderOf x ∣ b := orderOf_dvd_of_pow_eq_one hxb
+    have ho : orderOf x = 1 := by
+      apply Nat.eq_one_of_dvd_one
+      simpa [hab.gcd_eq_one] using Nat.dvd_gcd hoa hob
+    have hx1 : x = 1 := orderOf_eq_one_iff.mp ho
+    exact ⟨hx1, by simpa [hx1] using hxy⟩
+  · rintro ⟨rfl, rfl⟩
+    simp
+
+/-- Negated form of `coprime_torsion_product_eq_one_iff`. -/
 theorem coprime_phase_product_ne_one_iff
     (x y : H) {a b : Nat}
     (hx : x ^ a = 1) (hy : y ^ b = 1) (hab : a.Coprime b) :
     x * y ≠ 1 ↔ x ≠ 1 ∨ y ≠ 1 := by
-  have hprod : x * y = 1 ↔ x = 1 ∧ y = 1 := by
-    constructor
-    · intro hxy
-      have hyx : y = x⁻¹ := eq_inv_of_mul_eq_one_right hxy
-      have hxb : x ^ b = 1 := by
-        have : (x⁻¹) ^ b = 1 := by simpa [hyx] using hy
-        simpa only [inv_pow, inv_eq_one] using this
-      have hoa : orderOf x ∣ a := orderOf_dvd_of_pow_eq_one hx
-      have hob : orderOf x ∣ b := orderOf_dvd_of_pow_eq_one hxb
-      have ho : orderOf x = 1 := by
-        apply Nat.eq_one_of_dvd_one
-        simpa [hab.gcd_eq_one] using Nat.dvd_gcd hoa hob
-      have hx1 : x = 1 := orderOf_eq_one_iff.mp ho
-      exact ⟨hx1, by simpa [hx1] using hxy⟩
-    · rintro ⟨rfl, rfl⟩
-      simp
-  rw [ne_eq, hprod]
+  rw [ne_eq, coprime_torsion_product_eq_one_iff x y hx hy hab]
   tauto
 
 end CubicBirthSecants
@@ -1960,34 +1981,6 @@ theorem sixth_root_cube_ne_one (A : R)
   exact htwo this
 
 end SixthRootSupportArithmetic
-
-section CurrentPrimarySupport
-
-variable {G : Type*} [CommGroup G]
-
-/-- Phases of coprime primary orders cannot cancel.  Hence a product detects
-only the union of their supports, not that each coordinate is nontrivial. -/
-theorem current_primary_product_eq_one_iff
-    (x y : G) {a b : Nat}
-    (hx : x ^ a = 1) (hy : y ^ b = 1) (hab : a.Coprime b) :
-    x * y = 1 ↔ x = 1 ∧ y = 1 := by
-  constructor
-  · intro hxy
-    have hyx : y = x⁻¹ := eq_inv_of_mul_eq_one_right hxy
-    have hxb : x ^ b = 1 := by
-      have : (x⁻¹) ^ b = 1 := by simpa [hyx] using hy
-      simpa only [inv_pow, inv_eq_one] using this
-    have hoa : orderOf x ∣ a := orderOf_dvd_of_pow_eq_one hx
-    have hob : orderOf x ∣ b := orderOf_dvd_of_pow_eq_one hxb
-    have ho : orderOf x = 1 := by
-      apply Nat.eq_one_of_dvd_one
-      simpa [hab.gcd_eq_one] using Nat.dvd_gcd hoa hob
-    have hx1 : x = 1 := orderOf_eq_one_iff.mp ho
-    exact ⟨hx1, by simpa [hx1] using hxy⟩
-  · rintro ⟨rfl, rfl⟩
-    simp
-
-end CurrentPrimarySupport
 
 /-- The alternating `F₄` translate turns the selected depressed cubic into
 a norm-coherent twisted cubic. -/
@@ -4178,6 +4171,29 @@ section FermatRayPairingNoGo
 
 variable {F : Type*} [Field F]
 
+/-- The standard rank-two alternating exponent form is nondegenerate but
+vanishes on every diagonal.  Specializing to `F = ZMod ell` gives the
+algebraic core of a perfect Weil-pairing countermodel: a nonzero selected
+`ell`-torsion point may pair trivially with a prescribed nonzero point on the
+same isotropic line.  Perfectness only guarantees some detecting partner. -/
+theorem symplectic_pairing_nondegenerate_but_diagonal_zero :
+    let pairing := fun P Q : F × F => P.1 * Q.2 - P.2 * Q.1
+    (∀ P, P ≠ 0 → ∃ Q, pairing P Q ≠ 0) ∧
+      ∃ P, P ≠ 0 ∧ pairing P P = 0 := by
+  dsimp only
+  constructor
+  · intro P hP
+    by_cases hfirst : P.1 = 0
+    · have hsecond : P.2 ≠ 0 := by
+        intro hzero
+        apply hP
+        ext <;> simp [hfirst, hzero]
+      refine ⟨(1, 0), ?_⟩
+      simpa [hfirst] using neg_ne_zero.mpr hsecond
+    · refine ⟨(0, 1), ?_⟩
+      simpa using hfirst
+  · refine ⟨(1, 0), ?_, ?_⟩ <;> simp
+
 /-- Even a nonzero weight-one equivariant map can kill the complete
 orbit of a distinguished class.  The first coordinate models the ramified
 local-unit line detected by the Witt coefficient; the second models the
@@ -4300,6 +4316,23 @@ theorem cubic_scaled_self_dual_core (x y z a : K)
   · rw [← hsum, add_pow_char, add_pow_char]
   · exact hpair
 
+/-- Characteristic-two expression of the cubic Moore determinant in the
+first two elementary symmetric coordinates. -/
+theorem cubic_moore_det_identity (x y z : K) :
+    x ^ 3 + y ^ 3 + z ^ 3 + x * y * z =
+      (x + y + z) ^ 3 +
+        (x + y + z) * (x * y + y * z + z * x) := by
+  have hfour : (4 : K) = 0 := by
+    change ((4 : Nat) : K) = 0
+    rw [CharP.cast_eq_mod K 2 4]
+    norm_num
+  ring_nf
+  rw [show (9 : K) = 1 by
+    change ((9 : Nat) : K) = 1
+    rw [CharP.cast_eq_mod K 2 9]
+    norm_num]
+  simp [hfour]
+
 /-- The determinant of the immediate cubic Moore/circulant matrix is the
 cube of the lower inverse selector.  Thus the selected normal-basis
 determinant contains no new current multiplicative coordinate. -/
@@ -4307,20 +4340,11 @@ theorem cubic_moore_det_core (x y z a : K)
     (hsum : x + y + z = a)
     (hpair : x * y + y * z + z * x = 0) :
     x ^ 3 + y ^ 3 + z ^ 3 + x * y * z = a ^ 3 := by
-  have hfour : (4 : K) = 0 := by
-    change ((4 : Nat) : K) = 0
-    rw [CharP.cast_eq_mod K 2 4]
-    norm_num
   calc
     x ^ 3 + y ^ 3 + z ^ 3 + x * y * z =
         (x + y + z) ^ 3 +
-          (x + y + z) * (x * y + y * z + z * x) := by
-            ring_nf
-            rw [show (9 : K) = 1 by
-              change ((9 : Nat) : K) = 1
-              rw [CharP.cast_eq_mod K 2 9]
-              norm_num]
-            simp [hfour]
+          (x + y + z) * (x * y + y * z + z * x) :=
+      cubic_moore_det_identity x y z
     _ = a ^ 3 := by rw [hpair, mul_zero, add_zero, hsum]
 
 /-- Translating the selected Singer cubic by one swaps its two lower
@@ -4346,20 +4370,11 @@ theorem cubic_moore_det_symmetric_core (x y z b c : K)
     (hsum : x + y + z = b)
     (hpair : x * y + y * z + z * x = c) :
     x ^ 3 + y ^ 3 + z ^ 3 + x * y * z = b ^ 3 + b * c := by
-  have hfour : (4 : K) = 0 := by
-    change ((4 : Nat) : K) = 0
-    rw [CharP.cast_eq_mod K 2 4]
-    norm_num
   calc
     x ^ 3 + y ^ 3 + z ^ 3 + x * y * z =
         (x + y + z) ^ 3 +
-          (x + y + z) * (x * y + y * z + z * x) := by
-            ring_nf
-            rw [show (9 : K) = 1 by
-              change ((9 : Nat) : K) = 1
-              rw [CharP.cast_eq_mod K 2 9]
-              norm_num]
-            simp [hfour]
+          (x + y + z) * (x * y + y * z + z * x) :=
+      cubic_moore_det_identity x y z
     _ = b ^ 3 + b * c := by rw [hsum, hpair]
 
 /-- Determinant of the constant-off-diagonal trace Gram matrix of the
@@ -4504,6 +4519,48 @@ theorem twist_eq_inv_mul
   apply (mul_left_cancel₀ hb)
   rw [h]
   field_simp
+
+/-- Jacobi convolution with a marked nonzero additive total. -/
+def jacobiSumAt
+    {F R : Type*} [Field F] [Fintype F] [CommRing R]
+    (chi psi : MulChar F R) (a : F) : R :=
+  ∑ x : F, chi x * psi (a - x)
+
+/-- Scaling the additive total of a Jacobi convolution retains only the
+product-character value at that total. -/
+theorem jacobiSumAt_eq_mul_jacobiSum
+    {F R : Type*} [Field F] [Fintype F] [CommRing R]
+    (chi psi : MulChar F R) (a : F) (ha : a ≠ 0) :
+    jacobiSumAt chi psi a =
+      chi a * psi a * jacobiSum chi psi := by
+  classical
+  rw [jacobiSumAt, jacobiSum]
+  calc
+    (∑ x : F, chi x * psi (a - x)) =
+        ∑ x : F, chi (a * x) * psi (a - a * x) := by
+      exact (Equiv.sum_comp (Equiv.mulLeft₀ a ha)
+        (fun x : F ↦ chi x * psi (a - x))).symm
+    _ = ∑ x : F, (chi a * psi a) * (chi x * psi (1 - x)) := by
+      apply Finset.sum_congr rfl
+      intro x _
+      rw [map_mul, show a - a * x = a * (1 - x) by ring, map_mul]
+      ring
+    _ = chi a * psi a * ∑ x : F, chi x * psi (1 - x) := by
+      rw [Finset.mul_sum]
+
+/-- When both inputs lie on one Kummer-character line, the additive Jacobi
+convolution has exactly the sum of their two character weights. -/
+theorem jacobiSumAt_pow_eq_pow_mul
+    {F R : Type*} [Field F] [Fintype F] [CommRing R]
+    (chi : MulChar F R) (r s : Nat) (a : F) (ha : a ≠ 0) :
+    jacobiSumAt (chi ^ r) (chi ^ s) a =
+      chi a ^ (r + s) * jacobiSum (chi ^ r) (chi ^ s) := by
+  rw [jacobiSumAt_eq_mul_jacobiSum (chi ^ r) (chi ^ s) a ha]
+  have hr : (chi ^ r) a = chi a ^ r := by
+    simpa using MulChar.pow_apply_coe chi r (Units.mk0 a ha)
+  have hs : (chi ^ s) a = chi a ^ s := by
+    simpa using MulChar.pow_apply_coe chi s (Units.mk0 a ha)
+  rw [hr, hs, ← pow_add]
 
 /-- A quotient-line sum with one exceptional weight evaluates exactly to
 `q`.  This is the finite combinatorial core of the paper's semiprimitive
@@ -4891,41 +4948,9 @@ Python experiment. -/
 def modulus : Nat := 0x4000000000000000000200000001
 def degree : Nat := 110
 
-def mulAux : Nat → Nat → Nat → Nat → Nat
-  | 0, _, _, acc => acc
-  | fuel + 1, a, b, acc =>
-      let acc' := if b % 2 = 1 then Nat.xor acc a else acc
-      let a2 := Nat.shiftLeft a 1
-      let a' := if a2.testBit degree then Nat.xor a2 modulus else a2
-      mulAux fuel a' (b / 2) acc'
-
-def mul (a b : Nat) : Nat := mulAux degree a b 0
-
-def powAux : Nat → Nat → Nat → Nat → Nat
-  | 0, _, _, acc => acc
-  | fuel + 1, a, e, acc =>
-      if e = 0 then acc
-      else
-        let acc' := if e % 2 = 1 then mul acc a else acc
-        powAux fuel (mul a a) (e / 2) acc'
-
-def fpow (a e : Nat) : Nat := powAux (degree + 2) a e 1
-
-def polyModAux : Nat → Nat → Nat → Nat
-  | 0, a, _ => a
-  | fuel + 1, a, b =>
-      if b = 0 ∨ Nat.log2 a < Nat.log2 b then a
-      else polyModAux fuel
-        (Nat.xor a (Nat.shiftLeft b (Nat.log2 a - Nat.log2 b))) b
-
-def polyMod (a b : Nat) : Nat := polyModAux 300 a b
-
-def polyGcdAux : Nat → Nat → Nat → Nat
-  | 0, a, _ => a
-  | fuel + 1, a, b =>
-      if b = 0 then a else polyGcdAux fuel b (polyMod a b)
-
-def polyGcd (a b : Nat) : Nat := polyGcdAux 300 a b
+abbrev mul := BinaryPolynomialCertificate.mul modulus degree
+abbrev fpow := BinaryPolynomialCertificate.fpow modulus degree
+abbrev polyGcd := BinaryPolynomialCertificate.polyGcd 300
 
 def epsilon : Nat := 0x533a83d1770ba6987acd705100a
 def zeta23 : Nat := 0x244532b647a337388955260d12d1
@@ -5518,25 +5543,8 @@ def eta : Nat := 1629469875507523981620540
 def epsilon : Nat := 1629469875507523981620541
 def beta : Nat := 2293671573472151973449566
 
-def mulAux : Nat → Nat → Nat → Nat → Nat
-  | 0, _, _, acc => acc
-  | fuel + 1, a, b, acc =>
-      let acc' := if b % 2 = 1 then Nat.xor acc a else acc
-      let a2 := Nat.shiftLeft a 1
-      let a' := if a2.testBit degree then Nat.xor a2 modulus else a2
-      mulAux fuel a' (b / 2) acc'
-
-def mul (a b : Nat) : Nat := mulAux degree a b 0
-
-def powAux : Nat → Nat → Nat → Nat → Nat
-  | 0, _, _, acc => acc
-  | fuel + 1, a, e, acc =>
-      if e = 0 then acc
-      else
-        let acc' := if e % 2 = 1 then mul acc a else acc
-        powAux fuel (mul a a) (e / 2) acc'
-
-def fpow (a e : Nat) : Nat := powAux (degree + 2) a e 1
+abbrev mul := BinaryPolynomialCertificate.mul modulus degree
+abbrev fpow := BinaryPolynomialCertificate.fpow modulus degree
 
 def etaTrace27 : Nat :=
   Nat.xor eta (Nat.xor (fpow eta q) (fpow eta (q ^ 2)))
@@ -5550,21 +5558,7 @@ def halfCirculant : Nat :=
   (List.range 79).foldl
     (fun acc j => Nat.xor acc (fpow epsilon (2 ^ (j + 1)))) 0
 
-def polyModAux : Nat → Nat → Nat → Nat
-  | 0, a, _ => a
-  | fuel + 1, a, b =>
-      if b = 0 ∨ Nat.log2 a < Nat.log2 b then a
-      else polyModAux fuel
-        (Nat.xor a (Nat.shiftLeft b (Nat.log2 a - Nat.log2 b))) b
-
-def polyMod (a b : Nat) : Nat := polyModAux 200 a b
-
-def polyGcdAux : Nat → Nat → Nat → Nat
-  | 0, a, _ => a
-  | fuel + 1, a, b =>
-      if b = 0 then a else polyGcdAux fuel b (polyMod a b)
-
-def polyGcd (a b : Nat) : Nat := polyGcdAux 200 a b
+abbrev polyGcd := BinaryPolynomialCertificate.polyGcd 200
 
 set_option maxRecDepth 100000 in
 set_option maxHeartbeats 0 in
@@ -5629,25 +5623,8 @@ def q : Nat := 2 ^ 16
 def z : Nat := 0x5ddbf713
 def z' : Nat := 0x4198613b
 
-def mulAux : Nat → Nat → Nat → Nat → Nat
-  | 0, _, _, acc => acc
-  | fuel + 1, a, b, acc =>
-      let acc' := if b % 2 = 1 then Nat.xor acc a else acc
-      let a2 := Nat.shiftLeft a 1
-      let a' := if a2.testBit degree then Nat.xor a2 modulus else a2
-      mulAux fuel a' (b / 2) acc'
-
-def mul (a b : Nat) : Nat := mulAux degree a b 0
-
-def powAux : Nat → Nat → Nat → Nat → Nat
-  | 0, _, _, acc => acc
-  | fuel + 1, a, e, acc =>
-      if e = 0 then acc
-      else
-        let acc' := if e % 2 = 1 then mul acc a else acc
-        powAux fuel (mul a a) (e / 2) acc'
-
-def fpow (a e : Nat) : Nat := powAux (degree + 2) a e 1
+abbrev mul := BinaryPolynomialCertificate.mul modulus degree
+abbrev fpow := BinaryPolynomialCertificate.fpow modulus degree
 
 def fibAux : Nat → Nat → Nat → Nat → Nat
   | 0, _, s₀, _ => s₀
@@ -8247,6 +8224,26 @@ variable {K : Type*} [Field K] [CharP K 2]
 /-- The inversion-quotient coordinate on the norm-one torus. -/
 def torusPhi (x : K) : K := x / (x + 1) ^ 2
 
+/-- On the auxiliary supersingular model `y²+y=x³`, the function
+`u=(y+1)/y` has inversion-quotient coordinate exactly `x³`.  This curve is
+not the selected Conway curve `y²+y=x³+x²` over `F₂`; together with
+`fermat_torsion_is_cube`, the identity rules out replacing the selected
+five-torsion function by this natural cubic divisor/Tate class. -/
+theorem auxiliary_supersingular_function_torusPhi_eq_cube
+    (x y : K) (hy : y ≠ 0) (hE : y ^ 2 + y = x ^ 3) :
+    torusPhi ((y + 1) / y) = x ^ 3 := by
+  simp only [torusPhi]
+  have htwo : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  have hy1 : (y + 1) / y + 1 = 1 / y := by
+    field_simp
+    ring_nf
+    simp [htwo]
+  rw [hy1]
+  field_simp
+  calc
+    y * (y + 1) = y ^ 2 + y := by ring
+    _ = x ^ 3 := hE
+
 /-- Tripling on the norm-one torus descends to a fixed rational map on
 the fibotomic coordinate. -/
 theorem torusPhi_cube
@@ -8448,25 +8445,16 @@ argument supplying the two nonzero low-degree polynomials remains in prose. -/
 
 variable {F : Type*} [Field F] [CharP F 2]
 
-theorem z36_expansions
-    (c x y : F)
-    (hc : c ^ 6 + c ^ 3 + 1 = 0)
-    (hx : x ^ 2 + x = c ^ 3)
-    (hy : y ^ 3 = c) :
-    (x + y) ^ 37 =
-      (1 + c ^ 2 + c ^ 3) + c ^ 2 * x +
-      (c ^ 3 + c ^ 4) * y +
-      (c + c ^ 3 + c ^ 4) * (y * x) +
-      c * (y ^ 2 * x) := by
+/-- The common power-reduction block for the degree-nine cubic component at
+the `h = 36` level. Keeping it here prevents the two expansions and their
+minor certificates from carrying private copies of the same calculation. -/
+theorem z36_base_powers
+    (c : F) (hc : c ^ 6 + c ^ 3 + 1 = 0) :
+    c ^ 6 = c ^ 3 + 1 ∧
+      c ^ 7 = c ^ 4 + c ∧
+      c ^ 8 = c ^ 5 + c ^ 2 ∧
+      c ^ 9 = 1 := by
   have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
-  have hthree : (3 : F) = 1 := by
-    calc
-      (3 : F) = 2 + 1 := by norm_num
-      _ = 1 := by rw [htwo]; simp
-  have hfour : (4 : F) = 0 := by
-    calc
-      (4 : F) = 2 + 2 := by norm_num
-      _ = 0 := by rw [htwo]; simp
   have hc6 : c ^ 6 = c ^ 3 + 1 := by
     apply eq_of_sub_eq_zero
     rw [CharTwo.sub_eq_add]
@@ -8489,6 +8477,20 @@ theorem z36_expansions
       _ = 1 := by
         rw [hc6]
         linear_combination (c ^ 3) * htwo
+  exact ⟨hc6, hc7, hc8, hc9⟩
+
+/-- Frobenius reductions for the quadratic component used by both symbolic
+`h = 36` expansions. -/
+theorem z36_quadratic_powers
+    (c x : F) (hc : c ^ 6 + c ^ 3 + 1 = 0)
+    (hx : x ^ 2 + x = c ^ 3) :
+    x ^ 2 = x + c ^ 3 ∧
+      x ^ 4 = x + 1 ∧
+      x ^ 8 = x + c ^ 3 + 1 ∧
+      x ^ 16 = x ∧
+      x ^ 32 = x + c ^ 3 := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  obtain ⟨hc6, _, _, _⟩ := z36_base_powers c hc
   have hx2 : x ^ 2 = x + c ^ 3 := by
     calc
       x ^ 2 = c ^ 3 - x := (eq_sub_iff_add_eq).2 hx
@@ -8522,16 +8524,45 @@ theorem z36_expansions
       x ^ 32 = (x ^ 16) ^ 2 := by ring
       _ = x ^ 2 := by rw [hx16]
       _ = x + c ^ 3 := hx2
-  have hy4 : y ^ 4 = c * y := by
-    calc
+  exact ⟨hx2, hx4, hx8, hx16, hx32⟩
+
+/-- The cubic-component reductions shared by the two symbolic expansions. -/
+theorem z36_cubic_powers
+    (c y : F) (hc : c ^ 6 + c ^ 3 + 1 = 0) (hy : y ^ 3 = c) :
+    y ^ 4 = c * y ∧ y ^ 32 = c * y ^ 2 := by
+  obtain ⟨_, _, _, hc9⟩ := z36_base_powers c hc
+  constructor
+  · calc
       y ^ 4 = y ^ 3 * y := by ring
       _ = c * y := by rw [hy]
-  have hy32 : y ^ 32 = c * y ^ 2 := by
-    calc
+  · calc
       y ^ 32 = (y ^ 3) ^ 10 * y ^ 2 := by ring
       _ = c ^ 10 * y ^ 2 := by rw [hy]
       _ = (c ^ 9 * c) * y ^ 2 := by ring
       _ = c * y ^ 2 := by rw [hc9]; ring
+
+theorem z36_expansions
+    (c x y : F)
+    (hc : c ^ 6 + c ^ 3 + 1 = 0)
+    (hx : x ^ 2 + x = c ^ 3)
+    (hy : y ^ 3 = c) :
+    (x + y) ^ 37 =
+      (1 + c ^ 2 + c ^ 3) + c ^ 2 * x +
+      (c ^ 3 + c ^ 4) * y +
+      (c + c ^ 3 + c ^ 4) * (y * x) +
+      c * (y ^ 2 * x) := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hthree : (3 : F) = 1 := by
+    calc
+      (3 : F) = 2 + 1 := by norm_num
+      _ = 1 := by rw [htwo]; simp
+  have hfour : (4 : F) = 0 := by
+    calc
+      (4 : F) = 2 + 2 := by norm_num
+      _ = 0 := by rw [htwo]; simp
+  obtain ⟨hc6, _, _, _⟩ := z36_base_powers c hc
+  obtain ⟨hx2, hx4, _, _, hx32⟩ := z36_quadratic_powers c x hc hx
+  obtain ⟨hy4, hy32⟩ := z36_cubic_powers c y hc hy
   have hz4 : (x + y) ^ 4 = (x + 1) + c * y := by
     calc
       (x + y) ^ 4 = x ^ 4 + y ^ 4 := by
@@ -8568,65 +8599,14 @@ theorem z36_expansion_109
       (1 + c ^ 2 + c ^ 3 + c ^ 5) * y ^ 2 +
       (c ^ 2 + c ^ 3 + c ^ 4 + c ^ 5) * (y ^ 2 * x) := by
   have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
-  have hc6 : c ^ 6 = c ^ 3 + 1 := by
-    apply eq_of_sub_eq_zero
-    rw [CharTwo.sub_eq_add]
-    simpa [add_assoc] using hc
-  have hc7 : c ^ 7 = c ^ 4 + c := by
-    calc
-      c ^ 7 = c * c ^ 6 := by ring
-      _ = c * (c ^ 3 + 1) := by rw [hc6]
-      _ = c ^ 4 + c := by ring
-  have hc8 : c ^ 8 = c ^ 5 + c ^ 2 := by
-    calc
-      c ^ 8 = c ^ 2 * c ^ 6 := by ring
-      _ = c ^ 2 * (c ^ 3 + 1) := by rw [hc6]
-      _ = c ^ 5 + c ^ 2 := by ring
-  have hc9 : c ^ 9 = 1 := by
-    calc
-      c ^ 9 = c ^ 3 * c ^ 6 := by ring
-      _ = c ^ 3 * (c ^ 3 + 1) := by rw [hc6]
-      _ = c ^ 6 + c ^ 3 := by ring
-      _ = 1 := by rw [hc6]; linear_combination (c ^ 3) * htwo
-  have hx2 : x ^ 2 = x + c ^ 3 := by
-    calc
-      x ^ 2 = c ^ 3 - x := (eq_sub_iff_add_eq).2 hx
-      _ = c ^ 3 + x := CharTwo.sub_eq_add _ _
-      _ = x + c ^ 3 := add_comm _ _
-  have hx4 : x ^ 4 = x + 1 := by
-    calc
-      x ^ 4 = (x ^ 2) ^ 2 := by ring
-      _ = (x + c ^ 3) ^ 2 := by rw [hx2]
-      _ = x ^ 2 + c ^ 6 := by rw [add_sq, htwo]; ring
-      _ = (x + c ^ 3) + (c ^ 3 + 1) := by rw [hx2, hc6]
-      _ = x + 1 := by linear_combination (c ^ 3) * htwo
+  obtain ⟨hc6, hc7, hc8, hc9⟩ := z36_base_powers c hc
+  obtain ⟨hx2, hx4, hx8, _, hx32⟩ := z36_quadratic_powers c x hc hx
   have hx5 : x ^ 5 = c ^ 3 := by
     calc
       x ^ 5 = x * x ^ 4 := by ring
       _ = x * (x + 1) := by rw [hx4]
       _ = x ^ 2 + x := by ring
       _ = c ^ 3 := hx
-  have hx8 : x ^ 8 = x + c ^ 3 + 1 := by
-    calc
-      x ^ 8 = (x ^ 4) ^ 2 := by ring
-      _ = (x + 1) ^ 2 := by rw [hx4]
-      _ = x ^ 2 + 1 := by rw [add_sq, htwo]; ring
-      _ = x + c ^ 3 + 1 := by rw [hx2]
-  have hx16 : x ^ 16 = x := by
-    calc
-      x ^ 16 = (x ^ 8) ^ 2 := by ring
-      _ = (x + c ^ 3 + 1) ^ 2 := by rw [hx8]
-      _ = x ^ 2 + c ^ 6 + 1 := by
-        rw [show x + c ^ 3 + 1 = (x + c ^ 3) + 1 by ring]
-        rw [add_sq, add_sq, htwo]
-        ring
-      _ = (x + c ^ 3) + (c ^ 3 + 1) + 1 := by rw [hx2, hc6]
-      _ = x := by linear_combination (c ^ 3 + 1) * htwo
-  have hx32 : x ^ 32 = x + c ^ 3 := by
-    calc
-      x ^ 32 = (x ^ 16) ^ 2 := by ring
-      _ = x ^ 2 := by rw [hx16]
-      _ = x + c ^ 3 := hx2
   have hx64 : x ^ 64 = x + 1 := by
     calc
       x ^ 64 = (x ^ 32) ^ 2 := by ring
@@ -8634,10 +8614,7 @@ theorem z36_expansion_109
       _ = x ^ 2 + c ^ 6 := by rw [add_sq, htwo]; ring
       _ = (x + c ^ 3) + (c ^ 3 + 1) := by rw [hx2, hc6]
       _ = x + 1 := by linear_combination (c ^ 3) * htwo
-  have hy4 : y ^ 4 = c * y := by
-    calc
-      y ^ 4 = y ^ 3 * y := by ring
-      _ = c * y := by rw [hy]
+  obtain ⟨hy4, hy32⟩ := z36_cubic_powers c y hc hy
   have hy5 : y ^ 5 = c * y ^ 2 := by
     calc
       y ^ 5 = y ^ 3 * y ^ 2 := by ring
@@ -8654,12 +8631,6 @@ theorem z36_expansion_109
     calc
       y ^ 8 = (y ^ 3) ^ 2 * y ^ 2 := by ring
       _ = c ^ 2 * y ^ 2 := by rw [hy]
-  have hy32 : y ^ 32 = c * y ^ 2 := by
-    calc
-      y ^ 32 = (y ^ 3) ^ 10 * y ^ 2 := by ring
-      _ = c ^ 10 * y ^ 2 := by rw [hy]
-      _ = (c ^ 9 * c) * y ^ 2 := by ring
-      _ = c * y ^ 2 := by rw [hc9]; ring
   have hc21 : c ^ 21 = c ^ 3 := by
     calc
       c ^ 21 = (c ^ 9) ^ 2 * c ^ 3 := by ring
@@ -8755,15 +8726,7 @@ theorem z36_minor_37
     simpa using (CharP.cast_eq_mod F 2 3)
   have hfive : (5 : F) = 1 := by
     simpa using (CharP.cast_eq_mod F 2 5)
-  have hc6 : c ^ 6 = c ^ 3 + 1 := by
-    apply eq_of_sub_eq_zero
-    rw [CharTwo.sub_eq_add]
-    simpa [add_assoc] using hc
-  have hc7 : c ^ 7 = c ^ 4 + c := by
-    calc
-      c ^ 7 = c * c ^ 6 := by ring
-      _ = c * (c ^ 3 + 1) := by rw [hc6]
-      _ = c ^ 4 + c := by ring
+  obtain ⟨hc6, hc7, _, _⟩ := z36_base_powers c hc
   have heq :
       (1 + c ^ 2 + c ^ 3) * (c + c ^ 3 + c ^ 4) +
         c ^ 2 * (c ^ 3 + c ^ 4) = 1 + c ^ 3 + c ^ 4 := by
@@ -8790,26 +8753,7 @@ theorem z36_minor_109
     simpa using (CharP.cast_eq_mod F 2 6)
   have hseven : (7 : F) = 1 := by
     simpa using (CharP.cast_eq_mod F 2 7)
-  have hc6 : c ^ 6 = c ^ 3 + 1 := by
-    apply eq_of_sub_eq_zero
-    rw [CharTwo.sub_eq_add]
-    simpa [add_assoc] using hc
-  have hc7 : c ^ 7 = c ^ 4 + c := by
-    calc
-      c ^ 7 = c * c ^ 6 := by ring
-      _ = c * (c ^ 3 + 1) := by rw [hc6]
-      _ = c ^ 4 + c := by ring
-  have hc8 : c ^ 8 = c ^ 5 + c ^ 2 := by
-    calc
-      c ^ 8 = c ^ 2 * c ^ 6 := by ring
-      _ = c ^ 2 * (c ^ 3 + 1) := by rw [hc6]
-      _ = c ^ 5 + c ^ 2 := by ring
-  have hc9 : c ^ 9 = 1 := by
-    calc
-      c ^ 9 = c ^ 3 * c ^ 6 := by ring
-      _ = c ^ 3 * (c ^ 3 + 1) := by rw [hc6]
-      _ = c ^ 6 + c ^ 3 := by ring
-      _ = 1 := by rw [hc6]; linear_combination (c ^ 3) * htwo
+  obtain ⟨hc6, hc7, hc8, hc9⟩ := z36_base_powers c hc
   have hc10 : c ^ 10 = c := by
     calc
       c ^ 10 = c ^ 9 * c := by ring
@@ -9035,6 +8979,22 @@ theorem weighted_frobenius_word (x : G) (r : Nat)
       congr 1
       simp [Nat.mul_comm]
 
+/-- A two-axis family formed from one Kummer class is still rank one.  Here
+`j` is a Frobenius position, `c` is a character or conductor coefficient,
+and `w (j,c)` is an arbitrary natural multiplicity.  Their entire
+multiplicative reciprocity expression retains only one exponent of `x`. -/
+theorem two_axis_frobenius_word (x : G) (s : Finset (Nat × Nat))
+    (w : Nat × Nat → Nat) :
+    (∏ jc ∈ s, (x ^ (2 ^ jc.1 * jc.2)) ^ (w jc)) =
+      x ^ (∑ jc ∈ s, w jc * 2 ^ jc.1 * jc.2) := by
+  induction s using Finset.induction_on with
+  | empty => simp
+  | @insert jc s hj ih =>
+      rw [Finset.prod_insert hj, Finset.sum_insert hj, ih]
+      rw [← pow_mul, ← pow_add]
+      congr 1
+      simp only [Nat.mul_comm, Nat.mul_left_comm]
+
 /-- Raising a weighted Frobenius word to an Euler-test exponent evaluates
 the same word on the selected power-residue class `x ^ d`. -/
 theorem weighted_frobenius_euler (x : G) (r d : Nat)
@@ -9045,6 +9005,45 @@ theorem weighted_frobenius_euler (x : G) (r d : Nat)
   simp only [← pow_mul]
   congr 1
   exact Nat.mul_comm _ _
+
+/-- The oriented prefix of the absolute-Frobenius orbit of a marked phase.
+Unlike a complete orbit product, this retains a starting point.  The
+definition by itself does not evaluate that selected starting phase. -/
+def frobeniusPrefix (x : G) (m : Nat) : G :=
+  ∏ i ∈ Finset.range m, x ^ (2 ^ i)
+
+/-- An oriented Frobenius prefix is the geometric-series power of its marked
+starting phase.  This specializes `weighted_frobenius_word` to the unweighted
+consecutive word. -/
+theorem frobeniusPrefix_eq_pow (x : G) (m : Nat) :
+    frobeniusPrefix x m = x ^ (2 ^ m - 1) := by
+  induction m with
+  | zero => simp [frobeniusPrefix]
+  | succ m ih =>
+      rw [frobeniusPrefix, Finset.prod_range_succ]
+      change frobeniusPrefix x m * x ^ (2 ^ m) = _
+      rw [ih, ← pow_add, pow_succ]
+      congr 1
+      have hpos : 0 < 2 ^ m := pow_pos (by decide) m
+      omega
+
+/-- Oriented prefixes obey the Frobenius cocycle law.  A recursive
+Conway-ancestry formula could therefore evaluate a long prefix block by
+block, but this identity alone supplies no value for its marked phase. -/
+theorem frobeniusPrefix_add (x : G) (m n : Nat) :
+    frobeniusPrefix x (m + n) =
+      frobeniusPrefix x m * (frobeniusPrefix x n) ^ (2 ^ m) := by
+  rw [frobeniusPrefix_eq_pow, frobeniusPrefix_eq_pow,
+    frobeniusPrefix_eq_pow, ← pow_mul, ← pow_add]
+  congr 1
+  rw [pow_add]
+  have hm : 0 < 2 ^ m := pow_pos (by decide) m
+  have hn : 0 < 2 ^ n := pow_pos (by decide) n
+  rw [Nat.mul_sub_right_distrib, Nat.mul_comm (2 ^ n) (2 ^ m)]
+  simp only [one_mul]
+  have hle : 2 ^ m ≤ 2 ^ m * 2 ^ n := by
+    simpa using Nat.mul_le_mul_left (2 ^ m) hn
+  omega
 
 end WeightedFrobeniusWords
 
@@ -9117,26 +9116,63 @@ theorem weighted_frobenius_euler_eq_one_iff (x : G) (r d ell : Nat)
   rw [weighted_frobenius_euler]
   exact pow_eq_one_iff_of_coprime (x ^ d) hell hcop
 
-/-- Torsion classes of coprime exponents cannot cancel in one
-multiplicative reciprocity product.  This is the abstract group core of the
-paper's C/D Kummer-field separation: a product relation can be trivial only
-when its two primary coordinates are separately trivial. -/
-theorem coprime_torsion_product_eq_one_iff
-    (x y : G) {a b : Nat}
-    (hx : x ^ a = 1) (hy : y ^ b = 1) (hab : a.Coprime b) :
-    x * y = 1 ↔ x = 1 ∧ y = 1 := by
-  constructor
-  · intro hxy
-    have hxb : x ^ b = 1 := by
-      rw [eq_inv_of_mul_eq_one_left hxy]
-      simp [hy]
-    have hxone : x = 1 :=
-      (pow_eq_one_iff_of_coprime x hx hab).mp hxb
-    constructor
-    · exact hxone
-    · simpa [hxone] using hxy
-  · rintro ⟨rfl, rfl⟩
-    simp
+/-- The two-axis reciprocity family from one Kummer class detects no more
+than that one class: when its single evaluated exponent is a unit modulo
+`ell`, its product is one exactly when the marked `ell`-torsion phase is one.
+Thus adding a second indexing axis cannot manufacture an independent
+selected coordinate. -/
+theorem two_axis_frobenius_word_eq_one_iff (x : G) (ell : Nat)
+    (s : Finset (Nat × Nat)) (w : Nat × Nat → Nat)
+    (hell : x ^ ell = 1)
+    (hcop : ell.Coprime (∑ jc ∈ s, w jc * 2 ^ jc.1 * jc.2)) :
+    (∏ jc ∈ s, (x ^ (2 ^ jc.1 * jc.2)) ^ (w jc)) = 1 ↔ x = 1 := by
+  rw [two_axis_frobenius_word]
+  exact pow_eq_one_iff_of_coprime x hell hcop
+
+/-- A prefix whose geometric-series exponent is a unit modulo `ell`
+faithfully detects an `ell`-torsion marked phase.  This repackages, rather
+than proves, the selected nonvanishing required by the excess arms. -/
+theorem frobeniusPrefix_eq_one_iff (x : G) (ell m : Nat)
+    (hell : x ^ ell = 1) (hcop : ell.Coprime (2 ^ m - 1)) :
+    frobeniusPrefix x m = 1 ↔ x = 1 := by
+  rw [frobeniusPrefix_eq_pow]
+  exact pow_eq_one_iff_of_coprime x hell hcop
+
+/-- Once the residue degree closes, the complete absolute-Frobenius prefix
+product is forced to be one.  Consequently a full-orbit reciprocity product
+cannot decide whether the marked phase itself is trivial. -/
+theorem frobeniusPrefix_eq_one_of_period (x : G) (ell E : Nat)
+    (hell : x ^ ell = 1) (hperiod : ell ∣ 2 ^ E - 1) :
+    frobeniusPrefix x E = 1 := by
+  rw [frobeniusPrefix_eq_pow]
+  exact orderOf_dvd_iff_pow_eq_one.mp
+    (dvd_trans (orderOf_dvd_of_pow_eq_one hell) hperiod)
+
+/-- At an even residue degree, if half-Frobenius is inversion, the oriented
+half-prefix is the inverse square of the marked phase.  For odd `ell` this is
+a faithful re-encoding, not an evaluation, of that phase. -/
+theorem frobeniusPrefix_half_eq_inv_sq (x : G) (m : Nat)
+    (hhalf : x ^ (2 ^ m) = x⁻¹) :
+    frobeniusPrefix x m = x⁻¹ * x⁻¹ := by
+  rw [frobeniusPrefix_eq_pow]
+  have hpos : 0 < 2 ^ m := pow_pos (by decide) m
+  calc
+    x ^ (2 ^ m - 1) = x ^ (2 ^ m) * x⁻¹ := by
+      rw [show 2 ^ m = (2 ^ m - 1) + 1 by omega, pow_succ]
+      simp
+    _ = x⁻¹ * x⁻¹ := by rw [hhalf]
+
+/-- A homomorphism cannot transport a nontrivial torsion point between
+coprime annihilators.  Since adjacent Fermat numbers are coprime, this is the
+group-theoretic obstruction to interpreting the deterministic singleton-even
+resultant ancestry as an isogeny division tower. -/
+theorem monoidHom_eq_one_of_coprime_torsion
+    {H : Type*} [CommGroup H]
+    (f : G →* H) (x : G) (a b : Nat)
+    (hx : x ^ a = 1) (hy : (f x) ^ b = 1) (hab : a.Coprime b) :
+    f x = 1 := by
+  apply (pow_eq_one_iff_of_coprime (f x) ?_ hab).mp hy
+  rw [← map_pow, hx, map_one]
 
 end CoprimePowerDetection
 
@@ -9255,15 +9291,6 @@ section RelativeTraceAxes
 
 variable {K : Type*} [Field K] [CharP K 2]
 
-/-- Additivity of the Artin--Schreier map in characteristic two.  This is
-the algebraic identity behind the centered relative-trace collision in the
-singleton-even arm. -/
-theorem artinSchreier_add (x y : K) :
-    (x ^ 2 + x) + (y ^ 2 + y) = (x + y) ^ 2 + (x + y) := by
-  have h2 : (2 : K) = 0 := CharP.cast_eq_zero K 2
-  ring_nf
-  simp [h2]
-
 omit [CharP K 2] in
 /-- Centering two transported torus points turns their additive collision
 coordinate into the Mobius coordinate of their ratio. -/
@@ -9272,11 +9299,11 @@ theorem centered_ratio_identity (alpha beta : K) (hbeta : beta ≠ 0)
     alpha / (alpha + beta) = (alpha / beta) / (alpha / beta + 1) := by
   field_simp
 
-/-- The Mobius coordinate `rho / (rho + 1)` is fixed by a field
-endomorphism exactly when `rho` is fixed.  In the finite-field application
-this is the half-field axis of a relative-trace collision. -/
-theorem mobius_fixed_iff (sigma : K →+* K) (rho : K) (hrho : rho ≠ 1) :
-    sigma (rho / (rho + 1)) = rho / (rho + 1) <-> sigma rho = rho := by
+/-- The two denominators used by the centered Mobius coordinate remain
+nonzero before and after an injective field endomorphism. -/
+theorem mobius_denominators
+    (sigma : K →+* K) (rho : K) (hrho : rho ≠ 1) :
+    rho + 1 ≠ 0 ∧ sigma rho + 1 ≠ 0 := by
   have hden : rho + 1 ≠ 0 := by
     intro h
     apply hrho
@@ -9292,6 +9319,14 @@ theorem mobius_fixed_iff (sigma : K →+* K) (rho : K) (hrho : rho ≠ 1) :
     apply hsigma
     have : sigma rho = -1 := eq_neg_of_add_eq_zero_left h
     simpa [CharTwo.neg_eq] using this
+  exact ⟨hden, hsden⟩
+
+/-- The Mobius coordinate `rho / (rho + 1)` is fixed by a field
+endomorphism exactly when `rho` is fixed.  In the finite-field application
+this is the half-field axis of a relative-trace collision. -/
+theorem mobius_fixed_iff (sigma : K →+* K) (rho : K) (hrho : rho ≠ 1) :
+    sigma (rho / (rho + 1)) = rho / (rho + 1) <-> sigma rho = rho := by
+  obtain ⟨hden, hsden⟩ := mobius_denominators sigma rho hrho
   rw [map_div₀, map_add, map_one]
   constructor
   · intro h
@@ -9306,21 +9341,7 @@ has norm one. -/
 theorem mobius_mate_iff (sigma : K →+* K) (rho : K) (hrho : rho ≠ 1) :
     sigma (rho / (rho + 1)) = rho / (rho + 1) + 1 <->
       sigma rho * rho = 1 := by
-  have hden : rho + 1 ≠ 0 := by
-    intro h
-    apply hrho
-    have : rho = -1 := eq_neg_of_add_eq_zero_left h
-    simpa [CharTwo.neg_eq] using this
-  have hsigma : sigma rho ≠ 1 := by
-    intro h
-    apply hrho
-    apply sigma.injective
-    simpa using h
-  have hsden : sigma rho + 1 ≠ 0 := by
-    intro h
-    apply hsigma
-    have : sigma rho = -1 := eq_neg_of_add_eq_zero_left h
-    simpa [CharTwo.neg_eq] using this
+  obtain ⟨hden, hsden⟩ := mobius_denominators sigma rho hrho
   have hmate : rho / (rho + 1) + 1 = 1 / (rho + 1) := by
     field_simp [hden]
     rw [← add_assoc, CharTwo.add_self_eq_zero, zero_add]
@@ -9921,6 +9942,267 @@ theorem marked_eigenvalue_must_match
     (hmarked : marked ≠ 0) :
     chi = omega := by
   exact mul_right_cancel₀ hmarked hcompat
+
+/-! An ordinary conjugacy class cannot retain the translation coordinate of
+an affine Frobenius lift.  The number-field realization of the affine Galois
+group remains paper-level; the following identities check the exact algebraic
+obstruction. -/
+
+/-- Conjugating `x ↦ q*x + t` by the translation `x ↦ x+a` changes its
+translation coordinate from `t` to `t + (1-q)*a`. -/
+theorem affine_translation_conjugation
+    {F : Type*} [Field F] (q t a x : F) :
+    a + (q * (x - a) + t) = q * x + (t + (1 - q) * a) := by
+  ring
+
+/-- Away from the identity scalar, translation conjugacy can gauge every
+affine Frobenius coordinate to zero. -/
+theorem affine_translation_coordinate_gauge
+    {F : Type*} [Field F] (q t : F) (hq : q ≠ 1) :
+    ∃ a : F, t + (1 - q) * a = 0 := by
+  refine ⟨t / (q - 1), ?_⟩
+  field_simp
+  ring
+
+/-- Therefore every conjugacy-invariant function on affine lifts with fixed
+nonidentity scalar part is blind to the selected translation coordinate. -/
+theorem affine_class_function_blind
+    {F S : Type*} [Field F]
+    (value : F → S) (q : F) (hq : q ≠ 1)
+    (hconj : ∀ t a, value t = value (t + (1 - q) * a)) :
+    ∀ t, value t = value 0 := by
+  intro t
+  obtain ⟨a, ha⟩ := affine_translation_coordinate_gauge q t hq
+  rw [hconj t a, ha]
+
+/-- Fourier line attached to an additive character on the labeled affine
+torsor. -/
+def affineFourierLine
+    {F M : Type*} [Field F] [CommGroup M]
+    (psi : AddChar F M) (r y : F) : M :=
+  psi (-r * y)
+
+/-- Pulling a Fourier line through `x ↦ q*x+t` exposes the translation as
+one frame-dependent off-diagonal phase instead of averaging it into a class
+function. -/
+theorem affineFourierLine_pullback
+    {F M : Type*} [Field F] [CommGroup M]
+    (psi : AddChar F M) (t q r y : F) :
+    affineFourierLine psi r (q⁻¹ * (y - t)) =
+      psi (r * q⁻¹ * t) * affineFourierLine psi (r * q⁻¹) y := by
+  unfold affineFourierLine
+  rw [show -r * (q⁻¹ * (y - t)) =
+      r * q⁻¹ * t + -(r * q⁻¹) * y by ring]
+  exact AddChar.map_add_eq_mul psi _ _
+
+/-- On the line indexed by the scalar part itself, the pullback coefficient is
+the translation phase in the chosen affine frame.  It is not gauge invariant;
+the closed-path holonomy below is the intrinsic selected phase. -/
+theorem affineFourierLine_gauge_coefficient
+    {F M : Type*} [Field F] [CommGroup M]
+    (psi : AddChar F M) (t q y : F) (hq : q ≠ 0) :
+    affineFourierLine psi q (q⁻¹ * (y - t)) =
+      psi t * affineFourierLine psi 1 y := by
+  rw [affineFourierLine_pullback]
+  have hcancel : q * q⁻¹ = 1 := mul_inv_cancel₀ hq
+  rw [hcancel]
+  simp [affineFourierLine]
+
+/-- Every additive affine cocycle on a commutative multiplier group is a
+single coboundary as soon as one nonidentity multiplier is fixed. -/
+theorem affine_cocycle_is_coboundary
+    {F : Type*} [Field F]
+    (t : Fˣ → F)
+    (hcocycle : ∀ q r, t (q * r) = t q + (q : F) * t r)
+    (q₀ : Fˣ) (hq₀ : (q₀ : F) ≠ 1) :
+    ∀ q, t q = (1 - (q : F)) * (t q₀ / (1 - (q₀ : F))) := by
+  intro q
+  have hcomm :
+      t q + (q : F) * t q₀ =
+        t q₀ + (q₀ : F) * t q := by
+    rw [← hcocycle q q₀, mul_comm, hcocycle]
+  have hden : (1 : F) - (q₀ : F) ≠ 0 := sub_ne_zero.mpr (Ne.symm hq₀)
+  field_simp [hden]
+  linear_combination hcomm
+
+/-- Conversely, every marked affine origin produces a cocycle satisfying all
+composition laws. -/
+theorem affine_coboundary_is_cocycle
+    {F : Type*} [Field F] (a : F) :
+    ∀ q r : Fˣ,
+      (1 - ((q * r : Fˣ) : F)) * a =
+        (1 - (q : F)) * a + (q : F) * ((1 - (r : F)) * a) := by
+  intro q r
+  push_cast
+  ring
+
+/-- At any fixed nonidentity multiplier the cocycle value remains arbitrary:
+an appropriate marked origin realizes every field value. -/
+theorem affine_cocycle_value_surjective
+    {F : Type*} [Field F] (q : Fˣ) (hq : (q : F) ≠ 1) (u : F) :
+    ∃ a : F, (1 - (q : F)) * a = u := by
+  refine ⟨u / (1 - (q : F)), ?_⟩
+  have hden : (1 : F) - (q : F) ≠ 0 := sub_ne_zero.mpr (Ne.symm hq)
+  field_simp [hden]
+
+/-- Translation accumulated by the first `n` arrows
+`x ↦ q*x + t_j` in a labeled affine groupoid. -/
+def affinePathTranslation {F : Type*} [Field F]
+    (q : F) (t : Nat → F) : Nat → F
+  | 0 => 0
+  | n + 1 => q * affinePathTranslation q t n + t n
+
+/-- The recursive path translation is the oriented weighted sum of its
+one-step translations. -/
+theorem affinePathTranslation_eq_sum
+    {F : Type*} [Field F] (q : F) (t : Nat → F) (n : Nat) :
+    affinePathTranslation q t n =
+      ∑ j ∈ Finset.range n, q ^ (n - 1 - j) * t j := by
+  induction n with
+  | zero => simp [affinePathTranslation]
+  | succ n ih =>
+      rw [affinePathTranslation, ih, Finset.sum_range_succ]
+      rw [Finset.mul_sum]
+      congr 1
+      · apply Finset.sum_congr rfl
+        intro j hj
+        have hjlt : j < n := Finset.mem_range.mp hj
+        have hexp : n + 1 - 1 - j = (n - 1 - j) + 1 := by omega
+        rw [hexp, pow_succ']
+        ring
+      · simp
+
+/-- Changing the Kummer-root origin at vertex `j` by `a_j` changes the
+one-step arrow by `q*a_j-a_(j+1)`, and these changes telescope along a path. -/
+theorem affinePathTranslation_gauge
+    {F : Type*} [Field F] (q : F) (t a : Nat → F) (n : Nat) :
+    affinePathTranslation q
+        (fun j => t j + q * a j - a (j + 1)) n =
+      affinePathTranslation q t n + q ^ n * a 0 - a n := by
+  induction n with
+  | zero => simp [affinePathTranslation]
+  | succ n ih =>
+      simp only [affinePathTranslation, ih]
+      rw [pow_succ]
+      ring
+
+/-- Around a closed `E`-step Frobenius orbit, where `q^E=1` and the terminal
+root origin is the initial one, the accumulated pure translation is gauge
+invariant. -/
+theorem affineCycleHolonomy_gauge_invariant
+    {F : Type*} [Field F] (q : F) (t a : Nat → F) (E : Nat)
+    (hqE : q ^ E = 1) (haE : a E = a 0) :
+    affinePathTranslation q
+        (fun j => t j + q * a j - a (j + 1)) E =
+      affinePathTranslation q t E := by
+  rw [affinePathTranslation_gauge, hqE, haE]
+  ring
+
+/-- If all one-step arrows are powers of one affine lift, their full-cycle
+translation is zero; a nonzero Artin phase therefore requires true groupoid
+holonomy rather than a single affine complement. -/
+theorem affineCycle_constant_translation_zero
+    {F : Type*} [Field F] (q t : F) (E : Nat)
+    (hqE : q ^ E = 1) (hq : q ≠ 1) :
+    affinePathTranslation q (fun _ => t) E = 0 := by
+  let a := t / (q - 1)
+  have hden : q - 1 ≠ 0 := sub_ne_zero.mpr hq
+  have ha : q * a - a = t := by
+    dsimp [a]
+    field_simp [hden]
+  have hgauge := affineCycleHolonomy_gauge_invariant q
+    (fun _ => 0) (fun _ => a) E hqE rfl
+  simp only [zero_add, ha] at hgauge
+  have hzero : ∀ n, affinePathTranslation q (fun _ => 0) n = 0 := by
+    intro n
+    induction n with
+    | zero => rfl
+    | succ n ih => simp [affinePathTranslation, ih]
+  exact hgauge.trans (hzero E)
+
+/-- A closed Frobenius holonomy is exactly the finite-field Euler/Kummer
+phase of its radicand. -/
+theorem kummer_holonomy_eq_euler_phase
+    {F : Type*} [Field F] (alpha beta zeta : F) (ell Q : Nat)
+    (hQ : 1 ≤ Q) (hdiv : ell ∣ Q - 1) (halpha : alpha ≠ 0)
+    (hrad : alpha ^ ell = beta)
+    (hhol : alpha ^ Q = zeta * alpha) :
+    beta ^ ((Q - 1) / ell) = zeta := by
+  have hphase : alpha ^ (Q - 1) = zeta := by
+    apply mul_right_cancel₀ halpha
+    calc
+      alpha ^ (Q - 1) * alpha = alpha ^ Q := by
+        rw [← pow_succ]
+        congr 1
+        omega
+      _ = zeta * alpha := hhol
+  calc
+    beta ^ ((Q - 1) / ell) =
+        (alpha ^ ell) ^ ((Q - 1) / ell) := by rw [hrad]
+    _ = alpha ^ (ell * ((Q - 1) / ell)) := by rw [pow_mul]
+    _ = alpha ^ (Q - 1) := by rw [Nat.mul_div_cancel' hdiv]
+    _ = zeta := hphase
+
+/-- Along an open path every one-step translation can be normalized to zero;
+the obstruction is precisely the endpoint mismatch, equal to the holonomy. -/
+theorem affinePath_prefix_normalization
+    {F : Type*} [Field F] (q : F) (t : Nat → F) :
+    ∀ j, t j + q * affinePathTranslation q t j -
+        affinePathTranslation q t (j + 1) = 0 := by
+  intro j
+  simp [affinePathTranslation]
+  ring
+
+/-- Every field value occurs as the holonomy of an `E`-edge cycle once
+`E>0`; all proper edges may be chosen trivial and the value put on the closing
+edge.  Local prefix data therefore do not constrain the Artin phase. -/
+theorem affineCycleHolonomy_surjective
+    {F : Type*} [Field F] (q H : F) (E : Nat) (hE : 0 < E) :
+    ∃ t : Nat → F, affinePathTranslation q t E = H := by
+  obtain ⟨n, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.ne_of_gt hE)
+  refine ⟨fun j => if j = n then H else 0, ?_⟩
+  rw [affinePathTranslation_eq_sum]
+  rw [Finset.sum_eq_single n]
+  · simp
+  · intro b hb hbn
+    simp [hbn]
+  · simp
+
+/-- Scaling every arrow scales the path holonomy. -/
+theorem affinePathTranslation_scale
+    {F : Type*} [Field F] (q lambda : F) (t : Nat → F) (n : Nat) :
+    affinePathTranslation q (fun j => lambda * t j) n =
+      lambda * affinePathTranslation q t n := by
+  induction n with
+  | zero => simp [affinePathTranslation]
+  | succ n ih =>
+      simp only [affinePathTranslation, ih]
+      ring
+
+/-- An affine map between two Frobenius-torsor paths transports holonomy by
+its linear part plus only an endpoint term. -/
+theorem affinePath_intertwiner_holonomy
+    {F : Type*} [Field F] (q lambda : F) (t b : Nat → F) (n : Nat) :
+    affinePathTranslation q
+        (fun j => lambda * t j + b (j + 1) - q * b j) n =
+      lambda * affinePathTranslation q t n + b n - q ^ n * b 0 := by
+  rw [show (fun j => lambda * t j + b (j + 1) - q * b j) =
+      (fun j => lambda * t j + q * (-b j) - (-b (j + 1))) by
+        funext j
+        ring]
+  rw [affinePathTranslation_gauge, affinePathTranslation_scale]
+  ring
+
+/-- On closed Frobenius cycles, all affine-origin terms telescope, so an
+affine ancestry map can only scale the intrinsic Artin phase. -/
+theorem affineCycle_intertwiner_holonomy
+    {F : Type*} [Field F] (q lambda : F) (t b : Nat → F) (E : Nat)
+    (hqE : q ^ E = 1) (hbE : b E = b 0) :
+    affinePathTranslation q
+        (fun j => lambda * t j + b (j + 1) - q * b j) E =
+      lambda * affinePathTranslation q t E := by
+  rw [affinePath_intertwiner_holonomy, hqE, hbE]
+  ring
 
 end GlobalSplitRayReduction
 

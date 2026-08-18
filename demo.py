@@ -140,6 +140,10 @@ print("  WittClass constructors:", pl.WittClass.zero(), -pl.WittClass(1), pl.Wit
 print("  WittClass metric constructor:", pl.WittClass.try_from_metric(A) == wA)
 print("  Dickson(swap)  =", pl.dickson_matrix([[0, 1], [1, 0]]), " (a reflection)")
 print("  Dickson(diag *2,*3 rotation) =", pl.dickson_matrix([[2, 0], [0, 3]]), " (in SO)")
+char2_factor = pl.factor_char2_isometry([0, 0], {(0, 1): 1}, [[0, 1], [1, 0]])
+print("  certified F2 symmetry factor:", char2_factor.factors,
+      "spinor", pl.char2_spinor_norm([0, 0], {(0, 1): 1}, [[0, 1], [1, 0]]),
+      "Clifford checked", char2_factor.clifford_verified)
 
 section("exterior algebra of the GAME group — lives where Clifford can't")
 # Λ needs only a ℤ-module; the game group is one, even for non-numbers (⋆, ↑).
@@ -257,8 +261,8 @@ print("  ω·2 ⊕ ω      =", pl.Ordinal.monomial(pl.Ordinal(1), 2).nim_add(ome
 print("  ω < ω²       :", omega < pl.Ordinal.omega_pow(pl.Ordinal(2)))
 print("  ω fuzzy ω² (as nimbers):", omega.fuzzy(pl.Ordinal.omega_pow(pl.Ordinal(2))))
 print("  2 ⊗ 2 = *3   :", pl.Ordinal(2).nim_mul(pl.Ordinal(2)))
-# nim-multiplication: implemented below ω^ω via the current DiMuro/Conway
-# degree-3 tower. The old φ_{ω+1} (<ω³) case is the first layer.
+# nim-multiplication: implemented below ω^ω via the DiMuro/Conway
+# degree-3 tower. The φ_{ω+1} (<ω³) cell is its first layer.
 print("  ω ⊗ ω        =", omega.nim_mul(omega), "  (just polynomial mult)")
 omega_sq = omega.nim_mul(omega)
 print("  ω ⊗ ω ⊗ ω    =", omega_sq.nim_mul(omega), "  (the headline: ω³ = 2)")
@@ -405,10 +409,11 @@ stair = pl.OddFiniteFieldForm(5, [1, 2, 3]).e_staircase()
 print(f"  ⟨1,2,3⟩/F5: e0={stair.e0} (dim) e1={stair.e1} (disc) e2={stair.e2:+} (Hasse), I^{stair.stabilizes_at}=0")
 # Over ℝ the tower is infinite: eₙ reads the 2-adic expansion of the signature.
 print("  ⟨1,1,1,1⟩/ℝ (sig 4): eₙ for n=0..3 =", [pl.e_real(4, n) for n in range(4)])
-print("  numeric invariants of F5:",
-      "level", pl.level(5),
-      "pythagoras", pl.pythagoras_number(5),
-      "u", pl.u_invariant(5))
+finite_numeric = pl.finite_field_numeric_invariants(3, 2)
+print("  numeric invariants of F9:", finite_numeric,
+      "level", pl.level(3, 2),
+      "pythagoras", pl.pythagoras_number(3, 2),
+      "u", pl.u_invariant(3, 2))
 print("  WittClassG constructors:",
       pl.WittClassG.char0(3, 1), pl.WittClassG.oddchar_one(5, 0) * pl.WittClassG.oddchar_zero(5, 0),
       pl.WittClassG.char2(1).arf())
@@ -425,10 +430,21 @@ print("  char-2 alternating [[0,1],[1,0]]:", pl.classify_symplectic_nimber([[0, 
 H = pl.HermitianForm.from_gram([[pl.Surcomplex(2, 0), pl.Surcomplex(0, 1)],
                                 [pl.Surcomplex(0, -1), pl.Surcomplex(2, 0)]])
 print("  Hermitian [[2,i],[-i,2]]:", H.signature(), "diagonal", H.diagonalize())
+restricted_H = pl.HermitianForm.diagonal([1, -1, 0]).restrict_scalars()
+print("  restriction to ordinary No-form:", restricted_H.dim,
+      pl.surreal_signature(restricted_H))
 print("  diagonal Hermitian ⟨1,-1,0⟩:", pl.HermitianForm.diagonal([1, -1, 0]).signature())
-finite_H = pl.FiniteHermitianForm.diagonal(3, 2, [1, 1, 0]).classify()
+finite_H_form = pl.FiniteHermitianForm.diagonal(3, 2, [1, 1, 0])
+finite_H = finite_H_form.classify()
 print("  finite Hermitian F9/F3       :", (finite_H.rank, finite_H.radical_dim,
                                            finite_H.base_field_order, finite_H.extension_field_order))
+finite_restriction = finite_H_form.restrict_scalars()
+print("  F9/F3 ordinary restriction   :", finite_restriction.dim,
+      pl.classify_finite_algebra(finite_restriction))
+char2_restriction = pl.FiniteHermitianForm.diagonal(2, 4, [1]).restrict_scalars()
+char2_restriction_class = pl.classify_finite_algebra(char2_restriction)
+print("  F16/F4 norm restriction      :", char2_restriction.dim, char2_restriction_class)
+assert char2_restriction_class.arf == 1 and char2_restriction_class.rank == 2
 print("  form Rust constructors       :",
       pl.SymplecticForm.from_gram([[0, 1], [-1, 0]]).classify().planes(),
       (lambda sig: (sig.pos, sig.neg, sig.radical))(

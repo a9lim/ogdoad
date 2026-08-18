@@ -12,13 +12,14 @@
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{corollary}[theorem]{Corollary}
 \newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem*{thmA}{Theorem A}
 \theoremstyle{definition}
 \newtheorem{definition}[theorem]{Definition}
 \theoremstyle{remark}
 \newtheorem{remark}[theorem]{Remark}
 
 \title{Finite Excess in Ordinal Nim Multiplication:\\
-Selected Order Reductions}
+Four Selected-Order Problems}
 \author{GPT 5.6 Sol \and Claude Fable 5 \and a9lim}
 \date{}
 
@@ -26,31 +27,27 @@ Selected Order Reductions}
 \maketitle
 
 \begin{abstract}
-Lenstra's description of ordinal nim multiplication attaches to each odd
-prime $p$ a finite excess $m_p$.  Available values suggest that $m_p$ is
-always $0$, $1$, or $4$, with the value determined by the component support
-of $f(p)=\operatorname{ord}_p(2)$.  The universal rule remains open.
+Lenstra's construction of ordinal nim multiplication assigns a finite excess
+$m_p$ to every odd prime $p$.  The observed values obey a simple $0/1/4$
+rule determined by the component support of
+$f(p)=\operatorname{ord}_p(2)$, but no universal proof is known.
 
-We reduce the rule to four exact multiplicative-order assertions.  The zero
-arm asks a synchronized structural norm to generate every primary component
-of a primitive-support quotient.  The ordinary singleton arm asks a marked
-cyclotomic unit to have full projective order at the unique prime over two
-selected by Conway ancestry.  The cubic arm asks a recursively selected
-Gaussian period to generate a norm-one torus.  The exceptional
-$2\cdot3^k$ arm asks an explicit corrected norm to have full primary order;
-equivalently, certain Capelli compositions are irreducible.  The reductions
-retain the full primary valuation and the selected Frobenius phase.
+We give an exact status theorem.  The rule is equivalent to four
+full-primary-order assertions for elements selected by the literal Conway
+tower: a synchronized structural norm, a marked cyclotomic unit, a Gaussian
+period in a norm-one torus, and a corrected conductor-five norm.  These are
+lossless reductions, not hypotheses, and all four universal assertions remain
+open.  The paper then isolates the arithmetic content of each coordinate.  It
+constructs the primitive-support quotient and the Conway--Fermat packet
+recursion, identifies the ordinary Artin symbol, proves the cubic Singer
+recursion and a selected-order lower bound, and gives the exceptional Capelli
+criterion and a level-dependent translate bound.  A final reciprocity theorem
+shows that Frobenius, character, and affine-holonomy transforms of one marked
+Kummer phase can only erase or re-encode that phase; they cannot evaluate it
+without an independent ancestry input.
 
-For the cubic and exceptional arms we identify exact principal-ray and
-reduced-unit obstructions.  For the singleton-even zero arm we identify a
-deterministic Conway--Fermat packet recursion and a supersingular realization;
-both expose the selected orbit without proving its order.  We also obtain an
-unconditional level-dependent bound in the exceptional column.  Generic
-trace, norm, conductor, class-number, factor-shape, or unselected reciprocity
-data do not evaluate the marked coordinate.  Lean checks the algebraic
-reductions and named finite certificates, but defines rather than proves the
-universal exceptional target.  Source-backed rows and exact finite
-calculations are stated separately from universal theorems.
+The proof record distinguishes paper theorems, kernel-checked algebra, named
+finite certificates, source-backed data, and the still-open universal rule.
 \end{abstract}
 
 \section{Introduction}
@@ -90,11 +87,29 @@ content is the primary multiplicative order of that orbit.  Computations are
 valuable for individual rows and as countermodels to overstrong lemmas, but
 they do not prove Conjecture~\ref{conj:rule}.
 
+\begin{thmA}
+The $0/1/4$ rule is equivalent to the conjunction of four selected-order
+assertions $Z,O,C,D$ stated in Theorem~\ref{thm:arms}.  Each assertion is an
+exact Euler nonpower test for one Conway-selected coordinate and retains the
+full primary valuation.  The reductions, the coordinate formulas, the
+selected Singer bound of Proposition~\ref{prop:sieve}, and the exceptional
+translate bound of Proposition~\ref{prop:d-bound} are proved here.  None of
+$Z,O,C,D$ is proved universally; consequently the $0/1/4$ rule and absolute
+boundedness of the finite excess remain open.
+\end{thmA}
+
+This theorem is the organizing spine of the paper.  The point is not to
+replace one conjecture by four opaque ones, but to remove every ambient-field
+ambiguity while preserving the one datum that coarse invariants lose: the
+Frobenius orbit selected recursively by the Conway tower.
+
 After finite-field preliminaries, Section~\ref{sec:arms} gives the four-arm
 equivalence.  Sections~\ref{sec:z}--\ref{sec:d} develop one lossless selected
-coordinate for each arm.  Section~\ref{sec:bounded} separates the stronger
-$0/1/4$ rule from absolute boundedness.  Section~\ref{sec:verification}
-states the formal and finite-evidence boundary.
+coordinate for each arm.  Section~\ref{sec:nim-reciprocity} proves the
+saturation boundary for reciprocity arguments built from one marked phase.
+Section~\ref{sec:bounded} separates the stronger $0/1/4$ rule from absolute
+boundedness, and Section~\ref{sec:verification} records the authority of every
+claim class used in the paper.
 
 \section{Finite-field preliminaries}\label{sec:prelim}
 
@@ -158,7 +173,7 @@ The norm exponent is $(2^E-1)/(2^h-1)$.  Multiply it by
 $(2^h-1)/p$ and apply Proposition~\ref{prop:power}.
 \end{proof}
 
-\section{The four exact arms}\label{sec:arms}
+\section{Exact four-arm reduction}\label{sec:arms}
 
 For $h>1$, put
 \[
@@ -237,7 +252,7 @@ Theorem~\ref{thm:arms} is an equivalence, not a proof of any of its four
 universal assertions.  None of $Z,O,C,D$ is presently known in full.
 \end{remark}
 
-\section{The zero arm}\label{sec:z}
+\section{The zero arm: structural norms and Fermat packets}\label{sec:z}
 
 \subsection{Synchronized structural norm}
 
@@ -376,16 +391,109 @@ packet examples have identical full parent order but deterministic children
 of different conductor.  Consequently any induction must use the complete
 marked orbit, not only the integer conductor.
 
-There is also a supersingular realization on the fixed curve
-$Y^2+Y=X^3$.  It identifies the selected quotient value with the ramified
-function $(Y+1)/Y$ at the recursively selected point.  The point has the
-expected Fermat annihilator, but the function value is not a Weil-pairing
-value, and torsion alone does not determine its order.  Equivalently, the
-remaining statement is exclusion of every proper-conductor packet along the
+This isolates the part not settled by the existing Conway-tower literature.
+Popovych proves lower bounds and verifies the required relative full orders
+through level eleven using the known Fermat factorizations
+\cite{popovych2018}.  Cagliero, Herman, and Szechtman prove an exact product
+formula for global order in terms of the relative orders, as well as a normal
+basis theorem for the associated tower elements
+\cite{caglierohermanszechtman2025}.  Neither result forces every relative
+factor $\delta_n$ to equal $F_n$; that all-level equality is precisely the
+remaining selected assertion here.
+
+There is an exact supersingular realization of the selected ancestry.
+
+\begin{proposition}[supersingular realization and pairing boundary]
+\label{prop:z-elliptic}
+On
+\[
+ \mathcal E:\quad y^2+y=x^3+x^2
+\]
+put $P_n=(c_n,c_{n+1})$.  Then $P_n\in\mathcal E$, and for $n\geq2$,
+\[
+ [F_n]P_n=O.
+\]
+More precisely, if $\pi$ is absolute Frobenius and $\iota=\pi+[1]$, then
+\[
+ \iota(x,y)=(x+1,y+x+1),\qquad
+ \iota^2=[-1],\qquad \pi^4=[-4].
+\]
+For $g=(y+1)/y$, one has
+\[
+ g(P_n)=\frac{c_{n+1}+1}{c_{n+1}},
+ \qquad \operatorname{ord}(g(P_n))=\delta_{n+1}.
+\]
+If $T=(0,0)$, then $T$ has order five and
+\[
+ \operatorname{div}(g)
+ =2[-T]+[2T]-2[T]-[-2T].
+\]
+Thus $g$ is the quotient of the two fixed doubling Miller functions at
+$-T$ and $T$, but it is not a Weil or reduced-Tate pairing function attached
+to the $F_n$-torsion point $P_n$ when $n\geq2$.
+\end{proposition}
+
+\begin{proof}
+The Conway recursion gives
+\[
+ c_{n+1}^2+c_{n+1}
+ =c_n(c_n^2+c_n)=c_n^3+c_n^2,
+\]
+so $P_n$ lies on $\mathcal E$.  The coordinate formula for
+$\iota(P)=\pi(P)+P$ follows from the chord law.  Applying it twice gives the
+inverse $(x,y)\mapsto(x,y+1)$, so
+$\pi^2+2\pi+2=0$ in $\operatorname{End}(\mathcal E)$ and hence
+$\pi^4=[-4]$.
+
+Put $H=2^{n+1}$.  The $2^H$-Frobenius fixes $c_n$ and sends $c_{n+1}$ to
+$c_{n+1}+1$, hence sends $P_n$ to $-P_n$.  For $n\geq2$,
+\[
+ \pi^H=(\pi^4)^{2^{n-1}}=[2^{2^n}],
+\]
+which gives $[2^{2^n}+1]P_n=O$.
+
+The formula for $g(P_n)$ is immediate from the coordinates, and its order is
+$\delta_{n+1}$ by the definition of $u_{n+1}$.  The five rational points of
+$\mathcal E/\mathbb F_2$ show that $T$ has order five.  Direct intersection
+with the two horizontal lines gives
+\[
+ \operatorname{div}(y)=2[T]+[-2T]-3[O],\qquad
+ \operatorname{div}(y+1)=2[-T]+[2T]-3[O],
+\]
+and subtraction gives the divisor of $g$.  Equivalently,
+$g=f_{2,-T}/f_{2,T}$ for functions normalized at $O$.  Its divisor is
+supported on fixed rational five-torsion, with coefficients $2,1,-2,-1$.
+For $n\geq2$, these valuations are not divisible by $F_n\geq17$, whereas the
+divisor of an $F_n$-Miller function and every $F_n$-th-power correction have
+all coefficients divisible by $F_n$.  Thus $g$ cannot be such a function
+attached to $P_n$, even modulo an $F_n$-th power.
+A Weil or reduced Tate pairing on $\mathcal E[F_n]$ takes values in
+$\mu_{F_n}$, whereas $g(P_n)$ has order dividing $F_{n+1}$.  Pairwise
+coprimality of the Fermat numbers and $\delta_{n+1}>1$ exclude equality.
+\end{proof}
+
+The proposition supplies exact CM annihilator control but not generator
+status.  For $n\geq3$, no elliptic endomorphism can carry $P_n$ to
+$P_{n-1}$: the image order would divide both coprime numbers $F_n$ and
+$F_{n-1}$, although $P_{n-1}\ne O$.  For $n=2$, the same conclusion follows
+from $\operatorname{ord}(P_1)=3$ and $\operatorname{ord}(P_2)\mid17$.
+Thus the relation
+$x(P_n)=y(P_{n-1})$ is not an isogeny division tower, and pairing functoriality
+along this proposed tower cannot propagate primitivity.  A perfect alternating
+pairing likewise guarantees some detecting partner, not nonvanishing on a
+prescribed line.
+
+The tempting cubic curve $Y^2+Y=X^3$ is not a coordinate rewrite of
+$\mathcal E$: the two curves have respectively three and five rational points
+over $\mathbb F_2$.  For $u=(Y+1)/Y$ on that auxiliary curve,
+$u/(u+1)^2=X^3$; every positive-level Fermat-torsion value is already a cube
+because $\gcd(F_n,3)=1$.  Its natural cubic Kummer class is therefore trivial
+and cannot replace the selected five-torsion function above.  The remaining
+statement is still exclusion of every proper-conductor packet along the
 complete resultant chain.  Trace, relative norm, irreducibility, and the
 etale Jacobian hold for proper packets as well as the full packet.
 
-\section{The ordinary singleton arm}\label{sec:o}
+\section{The ordinary arm: a marked cyclotomic unit}\label{sec:o}
 
 Fix an odd prime $r$, write $b=b_r$, and abbreviate
 $x_a=x_{r,a}$, $y_a=x_a+1$, and $F_a=F_{r,a}$.
@@ -459,6 +567,37 @@ field has trivial $p$-Kummer quotient.  Its norm receives no information
 about the new selected class.
 \end{proof}
 
+The selected symbol has an exact Jacobi--Fourier expansion.  Let
+$Q=|F_a|$, let $H=\langle x_a\rangle\subset F_a^\times$ have order $N_a$,
+put $M=(Q-1)/N_a$, and let $\chi$ be a complex-valued order-$p$ power
+character.  Extend complex-valued multiplicative characters by zero at zero
+and define
+\[
+ f(h)=\chi(1-h),\qquad
+ \widehat f(\theta)=\sum_{h\in H}f(h)\theta(h)^{-1}
+ \quad(\theta\in\widehat H).
+\]
+For an extension $\psi_\theta$ of $\theta$ to $F_a^\times$, and with
+$H^\perp$ the character group of $F_a^\times/H$, one has
+\[
+ \widehat f(\theta)
+ =\frac1M\sum_{\lambda\in H^\perp}
+ J(\psi_\theta^{-1}\lambda,\chi),
+ \qquad
+ f(x_a)=\frac1{N_a}\sum_{\theta\in\widehat H}
+ \theta(x_a)\widehat f(\theta).
+\]
+Indeed, the character average
+$M^{-1}\sum_{\lambda\in H^\perp}\lambda$ is the indicator of $H$;
+inserting it in the first Fourier sum gives the Jacobi sums, and Fourier
+inversion gives the second identity.  This is a fully explicit reciprocity
+formula, but the selected label survives in $\theta(x_a)$ and the Jacobi
+unit phases.  Ideal factorization or valuation formulas for the Jacobi sums
+do not by themselves determine this inverse-DFT entry.  This separation of
+the ideal and $p$-adic unit conditions is also visible in Uehara's
+cyclotomic-unit criterion \cite{uehara1985}; it supplies an exact test, not a
+uniform nonvanishing theorem for the Conway-selected entry.
+
 This residue-symbol condition is a marked Artin-symbol assertion, not a
 statement about decomposition or conductor.  Its ray character splits into
 a ramified local logarithm and an unramified ideal-class character evaluated
@@ -472,7 +611,7 @@ on it, although the literal row still has $m_{23}=1$.  Thus successful rows
 need not have a zero unramified term; the open assertion is noncancellation in
 the actual selected sum.
 
-\section{The cubic arm}\label{sec:c}
+\section{The cubic arm: a selected Singer generator}\label{sec:c}
 
 Let $h=3^k$, $\zeta_k=\kappa_{3^k}$, and
 $\gamma_k=\zeta_k+\zeta_k^{-1}$.
@@ -610,7 +749,7 @@ finite circular-unit reduction has nontrivial defect
 \cite{hoechsmann1995}.  Arm $C$ is exactly the assertion that both factors
 in the displayed index formula vanish at every level.
 
-\section{The exceptional arm}\label{sec:d}
+\section{The exceptional arm: corrected norm and Capelli}\label{sec:d}
 
 Let $h=3^k$, $q=2^h$, $\zeta=\zeta_k$, and
 $\omega=\zeta^h\in\mathbb F_4$.
@@ -760,6 +899,181 @@ subfield, while the local norm kills the exceptional torus.  Hence the two
 principal-ray factors cannot force one another through the shared prime over
 two.  Each requires its own marked unit-image calculation.
 
+Even a perfect one-dimensional Kummer--Artin pairing does not show that a
+prescribed prime has nonzero image in the Artin quotient.  The obstruction
+already occurs arithmetically.
+
+\begin{proposition}[perfect-pairing no-go]\label{prop:pairing-no-go}
+There exist a number field $K$ containing $\mu_3$, a global unit $u$ which is
+not a cube in $K$, and exactly one prime $\mathfrak q$ of $K$ above two; this
+prime splits completely in the nontrivial cyclic Kummer extension
+$K(\sqrt[3]{u})/K$.
+\end{proposition}
+
+\begin{proof}
+Take
+\[
+ K=\mathbb Q(\zeta_{12})=\mathbb Q(\zeta_3,\sqrt3),
+ \qquad u=2+\sqrt3.
+\]
+The Pell equation gives
+$\mathcal O_{\mathbb Q(\sqrt3)}^\times=\{\mathord\pm u^n:n\in\mathbb Z\}$,
+so $u$ is not a cube in the real quadratic subfield.  If $X^3-u$ acquired a
+root in its quadratic extension $K$, its cubic factorization over the real
+subfield would also have a linear factor.  Hence $u$ is not a cube in $K$,
+and adjoining a cube root gives a nontrivial cyclic cubic extension.
+
+Locally at two, $\mathbb Q_2(\zeta_3)/\mathbb Q_2$ is unramified quadratic
+and adjoining $i$ is ramified quadratic.  The two local quadratics are
+linearly disjoint, so $K\otimes\mathbb Q_2$ is a degree-four field; hence two
+has a unique prime $\mathfrak q$ in $K$.  In its residue field
+$\sqrt3\equiv1$, so $u\equiv1\pmod{\mathfrak q}$.  The polynomial $X^3-u$
+has the simple root $1$ modulo $\mathfrak q$, because its derivative at one
+is the unit $3$.  Hensel's lemma makes $u$ a cube in $K_{\mathfrak q}$; since
+$\mu_3\subset K_{\mathfrak q}$, the polynomial splits completely there and
+$\mathfrak q$ splits completely in $K(\sqrt[3]{u})$.
+\end{proof}
+
+Thus nontriviality of the Kummer line, one-dimensionality of its dual, and
+even uniqueness of the prime above two are compatible with zero marked
+pairing.  In the four arms, perfect duality reduces the target to
+nonvanishing of the Conway-selected prime class; it does not prove that
+nonvanishing.
+
+\section{Nim reciprocity saturation and marked holonomy}
+\label{sec:nim-reciprocity}
+
+The residue-symbol reductions suggest using reciprocity to evaluate the
+remaining phase.  There is a precise saturation boundary for that program.
+Let $\ell$ be an odd prime, let $s\in\mu_\ell$, and put
+$E=\operatorname{ord}_\ell(2)$.  The two-axis Frobenius--cyclotomic family
+is $s_{j,c}=s^{2^j c}$ for $0\leq j<E$ and
+$c\in\mathbb F_\ell^\times$.
+
+\begin{proposition}[reciprocity saturation]\label{prop:reciprocity-saturation}
+The following statements hold.
+\begin{enumerate}
+\item Every multiplicative word in the $s_{j,c}$ is $s^\lambda$, where
+\[
+ \lambda=\sum_{j,c}w_{j,c}2^jc\pmod\ell.
+\]
+It is blind when $\lambda=0$ and, when $\lambda\ne0$, equals one exactly when
+the original marked phase equals one.
+\item For multiplicative characters $\chi,\psi$ of a finite field and
+$a\ne0$, the Jacobi convolution
+\[
+ J_{\chi,\psi}(a)=\sum_x\chi(x)\psi(a-x)
+\]
+satisfies
+\[
+ J_{\chi,\psi}(a)=\chi(a)\psi(a)J_{\chi,\psi}(1).
+\]
+In particular, if both characters are powers of one order-$\ell$ character,
+the marked dependence is again one power of the same phase.
+\item In the affine group on $\mathbb F_\ell$, write $(t,q)$, with
+$q\in\mathbb F_\ell^\times$, for the map $x\mapsto qx+t$.  If $q\ne1$, all
+$(t,q)$ are conjugate.  Consequently every class function is independent of
+$t$.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+The first statement follows by collecting exponents.  For the second,
+substitute $x=ay$ and factor $\chi(a)\psi(a)$ from every summand.  For the
+third, conjugation by the translation $x\mapsto x+a$ changes $t$ to
+$t+(1-q)a$; taking $a=t/(q-1)$ makes this zero.
+\end{proof}
+
+Thus norm products, weighted Stickelberger words, and Gauss or Jacobi
+transforms either erase or re-encode one phase.  A class function on the
+single fixed-multiplier affine coset is blinder still: it forgets the
+translation coordinate in part~3.  None of these operations independently
+evaluates the selected phase.
+
+Ordinary cross-arm multiplicative words face the same boundary.  If a strict
+ancestor lies in a field $\mathbb F_{2^d}$ with $f(\ell)\nmid d$, exactness
+of the residue degree gives
+$\ell\nmid2^d-1$; the $\ell$-power map is therefore an automorphism on that
+ancestor group and its $\ell$-Kummer image is trivial.  Thus every cross-arm
+word built from strict lower-level coordinates in such degrees separates its
+coprime-primary torsion.  Nor does the next $\ell$-component give an induction:
+its defining radicand is
+$\alpha_\ell=\kappa_{f(\ell)}+m_\ell$, so irreducibility proves only that the
+actual winning translate is a non-$\ell$-th power.  Using that fact to identify
+$m_\ell$ with the conjectural $0$, $1$, or $4$ would already assume the target.
+
+The intrinsic coordinate is a full Frobenius-orbit holonomy, not a one-step
+affine translation.  Let $\beta\in\mathbb F_{2^E}^\times$ be the selected
+element, put $s=\beta^{(2^E-1)/\ell}$, choose $\alpha^\ell=\beta$ in an
+algebraic closure, fix a primitive $\zeta\in\mu_\ell$, and let
+$\varphi(z)=z^2$.  Then
+\[
+ \frac{\varphi^E(\alpha)}{\alpha}
+ =\alpha^{2^E-1}
+ =\beta^{(2^E-1)/\ell}=s.
+\]
+This ratio is unchanged when $\alpha$ is replaced by $\zeta^a\alpha$,
+because $\varphi^E$ fixes $\mu_\ell$.  If $s=\zeta^T$, the $E$-step action
+on the labeled roots is the pure translation $e_x\mapsto e_{x+T}$.  Hence on
+the Fourier lines
+\[
+ v_r=\sum_x\zeta^{-rx}e_x,
+ \qquad \varphi^E(v_r)=\zeta^{rT}v_r.
+\]
+The diagonal eigenvalue at $r=1$ is exactly the selected Kummer--Artin
+symbol.
+
+Equivalently, choose a root frame over each conjugate
+$\beta_j=\beta^{2^j}$ and write the one-step maps as
+$e_{j,x}\mapsto e_{j+1,2x+t_j}$.  Their cyclic holonomy is
+\[
+ T=\sum_{j=0}^{E-1}2^{E-1-j}t_j\pmod\ell.
+\]
+Changing frames by $\alpha_j\mapsto\zeta^{a_j}\alpha_j$ sends
+$t_j$ to $t_j+2a_j-a_{j+1}$; with $a_E=a_0$, these changes telescope because
+$2^E=1$ modulo $\ell$.  Thus $T$ is intrinsic, while the individual
+off-diagonal coefficients
+\[
+ \rho(t_j,2)v_r=\zeta^{r2^{-1}t_j}v_{r2^{-1}}
+\]
+are gauge-dependent.  Every proper edge can be normalized away recursively,
+but a closed gauge cannot erase the cyclic holonomy: all but one edge may be
+made trivial, with the remaining edge carrying $T$.
+
+This also explains the cocycle no-go.  A homomorphic splitting on a
+commutative multiplier subgroup obeys
+$t(qr)=t(q)+q t(r)$.  Fixing $q_0\ne1$ and comparing
+$t(qq_0)$ with $t(q_0q)$ gives
+\[
+ t(q)=(1-q)a,
+ \qquad a=\frac{t(q_0)}{1-q_0}.
+\]
+Every such cocycle is a coboundary and has trivial full-period transfer.
+Powers of one affine lift give this law on the subgroup generated by its
+multiplier.  A general labeled section has a factor set, but changing root
+frames changes that factor set by a coboundary; only its cyclic holonomy is
+gauge-invariant.
+
+Affine ancestry between two such torsor paths cannot create a missing phase.
+If the vertex maps are $x\mapsto\lambda x+b_j$, then the target translations
+have the form
+\[
+ u_j=\lambda t_j+b_{j+1}-2b_j,
+\]
+and the path holonomies satisfy
+\[
+ U_n=\lambda T_n+b_n-2^n b_0.
+\]
+On a closed $E$-cycle the endpoint term telescopes, so $U=\lambda T$.
+Consequently an affine recursion from a strict ancestor with trivial
+$\ell$-holonomy cannot prove a nonzero current phase; a successful relation
+must contain a genuinely non-affine or independently nonzero closing source.
+
+A successful nim-reciprocity proof must therefore retain and independently
+evaluate the marked holonomy $T$, equivalently $s$, along the literal Conway
+ancestry.  Constructing the holonomy from the selected phase is an exact
+reformulation, not yet its evaluation.
+
 \section{Boundedness and the remaining theorem}\label{sec:bounded}
 
 Lenstra asked whether the finite excesses are absolutely bounded
@@ -808,81 +1122,91 @@ Each is now one-dimensional and ancestry-sensitive.  Degree, trace, norm,
 conductor, factor parity, or a statement about generic ambient points does
 not decide it.
 
-\section{Formal verification and finite evidence}\label{sec:verification}
+\section{Authority and verification}\label{sec:verification}
 
-The formal development uses Lean~4 \cite{demouraullrich2021} and Mathlib
-\cite{mathlib2020}.  It checks the algebraic content summarized in
-Table~\ref{tab:formal}.
+The claims in this paper have five distinct sources.  Table~\ref{tab:status}
+is part of the theorem statement: in particular, a finite calculation or a
+Lean definition of a target is never used as evidence for a universal claim.
 
 \begin{table}[ht]
 \centering
 \small
-\begin{tabular}{p{0.25\textwidth}p{0.65\textwidth}}
+\begin{tabular}{p{0.19\textwidth}p{0.72\textwidth}}
 \hline
-Formal group & Kernel-checked content \\
+Status & Content \\
 \hline
-Kummer interface & First-nonpower characterization, cyclic-group and
-finite-field power tests with full primary valuation, quotient order, and
-norm transport. \\
-Four-arm algebra & Corrected exceptional norm, toric and Dickson
-semiconjugacies, selected cubic recurrence, cubical $Z/D$ identities, and
-$C/D$ orthogonality. \\
-Singleton-even boundary & Packet substitutions and norms, child-image
-equation, ancestry derivative, Dickson--Lucas tangency factorization, and the
-distinction between Conway and Wiedemann Laurent recursions. \\
-Finite certificates & Recorded primality, factor, order, modular
-Stickelberger, and selected binary Artin-phase calculations supplied to the
-formal checker. \\
+Cited input & Conway--Lenstra tower formulas, standard finite-field and
+Capelli theory, and the cited cyclotomic, class-field, function-field, and
+order results.  These are not reproved in Lean. \\
+Proved here & The four-arm equivalence; the exact selected coordinates and
+order criteria; the primitive-support, packet, supersingular, Singer,
+corrected-norm, ray-index, boundedness, and reciprocity-saturation results
+stated above. \\
+Kernel-checked & The algebraic Kummer interface, full-primary power tests,
+selected cubic and exceptional identities, cubical reductions, packet and
+Fibonacci identities, marked-holonomy calculus, and the named finite
+arithmetic certificates. \\
+Finite evidence & Source-backed rows, exact named-row certificates, and
+explicit countermodels to overstrong intermediate lemmas.  These establish
+only their stated finite instances. \\
+Open & The universal assertions $Z,O,C,D$, Conjecture~\ref{conj:rule}, and
+absolute boundedness of $m_p$. \\
 \hline
 \end{tabular}
-\caption{Lean-checked content relevant to the excess reduction.}
-\label{tab:formal}
+\caption{Claim authority for the finite-excess paper.}
+\label{tab:status}
 \end{table}
 
-The identifier \texttt{DPrimeTarget} defines the universal assertion $D$.
-It is neither assumed nor proved.  The formalization proves ingredients of
-Theorem~\ref{thm:arms}; it does not contain an end-to-end proof of
-Conjecture~\ref{conj:rule}.  Supplied finite coefficients and factorizations
-are checked as data, not derived from their external number-theoretic sources.
+The Lean~4 \cite{demouraullrich2021} development is exposed by the import-only
+entry point
+\texttt{Ogdoad.Papers.}\allowbreak\texttt{Excess} and uses Mathlib
+\cite{mathlib2020}.  Its certificate namespaces share the single evaluator
+\texttt{Ogdoad.Certificate.}\allowbreak\texttt{BinaryPolynomial}; the
+moduli, field elements, and propositions remain local to the certificate they
+identify.  The identifier \texttt{DPrimeTarget}, like the analogous selected
+targets, merely defines an open proposition.  It is neither an axiom nor a
+theorem.  The formalization therefore verifies ingredients of
+Theorem~\ref{thm:arms}, not an end-to-end proof of
+Conjecture~\ref{conj:rule}.
 
-The finite evidence has the following status.
+The maintained finite record is as follows.
 \begin{itemize}
 \item The $126$ values for odd primes $3\leq p\leq709$ are source-backed by
-      OEIS A380496 \cite{oeisA380496}.  They are tabulated data, not a
-      universal theorem.
+      OEIS A380496 \cite{oeisA380496}; they are data, not an induction.
 \item The rows $m_{359}=m_{719}=m_{727}=1$ have separate exact local
       finite-field certificates.
 \item In the cubic arm, $C_1,C_2,C_3$ have exact order proofs and
-      $C_4,C_5$ have complete finite certificates.  $C_6$ retains a
+      $C_4,C_5$ have complete finite certificates; $C_6$ retains a
       source-assisted factorization boundary.
 \item In the exceptional arm, $D'_2,D'_3$ follow analytically and
-      $D'_4,D'_5$ have complete finite certificates.  $D'_6$ retains a
+      $D'_4,D'_5$ have complete finite certificates; $D'_6$ retains a
       source-assisted primality boundary.
 \item Two-block tensor arguments prove the multicomponent zero arm at
-      $h=12,15,24,36,40$.  These are theorem-level finite cases, not a
-      universal generation result.
+      $h=12,15,24,36,40$.  They are theorem-level finite cases, not a
+      universal generation theorem.
 \end{itemize}
 
-Exact finite screens also provide countermodels to claims based only on
-trace, norm, factor shape, conductor, or unselected Kummer data.  Such a
-countermodel eliminates a proof route; it is not a counterexample to
-Conjecture~\ref{conj:rule} unless it lies on the literal Conway ancestry.
+An explicit countermodel in a non-Conway field can refute a proposed proof
+from trace, norm, conductor, or factor shape.  It is not a counterexample to
+the $0/1/4$ rule unless it occurs on the literal recursively selected Conway
+ancestry.
 
 \section{Conclusion}
 
-The finite excess problem has a precise candidate and a precise proof
-boundary.  The $0/1/4$ rule is equivalent to four universal selected-order
-assertions.  In each arm the ambient field theory has been reduced to one
-marked Kummer coordinate, with the full primary valuation retained.
+The finite-excess problem is now four exact selected-order problems.  The
+zero arm needs a synchronized primitive-support coordinate, the ordinary arm
+one Artin symbol on the Conway-selected inert ray, and the cubic and
+exceptional arms the faithful finite reductions of two marked units.  Every
+reduction retains the full primary valuation; none replaces the selected
+coordinate by a generic element of the same field.
 
-The reductions also explain why the conjecture resists coarse invariants.
-The zero arm needs the synchronized rather than componentwise phase; the
-ordinary arm needs one Artin symbol on the Conway-selected inert ray; the
-cubic and exceptional arms need the faithful finite reduction of a marked
-unit, including its principal-ray factor.  Generic structure reconstructs
-these coordinates but does not force their nonvanishing.  Until all four
-selected assertions are proved, both Conjecture~\ref{conj:rule} and absolute
-boundedness remain open.
+This is also the obstruction to the presently available proof routes.
+Trace, norm, conductor, class group, and reciprocity packages can reconstruct
+or transport the marked phase, but the saturation theorem shows that
+homogeneous transforms of that same phase do not evaluate it.  A proof of the
+$0/1/4$ rule must add an ancestry identity with independent arithmetic
+content.  Until that identity closes all four arms, both the rule and
+absolute boundedness remain open.
 
 \bibliographystyle{plain}
 \bibliography{excess}

@@ -32,8 +32,6 @@ open Ogdoad.Fifo
 set_option linter.unusedSectionVars false
 set_option linter.unusedSimpArgs false
 
-abbrev F2 := ZMod 2
-
 variable {V J : Type*} [AddCommGroup V] [Module F2 V]
   [FiniteDimensional F2 V] [Fintype J] [LinearOrder J]
 
@@ -104,7 +102,7 @@ theorem diagonalSource_eq_support_sum (Q : QuadraticForm F2 V)
   apply Finset.sum_congr rfl
   intro j hj
   have hne : b.repr x j ≠ 0 := Finsupp.mem_support_iff.mp hj
-  have hone : b.repr x j = 1 := Ogdoad.Fifo.zmod2_eq_one_of_ne_zero _ hne
+  have hone : b.repr x j = 1 := Ogdoad.zmod2_eq_one_of_ne_zero _ hne
   simp [hone]
 
 /-- Two refinements with the same polar form differ by exactly their public
@@ -328,7 +326,7 @@ def chargeBool (z : F2) : Bool := decide (z = 1)
 theorem chargeBool_eq_false_iff (z : F2) : chargeBool z = false ↔ z = 0 := by
   by_cases hz : z = 1
   · simp [chargeBool, hz]
-  · have : z = 0 := Ogdoad.Fifo.zmod2_eq_zero_of_ne_one z hz
+  · have : z = 0 := Ogdoad.zmod2_eq_zero_of_ne_one z hz
     simp [chargeBool, this]
 
 /-- Deferred compiler endpoint.  The types, frame, loading, public matching,
@@ -548,7 +546,7 @@ theorem sourceCharge_eq_ordered_edges (Q : QuadraticForm F2 V) (original : Basis
       simp_rw [Fin.sum_univ_two]
       by_cases hQ : Q (original i) = 1
       · simp [hQ]
-      · have hzero := Ogdoad.Fifo.zmod2_eq_zero_of_ne_one _ hQ
+      · have hzero := Ogdoad.zmod2_eq_zero_of_ne_one _ hQ
         simp [hQ, hzero]
 
 set_option maxHeartbeats 800000 in
