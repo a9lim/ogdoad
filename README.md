@@ -139,9 +139,10 @@ The papers under `writeups/` form one current research suite:
 | `misere_natural_realization.tex` | exact octal trace calculus, finite-exception heap normal form, realization of every tame finite quotient, and exact misere Grundy quotients through heap 18 |
 
 The unresolved universal claims and their sharp proof boundaries are in
-[`docs/OPEN.md`](docs/OPEN.md). Lean checks named ingredients and several
-end-to-end finite constructions, not the open propositions; see
-[`formal/README.md`](formal/README.md).
+[`docs/OPEN.md`](docs/OPEN.md). Lean checks named algebraic components and
+end-to-end finite constructions including the literal Gold--Arf root; cited
+bridges and the open propositions remain outside that boundary. See
+[`formal/README.md`](formal/README.md) for the theorem map.
 
 ## Verification
 

@@ -14,12 +14,9 @@ permissions:
   contents: read
 
 jobs:
-  # The gate. Reads the version from Cargo.toml (the source of truth — pyproject
-  # and the maturin build inherit it) and decides whether there is anything to
-  # ship. The pipeline is DORMANT while the version is the 0.0.0 placeholder;
-  # bumping the version is what arms it. Each publish target is also probed
-  # independently so a partial-failure run resumes cleanly: a step is skipped
-  # only when its own artifact already exists, never gated on a sibling.
+  # The gate. Cargo.toml is the version source of truth; pyproject and maturin
+  # inherit it. Each publish target is probed independently so a partial-failure
+  # run can resume without republishing a completed sibling artifact.
   guard:
     runs-on: ubuntu-latest
     outputs:
@@ -43,12 +40,8 @@ jobs:
           VERSION: ${{ steps.v.outputs.version }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Dormant until the version is bumped off the 0.0.0 placeholder; after
-          # that, the git tag is the completion marker — an existing tag means a
-          # version was fully shipped and there is nothing to do.
-          if [ "$VERSION" = "0.0.0" ]; then
-            echo "should_release=false" >> "$GITHUB_OUTPUT"
-          elif git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
+          # The git tag is the completion marker for the current version.
+          if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
             echo "should_release=false" >> "$GITHUB_OUTPUT"
           else
             echo "should_release=true" >> "$GITHUB_OUTPUT"

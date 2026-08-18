@@ -261,8 +261,8 @@ print("  ω·2 ⊕ ω      =", pl.Ordinal.monomial(pl.Ordinal(1), 2).nim_add(ome
 print("  ω < ω²       :", omega < pl.Ordinal.omega_pow(pl.Ordinal(2)))
 print("  ω fuzzy ω² (as nimbers):", omega.fuzzy(pl.Ordinal.omega_pow(pl.Ordinal(2))))
 print("  2 ⊗ 2 = *3   :", pl.Ordinal(2).nim_mul(pl.Ordinal(2)))
-# nim-multiplication: implemented below ω^ω via the current DiMuro/Conway
-# degree-3 tower. The old φ_{ω+1} (<ω³) case is the first layer.
+# nim-multiplication: implemented below ω^ω via the DiMuro/Conway
+# degree-3 tower. The φ_{ω+1} (<ω³) cell is its first layer.
 print("  ω ⊗ ω        =", omega.nim_mul(omega), "  (just polynomial mult)")
 omega_sq = omega.nim_mul(omega)
 print("  ω ⊗ ω ⊗ ω    =", omega_sq.nim_mul(omega), "  (the headline: ω³ = 2)")

@@ -334,7 +334,7 @@ fn continue_semi_orthogonal_basis<S: FiniteChar2Field>(
             &candidate[0].coordinates,
         );
     }
-    let mut rest = semi_orthogonal_basis(gram, candidate[1..].to_vec(), clear_first_argument)?;
+    let mut rest = semi_orthogonal_basis(gram, &candidate[1..], clear_first_argument)?;
     let mut result = vec![candidate[0].clone()];
     result.append(&mut rest);
     Some(result)
@@ -342,7 +342,7 @@ fn continue_semi_orthogonal_basis<S: FiniteChar2Field>(
 
 fn semi_orthogonal_basis<S: FiniteChar2Field>(
     gram: &[Vec<S>],
-    basis: Vec<WallVector<S>>,
+    basis: &[WallVector<S>],
     clear_first_argument: bool,
 ) -> Option<Vec<WallVector<S>>> {
     if basis.is_empty() {
@@ -352,7 +352,7 @@ fn semi_orthogonal_basis<S: FiniteChar2Field>(
         if !coordinate_bilinear(gram, &basis[i].coordinates, &basis[i].coordinates).is_zero() {
             if let Some(result) = continue_semi_orthogonal_basis(
                 gram,
-                &basis,
+                basis,
                 i,
                 basis[i].clone(),
                 clear_first_argument,
@@ -377,7 +377,7 @@ fn semi_orthogonal_basis<S: FiniteChar2Field>(
                     continue;
                 }
                 if let Some(result) =
-                    continue_semi_orthogonal_basis(gram, &basis, i, pivot, clear_first_argument)
+                    continue_semi_orthogonal_basis(gram, basis, i, pivot, clear_first_argument)
                 {
                     return Some(result);
                 }
@@ -403,7 +403,7 @@ fn semi_orthogonal_basis<S: FiniteChar2Field>(
                         continue;
                     }
                     if let Some(result) =
-                        continue_semi_orthogonal_basis(gram, &basis, i, pivot, clear_first_argument)
+                        continue_semi_orthogonal_basis(gram, basis, i, pivot, clear_first_argument)
                     {
                         return Some(result);
                     }
@@ -442,8 +442,8 @@ fn factor_nonalternating_wall<S: FiniteChar2Field>(
                 .collect(),
         })
         .collect();
-    semi_orthogonal_basis(&gram, wall_basis.clone(), true)
-        .or_else(|| semi_orthogonal_basis(&gram, wall_basis, false))
+    semi_orthogonal_basis(&gram, &wall_basis, true)
+        .or_else(|| semi_orthogonal_basis(&gram, &wall_basis, false))
         .map(|vectors| vectors.into_iter().map(|vector| vector.ambient).collect())
 }
 

@@ -291,10 +291,9 @@ impl<S: ResidueField, const E: usize> ResidueField for Ramified<S, E> {
 
     fn residue(&self) -> Option<Self::Residue> {
         match self.valuation() {
-            None => Some(S::Residue::zero()),
             Some(v) if v < 0 => None,
             Some(0) => self.residue_unit(),
-            Some(_) => Some(S::Residue::zero()),
+            None | Some(_) => Some(S::Residue::zero()),
         }
     }
 

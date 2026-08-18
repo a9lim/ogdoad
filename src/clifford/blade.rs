@@ -159,10 +159,9 @@ pub fn blade_subspace<S: Scalar>(
 /// mixed-grade multivectors are not blades.
 pub fn is_blade<S: Scalar>(alg: &CliffordAlgebra<S>, a: &Multivector<S>) -> bool {
     match homogeneous_grade(a) {
-        None => false,
         Some(0) => true,
         Some(k) if k <= alg.dim() => plucker_relations_hold(alg, a, k),
-        Some(_) => false,
+        None | Some(_) => false,
     }
 }
 

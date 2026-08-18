@@ -8,6 +8,12 @@ pub(crate) enum ExpectedSort {
     Known(DataSort),
 }
 
+#[derive(Clone, Copy)]
+enum StaticBindingSort {
+    Data(DataSort),
+    Function(DataSort),
+}
+
 pub(crate) fn check_binders(
     binders: &[String],
     is_world_shadow: impl Fn(&str) -> bool,
@@ -93,20 +99,15 @@ pub(crate) fn infer_expr_sort(
             }
         }
         Expr::Call { name, args } => match name.as_str() {
-            "nleft" | "nright" | "birthday" => {
+            "nleft" | "nright" | "birthday" | "deg" => {
                 expect_arity(name, args, 1)?;
                 infer_expr_sort(&args[0], ExpectedSort::Known(DataSort::Element), binders)?;
                 expect_sort(DataSort::Index, expected)
             }
-            "left" | "right" => {
+            "left" | "right" | "coef" | "grade" => {
                 expect_arity(name, args, 2)?;
                 infer_expr_sort(&args[0], ExpectedSort::Known(DataSort::Element), binders)?;
                 infer_expr_sort(&args[1], ExpectedSort::Known(DataSort::Index), binders)?;
-                expect_sort(DataSort::Element, expected)
-            }
-            "canon" => {
-                expect_arity(name, args, 1)?;
-                infer_expr_sort(&args[0], ExpectedSort::Known(DataSort::Element), binders)?;
                 expect_sort(DataSort::Element, expected)
             }
             "up" | "down" | "dim" => Err(literal_call_error(name)),
@@ -117,24 +118,7 @@ pub(crate) fn infer_expr_sort(
             }
             "drawn" => Err(function_replacement_error("drawn", "hasdraw")),
             "outcome" | "winner" | "who" => Err(outcome_name_error(name)),
-            "coef" => {
-                expect_arity(name, args, 2)?;
-                infer_expr_sort(&args[0], ExpectedSort::Known(DataSort::Element), binders)?;
-                infer_expr_sort(&args[1], ExpectedSort::Known(DataSort::Index), binders)?;
-                expect_sort(DataSort::Element, expected)
-            }
-            "deg" => {
-                expect_arity(name, args, 1)?;
-                infer_expr_sort(&args[0], ExpectedSort::Known(DataSort::Element), binders)?;
-                expect_sort(DataSort::Index, expected)
-            }
-            "grade" => {
-                expect_arity(name, args, 2)?;
-                infer_expr_sort(&args[0], ExpectedSort::Known(DataSort::Element), binders)?;
-                infer_expr_sort(&args[1], ExpectedSort::Known(DataSort::Index), binders)?;
-                expect_sort(DataSort::Element, expected)
-            }
-            "rev" | "even" | "dual" | "frob" => {
+            "canon" | "rev" | "even" | "dual" | "frob" => {
                 expect_arity(name, args, 1)?;
                 infer_expr_sort(&args[0], ExpectedSort::Known(DataSort::Element), binders)?;
                 expect_sort(DataSort::Element, expected)
@@ -388,26 +372,49 @@ pub(crate) fn static_sort<E>(
     env: &BTreeMap<String, Value<E>>,
     deg_is_index: bool,
 ) -> GrundyResult<DataSort> {
+    let bindings = env
+        .iter()
+        .map(|(name, value)| {
+            let sort = match value {
+                Value::Element(_) => StaticBindingSort::Data(DataSort::Element),
+                Value::Index(_) => StaticBindingSort::Data(DataSort::Index),
+                Value::Bool(_) => StaticBindingSort::Data(DataSort::Bool),
+                Value::Function(function) => StaticBindingSort::Function(function.ret),
+            };
+            (name.clone(), sort)
+        })
+        .collect();
+    static_sort_with_bindings(expr, &bindings, deg_is_index)
+}
+
+fn static_sort_with_bindings(
+    expr: &Expr,
+    env: &BTreeMap<String, StaticBindingSort>,
+    deg_is_index: bool,
+) -> GrundyResult<DataSort> {
     match expr {
-        Expr::Bool(_) | Expr::Relation { .. } => Ok(DataSort::Bool),
+        Expr::Bool(_)
+        | Expr::Relation { .. }
+        | Expr::Unary {
+            op: UnaryOp::Not, ..
+        }
+        | Expr::Binary {
+            op: BinaryOp::And | BinaryOp::Or,
+            ..
+        } => Ok(DataSort::Bool),
         Expr::Index(_) | Expr::Dim => Ok(DataSort::Index),
         Expr::Lambda { .. } => Err(fn_sort_error()),
         Expr::Block { bindings, body } => {
-            let mut local_sorts = env
-                .iter()
-                .map(|(name, value)| env_sort(value).map(|sort| (name.clone(), sort)))
-                .collect::<GrundyResult<BTreeMap<_, _>>>()?;
+            let mut local = env.clone();
             for binding in bindings {
-                let sort = static_sort_with_sorts(&binding.expr, &local_sorts, deg_is_index)?;
-                local_sorts.insert(binding.name.clone(), sort);
+                let sort = static_sort_with_bindings(&binding.expr, &local, deg_is_index)?;
+                local.insert(binding.name.clone(), StaticBindingSort::Data(sort));
             }
-            static_sort_with_sorts(body, &local_sorts, deg_is_index)
+            static_sort_with_bindings(body, &local, deg_is_index)
         }
         Expr::Ident(name) => match env.get(name) {
-            Some(Value::Element(_)) => Ok(DataSort::Element),
-            Some(Value::Index(_)) => Ok(DataSort::Index),
-            Some(Value::Bool(_)) => Ok(DataSort::Bool),
-            Some(Value::Function(_)) => Err(fn_sort_error()),
+            Some(StaticBindingSort::Data(sort)) => Ok(*sort),
+            Some(StaticBindingSort::Function(_)) => Err(fn_sort_error()),
             None => Ok(DataSort::Element),
         },
         Expr::Call { name, .. }
@@ -419,28 +426,23 @@ pub(crate) fn static_sort<E>(
         Expr::Call { name, .. } if matches!(name.as_str(), "hasdraw" | "stopper" | "integral") => {
             Ok(DataSort::Bool)
         }
-        Expr::Unary {
-            op: UnaryOp::Not, ..
-        } => Ok(DataSort::Bool),
-        Expr::Unary { expr, .. } => static_sort(expr, env, deg_is_index),
+        Expr::Unary { expr, .. } => static_sort_with_bindings(expr, env, deg_is_index),
         Expr::Apply { callee, .. } => match &**callee {
             Expr::Ident(name) => match env.get(name) {
-                Some(Value::Function(function)) => Ok(function.ret),
+                Some(StaticBindingSort::Function(ret)) => Ok(*ret),
                 _ => Ok(DataSort::Element),
             },
             _ => Ok(DataSort::Element),
         },
         Expr::Binary {
-            op: BinaryOp::And | BinaryOp::Or,
-            ..
-        } => Ok(DataSort::Bool),
-        Expr::Binary {
             op: BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul | BinaryOp::Pow,
             lhs,
             rhs,
         } => {
-            let lhs = static_sort(lhs, env, deg_is_index).unwrap_or(DataSort::Element);
-            let rhs = static_sort(rhs, env, deg_is_index).unwrap_or(DataSort::Element);
+            let lhs =
+                static_sort_with_bindings(lhs, env, deg_is_index).unwrap_or(DataSort::Element);
+            let rhs =
+                static_sort_with_bindings(rhs, env, deg_is_index).unwrap_or(DataSort::Element);
             if lhs == DataSort::Bool || rhs == DataSort::Bool {
                 Ok(DataSort::Bool)
             } else if lhs == DataSort::Index || rhs == DataSort::Index {
@@ -454,75 +456,8 @@ pub(crate) fn static_sort<E>(
             else_expr,
             ..
         } => {
-            let then_sort = static_sort(then_expr, env, deg_is_index)?;
-            let else_sort = static_sort(else_expr, env, deg_is_index)?;
-            if then_sort == else_sort {
-                Ok(then_sort)
-            } else {
-                Err(sort_mismatch(then_sort, else_sort))
-            }
-        }
-        _ => Ok(DataSort::Element),
-    }
-}
-
-pub(crate) fn static_sort_with_sorts(
-    expr: &Expr,
-    env: &BTreeMap<String, DataSort>,
-    deg_is_index: bool,
-) -> GrundyResult<DataSort> {
-    match expr {
-        Expr::Bool(_) | Expr::Relation { .. } => Ok(DataSort::Bool),
-        Expr::Index(_) | Expr::Dim => Ok(DataSort::Index),
-        Expr::Lambda { .. } => Err(fn_sort_error()),
-        Expr::Block { bindings, body } => {
-            let mut local = env.clone();
-            for binding in bindings {
-                let sort = static_sort_with_sorts(&binding.expr, &local, deg_is_index)?;
-                local.insert(binding.name.clone(), sort);
-            }
-            static_sort_with_sorts(body, &local, deg_is_index)
-        }
-        Expr::Ident(name) => Ok(env.get(name).copied().unwrap_or(DataSort::Element)),
-        Expr::Call { name, .. }
-            if matches!(name.as_str(), "dim" | "nleft" | "nright" | "birthday")
-                || (deg_is_index && name == "deg") =>
-        {
-            Ok(DataSort::Index)
-        }
-        Expr::Call { name, .. } if matches!(name.as_str(), "hasdraw" | "stopper" | "integral") => {
-            Ok(DataSort::Bool)
-        }
-        Expr::Unary {
-            op: UnaryOp::Not, ..
-        } => Ok(DataSort::Bool),
-        Expr::Unary { expr, .. } => static_sort_with_sorts(expr, env, deg_is_index),
-        Expr::Binary {
-            op: BinaryOp::And | BinaryOp::Or,
-            ..
-        } => Ok(DataSort::Bool),
-        Expr::Binary {
-            op: BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul | BinaryOp::Pow,
-            lhs,
-            rhs,
-        } => {
-            let lhs = static_sort_with_sorts(lhs, env, deg_is_index).unwrap_or(DataSort::Element);
-            let rhs = static_sort_with_sorts(rhs, env, deg_is_index).unwrap_or(DataSort::Element);
-            if lhs == DataSort::Bool || rhs == DataSort::Bool {
-                Ok(DataSort::Bool)
-            } else if lhs == DataSort::Index || rhs == DataSort::Index {
-                Ok(DataSort::Index)
-            } else {
-                Ok(DataSort::Element)
-            }
-        }
-        Expr::If {
-            then_expr,
-            else_expr,
-            ..
-        } => {
-            let then_sort = static_sort_with_sorts(then_expr, env, deg_is_index)?;
-            let else_sort = static_sort_with_sorts(else_expr, env, deg_is_index)?;
+            let then_sort = static_sort_with_bindings(then_expr, env, deg_is_index)?;
+            let else_sort = static_sort_with_bindings(else_expr, env, deg_is_index)?;
             if then_sort == else_sort {
                 Ok(then_sort)
             } else {

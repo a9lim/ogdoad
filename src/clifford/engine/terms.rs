@@ -25,16 +25,16 @@ pub(super) fn scale<S: Scalar>(mut terms: BTreeMap<u128, S>, s: &S) -> BTreeMap<
 /// Folds `other` into `into`, preserving the no-stored-zero invariant.
 pub(crate) fn merge<S: Scalar>(into: &mut BTreeMap<u128, S>, other: BTreeMap<u128, S>) {
     for (blade, coeff) in other {
-        add_term(into, blade, coeff);
+        add_term(into, blade, &coeff);
     }
 }
 
 /// Insert `coeff` for `blade` into `out`, adding to any existing coefficient.
 /// If the result is zero it is removed, preserving the "zeros never stored"
 /// invariant.
-pub(crate) fn add_term<S: Scalar>(out: &mut BTreeMap<u128, S>, blade: u128, coeff: S) {
+pub(crate) fn add_term<S: Scalar>(out: &mut BTreeMap<u128, S>, blade: u128, coeff: &S) {
     let e = out.entry(blade).or_insert_with(S::zero);
-    *e = e.add(&coeff);
+    *e = e.add(coeff);
     if e.is_zero() {
         out.remove(&blade);
     }
@@ -55,7 +55,7 @@ pub(super) fn wedge_terms<S: Scalar>(
             }
             let coeff = ca.mul(cb).mul(&wedge_sign::<S>(ba, bb));
             if !coeff.is_zero() {
-                add_term(&mut out, ba | bb, coeff);
+                add_term(&mut out, ba | bb, &coeff);
             }
         }
     }

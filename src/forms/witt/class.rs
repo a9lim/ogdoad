@@ -124,7 +124,7 @@ impl WittClass {
     }
 
     /// Deprecated alias for [`zero_f2`](Self::zero_f2).
-    #[deprecated(since = "0.0.0", note = "use zero_f2() for clarity")]
+    #[deprecated(since = "1.0.0", note = "use zero_f2() for clarity")]
     pub fn zero() -> Self {
         Self::zero_f2()
     }

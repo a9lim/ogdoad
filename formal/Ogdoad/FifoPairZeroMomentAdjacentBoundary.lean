@@ -692,9 +692,9 @@ theorem zeroPairDummyStar_response_modes :
       all_goals decide
   · rfl
 
-/-- The dummy repairs the formerly losing two-CLOSE branch by leaving an
-even four-vertex residual root containing the dummy.  On the star without
-the dummy, the same word leaves an odd three-vertex residual root and is
+/-- The dummy makes the two-CLOSE branch even-winning by leaving an even
+four-vertex residual root containing the dummy.  On the star without the
+dummy, the same word leaves an odd three-vertex residual root and is
 odd-winning. -/
 theorem zeroPairStar_dummy_repairs_close_branch :
     zeroPairStarAfterTwoCloses.untouched.card = 3 ∧

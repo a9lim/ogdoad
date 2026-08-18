@@ -11,8 +11,8 @@ use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::hash::Hash;
 
-// Historical module path retained for the already-public move generator; the
-// normal-play sequence and certificate machinery live in `games::octal`.
+// Compatibility re-export for the public move generator; normal-play sequence
+// and certificate machinery live in `games::octal`.
 pub use crate::games::octal::octal_moves;
 
 fn misere_is_n_inner<P, F>(

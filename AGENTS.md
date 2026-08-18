@@ -41,8 +41,9 @@ crate-private. Their public modules re-export children shallowly.
   build.
 - `grundy/` is an unpublished workspace crate depending only on Ogdoad's public
   API.
-- `formal/` is a separately pinned Lean project. It proves named ingredients;
-  paper-level syntheses must state what Lean does and does not check.
+- `formal/` is a separately pinned Lean project. It proves named components
+  and selected end-to-end finite constructions; paper-level syntheses must
+  state what Lean does and does not check.
 
 ## Non-negotiable mathematical invariants
 

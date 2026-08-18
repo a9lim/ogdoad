@@ -248,7 +248,7 @@ impl Parser {
     }
 
     fn parse_lambda_or_expression(&mut self) -> GrundyResult<Expr> {
-        if let Some(binders) = self.try_parse_binders()? {
+        if let Some(binders) = self.try_parse_binders() {
             self.expect(|k| matches!(k, TokenKind::Arrow), "`↦`")?;
             let body = self.parse_lambda_or_expression()?;
             return Ok(Expr::Lambda {
@@ -259,7 +259,7 @@ impl Parser {
         self.parse_expression()
     }
 
-    fn try_parse_binders(&mut self) -> GrundyResult<Option<Vec<LambdaBinder>>> {
+    fn try_parse_binders(&mut self) -> Option<Vec<LambdaBinder>> {
         let save = self.pos;
         let out = match self.peek_kind() {
             Some(TokenKind::Ident(_)) if matches!(self.peek_kind_at(1), Some(TokenKind::Arrow)) => {
@@ -279,7 +279,7 @@ impl Parser {
                 loop {
                     let Some(binder) = self.parse_lambda_binder() else {
                         self.pos = save;
-                        return Ok(None);
+                        return None;
                     };
                     binders.push(binder);
                     if !matches!(self.peek_kind(), Some(TokenKind::Comma)) {
@@ -289,14 +289,14 @@ impl Parser {
                 }
                 if !matches!(self.peek_kind(), Some(TokenKind::RParen)) {
                     self.pos = save;
-                    return Ok(None);
+                    return None;
                 }
                 self.bump();
                 if matches!(self.peek_kind(), Some(TokenKind::Arrow)) {
                     Some(binders)
                 } else {
                     self.pos = save;
-                    return Ok(None);
+                    return None;
                 }
             }
             _ => None,
@@ -304,7 +304,7 @@ impl Parser {
         if out.is_none() {
             self.pos = save;
         }
-        Ok(out)
+        out
     }
 
     fn parse_lambda_binder(&mut self) -> Option<LambdaBinder> {

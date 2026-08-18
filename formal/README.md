@@ -154,6 +154,21 @@ the ambient order contains a higher power of `p`. The selected Conway phase
 is still the missing datum in each universal arm. See `../docs/OPEN.md` and
 `../writeups/excess.tex`.
 
+## Natural finite misere realization: open
+
+`MisereTransition`, `MisereOctalCertificate`,
+`MisereNaturalUniversality`, `MisereTraceLanguage`, and
+`MisereGrundyObstruction` check the finite-table determinism, exact periodic
+trace certificate, abstract prefix/pad/unary-tail construction and its inert-pad
+obstruction, unary option-language dictionary, and finite-Grundy power-period
+obstruction listed in the closed-results table.
+
+They do not characterize exact quotients of finite-code octal games, prove
+automatic periodicity for split traces, or determine whether the full misere
+Grundy quotient is finite. The numerical transport, tame-family construction,
+and exact Grundy prefixes through heap 18 remain paper proofs. See
+`../docs/OPEN.md` and `../writeups/misere_natural_realization.tex`.
+
 ## Review contract
 
 - Put a reusable declaration in a paper-independent domain module; paper entry

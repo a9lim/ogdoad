@@ -85,8 +85,7 @@ fn is_square_mod_two_power(a: u128, k: u128) -> bool {
 /// retained unit precision is too short to decide the positive case.
 fn q2_unit_is_square(unit: u128, k: u128) -> Option<bool> {
     match k {
-        0 => None,
-        1 => None,
+        0 | 1 => None,
         2 => {
             if unit % 4 == 3 {
                 Some(false)

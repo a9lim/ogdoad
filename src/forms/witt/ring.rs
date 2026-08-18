@@ -129,9 +129,8 @@ pub struct EnStaircase {
 /// characteristic. `None` if non-diagonal. Over a finite field `I² = 0`, so
 /// `stabilizes_at = 2` and `e₂` is always `+1`; the genuine content is `(e₀, e₁)`.
 pub fn e_staircase_finite_odd<F: FiniteOddField>(metric: &Metric<F>) -> Option<EnStaircase> {
-    let (e0, e1) = match finite_odd_witt(metric)? {
-        WittClassG::OddChar { e0, sclass, .. } => (e0, sclass),
-        _ => unreachable!("finite_odd_witt returns the OddChar variant"),
+    let WittClassG::OddChar { e0, sclass: e1, .. } = finite_odd_witt(metric)? else {
+        unreachable!("finite_odd_witt returns the OddChar variant")
     };
     Some(EnStaircase {
         e0,

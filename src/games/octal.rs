@@ -73,8 +73,8 @@ impl OctalCode {
 
 /// Moves of an octal game `0.d_1d_2...` (`code[k-1] = d_k`) on a heap multiset.
 /// Removing `k` tokens may leave zero, one, or two nonempty heaps according to
-/// bits `1`, `2`, and `4` of `d_k`. Values above seven retain the historical
-/// low-three-bit behavior; checked new APIs use [`OctalCode`].
+/// bits `1`, `2`, and `4` of `d_k`. For compatibility, values above seven use
+/// their low three bits; [`OctalCode`] rejects them.
 pub fn octal_moves(code: &[u128], pos: &[u128]) -> Vec<Vec<u128>> {
     let mut out = Vec::new();
     for idx in 0..pos.len() {

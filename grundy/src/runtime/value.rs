@@ -65,6 +65,15 @@ pub(crate) fn validation_sample_function(function: &FunctionValue, body: Expr) -
     }
 }
 
+pub(crate) fn into_element<E>(value: Value<E>) -> GrundyResult<E> {
+    match value {
+        Value::Element(value) => Ok(value),
+        Value::Index(_) => Err(index_sort_error()),
+        Value::Bool(_) => Err(bool_sort_error()),
+        Value::Function(_) => Err(fn_sort_error()),
+    }
+}
+
 pub(crate) fn display_value<E: Display>(value: &Value<E>) -> String {
     match value {
         Value::Element(value) => value.to_string(),

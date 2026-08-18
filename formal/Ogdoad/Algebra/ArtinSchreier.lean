@@ -4,9 +4,8 @@ import Ogdoad.Algebra.ZModTwo
 # Shared Artin--Schreier algebra
 
 This module collects paper-independent characteristic-two Artin--Schreier
-facts used by the Gold and canonical-nim developments.  It also removes the
-unused local copy formerly carried by the excess development.  The module has
-no dependency on any paper-specific surface.
+facts shared by the Gold, excess, and canonical-nim developments.  It has no
+dependency on any paper-specific surface.
 -/
 
 namespace Ogdoad.ArtinSchreier

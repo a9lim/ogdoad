@@ -369,7 +369,7 @@ impl GameRuntime {
 
     fn eval_element(&mut self, expr: &Expr) -> GrundyResult<GameElement> {
         match expr {
-            Expr::Bool(_) => Err(bool_sort_error()),
+            Expr::Bool(_) | Expr::Relation { .. } => Err(bool_sort_error()),
             Expr::Index(_) => Err(index_sort_error()),
             Expr::Int(n) => {
                 let n = i128::try_from(*n).map_err(|_| overflow("game integer exceeds i128"))?;
@@ -412,12 +412,7 @@ impl GameRuntime {
                     .collect::<GrundyResult<Vec<_>>>()?,
                 self.state.graph_budget,
             ),
-            Expr::Block { bindings, body } => match self.eval_block(bindings, body)? {
-                Value::Element(value) => Ok(value),
-                Value::Index(_) => Err(index_sort_error()),
-                Value::Bool(_) => Err(bool_sort_error()),
-                Value::Function(_) => Err(fn_sort_error()),
-            },
+            Expr::Block { bindings, body } => into_element(self.eval_block(bindings, body)?),
             Expr::Ident(name) => match self.state.env.get(name) {
                 Some(Value::Element(value)) => Ok(value.clone()),
                 Some(Value::Index(_)) => Err(index_sort_error()),
@@ -436,20 +431,8 @@ impl GameRuntime {
                 )),
                 UnaryOp::Not => Err(bool_sort_error()),
             },
-            Expr::Apply { .. } => match self.eval_value(expr)? {
-                Value::Element(value) => Ok(value),
-                Value::Index(_) => Err(index_sort_error()),
-                Value::Bool(_) => Err(bool_sort_error()),
-                Value::Function(_) => Err(fn_sort_error()),
-            },
+            Expr::Apply { .. } | Expr::If { .. } => into_element(self.eval_value(expr)?),
             Expr::Binary { op, lhs, rhs } => self.eval_binary(*op, lhs, rhs),
-            Expr::If { .. } => match self.eval_value(expr)? {
-                Value::Element(value) => Ok(value),
-                Value::Index(_) => Err(index_sort_error()),
-                Value::Bool(_) => Err(bool_sort_error()),
-                Value::Function(_) => Err(fn_sort_error()),
-            },
-            Expr::Relation { .. } => Err(bool_sort_error()),
         }
     }
 

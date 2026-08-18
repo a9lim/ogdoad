@@ -81,8 +81,9 @@ complement-dependent characteristic-two data.
 ## Claim boundaries
 
 - The Gold--Arf normal-play construction is a proved paper-level synthesis.
-  Its Lean modules check independent ingredients, not a single theorem building
-  the entire arena.
+  Lean checks its literal finite binary arena end to end; the cited short-game
+  structure theorem, the Rust finite-nimber representation bridge, and the
+  paper's broader synthesis remain outside that theorem.
 - The arbitrary-graph FIFO theorem is open and not a premise of the Gold
   construction.
 - `quadric_fit` discovers bounded Boolean structure; it is not a classifier or

@@ -8,22 +8,21 @@
 
 ## Test plan
 
-- [ ] `cargo test` passes
-- [ ] `cargo clippy --all-targets` is warning-clean
-- [ ] `cargo fmt --check` is clean
-- [ ] If this touched `src/py/` or any core API the bindings call: `cargo check --features python` **and** `cargo clippy --features python --all-targets`
-- [ ] If this touched `clifford/` or `scalar/big/surreal/`: rebuilt (`maturin develop`) and ran `demo.py` — Display changes don't surface in `cargo test`
-- [ ] If this touched any doc comment (`//!` / `///`): ran `cargo doc --no-deps` **cold** (`RUSTDOCFLAGS="-D warnings"`) and it's link-clean
-- [ ] If this added a new operation: there's a test pinning it to an independent oracle (the `associativity_*` / `general_product_reproduces_*` style)
+- [ ] `cargo fmt --all --check`
+- [ ] `cargo test --workspace`
+- [ ] `cargo clippy --workspace --all-targets -- -D warnings`
+- [ ] `RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --workspace`
+- [ ] If this touched `src/py/` or a core API used by Python: `cargo check -p ogdoad --features python`, the matching Clippy gate, and `python scripts/generate_stubs.py --check`
+- [ ] If this touched Lean or a load-bearing proof claim: `(cd formal && lake build --wfail)`
+- [ ] If this touched a paper or bibliography: `npm ci` and `python scripts/check_writeups.py`
+- [ ] If this added a generic operation: a focused test pins it to an independent oracle
 
 ## Claim level
 
 <!-- If this changes prose / comments / examples, label the claims per AGENTS.md:
-     standard math · implemented and tested · interpretation · open. New "X is
-     true" math statements should be backed by a test or cited, not asserted. -->
+     standard/cited · implemented and tested · proved here · open. -->
 
 ## Notes
 
-<!-- Anything reviewers should know. If this touches the metric/product, confirm
-     q and b stay independent and signs go through the scalar's neg() — the two
-     load-bearing char-2 invariants (see Hard rules in AGENTS.md). -->
+<!-- Anything reviewers should know. For metric/product changes, confirm that q,
+     b, and optional a stay distinct and generic signs use Scalar::neg. -->
