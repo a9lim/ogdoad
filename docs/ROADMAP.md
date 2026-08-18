@@ -13,6 +13,19 @@ Highest-value additions are the joins between already public subsystems:
 | ramified Springer | add a named ramified-extension path with correct value-group parity and independent tests |
 | explicit Brauer representatives | materialize cyclic or quaternion algebras for computed classes |
 
+## Additional mathematics
+
+New self-contained mathematical areas begin with one auditable construction
+and an explicit law or certificate boundary. They remain engineering programs
+here unless they produce a sharp unresolved statement for `OPEN.md`.
+
+| work | completion criterion |
+| --- | --- |
+| quadratic algebras | implement the rank-two context `S[u]/(u^2 - t*u + n)` with canonical conjugation, trace, norm, partial inverse, and split/etale/nonreduced classification on supported fields; recover `Surcomplex` as the `u^2 = -1` specialization and materialize computed Clifford centers as operational quadratic algebras |
+| Hermitian lattices | add exact Gaussian- and Eisenstein-integral Hermitian Gram forms with dual, discriminant, and restriction-of-scalars bridges; implement the corresponding code Construction A, construct the Coxeter--Todd lattice, and independently verify its ordinary integral invariants through the existing lattice, genus, and theta surfaces |
+| representable matroids | construct finite-field representable matroids with rank, circuits, flats, duality, deletion/contraction, and a budgeted Tutte polynomial; verify Greene's theorem against independently computed code weight enumerators |
+| stabilizer codes | construct finite symplectic Pauli spaces and isotropic stabilizers, derive CSS codes from supported linear codes, and return bounded certificates for parameters and logical operators whose commutation and encoded dimension agree with the independent symplectic and Heisenberg representations |
+
 ## API and maintenance
 
 | work | completion criterion |
