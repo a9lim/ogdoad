@@ -30,9 +30,44 @@ use super::fp::{add_mod, mul_mod};
 use super::FiniteField;
 use crate::linalg::integer::prime_factors;
 use crate::scalar::{add_mod_u128, is_prime_u128, mod_inverse_u128, sub_mod_u128, Fp, Scalar};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use std::fmt;
+use std::mem::size_of;
 use std::sync::{Mutex, OnceLock};
+
+/// Cap the auxiliary baby-step table used by `Fpn` discrete logarithms. Wider
+/// fields fall back to the exact constant-memory linear walk rather than
+/// allocating an unbounded `sqrt(|F*|)` table.
+const DISCRETE_LOG_BSGS_MEMORY_BUDGET: usize = 64 * 1024 * 1024;
+
+fn ceil_sqrt_u128(n: u128) -> u128 {
+    if n <= 1 {
+        return n;
+    }
+    let mut low = 1u128;
+    let mut high = 1u128 << 64;
+    while low < high {
+        let middle = low + (high - low) / 2;
+        let quotient_ceiling = n / middle + u128::from(!n.is_multiple_of(middle));
+        if middle >= quotient_ceiling {
+            high = middle;
+        } else {
+            low = middle + 1;
+        }
+    }
+    low
+}
+
+fn discrete_log_linear<F: FiniteField>(base: F, target: F, order: u128) -> Option<u128> {
+    let mut current = F::one();
+    for exponent in 0..order {
+        if current == target {
+            return Some(exponent);
+        }
+        current = current.mul(&base);
+    }
+    None
+}
 
 /// An element of `F_{p^N}`: the coefficients of `c_0 + c_1 x + … + c_{N-1} x^{N-1}`,
 /// each reduced into `[0, P)`.
@@ -473,9 +508,9 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
 /// `Fpn` plugs into the shared [`FiniteField`] engine by supplying only the
 /// field shape: the Frobenius `x ↦ x^p`, integer exponentiation, the extension
 /// degree `N`, and the multiplicative-group order `p^N − 1` with its factors.
-/// Every Galois notion is then a default method. The brute-force discrete log
-/// (the trait default) is simple but may be expensive for large field orders;
-/// nimbers override it with Pohlig--Hellman.
+/// Every Galois notion is then a default method except discrete logarithm:
+/// `Fpn` overrides the trait's linear walk with memory-bounded baby-step
+/// giant-step, while nimbers use their separate Pohlig--Hellman path.
 impl<const P: u128, const N: usize> FiniteField for Fpn<P, N> {
     fn frobenius(&self) -> Self {
         Self::assert_supported_params();
@@ -495,6 +530,46 @@ impl<const P: u128, const N: usize> FiniteField for Fpn<P, N> {
     fn group_order_factors() -> Vec<u128> {
         Self::assert_supported_params();
         prime_factors(Self::field_order() - 1)
+    }
+
+    fn discrete_log(&self, target: Self) -> Option<u128> {
+        if self.is_zero() || target.is_zero() {
+            return None;
+        }
+        let order = self.multiplicative_order()?;
+        let width = ceil_sqrt_u128(order);
+        let estimated_entry_bytes = size_of::<Self>()
+            .saturating_add(size_of::<u128>())
+            .saturating_add(3 * size_of::<usize>())
+            .max(1);
+        let max_entries = DISCRETE_LOG_BSGS_MEMORY_BUDGET / estimated_entry_bytes;
+        let Some(width_usize) = usize::try_from(width)
+            .ok()
+            .filter(|&entries| entries <= max_entries)
+        else {
+            return discrete_log_linear(*self, target, order);
+        };
+
+        let mut babies = HashMap::with_capacity(width_usize);
+        let mut current = Self::one();
+        for exponent in 0..width {
+            babies.entry(current).or_insert(exponent);
+            current = current.mul(self);
+        }
+
+        let inverse_step_exponent = (order - width % order) % order;
+        let inverse_step = FiniteField::pow(self, inverse_step_exponent);
+        let mut giant = target;
+        for giant_index in 0..=width {
+            if let Some(&baby_index) = babies.get(&giant) {
+                let exponent = giant_index * width + baby_index;
+                if exponent < order {
+                    return Some(exponent);
+                }
+            }
+            giant = giant.mul(&inverse_step);
+        }
+        None
     }
 }
 
@@ -531,6 +606,8 @@ impl<const P: u128, const N: usize> fmt::Debug for Fpn<P, N> {
 }
 
 impl<const P: u128, const N: usize> Scalar for Fpn<P, N> {
+    const REASSOCIATION_IS_EXACT: bool = true;
+
     fn zero() -> Self {
         Self::assert_supported_params();
         Fpn([0u128; N])
@@ -855,6 +932,56 @@ mod tests {
             Fpn::<3, 3>::constant(2).frobenius(),
             Fpn::<3, 3>::constant(2)
         );
+    }
+
+    #[test]
+    fn single_pass_frobenius_orbits_match_divisor_oracle() {
+        type K = Fpn<2, 4>;
+        for value in elems::<2, 4>() {
+            let expected_degree = (1..=4)
+                .filter(|degree| 4usize.is_multiple_of(*degree))
+                .find(|&degree| value.frobenius_iter(degree) == value)
+                .unwrap();
+            let expected_conjugates = (0..expected_degree)
+                .map(|power| value.frobenius_iter(power))
+                .collect::<Vec<K>>();
+            assert_eq!(value.degree(), expected_degree);
+            assert_eq!(value.conjugates(), expected_conjugates);
+        }
+    }
+
+    #[test]
+    fn bsgs_discrete_log_matches_linear_oracle_on_f16() {
+        fn linear(base: Fpn<2, 4>, target: Fpn<2, 4>) -> Option<u128> {
+            if base.is_zero() {
+                return None;
+            }
+            let order = base.multiplicative_order()?;
+            discrete_log_linear(base, target, order)
+        }
+
+        let elements = elems::<2, 4>();
+        for &base in &elements {
+            for &target in &elements {
+                assert_eq!(base.discrete_log(target), linear(base, target));
+            }
+        }
+    }
+
+    #[test]
+    fn ceil_sqrt_handles_u128_boundaries() {
+        for &(input, expected) in &[
+            (0, 0),
+            (1, 1),
+            (2, 2),
+            (15, 4),
+            (16, 4),
+            (17, 5),
+            (u64::MAX as u128, 1u128 << 32),
+            (u128::MAX, 1u128 << 64),
+        ] {
+            assert_eq!(ceil_sqrt_u128(input), expected);
+        }
     }
 
     #[test]

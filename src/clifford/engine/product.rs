@@ -75,7 +75,7 @@ impl<S: Scalar> Metric<S> {
         self.geom_product_blades_orthogonal_scaled(s, t, S::one())
     }
 
-    pub(super) fn geom_product_blades_orthogonal_scaled(
+    pub(crate) fn geom_product_blades_orthogonal_scaled(
         &self,
         s: u128,
         t: u128,

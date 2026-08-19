@@ -16,7 +16,9 @@
 //! lift remains an independent oracle in tests and a public operation in its
 //! own right.
 
-use crate::clifford::engine::{bit_indices, grade_k_masks};
+use crate::clifford::engine::bit_indices;
+#[cfg(test)]
+use crate::clifford::engine::grade_k_masks;
 use crate::clifford::{CliffordAlgebra, Multivector};
 use crate::linalg::field;
 use crate::scalar::Scalar;
@@ -203,14 +205,38 @@ pub fn determinant<S: Scalar>(alg: &CliffordAlgebra<S>, f: &LinearMap<S>) -> S {
 /// The trace of the `k`-th exterior power `Λᵏf` — the `k`-th elementary
 /// symmetric function of the eigenvalues, equivalently the sum of the `k×k`
 /// principal minors. `Λ⁰f` has trace `1`, `Λ¹f` is the ordinary trace, and
-/// `Λⁿf` is the [`determinant`]. Computed straight from the outermorphism:
-/// `tr Λᵏf = Σ_{|S|=k} ⟨e_S , f(e_S)⟩`, so it is character-faithful for free.
+/// `Λⁿf` is the [`determinant`]. Interior grades are read from the corresponding
+/// signed coefficient of the division-free characteristic polynomial. Signs use
+/// [`Scalar::neg`], so the path remains character-faithful.
 pub fn exterior_power_trace<S: Scalar>(alg: &CliffordAlgebra<S>, f: &LinearMap<S>, k: usize) -> S {
     debug_assert_eq!(
         f.n(),
         alg.dim(),
         "LinearMap dimension must match the algebra"
     );
+    match k {
+        0 => return S::one(),
+        1 => return trace(alg, f),
+        _ if k > f.n() => return S::zero(),
+        _ if k == f.n() => return determinant(alg, f),
+        _ => {}
+    }
+    let coefficient = char_poly(alg, f)[k].clone();
+    if k % 2 == 1 {
+        coefficient.neg()
+    } else {
+        coefficient
+    }
+}
+
+/// Independent exterior-lift oracle retained for testing the faster
+/// characteristic-polynomial path.
+#[cfg(test)]
+fn exterior_power_trace_via_outermorphism<S: Scalar>(
+    alg: &CliffordAlgebra<S>,
+    f: &LinearMap<S>,
+    k: usize,
+) -> S {
     let mut acc = S::zero();
     for mask in grade_k_masks(alg.dim(), k) {
         let blade = alg.blade_mask(mask);
@@ -303,7 +329,7 @@ mod tests {
             let map = LinearMap::from_columns(cols);
             let expected = (0..=n)
                 .map(|grade| {
-                    let coefficient = exterior_power_trace(&alg, &map, grade);
+                    let coefficient = exterior_power_trace_via_outermorphism(&alg, &map, grade);
                     if grade % 2 == 1 {
                         coefficient.neg()
                     } else {
@@ -312,6 +338,13 @@ mod tests {
                 })
                 .collect::<Vec<_>>();
             assert_eq!(char_poly(&alg, &map), expected, "dimension {n}");
+            for grade in 0..=n + 1 {
+                assert_eq!(
+                    exterior_power_trace(&alg, &map, grade),
+                    exterior_power_trace_via_outermorphism(&alg, &map, grade),
+                    "dimension {n}, grade {grade}"
+                );
+            }
         }
     }
 

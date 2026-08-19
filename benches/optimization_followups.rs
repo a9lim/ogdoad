@@ -4,14 +4,15 @@
 //! evaluator is deliberately excluded for a separate focused session.
 
 use ogdoad::clifford::{
-    char_poly, exterior_power_trace, is_blade, CliffordAlgebra, LinearMap, Metric, Multivector,
+    apply_outermorphism, char_poly, is_blade, CliffordAlgebra, LinearMap, Metric, Multivector,
 };
 use ogdoad::forms::{
-    e_8, even_unimodular_kneser_report, golay_code, leech, type_i_z2_code, DiscriminantForm,
-    FiniteQuadraticModule, IntegralForm, PrimeCode,
+    as_modular_form, e_8, eisenstein_e4, eisenstein_e6, even_unimodular_kneser_report, golay_code,
+    leech, mk_basis, modular_qexp_mul, type_i_z2_code, DiscriminantForm, FiniteQuadraticModule,
+    IntegralForm, PrimeCode,
 };
 use ogdoad::games::{heat, thermograph, Color, Game, Hackenbush, LoopyPartizanGraph};
-use ogdoad::scalar::{Fp, Poly, Rational, Scalar, Surreal};
+use ogdoad::scalar::{FiniteField, Fp, Fpn, Poly, Rational, RationalFunction, Scalar, Surreal};
 use std::collections::VecDeque;
 use std::hint::black_box;
 use std::time::{Duration, Instant};
@@ -203,13 +204,31 @@ fn recursive_game_add(left_game: &Game, right_game: &Game) -> Game {
     Game::new(left, right)
 }
 
-fn exterior_char_poly(
+fn exterior_power_trace_reference(
+    algebra: &CliffordAlgebra<Rational>,
+    map: &LinearMap<Rational>,
+    grade: usize,
+) -> Rational {
+    let mut trace = Rational::zero();
+    for mask in grade_masks_vec(algebra.dim(), grade) {
+        let generators = (0..algebra.dim())
+            .filter(|&index| mask & (1u128 << index) != 0)
+            .collect::<Vec<_>>();
+        let image = apply_outermorphism(algebra, map, &algebra.blade(&generators));
+        if let Some(coefficient) = image.terms().get(&mask) {
+            trace = trace.add(coefficient);
+        }
+    }
+    trace
+}
+
+fn exterior_char_poly_reference(
     algebra: &CliffordAlgebra<Rational>,
     map: &LinearMap<Rational>,
 ) -> Vec<Rational> {
     (0..=algebra.dim())
         .map(|grade| {
-            let coefficient = exterior_power_trace(algebra, map, grade);
+            let coefficient = exterior_power_trace_reference(algebra, map, grade);
             if grade % 2 == 1 {
                 coefficient.neg()
             } else {
@@ -217,6 +236,153 @@ fn exterior_char_poly(
             }
         })
         .collect()
+}
+
+fn schoolbook_poly_mul<S: Scalar>(left: &Poly<S>, right: &Poly<S>) -> Poly<S> {
+    if left.is_zero() || right.is_zero() {
+        return Poly::zero();
+    }
+    let mut out = vec![S::zero(); left.coeffs().len() + right.coeffs().len() - 1];
+    for (i, x) in left.coeffs().iter().enumerate() {
+        if x.is_zero() {
+            continue;
+        }
+        for (j, y) in right.coeffs().iter().enumerate() {
+            if !y.is_zero() {
+                out[i + j] = out[i + j].add(&x.mul(y));
+            }
+        }
+    }
+    Poly::new(out)
+}
+
+fn qexp_pow_linear(base: &[Rational], exp: usize, terms: usize) -> Vec<Rational> {
+    let mut out = vec![Rational::zero(); terms];
+    if terms == 0 {
+        return out;
+    }
+    out[0] = Rational::one();
+    for _ in 0..exp {
+        out = modular_qexp_mul(&out, base, terms);
+    }
+    out
+}
+
+fn mk_basis_reference(weight: usize, terms: usize) -> Vec<Vec<Rational>> {
+    if terms == 0 {
+        return Vec::new();
+    }
+    if weight == 0 {
+        let mut one = vec![Rational::zero(); terms];
+        one[0] = Rational::one();
+        return vec![one];
+    }
+    let e4 = eisenstein_e4(terms);
+    let e6 = eisenstein_e6(terms);
+    let mut basis = Vec::new();
+    for b in 0..=weight / 6 {
+        let remainder = weight - 6 * b;
+        if remainder.is_multiple_of(4) {
+            basis.push(modular_qexp_mul(
+                &qexp_pow_linear(&e4, remainder / 4, terms),
+                &qexp_pow_linear(&e6, b, terms),
+                terms,
+            ));
+        }
+    }
+    basis
+}
+
+fn inverse_matrix_reference(mut matrix: Vec<Vec<Rational>>) -> Option<Vec<Vec<Rational>>> {
+    let dimension = matrix.len();
+    let mut inverse = (0..dimension)
+        .map(|row| {
+            (0..dimension)
+                .map(|column| {
+                    if row == column {
+                        Rational::one()
+                    } else {
+                        Rational::zero()
+                    }
+                })
+                .collect::<Vec<_>>()
+        })
+        .collect::<Vec<_>>();
+    for column in 0..dimension {
+        let (pivot, pivot_inverse) = (column..dimension)
+            .find_map(|row| matrix[row][column].inv().map(|value| (row, value)))?;
+        matrix.swap(column, pivot);
+        inverse.swap(column, pivot);
+        for entry in 0..dimension {
+            matrix[column][entry] = matrix[column][entry].mul(&pivot_inverse);
+            inverse[column][entry] = inverse[column][entry].mul(&pivot_inverse);
+        }
+        for row in 0..dimension {
+            if row == column {
+                continue;
+            }
+            let factor = matrix[row][column].clone();
+            if factor.is_zero() {
+                continue;
+            }
+            for entry in 0..dimension {
+                matrix[row][entry] = matrix[row][entry].sub(&factor.mul(&matrix[column][entry]));
+                inverse[row][entry] = inverse[row][entry].sub(&factor.mul(&inverse[column][entry]));
+            }
+        }
+    }
+    Some(inverse)
+}
+
+fn as_modular_form_reference(
+    expansion: &[Rational],
+    weight: usize,
+    terms: usize,
+) -> Option<Vec<Rational>> {
+    let basis = mk_basis_reference(weight, terms);
+    let dimension = basis.len();
+    let matrix = (0..dimension)
+        .map(|row| {
+            (0..dimension)
+                .map(|column| basis[column][row].clone())
+                .collect::<Vec<_>>()
+        })
+        .collect::<Vec<_>>();
+    let inverse = inverse_matrix_reference(matrix)?;
+    Some(
+        (0..dimension)
+            .map(|row| {
+                (0..dimension).fold(Rational::zero(), |coordinate, column| {
+                    coordinate.add(&inverse[row][column].mul(&expansion[column]))
+                })
+            })
+            .collect(),
+    )
+}
+
+fn finite_field_conjugates_reference<F: FiniteField>(value: F) -> Vec<F> {
+    let degree = (1..=F::ext_degree())
+        .filter(|degree| F::ext_degree().is_multiple_of(*degree))
+        .find(|&degree| value.frobenius_iter(degree) == value)
+        .unwrap_or(F::ext_degree());
+    (0..degree)
+        .map(|power| value.frobenius_iter(power))
+        .collect()
+}
+
+fn discrete_log_reference<F: FiniteField>(base: F, target: F) -> Option<u128> {
+    if base.is_zero() {
+        return None;
+    }
+    let order = base.multiplicative_order()?;
+    let mut current = F::one();
+    for exponent in 0..order {
+        if current == target {
+            return Some(exponent);
+        }
+        current = current.mul(&base);
+    }
+    None
 }
 
 fn sigma_naive(terms: usize, power: u32) -> usize {
@@ -377,6 +543,51 @@ fn main() {
                 .fold(0u128, u128::wrapping_add) as usize
         },
     );
+    compare(
+        "Fp validation elision 4096",
+        20,
+        || {
+            modular_pairs
+                .iter()
+                .map(|&(a, b)| {
+                    Fp::<65_537>::assert_supported_params();
+                    (a * b) % 65_537
+                })
+                .fold(0u128, u128::wrapping_add) as usize
+        },
+        || {
+            fp_pairs
+                .iter()
+                .map(|(a, b)| a.mul(b).value())
+                .fold(0u128, u128::wrapping_add) as usize
+        },
+    );
+
+    type Function = RationalFunction<Fp<3>>;
+    let function_degree = 256usize;
+    let function_num = (0..=function_degree)
+        .map(|index| Fp::<3>::from_u128(((index * index * 7 + index * 11 + 1) % 3) as u128))
+        .collect::<Vec<_>>();
+    let mut function_den = (0..=function_degree)
+        .map(|index| Fp::<3>::from_u128(((index * index * 5 + index * 13 + 2) % 3) as u128))
+        .collect::<Vec<_>>();
+    function_den[function_degree] = Fp::<3>::one();
+    let left_function = Function::new(function_num.clone(), function_den.clone());
+    let right_function = Function::new(function_num, function_den);
+    assert_eq!(
+        left_function.num().mul(right_function.den())
+            == right_function.num().mul(left_function.den()),
+        left_function == right_function
+    );
+    compare(
+        "canonical function equality deg 256",
+        100,
+        || {
+            (left_function.num().mul(right_function.den())
+                == right_function.num().mul(left_function.den())) as usize
+        },
+        || (left_function == right_function) as usize,
+    );
 
     let blade_algebra = CliffordAlgebra::new(10, Metric::grassmann(10));
     let sparse_middle_blade = (0..5).fold(blade_algebra.scalar(Rational::one()), |blade, index| {
@@ -402,11 +613,142 @@ fn main() {
         })
         .collect();
     let map = LinearMap::from_columns(columns);
+    assert_eq!(
+        exterior_char_poly_reference(&algebra, &map),
+        char_poly(&algebra, &map)
+    );
     compare(
         "char poly dense rational n=7",
         20,
-        || exterior_char_poly(&algebra, &map).len(),
+        || exterior_char_poly_reference(&algebra, &map).len(),
         || char_poly(&algebra, &map).len(),
+    );
+
+    let scalar_algebra = CliffordAlgebra::new(
+        10,
+        Metric::diagonal(
+            (0..10)
+                .map(|index| Rational::from_int(index % 3 + 1))
+                .collect(),
+        ),
+    );
+    let mut scalar_left = scalar_algebra.zero();
+    for mask in 0..(1u128 << scalar_algebra.dim()) {
+        let coefficient = Rational::from_int(((mask * 17 + 5) % 11) as i128 - 5);
+        if coefficient.is_zero() {
+            continue;
+        }
+        let generators = (0..scalar_algebra.dim())
+            .filter(|&index| mask & (1u128 << index) != 0)
+            .collect::<Vec<_>>();
+        scalar_left = scalar_algebra.add(
+            &scalar_left,
+            &scalar_algebra.scalar_mul(&coefficient, &scalar_algebra.blade(&generators)),
+        );
+    }
+    let scalar_right = scalar_algebra.add(
+        &scalar_left,
+        &scalar_algebra.scalar_mul(&Rational::from_int(3), &scalar_algebra.e(2)),
+    );
+    assert_eq!(
+        scalar_algebra.scalar_part(&scalar_algebra.mul(&scalar_left, &scalar_right)),
+        scalar_algebra.scalar_product(&scalar_left, &scalar_right)
+    );
+    compare(
+        "orthogonal scalar product dense n=10",
+        1,
+        || {
+            scalar_algebra
+                .scalar_part(&scalar_algebra.mul(&scalar_left, &scalar_right))
+                .numer() as usize
+        },
+        || {
+            scalar_algebra
+                .scalar_product(&scalar_left, &scalar_right)
+                .numer() as usize
+        },
+    );
+
+    let orbit_value = Fpn::<2, 12>::generator();
+    assert_eq!(
+        finite_field_conjugates_reference(orbit_value),
+        orbit_value.conjugates()
+    );
+    compare(
+        "single Frobenius orbit F_2^12",
+        1_000,
+        || finite_field_conjugates_reference(orbit_value).len(),
+        || orbit_value.conjugates().len(),
+    );
+
+    let log_base = Fpn::<2, 16>::primitive_element();
+    let log_target = FiniteField::pow(&log_base, 50_000);
+    assert_eq!(
+        discrete_log_reference(log_base, log_target),
+        log_base.discrete_log(log_target)
+    );
+    compare(
+        "BSGS discrete log F_2^16",
+        1,
+        || discrete_log_reference(log_base, log_target).unwrap() as usize,
+        || log_base.discrete_log(log_target).unwrap() as usize,
+    );
+
+    let modular_weight = 72;
+    let modular_terms = 8;
+    let modular_basis_reference = mk_basis_reference(modular_weight, modular_terms);
+    let modular_basis = mk_basis(modular_weight, modular_terms);
+    assert_eq!(modular_basis_reference, modular_basis);
+    compare(
+        "stepped modular basis weight 72",
+        100,
+        || {
+            mk_basis_reference(modular_weight, modular_terms)
+                .iter()
+                .flatten()
+                .fold(0i128, |checksum, coefficient| {
+                    checksum ^ coefficient.numer()
+                }) as usize
+        },
+        || {
+            mk_basis(modular_weight, modular_terms)
+                .iter()
+                .flatten()
+                .fold(0i128, |checksum, coefficient| {
+                    checksum ^ coefficient.numer()
+                }) as usize
+        },
+    );
+    let modular_coordinates = (1..=modular_basis.len())
+        .map(|coordinate| Rational::from_int(coordinate as i128))
+        .collect::<Vec<_>>();
+    let modular_expansion = (0..modular_terms)
+        .map(|term| {
+            modular_coordinates
+                .iter()
+                .zip(&modular_basis)
+                .fold(Rational::zero(), |sum, (coordinate, form)| {
+                    sum.add(&coordinate.mul(&form[term]))
+                })
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(
+        as_modular_form_reference(&modular_expansion, modular_weight, modular_terms),
+        as_modular_form(&modular_expansion, modular_weight, modular_terms)
+    );
+    compare(
+        "direct modular solve weight 72",
+        100,
+        || {
+            as_modular_form_reference(&modular_expansion, modular_weight, modular_terms)
+                .unwrap()
+                .len()
+        },
+        || {
+            as_modular_form(&modular_expansion, modular_weight, modular_terms)
+                .unwrap()
+                .len()
+        },
     );
 
     compare(
@@ -585,4 +927,40 @@ fn main() {
     report("remainder-only polynomial power", 200, || {
         polynomial.pow_mod(257, &modulus).degree().unwrap_or(0)
     });
+
+    let karatsuba_left = Poly::<Fp<3>>::new(
+        (0..512)
+            .map(|index| Fp::<3>::from_u128((index % 2 + 1) as u128))
+            .collect(),
+    );
+    let karatsuba_right = Poly::<Fp<3>>::new(
+        (0..512)
+            .map(|index| Fp::<3>::from_u128(((index / 2) % 2 + 1) as u128))
+            .collect(),
+    );
+    assert_eq!(
+        schoolbook_poly_mul(&karatsuba_left, &karatsuba_right),
+        karatsuba_left.mul(&karatsuba_right)
+    );
+    compare(
+        "Karatsuba dense F3 length 512",
+        20,
+        || {
+            schoolbook_poly_mul(&karatsuba_left, &karatsuba_right)
+                .coeffs()
+                .iter()
+                .fold(0u128, |checksum, coefficient| {
+                    checksum ^ coefficient.value()
+                }) as usize
+        },
+        || {
+            karatsuba_left
+                .mul(&karatsuba_right)
+                .coeffs()
+                .iter()
+                .fold(0u128, |checksum, coefficient| {
+                    checksum ^ coefficient.value()
+                }) as usize
+        },
+    );
 }

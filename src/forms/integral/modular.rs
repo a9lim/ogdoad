@@ -4,7 +4,7 @@
 //! the lattice tests are exact finite-dimensional statements in
 //! `M_*(SL_2(Z)) = C[E4,E6]`; no floating point or numerical fitting is involved.
 
-use crate::linalg::field::inverse_matrix;
+use crate::linalg::field::solve;
 use crate::scalar::{Rational, Scalar};
 
 /// The Eisenstein normalizing constant `c_{2k} = −4k / B_{2k}`, derived from the
@@ -100,14 +100,21 @@ fn qexp_mul(a: &[Rational], b: &[Rational], terms: usize) -> Vec<Rational> {
     out
 }
 
-fn qexp_pow(base: &[Rational], exp: usize, terms: usize) -> Vec<Rational> {
+fn qexp_pow(base: &[Rational], mut exp: usize, terms: usize) -> Vec<Rational> {
     let mut out = vec![Rational::zero(); terms];
     if terms == 0 {
         return out;
     }
     out[0] = Rational::one();
-    for _ in 0..exp {
-        out = qexp_mul(&out, base, terms);
+    let mut power = base.to_vec();
+    while exp > 0 {
+        if exp & 1 == 1 {
+            out = qexp_mul(&out, &power, terms);
+        }
+        exp >>= 1;
+        if exp > 0 {
+            power = qexp_mul(&power, &power, terms);
+        }
     }
     out
 }
@@ -191,16 +198,42 @@ pub fn mk_basis(weight: usize, terms: usize) -> Vec<Vec<Rational>> {
         one[0] = Rational::one();
         return vec![one];
     }
+    let solutions = (0..=weight / 6)
+        .filter_map(|b| {
+            let remainder = weight - 6 * b;
+            remainder.is_multiple_of(4).then_some((remainder / 4, b))
+        })
+        .collect::<Vec<_>>();
+    if solutions.is_empty() {
+        return Vec::new();
+    }
+
     let e4 = eisenstein_e4(terms);
     let e6 = eisenstein_e6(terms);
-    let mut basis = Vec::new();
-    for b in 0..=weight / 6 {
-        let rem = weight - 6 * b;
-        if rem.is_multiple_of(4) {
-            let a = rem / 4;
-            let e4a = qexp_pow(&e4, a, terms);
-            let e6b = qexp_pow(&e6, b, terms);
-            basis.push(qexp_mul(&e4a, &e6b, terms));
+    let e4_step = qexp_pow(&e4, 3, terms);
+    let e6_step = qexp_pow(&e6, 2, terms);
+    let min_a = solutions.last().expect("solutions is nonempty").0;
+    let min_b = solutions.first().expect("solutions is nonempty").1;
+
+    // Consecutive weight solutions differ by (a,b) -> (a-3,b+2).
+    // Build the E4 powers from the smallest exponent upward, then pair them in
+    // reverse with a single ascending E6 walk. This computes each ladder rung
+    // once instead of restarting both powers for every basis element.
+    let mut e4_powers = Vec::with_capacity(solutions.len());
+    e4_powers.push(qexp_pow(&e4, min_a, terms));
+    for _ in 1..solutions.len() {
+        e4_powers.push(qexp_mul(
+            e4_powers.last().expect("power ladder has a base"),
+            &e4_step,
+            terms,
+        ));
+    }
+    let mut e6_power = qexp_pow(&e6, min_b, terms);
+    let mut basis = Vec::with_capacity(solutions.len());
+    for (index, e4_power) in e4_powers.into_iter().rev().enumerate() {
+        basis.push(qexp_mul(&e4_power, &e6_power, terms));
+        if index + 1 < solutions.len() {
+            e6_power = qexp_mul(&e6_power, &e6_step, terms);
         }
     }
     basis
@@ -231,13 +264,7 @@ pub fn as_modular_form(
             matrix[row][col] = basis[col][row].clone();
         }
     }
-    let inv = inverse_matrix(matrix)?;
-    let mut coords = vec![Rational::zero(); dim];
-    for row in 0..dim {
-        for col in 0..dim {
-            coords[row] = coords[row].add(&inv[row][col].mul(&q_expansion[col]));
-        }
-    }
+    let coords = solve(matrix, q_expansion[..dim].to_vec())?;
     for i in 0..terms {
         let mut got = Rational::zero();
         for (coord, b) in coords.iter().zip(&basis) {
@@ -273,6 +300,43 @@ pub fn modular_qexp_scale(a: &[Rational], c: Rational, terms: usize) -> Vec<Rati
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn qexp_pow_linear(base: &[Rational], exp: usize, terms: usize) -> Vec<Rational> {
+        let mut out = vec![Rational::zero(); terms];
+        if terms == 0 {
+            return out;
+        }
+        out[0] = Rational::one();
+        for _ in 0..exp {
+            out = qexp_mul(&out, base, terms);
+        }
+        out
+    }
+
+    fn mk_basis_linear_oracle(weight: usize, terms: usize) -> Vec<Vec<Rational>> {
+        if terms == 0 {
+            return Vec::new();
+        }
+        if weight == 0 {
+            let mut one = vec![Rational::zero(); terms];
+            one[0] = Rational::one();
+            return vec![one];
+        }
+        let e4 = eisenstein_e4(terms);
+        let e6 = eisenstein_e6(terms);
+        let mut basis = Vec::new();
+        for b in 0..=weight / 6 {
+            let remainder = weight - 6 * b;
+            if remainder.is_multiple_of(4) {
+                basis.push(qexp_mul(
+                    &qexp_pow_linear(&e4, remainder / 4, terms),
+                    &qexp_pow_linear(&e6, b, terms),
+                    terms,
+                ));
+            }
+        }
+        basis
+    }
 
     #[test]
     fn eisenstein_series_start_with_standard_coefficients() {
@@ -352,5 +416,38 @@ mod tests {
             as_modular_form(&leech_form, 12, 3),
             Some(vec![Rational::new(7, 12), Rational::new(5, 12)])
         );
+    }
+
+    #[test]
+    fn stepped_basis_matches_linear_power_oracle() {
+        for weight in 0..=72 {
+            let terms = (weight / 12 + 1).max(1);
+            assert_eq!(
+                mk_basis(weight, terms),
+                mk_basis_linear_oracle(weight, terms),
+                "weight {weight}"
+            );
+        }
+    }
+
+    #[test]
+    fn higher_weight_identification_recovers_known_coordinates() {
+        let weight = 72;
+        let terms = 8;
+        let basis = mk_basis(weight, terms);
+        let expected = (1..=basis.len())
+            .map(|coordinate| Rational::from_int(coordinate as i128))
+            .collect::<Vec<_>>();
+        let expansion = (0..terms)
+            .map(|term| {
+                expected
+                    .iter()
+                    .zip(&basis)
+                    .fold(Rational::zero(), |acc, (coordinate, form)| {
+                        acc.add(&coordinate.mul(&form[term]))
+                    })
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(as_modular_form(&expansion, weight, terms), Some(expected));
     }
 }

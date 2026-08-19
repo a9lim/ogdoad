@@ -298,6 +298,16 @@ macro_rules! impl_scalar_ops {
 /// [`inv`](Self::inv) returns `None` for nonunits and for inverses outside a
 /// backend's represented domain.
 pub trait Scalar: Clone + PartialEq + Debug + Display {
+    /// Whether addition and multiplication may be freely reassociated without
+    /// changing this backend's represented result or its checked failure boundary.
+    ///
+    /// This is an internal optimization contract, not merely an algebraic claim:
+    /// fixed-width exact backends can still leave it `false` when reassociation
+    /// would change which intermediate operation overflows. Generic algorithms use
+    /// the conservative default before selecting transformations such as Karatsuba.
+    #[doc(hidden)]
+    const REASSOCIATION_IS_EXACT: bool = false;
+
     /// The additive identity.
     fn zero() -> Self;
     /// The multiplicative identity.

@@ -122,6 +122,99 @@ fn trim<S: Scalar>(mut p: Vec<S>) -> Vec<S> {
     p
 }
 
+/// Dense balanced products cross over to Karatsuba well above this recursive
+/// leaf size. Sparse and strongly unbalanced operands retain the schoolbook
+/// path, whose zero skipping is substantially better for those shapes.
+const KARATSUBA_THRESHOLD: usize = 32;
+
+fn schoolbook_mul_coeffs<S: Scalar>(left: &[S], right: &[S]) -> Vec<S> {
+    if left.is_empty() || right.is_empty() {
+        return Vec::new();
+    }
+    let mut out = vec![S::zero(); left.len() + right.len() - 1];
+    for (i, x) in left.iter().enumerate() {
+        if x.is_zero() {
+            continue;
+        }
+        for (j, y) in right.iter().enumerate() {
+            if !y.is_zero() {
+                out[i + j] = out[i + j].add(&x.mul(y));
+            }
+        }
+    }
+    out
+}
+
+fn add_coeff_slices<S: Scalar>(left: &[S], right: &[S]) -> Vec<S> {
+    let overlap = left.len().min(right.len());
+    let mut out = Vec::with_capacity(left.len().max(right.len()));
+    out.extend(
+        left[..overlap]
+            .iter()
+            .zip(&right[..overlap])
+            .map(|(x, y)| x.add(y)),
+    );
+    if left.len() > overlap {
+        out.extend_from_slice(&left[overlap..]);
+    } else {
+        out.extend_from_slice(&right[overlap..]);
+    }
+    out
+}
+
+fn accumulate_shifted<S: Scalar>(out: &mut [S], values: &[S], shift: usize, subtract: bool) {
+    for (index, value) in values.iter().enumerate() {
+        let value = if subtract { value.neg() } else { value.clone() };
+        out[index + shift] = out[index + shift].add(&value);
+    }
+}
+
+fn karatsuba_mul_coeffs<S: Scalar>(left: &[S], right: &[S]) -> Vec<S> {
+    if left.is_empty() || right.is_empty() {
+        return Vec::new();
+    }
+    let min_len = left.len().min(right.len());
+    let max_len = left.len().max(right.len());
+    if min_len <= KARATSUBA_THRESHOLD || max_len >= min_len.saturating_mul(2) {
+        return schoolbook_mul_coeffs(left, right);
+    }
+
+    let split = max_len / 2;
+    let (left_low, left_high) = left.split_at(left.len().min(split));
+    let (right_low, right_high) = right.split_at(right.len().min(split));
+    let low_product = karatsuba_mul_coeffs(left_low, right_low);
+    let high_product = karatsuba_mul_coeffs(left_high, right_high);
+    let left_sum = add_coeff_slices(left_low, left_high);
+    let right_sum = add_coeff_slices(right_low, right_high);
+    let sum_product = karatsuba_mul_coeffs(&left_sum, &right_sum);
+
+    let mut out = vec![S::zero(); left.len() + right.len() - 1];
+    accumulate_shifted(&mut out, &low_product, 0, false);
+    accumulate_shifted(&mut out, &sum_product, split, false);
+    accumulate_shifted(&mut out, &low_product, split, true);
+    accumulate_shifted(&mut out, &high_product, split, true);
+    accumulate_shifted(&mut out, &high_product, 2 * split, false);
+    out
+}
+
+fn is_dense<S: Scalar>(coefficients: &[S]) -> bool {
+    let nonzero = coefficients
+        .iter()
+        .filter(|coefficient| !coefficient.is_zero())
+        .count();
+    nonzero >= coefficients.len() - coefficients.len() / 4
+}
+
+fn should_use_karatsuba<S: Scalar>(left: &[S], right: &[S]) -> bool {
+    let min_len = left.len().min(right.len());
+    let max_len = left.len().max(right.len());
+    S::REASSOCIATION_IS_EXACT
+        && min_len > KARATSUBA_THRESHOLD
+        && max_len < min_len.saturating_mul(2)
+        && is_dense(left)
+        && is_dense(right)
+}
+
 impl<S: Scalar> Poly<S> {
     /// Build a polynomial from low-degree-first coefficients (trimmed).
     pub fn new(coeffs: Vec<S>) -> Self {
@@ -226,16 +319,12 @@ impl<S: Scalar> Poly<S> {
         if self.is_zero() || rhs.is_zero() {
             return Poly::zero();
         }
-        let mut out = vec![S::zero(); self.coeffs.len() + rhs.coeffs.len() - 1];
-        for (i, x) in self.coeffs.iter().enumerate() {
-            if x.is_zero() {
-                continue;
-            }
-            for (j, y) in rhs.coeffs.iter().enumerate() {
-                out[i + j] = out[i + j].add(&x.mul(y));
-            }
-        }
-        Poly::new(out)
+        let coefficients = if should_use_karatsuba(&self.coeffs, &rhs.coeffs) {
+            karatsuba_mul_coeffs(&self.coeffs, &rhs.coeffs)
+        } else {
+            schoolbook_mul_coeffs(&self.coeffs, &rhs.coeffs)
+        };
+        Poly::new(coefficients)
     }
 
     /// Multiply every coefficient by `s`.
@@ -422,7 +511,7 @@ impl<S: Valued> Poly<S> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::scalar::Fp;
+    use crate::scalar::{Fp, Rational};
 
     type P5 = Poly<Fp<5>>;
 
@@ -443,6 +532,66 @@ mod tests {
             p(&[1, 1, 1]).eval(&Fp::<5>::from_int(2)),
             Fp::<5>::from_int(7)
         ); // 1+2+4=7
+    }
+
+    #[test]
+    fn karatsuba_matches_schoolbook_on_dense_uneven_inputs() {
+        type P3 = Poly<Fp<3>>;
+        fn dense(len: usize, offset: usize) -> P3 {
+            Poly::new(
+                (0..len)
+                    .map(|index| Fp::<3>::from_u128(((index + offset) % 2 + 1) as u128))
+                    .collect(),
+            )
+        }
+
+        for &(left_len, right_len) in &[
+            (31, 35),
+            (32, 64),
+            (33, 35),
+            (63, 69),
+            (127, 121),
+            (256, 257),
+            (512, 512),
+        ] {
+            let left = dense(left_len, 0);
+            let right = dense(right_len, 1);
+            let expected = Poly::new(schoolbook_mul_coeffs(left.coeffs(), right.coeffs()));
+            assert_eq!(left.mul(&right), expected, "{left_len} by {right_len}");
+        }
+    }
+
+    #[test]
+    fn sparse_large_products_stay_on_schoolbook_path() {
+        let sparse = Poly::new(
+            (0usize..512)
+                .map(|index| {
+                    if index.is_multiple_of(64) {
+                        Fp::<5>::one()
+                    } else {
+                        Fp::<5>::zero()
+                    }
+                })
+                .collect::<Vec<_>>(),
+        );
+        let dense = Poly::new(vec![Fp::<5>::one(); 512]);
+        assert!(!should_use_karatsuba(sparse.coeffs(), dense.coeffs()));
+        assert_eq!(
+            sparse.mul(&dense),
+            Poly::new(schoolbook_mul_coeffs(sparse.coeffs(), dense.coeffs()))
+        );
+    }
+
+    #[test]
+    fn karatsuba_requires_exact_reassociation_contract() {
+        let finite_field = vec![Fp::<5>::one(); 64];
+        assert!(should_use_karatsuba(&finite_field, &finite_field));
+
+        // Rational arithmetic is mathematically exact but fixed-width: changing
+        // the grouping can change which intermediate overflows, so it retains
+        // the established schoolbook evaluation order.
+        let fixed_width = vec![Rational::one(); 64];
+        assert!(!should_use_karatsuba(&fixed_width, &fixed_width));
     }
 
     #[test]

@@ -102,9 +102,10 @@ impl<S: ExactFieldScalar> RationalFunction<S> {
 }
 
 impl<S: ExactFieldScalar> PartialEq for RationalFunction<S> {
-    /// Cross-multiplication: `a/b = c/d ⇔ a·d = c·b`.
+    /// Canonical pairs are equal exactly when both stored polynomials are equal.
+    /// Every construction path gcd-reduces and makes the denominator monic.
     fn eq(&self, other: &Self) -> bool {
-        self.num.mul(&other.den) == other.num.mul(&self.den)
+        self.num == other.num && self.den == other.den
     }
 }
 
@@ -210,10 +211,12 @@ mod tests {
     }
 
     #[test]
-    fn cross_multiplication_equality() {
+    fn canonical_structural_equality() {
         // t/t = 1; (2t)/2 = t; common factors are removed on construction.
         assert_eq!(rf(&[0, 1], &[0, 1]), F::one());
         assert_eq!(rf(&[0, 2], &[2]), F::t());
+        assert_eq!(F::t().add(&F::zero()), F::t());
+        assert_eq!(F::t().mul(&F::one()), F::t());
         assert_ne!(F::t(), F::one());
     }
 
