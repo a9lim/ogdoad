@@ -3,6 +3,7 @@
 
 use std::collections::{HashMap, VecDeque};
 use std::fmt;
+use std::sync::OnceLock;
 
 use crate::games::Game;
 
@@ -126,13 +127,46 @@ impl std::error::Error for LoopyPartizanGraphError {}
 
 /// A finite loopy partizan game graph. `left[v]` are Left's legal moves from
 /// position `v`; `right[v]` are Right's legal moves. Cycles are allowed.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug)]
 pub struct LoopyPartizanGraph {
     left: Vec<Vec<usize>>,
     right: Vec<Vec<usize>>,
+    outcomes: OnceLock<Vec<LoopyPartizanOutcome>>,
 }
 
+impl Clone for LoopyPartizanGraph {
+    fn clone(&self) -> Self {
+        let outcomes = OnceLock::new();
+        if let Some(cached) = self.outcomes.get() {
+            outcomes
+                .set(cached.clone())
+                .expect("fresh outcome cache accepts one value");
+        }
+        LoopyPartizanGraph {
+            left: self.left.clone(),
+            right: self.right.clone(),
+            outcomes,
+        }
+    }
+}
+
+impl PartialEq for LoopyPartizanGraph {
+    fn eq(&self, other: &Self) -> bool {
+        self.left == other.left && self.right == other.right
+    }
+}
+
+impl Eq for LoopyPartizanGraph {}
+
 impl LoopyPartizanGraph {
+    fn from_tables(left: Vec<Vec<usize>>, right: Vec<Vec<usize>>) -> Self {
+        LoopyPartizanGraph {
+            left,
+            right,
+            outcomes: OnceLock::new(),
+        }
+    }
+
     /// Build from explicit Left and Right adjacency lists.
     ///
     /// Both tables must have the same length and every edge target must name a
@@ -150,7 +184,7 @@ impl LoopyPartizanGraph {
         let node_count = left.len();
         validate_edges(&left, LoopyMover::Left, node_count)?;
         validate_edges(&right, LoopyMover::Right, node_count)?;
-        Ok(LoopyPartizanGraph { left, right })
+        Ok(LoopyPartizanGraph::from_tables(left, right))
     }
 
     /// Build from move rules on positions `0..n`.
@@ -216,7 +250,7 @@ impl LoopyPartizanGraph {
             }
         }
 
-        Ok(LoopyPartizanGraph { left, right })
+        Ok(LoopyPartizanGraph::from_tables(left, right))
     }
 
     /// Number of graph nodes.
@@ -236,10 +270,7 @@ impl LoopyPartizanGraph {
 
     /// Negation `-G`: retain the node set and swap Left's and Right's moves.
     pub fn neg(&self) -> LoopyPartizanGraph {
-        LoopyPartizanGraph {
-            left: self.right.clone(),
-            right: self.left.clone(),
-        }
+        LoopyPartizanGraph::from_tables(self.right.clone(), self.left.clone())
     }
 
     /// Build the reachable disjunctive product rooted at `(self_root, other_root)`.
@@ -324,12 +355,14 @@ impl LoopyPartizanGraph {
             cursor += 1;
         }
 
-        Ok(LoopyPartizanGraph { left, right })
+        Ok(LoopyPartizanGraph::from_tables(left, right))
     }
 
     /// Exact two-sided loopy-partizan outcome of every position.
-    pub fn outcomes(&self) -> Vec<LoopyPartizanOutcome> {
-        solve_partizan_outcomes(&self.left, &self.right)
+    pub fn outcomes(&self) -> &[LoopyPartizanOutcome] {
+        self.outcomes
+            .get_or_init(|| solve_partizan_outcomes(&self.left, &self.right))
+            .as_slice()
     }
 
     /// The exact result from `root`, first with Left starting and then with Right.
@@ -381,7 +414,8 @@ impl LoopyPartizanGraph {
     /// return `None`.
     pub fn partizan_outcomes(&self) -> Vec<Option<PartizanOutcome>> {
         self.outcomes()
-            .into_iter()
+            .iter()
+            .copied()
             .map(|o| o.partizan_class())
             .collect()
     }
@@ -395,7 +429,8 @@ impl LoopyPartizanGraph {
     /// to move.
     pub fn draw_set(&self) -> Vec<usize> {
         self.outcomes()
-            .into_iter()
+            .iter()
+            .copied()
             .enumerate()
             .filter_map(|(i, o)| o.has_draw().then_some(i))
             .collect()
@@ -404,7 +439,8 @@ impl LoopyPartizanGraph {
     /// Positions whose exact outcome is outside the classical five classes.
     pub fn nonclassical_set(&self) -> Vec<usize> {
         self.outcomes()
-            .into_iter()
+            .iter()
+            .copied()
             .enumerate()
             .filter_map(|(i, o)| o.partizan_class().is_none().then_some(i))
             .collect()
@@ -635,6 +671,14 @@ mod tests {
         graph(vec![vec![0]], vec![vec![]])
     }
 
+    #[test]
+    fn outcome_analysis_is_cached() {
+        let graph = on();
+        let first = graph.outcomes().as_ptr();
+        let second = graph.outcomes().as_ptr();
+        assert_eq!(first, second);
+    }
+
     fn off() -> LoopyPartizanGraph {
         graph(vec![vec![]], vec![vec![0]])
     }
@@ -810,7 +854,7 @@ mod tests {
             let right = random_adjacency(node_count, MAX_OUT_DEGREE, &mut rng);
             let presented = graph(left, right);
             let actual = presented.outcomes();
-            for (root, outcome) in actual.into_iter().enumerate() {
+            for (root, outcome) in actual.iter().copied().enumerate() {
                 assert_eq!(
                     outcome,
                     brute_force_outcome(&presented, root),

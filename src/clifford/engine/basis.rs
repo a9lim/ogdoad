@@ -46,16 +46,22 @@ pub(crate) fn grade_k_masks(n: usize, k: usize) -> Vec<u128> {
     out
 }
 
+/// Iterate over set-bit indices of a blade mask in ascending order without
+/// allocating.
+pub(crate) fn bit_indices(mut mask: u128) -> impl Iterator<Item = usize> {
+    std::iter::from_fn(move || {
+        if mask == 0 {
+            return None;
+        }
+        let index = mask.trailing_zeros() as usize;
+        mask &= mask - 1;
+        Some(index)
+    })
+}
+
 /// Ascending list of set-bit indices of a blade mask.
 pub fn bits(mask: u128) -> Vec<usize> {
-    let mut v = Vec::new();
-    let mut m = mask;
-    while m != 0 {
-        let i = m.trailing_zeros() as usize;
-        v.push(i);
-        m &= m - 1;
-    }
-    v
+    bit_indices(mask).collect()
 }
 
 /// The grade (number of generators) of a blade mask.

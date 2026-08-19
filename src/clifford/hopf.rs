@@ -27,7 +27,7 @@
 //! the high block the right) — matching `embed_first` / `embed_second(·, &alg)`.
 
 use crate::clifford::engine::add_term;
-use crate::clifford::{bits, CliffordAlgebra, Multivector, MAX_BASIS_DIM};
+use crate::clifford::{CliffordAlgebra, Multivector, MAX_BASIS_DIM};
 use crate::scalar::Scalar;
 use std::collections::BTreeMap;
 
@@ -41,7 +41,7 @@ pub fn tensor_square<S: Scalar>(alg: &CliffordAlgebra<S>) -> CliffordAlgebra<S> 
 }
 
 fn blade_of<S: Scalar>(alg: &CliffordAlgebra<S>, mask: u128) -> Multivector<S> {
-    alg.blade(&bits(mask))
+    alg.blade_mask(mask)
 }
 
 /// The unshuffle coproduct `Δ: Cl → Cl ⊗̂ Cl`, returned as a multivector over
@@ -119,10 +119,10 @@ mod tests {
         let mut right = alg.zero();
         for (&(t, u), c) in &p {
             if t == 0 {
-                left = alg.add(&left, &alg.scalar_mul(c, &alg.blade(&bits(u))));
+                left = alg.add(&left, &alg.scalar_mul(c, &alg.blade_mask(u)));
             }
             if u == 0 {
-                right = alg.add(&right, &alg.scalar_mul(c, &alg.blade(&bits(t))));
+                right = alg.add(&right, &alg.scalar_mul(c, &alg.blade_mask(t)));
             }
         }
         assert_eq!(&left, x, "(ε⊗id)∘Δ ≠ id");
@@ -136,7 +136,7 @@ mod tests {
         let mut rhs: BTreeMap<(u128, u128, u128), S> = BTreeMap::new();
         for (&(t, u), c) in &p {
             // (Δ⊗id): split the left leg
-            for (&(t1, t2), d) in &pairs(alg, &alg.blade(&bits(t))) {
+            for (&(t1, t2), d) in &pairs(alg, &alg.blade_mask(t)) {
                 let key = (t1, t2, u);
                 let e = lhs.entry(key).or_insert_with(S::zero);
                 *e = e.add(&c.mul(d));
@@ -145,7 +145,7 @@ mod tests {
                 }
             }
             // (id⊗Δ): split the right leg
-            for (&(u1, u2), d) in &pairs(alg, &alg.blade(&bits(u))) {
+            for (&(u1, u2), d) in &pairs(alg, &alg.blade_mask(u)) {
                 let key = (t, u1, u2);
                 let e = rhs.entry(key).or_insert_with(S::zero);
                 *e = e.add(&c.mul(d));
@@ -162,8 +162,8 @@ mod tests {
         let p = pairs(alg, x);
         let mut acc = alg.zero();
         for (&(t, u), c) in &p {
-            let st = antipode(alg, &alg.blade(&bits(t)));
-            let term = alg.mul(&st, &alg.blade(&bits(u)));
+            let st = antipode(alg, &alg.blade_mask(t));
+            let term = alg.mul(&st, &alg.blade_mask(u));
             acc = alg.add(&acc, &alg.scalar_mul(c, &term));
         }
         let expect = alg.scalar(counit(alg, x));
@@ -209,7 +209,7 @@ mod tests {
     fn antipode_is_grade_involution_not_reversion_twist() {
         let alg = CliffordAlgebra::new(3, Metric::<Rational>::grassmann(3));
         for mask in 0u128..8 {
-            let blade = alg.blade(&bits(mask));
+            let blade = alg.blade_mask(mask);
             let k = grade(mask);
             let expect = if k & 1 == 1 {
                 alg.scalar_mul(&r(-1), &blade)
@@ -295,7 +295,7 @@ mod tests {
     fn antipode_is_identity_over_nimber() {
         let alg = CliffordAlgebra::new(3, Metric::<Nimber>::grassmann(3));
         for mask in 0u128..8 {
-            let blade = alg.blade(&bits(mask));
+            let blade = alg.blade_mask(mask);
             assert_eq!(antipode(&alg, &blade), blade);
         }
     }

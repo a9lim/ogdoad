@@ -20,6 +20,7 @@ categories = ["mathematics", "science"]
 # Python-distribution inputs remain in the repository but outside the `.crate`.
 include = [
     "/src/**",
+    "/benches/**",
     "/examples/**",
     "/tests/**",
     "/README.md",
@@ -37,6 +38,10 @@ no-default-features = false
 name = "ogdoad"
 # cdylib for the Python extension module; rlib for `cargo test` and examples.
 crate-type = ["cdylib", "rlib"]
+
+[[bench]]
+name = "data_structures"
+harness = false
 
 [dependencies]
 # PyO3 is optional and only pulled in for the Python build. Gating it behind

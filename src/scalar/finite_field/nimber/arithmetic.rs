@@ -14,7 +14,6 @@
 //! largest Fermat index in play — that is what makes the recursion terminate.
 
 use std::cell::RefCell;
-use std::collections::HashMap;
 use std::sync::OnceLock;
 
 #[inline]
@@ -23,16 +22,27 @@ pub fn nim_add(a: u128, b: u128) -> u128 {
     a ^ b
 }
 
+const POW2_MEMO_LEN: usize = 128 * 129 / 2;
+
+fn pow2_memo_index(i: usize, j: usize) -> usize {
+    let (i, j) = if i <= j { (i, j) } else { (j, i) };
+    i * 128 - i * i.saturating_sub(1) / 2 + (j - i)
+}
+
 thread_local! {
-    // memo for 2^i (x) 2^j, keyed (min(i,j), max(i,j)); bounded 128x128.
-    static POW2_MEMO: RefCell<HashMap<(usize, usize), u128>> = RefCell::new(HashMap::new());
+    // Direct triangular memo for 2^i (x) 2^j. Every true product is nonzero,
+    // so zero is an unambiguous empty-slot sentinel.
+    static POW2_MEMO: RefCell<[u128; POW2_MEMO_LEN]> = const {
+        RefCell::new([0; POW2_MEMO_LEN])
+    };
 }
 
 /// 2^i (x) 2^j.
 fn nim_mul_pow2(i: usize, j: usize) -> u128 {
-    let key = if i <= j { (i, j) } else { (j, i) };
-    if let Some(v) = POW2_MEMO.with(|m| m.borrow().get(&key).copied()) {
-        return v;
+    let memo_index = pow2_memo_index(i, j);
+    let cached = POW2_MEMO.with(|memo| memo.borrow()[memo_index]);
+    if cached != 0 {
+        return cached;
     }
 
     // Fermat indices that appear once (clean product) vs twice (must square).
@@ -58,7 +68,8 @@ fn nim_mul_pow2(i: usize, j: usize) -> u128 {
         nim_mul(clean, squared)
     };
 
-    POW2_MEMO.with(|m| m.borrow_mut().insert(key, result));
+    debug_assert_ne!(result, 0, "nonzero nimbers multiply to a nonzero nimber");
+    POW2_MEMO.with(|memo| memo.borrow_mut()[memo_index] = result);
     result
 }
 

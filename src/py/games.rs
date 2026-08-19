@@ -2720,7 +2720,8 @@ impl PyLoopyGraph {
     fn outcomes(&self) -> Vec<PyOutcome> {
         self.inner
             .outcomes()
-            .into_iter()
+            .iter()
+            .copied()
             .map(wrap_outcome)
             .collect()
     }
@@ -2787,7 +2788,8 @@ impl PyLoopyPartizanGraph {
     fn outcomes(&self) -> Vec<PyLoopyPartizanOutcome> {
         self.inner
             .outcomes()
-            .into_iter()
+            .iter()
+            .copied()
             .map(wrap_loopy_partizan_outcome)
             .collect()
     }

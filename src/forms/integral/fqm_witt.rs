@@ -7,16 +7,62 @@
 //! not just the Milgram/Brown phase.
 
 use crate::forms::integral::diagonal::{odd_unit_residue, rat_val, rational_mod_int, unit_mod8};
-use crate::forms::integral::discriminant::{phase_mod8_from_q_values, DiscriminantForm, IsoTables};
+use crate::forms::integral::discriminant::{
+    phase_mod8_from_q_values, DiscriminantForm, IsoTables, SquareTable,
+};
 use crate::forms::integral::is_prime_power;
 use crate::forms::try_is_square_qp;
 use crate::linalg::integer::prime_factors;
 use crate::scalar::{Rational, Scalar};
-use std::collections::{BTreeMap, BTreeSet, VecDeque};
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 const FQM_WITT_GROUP_CAP: usize = 512;
 const FQM_WITT_TUPLE_CAP: u128 = 2_000_000;
+
+#[derive(Clone, Debug)]
+struct IndexSet {
+    present: Vec<bool>,
+    len: usize,
+}
+
+impl IndexSet {
+    fn new(size: usize) -> Self {
+        IndexSet {
+            present: vec![false; size],
+            len: 0,
+        }
+    }
+
+    fn insert(&mut self, index: usize) -> bool {
+        if self.present[index] {
+            false
+        } else {
+            self.present[index] = true;
+            self.len += 1;
+            true
+        }
+    }
+
+    fn contains(&self, index: usize) -> bool {
+        self.present[index]
+    }
+
+    fn len(&self) -> usize {
+        self.len
+    }
+
+    fn iter(&self) -> impl Iterator<Item = usize> + '_ {
+        self.present
+            .iter()
+            .enumerate()
+            .filter_map(|(index, &present)| present.then_some(index))
+    }
+
+    fn is_subset(&self, other: &IndexSet) -> bool {
+        self.iter().all(|index| other.contains(index))
+    }
+}
 
 /// A value-count entry in a finite quadratic module normal form.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -438,7 +484,7 @@ struct FqmTable {
     zero: usize,
     q: Vec<Rational>,
     order: Vec<usize>,
-    add: Vec<Vec<usize>>,
+    add: SquareTable<usize>,
 }
 
 impl FqmTable {
@@ -453,18 +499,20 @@ impl FqmTable {
 
     fn from_native(module: &FiniteQuadraticModule) -> Option<Self> {
         let n = module.q_values_mod2.len();
-        let mut add = vec![vec![0usize; n]; n];
+        let mut add = SquareTable::filled(n, 0usize);
+        let coords = (0..n)
+            .map(|index| coords_from_index(index, &module.cyclic_factors))
+            .collect::<Option<Vec<_>>>()?;
         for i in 0..n {
-            let ci = coords_from_index(i, &module.cyclic_factors)?;
             for j in 0..n {
-                let cj = coords_from_index(j, &module.cyclic_factors)?;
-                let sum = ci
-                    .iter()
-                    .zip(&cj)
-                    .zip(&module.cyclic_factors)
-                    .map(|((&a, &b), &d)| (a + b) % d)
-                    .collect::<Vec<_>>();
-                add[i][j] = index_from_coords(&sum, &module.cyclic_factors)?;
+                let mut sum_index = 0usize;
+                for ((&a, &b), &d) in coords[i].iter().zip(&coords[j]).zip(&module.cyclic_factors) {
+                    let digit = a.checked_add(b)? % d;
+                    sum_index = sum_index
+                        .checked_mul(usize::try_from(d).ok()?)?
+                        .checked_add(usize::try_from(digit).ok()?)?;
+                }
+                add[i][j] = sum_index;
             }
         }
         let zero = 0;
@@ -646,7 +694,7 @@ impl FqmTable {
         if zero == usize::MAX {
             return None;
         }
-        let mut add = vec![vec![0usize; indices.len()]; indices.len()];
+        let mut add = SquareTable::filled(indices.len(), 0usize);
         for (i, &old_i) in indices.iter().enumerate() {
             for (j, &old_j) in indices.iter().enumerate() {
                 let s = self.add[old_i][old_j];
@@ -701,34 +749,35 @@ impl FqmTable {
         Some(core)
     }
 
-    fn quotient_by_isotropic_subgroup(&self, subgroup: &BTreeSet<usize>) -> Option<Self> {
-        if !subgroup.contains(&self.zero)
-            || !subgroup.iter().all(|&h| self.q[h] == Rational::zero())
+    fn quotient_by_isotropic_subgroup(&self, subgroup: &IndexSet) -> Option<Self> {
+        if !subgroup.contains(self.zero) || !subgroup.iter().all(|h| self.q[h] == Rational::zero())
         {
             return None;
         }
-        let orthogonal = (0..self.q.len())
-            .filter(|&x| {
-                subgroup
-                    .iter()
-                    .all(|&h| self.bilinear_value(x, h) == Rational::zero())
-            })
-            .collect::<BTreeSet<_>>();
+        let mut orthogonal = IndexSet::new(self.q.len());
+        for x in 0..self.q.len() {
+            if subgroup
+                .iter()
+                .all(|h| self.bilinear_value(x, h) == Rational::zero())
+            {
+                orthogonal.insert(x);
+            }
+        }
         if !subgroup.is_subset(&orthogonal) {
             return None;
         }
 
         let mut coset_of = vec![usize::MAX; self.q.len()];
         let mut reps = Vec::new();
-        for &x in &orthogonal {
+        for x in orthogonal.iter() {
             if coset_of[x] != usize::MAX {
                 continue;
             }
             let id = reps.len();
             reps.push(x);
-            for &h in subgroup {
+            for h in subgroup.iter() {
                 let y = self.add[x][h];
-                if !orthogonal.contains(&y) {
+                if !orthogonal.contains(y) {
                     return None;
                 }
                 coset_of[y] = id;
@@ -738,7 +787,7 @@ impl FqmTable {
         if zero == usize::MAX {
             return None;
         }
-        let mut add = vec![vec![0usize; reps.len()]; reps.len()];
+        let mut add = SquareTable::filled(reps.len(), 0usize);
         for (i, &x) in reps.iter().enumerate() {
             for (j, &y) in reps.iter().enumerate() {
                 let s = self.add[x][y];
@@ -759,16 +808,16 @@ impl FqmTable {
         Some(out)
     }
 
-    fn subgroup_generated(&self, gens: &[usize]) -> BTreeSet<usize> {
-        let mut set = BTreeSet::new();
-        let mut queue = VecDeque::new();
+    fn subgroup_generated(&self, gens: &[usize]) -> IndexSet {
+        let mut set = IndexSet::new(self.q.len());
+        let mut queue = Vec::new();
         set.insert(self.zero);
-        queue.push_back(self.zero);
-        while let Some(x) = queue.pop_front() {
+        queue.push(self.zero);
+        while let Some(x) = queue.pop() {
             for &g in gens {
                 let nx = self.add[x][g];
                 if set.insert(nx) {
-                    queue.push_back(nx);
+                    queue.push(nx);
                 }
             }
         }
@@ -780,7 +829,7 @@ impl FqmTable {
         let mut covered = self.subgroup_generated(&gens);
         while covered.len() < self.q.len() {
             let g = (0..self.q.len())
-                .filter(|i| !covered.contains(i))
+                .filter(|&i| !covered.contains(i))
                 .max_by_key(|&i| self.order[i])
                 .expect("uncovered finite-module element exists");
             gens.push(g);
@@ -806,13 +855,13 @@ impl FqmTable {
         &self,
         candidates: &[usize],
         gens: &mut Vec<usize>,
-        covered: BTreeSet<usize>,
+        covered: IndexSet,
     ) -> Option<Vec<usize>> {
         if covered.len() == self.q.len() {
             return Some(gens.clone());
         }
         for &g in candidates {
-            if covered.contains(&g) || gens.contains(&g) {
+            if covered.contains(g) || gens.contains(&g) {
                 continue;
             }
             let mut trial = gens.clone();
@@ -1050,19 +1099,6 @@ fn coords_from_index(mut index: usize, factors: &[u128]) -> Option<Vec<u128>> {
         let du = usize::try_from(d).ok()?;
         out[i] = (index % du) as u128;
         index /= du;
-    }
-    Some(out)
-}
-
-fn index_from_coords(coords: &[u128], factors: &[u128]) -> Option<usize> {
-    let mut out = 0usize;
-    for (&x, &d) in coords.iter().zip(factors) {
-        if x >= d {
-            return None;
-        }
-        out = out
-            .checked_mul(usize::try_from(d).ok()?)?
-            .checked_add(usize::try_from(x).ok()?)?;
     }
     Some(out)
 }

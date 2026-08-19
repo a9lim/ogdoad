@@ -268,15 +268,14 @@ impl DividedPowerAlgebra {
     pub fn coproduct<S: Scalar>(&self, x: &DpVector<S>) -> BTreeMap<DpTensorKey, S> {
         let mut out: BTreeMap<DpTensorKey, S> = BTreeMap::new();
         for (a, c) in &x.terms {
-            for beta in sub_multidegrees(a) {
-                let gamma: Multidegree = a.iter().zip(&beta).map(|(ai, bi)| ai - bi).collect();
-                let key = (beta, gamma);
-                let e = out.entry(key.clone()).or_insert_with(S::zero);
-                *e = e.add(c);
-                if e.is_zero() {
-                    out.remove(&key);
-                }
-            }
+            for_each_sub_multidegree(a, |beta| {
+                let gamma: Multidegree = a.iter().zip(beta).map(|(ai, bi)| ai - bi).collect();
+                let previous = out.insert((beta.to_vec(), gamma), c.clone());
+                debug_assert!(
+                    previous.is_none(),
+                    "tensor key determines its source degree"
+                );
+            });
         }
         out
     }
@@ -302,21 +301,22 @@ impl DividedPowerAlgebra {
     }
 }
 
-/// All multidegrees `β` with `0 ≤ β_i ≤ α_i` componentwise (the sub-monomials).
-fn sub_multidegrees(alpha: &[u128]) -> Vec<Multidegree> {
-    let mut acc = vec![Vec::new()];
-    for &ai in alpha {
-        let mut next = Vec::new();
-        for prefix in &acc {
-            for bi in 0..=ai {
-                let mut p = prefix.clone();
-                p.push(bi);
-                next.push(p);
-            }
+/// Visits all multidegrees `β` with `0 ≤ β_i ≤ α_i` componentwise while
+/// reusing one scratch buffer.
+fn for_each_sub_multidegree(alpha: &[u128], mut visit: impl FnMut(&[u128])) {
+    fn walk(alpha: &[u128], coordinate: usize, beta: &mut [u128], visit: &mut impl FnMut(&[u128])) {
+        if coordinate == alpha.len() {
+            visit(beta);
+            return;
         }
-        acc = next;
+        for value in 0..=alpha[coordinate] {
+            beta[coordinate] = value;
+            walk(alpha, coordinate + 1, beta, visit);
+        }
     }
-    acc
+
+    let mut beta = vec![0; alpha.len()];
+    walk(alpha, 0, &mut beta, &mut visit);
 }
 
 #[cfg(test)]

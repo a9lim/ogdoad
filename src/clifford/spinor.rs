@@ -32,7 +32,7 @@
 //! non-enumerable explicit dimensions return `None`.
 
 use crate::clifford::MAX_BASIS_DIM;
-use crate::clifford::{bits, CliffordAlgebra, Metric, Multivector};
+use crate::clifford::{CliffordAlgebra, Metric, Multivector};
 use crate::linalg::field::inverse_matrix;
 use crate::scalar::Scalar;
 
@@ -227,7 +227,7 @@ fn ideal_spanning_set<S: Scalar>(
     let count = blade_count(alg.dim())?;
     Some(
         (0..count)
-            .map(|mask| alg.mul(&alg.blade(&bits(mask)), f))
+            .map(|mask| alg.mul(&alg.blade_mask(mask), f))
             .collect(),
     )
 }
@@ -478,7 +478,7 @@ fn char2_shrinking_blade_idempotent<S: Scalar>(
 ) -> Option<(Multivector<S>, usize)> {
     let count = blade_count(alg.dim())?;
     for mask in 1..count {
-        let candidate = alg.blade(&bits(mask));
+        let candidate = alg.blade_mask(mask);
         if !is_idempotent(alg, &candidate) {
             continue;
         }
@@ -534,7 +534,7 @@ fn spinor_rep_orthogonal<S: Scalar>(alg: &CliffordAlgebra<S>) -> Option<SpinorRe
     loop {
         let mut progressed = false;
         for mask in 1..blade_count(alg.dim())? {
-            let w = alg.blade(&bits(mask));
+            let w = alg.blade_mask(mask);
             if alg.mul(&w, &w) != one {
                 continue; // need w² = +1
             }

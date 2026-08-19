@@ -304,32 +304,32 @@ fn build_quotient(
     for g in &elements {
         let mut sig = Vec::with_capacity(tests.len());
         for t in tests {
-            let mut gt = g.clone();
-            gt.extend_from_slice(t);
+            let gt = sum_multiset(g, t);
             sig.push(outcome(&gt)?);
         }
         signatures.push(sig);
     }
 
     let mut class_of = vec![0usize; elements.len()];
-    let mut uniq: Vec<Vec<bool>> = Vec::new();
+    let mut signature_class: HashMap<Vec<bool>, usize> = HashMap::new();
     let mut class_rep: Vec<Vec<usize>> = Vec::new();
     for (i, sig) in signatures.iter().enumerate() {
-        match uniq.iter().position(|s| s == sig) {
-            Some(c) => class_of[i] = c,
-            None => {
-                class_of[i] = uniq.len();
-                uniq.push(sig.clone());
-                class_rep.push(elements[i].clone());
-            }
+        if let Some(&class) = signature_class.get(sig) {
+            class_of[i] = class;
+        } else {
+            let class = class_rep.len();
+            class_of[i] = class;
+            signature_class.insert(sig.clone(), class);
+            class_rep.push(elements[i].clone());
         }
     }
     let mut class_is_p: Vec<bool> = Vec::with_capacity(class_rep.len());
     for r in &class_rep {
         class_is_p.push(!outcome(r)?);
     }
+    let num_classes = class_rep.len();
     let (multiplication, multiplication_consistent, elements_closed_under_sum) =
-        build_multiplication(&elements, &class_of, &class_rep, uniq.len());
+        build_multiplication(&elements, &class_of, &class_rep, num_classes);
 
     Some(Quotient {
         elements,
@@ -345,9 +345,19 @@ fn build_quotient(
 }
 
 fn sum_multiset(a: &[usize], b: &[usize]) -> Vec<usize> {
-    let mut out = a.to_vec();
-    out.extend_from_slice(b);
-    out.sort_unstable();
+    let mut out = Vec::with_capacity(a.len() + b.len());
+    let (mut i, mut j) = (0, 0);
+    while i < a.len() && j < b.len() {
+        if a[i] <= b[j] {
+            out.push(a[i]);
+            i += 1;
+        } else {
+            out.push(b[j]);
+            j += 1;
+        }
+    }
+    out.extend_from_slice(&a[i..]);
+    out.extend_from_slice(&b[j..]);
     out
 }
 
@@ -357,31 +367,32 @@ fn build_multiplication(
     class_rep: &[Vec<usize>],
     num_classes: usize,
 ) -> (Option<Vec<Vec<usize>>>, bool, bool) {
-    let element_index: HashMap<Vec<usize>, usize> = elements
+    let element_index: HashMap<&[usize], usize> = elements
         .iter()
-        .cloned()
         .enumerate()
-        .map(|(i, e)| (e, i))
+        .map(|(i, e)| (e.as_slice(), i))
         .collect();
-    let mut table = vec![vec![None; num_classes]; num_classes];
+    let mut table = vec![None; num_classes * num_classes];
     let mut closed_under_sum = true;
 
     for (i, a) in elements.iter().enumerate() {
-        for (j, b) in elements.iter().enumerate() {
+        for (j, b) in elements.iter().enumerate().skip(i) {
             let prod = sum_multiset(a, b);
-            let Some(&k) = element_index.get(&prod) else {
+            let Some(&k) = element_index.get(prod.as_slice()) else {
                 closed_under_sum = false;
                 continue;
             };
             let ca = class_of[i];
             let cb = class_of[j];
             let cp = class_of[k];
-            match table[ca][cb] {
+            let ab = ca * num_classes + cb;
+            let ba = cb * num_classes + ca;
+            match table[ab] {
                 Some(prev) if prev != cp => return (None, false, closed_under_sum),
                 Some(_) => {}
                 None => {
-                    table[ca][cb] = Some(cp);
-                    table[cb][ca] = Some(cp);
+                    table[ab] = Some(cp);
+                    table[ba] = Some(cp);
                 }
             }
         }
@@ -389,23 +400,25 @@ fn build_multiplication(
 
     for a in 0..num_classes {
         for b in 0..num_classes {
-            if table[a][b].is_none() {
+            let ab = a * num_classes + b;
+            let ba = b * num_classes + a;
+            if table[ab].is_none() {
                 let prod = sum_multiset(&class_rep[a], &class_rep[b]);
-                let Some(&k) = element_index.get(&prod) else {
+                let Some(&k) = element_index.get(prod.as_slice()) else {
                     return (None, false, closed_under_sum);
                 };
                 let cp = class_of[k];
-                table[a][b] = Some(cp);
-                table[b][a] = Some(cp);
+                table[ab] = Some(cp);
+                table[ba] = Some(cp);
             }
         }
     }
 
     let table = table
-        .into_iter()
+        .chunks_exact(num_classes)
         .map(|row| {
-            row.into_iter()
-                .map(|c| c.expect("all class products filled"))
+            row.iter()
+                .map(|&c| c.expect("all class products filled"))
                 .collect()
         })
         .collect();

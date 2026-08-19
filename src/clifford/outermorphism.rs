@@ -13,10 +13,11 @@
 //! The determinant is read off the top grade: `f(I) = det(f)·I` for the unit
 //! pseudoscalar `I`.
 
-use crate::clifford::engine::grade_k_masks;
-use crate::clifford::{bits, CliffordAlgebra, Multivector};
+use crate::clifford::engine::{bit_indices, grade_k_masks};
+use crate::clifford::{CliffordAlgebra, Multivector};
 use crate::linalg::field;
 use crate::scalar::Scalar;
+use std::collections::BTreeMap;
 
 /// A linear map `V → V` on grade 1, stored column-major: `cols()[i]` is the
 /// image `f(e_i)` as a length-`n` coefficient vector over `e_0..e_{n-1}` (so
@@ -66,13 +67,14 @@ impl<S: Scalar> LinearMap<S> {
 
     /// `f(e_i)` as a grade-1 multivector in `alg`.
     pub fn image(&self, alg: &CliffordAlgebra<S>, i: usize) -> Multivector<S> {
-        let mut out = alg.zero();
+        assert!(i < alg.dim(), "generator index {i} out of range");
+        let mut terms = BTreeMap::new();
         for (j, c) in self.cols[i].iter().enumerate() {
             if !c.is_zero() {
-                out = alg.add(&out, &alg.scalar_mul(c, &alg.e(j)));
+                terms.insert(1u128 << j, c.clone());
             }
         }
-        out
+        Multivector { terms }
     }
 
     /// The composite `self ∘ inner` (apply `inner`, then `self`): the ordinary
@@ -115,7 +117,7 @@ pub fn apply_outermorphism<S: Scalar>(
     for (&mask, coeff) in &mv.terms {
         // Fold f(e_i) over the set bits in ascending order, starting at 1.
         let mut acc = alg.scalar(S::one());
-        for i in bits(mask) {
+        for i in bit_indices(mask) {
             acc = alg.wedge(&acc, &f.image(alg, i));
         }
         out = alg.add(&out, &alg.scalar_mul(coeff, &acc));
@@ -146,7 +148,7 @@ pub fn exterior_power_trace<S: Scalar>(alg: &CliffordAlgebra<S>, f: &LinearMap<S
     );
     let mut acc = S::zero();
     for mask in grade_k_masks(alg.dim(), k) {
-        let blade = alg.blade(&bits(mask));
+        let blade = alg.blade_mask(mask);
         let img = apply_outermorphism(alg, f, &blade);
         // ⟨e_S , f(e_S)⟩ — the diagonal entry of Λᵏf at this blade.
         if let Some(c) = img.terms.get(&mask) {

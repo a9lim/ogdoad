@@ -42,15 +42,57 @@ pub const CODEWORD_ENUMERATION_BUDGET: usize = 2_000_000;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BinaryCode {
     n: usize,
-    generators: Vec<Vec<u8>>,
+    generators: Vec<PackedBinaryRow>,
 }
 
-fn row_weight(row: &[u8]) -> usize {
-    row.iter().map(|&x| x as usize).sum()
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct PackedBinaryRow {
+    words: Box<[u64]>,
 }
 
-fn dot_mod2(a: &[u8], b: &[u8]) -> u8 {
-    a.iter().zip(b).fold(0u8, |acc, (&x, &y)| acc ^ (x & y))
+impl PackedBinaryRow {
+    fn from_bytes(row: &[u8]) -> Self {
+        let mut words = vec![0u64; row.len().div_ceil(64)];
+        for (column, &bit) in row.iter().enumerate() {
+            words[column / 64] |= u64::from(bit) << (column % 64);
+        }
+        PackedBinaryRow {
+            words: words.into_boxed_slice(),
+        }
+    }
+
+    fn bit(&self, column: usize) -> u8 {
+        ((self.words[column / 64] >> (column % 64)) & 1) as u8
+    }
+
+    fn first_one(&self) -> Option<usize> {
+        self.words
+            .iter()
+            .enumerate()
+            .find_map(|(word_index, &word)| {
+                (word != 0).then(|| word_index * 64 + word.trailing_zeros() as usize)
+            })
+    }
+
+    fn weight(&self) -> usize {
+        self.words
+            .iter()
+            .map(|word| word.count_ones() as usize)
+            .sum()
+    }
+
+    fn dot(&self, other: &PackedBinaryRow) -> u8 {
+        (self
+            .words
+            .iter()
+            .zip(&other.words)
+            .fold(0u32, |parity, (&a, &b)| parity ^ (a & b).count_ones())
+            & 1) as u8
+    }
+
+    fn to_bytes(&self, n: usize) -> Vec<u8> {
+        (0..n).map(|column| self.bit(column)).collect()
+    }
 }
 
 fn pow2_i128(exp: usize) -> Option<i128> {
@@ -295,10 +337,11 @@ impl BinaryCode {
     /// Build a binary code from generator rows. The stored basis is row-reduced
     /// over F2, so equivalent generator matrices compare equal.
     pub fn new(n: usize, generators: Vec<Vec<u8>>) -> Option<Self> {
-        Some(BinaryCode {
-            n,
-            generators: normalize_generators(generators, n)?,
-        })
+        let generators = normalize_generators(generators, n)?
+            .iter()
+            .map(|row| PackedBinaryRow::from_bytes(row))
+            .collect();
+        Some(BinaryCode { n, generators })
     }
 
     /// The block length `n`.
@@ -316,9 +359,12 @@ impl BinaryCode {
         self.generators.len()
     }
 
-    /// Row-reduced generator rows.
-    pub fn generators(&self) -> &[Vec<u8>] {
-        &self.generators
+    /// Row-reduced generator rows, unpacked to binary bytes.
+    pub fn generators(&self) -> Vec<Vec<u8>> {
+        self.generators
+            .iter()
+            .map(|row| row.to_bytes(self.n))
+            .collect()
     }
 
     /// The number of codewords, `2^k`, when it fits the crate's `u128` payload.
@@ -330,26 +376,22 @@ impl BinaryCode {
         }
     }
 
-    /// `None` past [`CODEWORD_ENUMERATION_BUDGET`] rather than overflowing a
-    /// `usize` mask or running unbounded.
-    fn codewords(&self) -> Option<Vec<Vec<u8>>> {
+    /// Visits every codeword in Gray-code order while reusing one word buffer.
+    /// Returns `None` past [`CODEWORD_ENUMERATION_BUDGET`].
+    fn for_each_codeword(&self, mut visit: impl FnMut(&[u64])) -> Option<()> {
         let size = 1usize
             .checked_shl(self.dim() as u32)
             .filter(|&s| s <= CODEWORD_ENUMERATION_BUDGET)?;
-        let mut out = Vec::with_capacity(size);
-        for mask in 0usize..size {
-            let mut word = vec![0u8; self.n];
-            for (i, row) in self.generators.iter().enumerate() {
-                if (mask >> i) & 1 == 0 {
-                    continue;
-                }
-                for j in 0..self.n {
-                    word[j] ^= row[j];
-                }
+        let mut word = vec![0u64; self.n.div_ceil(64)];
+        visit(&word);
+        for step in 1..size {
+            let changed_row = step.trailing_zeros() as usize;
+            for (x, &g) in word.iter_mut().zip(&self.generators[changed_row].words) {
+                *x ^= g;
             }
-            out.push(word);
+            visit(&word);
         }
-        Some(out)
+        Some(())
     }
 
     /// The dual code `C^perp = {x : x dot c = 0 for all c in C}`.
@@ -357,7 +399,7 @@ impl BinaryCode {
         let mut pivot_for_row = Vec::new();
         let mut is_pivot = vec![false; self.n];
         for row in &self.generators {
-            if let Some(p) = row.iter().position(|&x| x != 0) {
+            if let Some(p) = row.first_one() {
                 pivot_for_row.push(p);
                 is_pivot[p] = true;
             }
@@ -371,7 +413,7 @@ impl BinaryCode {
             let mut v = vec![0u8; self.n];
             v[free] = 1;
             for (r, &pivot) in pivot_for_row.iter().enumerate() {
-                v[pivot] = self.generators[r][free];
+                v[pivot] = self.generators[r].bit(free);
             }
             dual_rows.push(v);
         }
@@ -383,12 +425,12 @@ impl BinaryCode {
         let mut rows = Vec::with_capacity(self.dim() + other.dim());
         for row in &self.generators {
             let mut out = vec![0u8; self.n + other.n];
-            out[..self.n].copy_from_slice(row);
+            out[..self.n].copy_from_slice(&row.to_bytes(self.n));
             rows.push(out);
         }
         for row in &other.generators {
             let mut out = vec![0u8; self.n + other.n];
-            out[self.n..].copy_from_slice(row);
+            out[self.n..].copy_from_slice(&row.to_bytes(other.n));
             rows.push(out);
         }
         BinaryCode::new(self.n + other.n, rows).expect("direct-sum rows are binary")
@@ -398,14 +440,26 @@ impl BinaryCode {
         if word.len() != self.n || word.iter().any(|&x| x > 1) {
             return false;
         }
-        let mut rows = self.generators.clone();
-        rows.push(word.to_vec());
-        normalize_generators(rows, self.n).is_some_and(|basis| basis.len() == self.dim())
+        let mut remainder = PackedBinaryRow::from_bytes(word).words.into_vec();
+        for row in &self.generators {
+            let pivot = row.first_one().expect("stored generator row is nonzero");
+            if (remainder[pivot / 64] >> (pivot % 64)) & 1 == 0 {
+                continue;
+            }
+            for (target, &word) in remainder.iter_mut().zip(&row.words) {
+                *target ^= word;
+            }
+        }
+        remainder.iter().all(|&word| word == 0)
     }
 
     /// Whether `other <= self` as a binary row space.
     pub fn contains(&self, other: &BinaryCode) -> bool {
-        self.n == other.n && other.generators.iter().all(|row| self.contains_word(row))
+        self.n == other.n
+            && other
+                .generators
+                .iter()
+                .all(|row| self.contains_word(&row.to_bytes(other.n)))
     }
 
     /// `C = C^perp`.
@@ -415,9 +469,8 @@ impl BinaryCode {
 
     /// `C <= C^perp`.
     pub fn is_self_orthogonal(&self) -> bool {
-        (0..self.dim()).all(|i| {
-            (i..self.dim()).all(|j| dot_mod2(&self.generators[i], &self.generators[j]) == 0)
-        })
+        (0..self.dim())
+            .all(|i| (i..self.dim()).all(|j| self.generators[i].dot(&self.generators[j]) == 0))
     }
 
     /// Every codeword has Hamming weight divisible by 4.
@@ -425,23 +478,25 @@ impl BinaryCode {
         if self
             .generators
             .iter()
-            .any(|row| !row_weight(row).is_multiple_of(4))
+            .any(|row| !row.weight().is_multiple_of(4))
         {
             return false;
         }
-        (0..self.dim()).all(|i| {
-            (i + 1..self.dim()).all(|j| dot_mod2(&self.generators[i], &self.generators[j]) == 0)
-        })
+        (0..self.dim())
+            .all(|i| (i + 1..self.dim()).all(|j| self.generators[i].dot(&self.generators[j]) == 0))
     }
 
     /// The minimum nonzero Hamming weight, or `None` for the zero code (or past
     /// [`CODEWORD_ENUMERATION_BUDGET`]).
     pub fn minimum_distance(&self) -> Option<usize> {
-        self.codewords()?
-            .into_iter()
-            .map(|word| row_weight(&word))
-            .filter(|&w| w > 0)
-            .min()
+        let mut minimum = None;
+        self.for_each_codeword(|word| {
+            let weight: usize = word.iter().map(|word| word.count_ones() as usize).sum();
+            if weight > 0 {
+                minimum = Some(minimum.map_or(weight, |old: usize| old.min(weight)));
+            }
+        })?;
+        minimum
     }
 
     /// The Hamming weight enumerator coefficients:
@@ -451,12 +506,11 @@ impl BinaryCode {
     /// rather than silently truncating the enumerator.
     pub fn weight_enumerator(&self) -> Vec<i128> {
         let mut out = vec![0i128; self.n + 1];
-        for word in self
-            .codewords()
-            .expect("code dimension exceeds CODEWORD_ENUMERATION_BUDGET")
-        {
-            out[row_weight(&word)] += 1;
-        }
+        self.for_each_codeword(|word| {
+            let weight: usize = word.iter().map(|word| word.count_ones() as usize).sum();
+            out[weight] += 1;
+        })
+        .expect("code dimension exceeds CODEWORD_ENUMERATION_BUDGET");
         out
     }
 
@@ -500,7 +554,7 @@ impl BinaryCode {
         let mut rows: Vec<Vec<i128>> = self
             .generators
             .iter()
-            .map(|row| row.iter().map(|&x| x as i128).collect())
+            .map(|row| row.to_bytes(self.n).into_iter().map(i128::from).collect())
             .collect();
         for i in 0..self.n {
             let mut row = vec![0i128; self.n];
@@ -524,7 +578,7 @@ impl BinaryCode {
         let mut rows: Vec<Vec<i128>> = self
             .generators
             .iter()
-            .map(|row| row.iter().map(|&x| x as i128).collect())
+            .map(|row| row.to_bytes(self.n).into_iter().map(i128::from).collect())
             .collect();
         match self.n {
             0 => {}
@@ -663,33 +717,33 @@ impl<const P: u128> PrimeCode<P> {
         Some(out)
     }
 
-    /// `None` past [`CODEWORD_ENUMERATION_BUDGET`] rather than overflowing a
-    /// `usize` mask or running unbounded.
-    fn codewords(&self) -> Option<Vec<Vec<u128>>> {
+    /// Visits every codeword in mixed-radix order while reusing one word
+    /// buffer. Returns `None` past [`CODEWORD_ENUMERATION_BUDGET`].
+    fn for_each_codeword(&self, mut visit: impl FnMut(&[u128])) -> Option<()> {
         let total = self
             .size()
             .and_then(|s| usize::try_from(s).ok())
             .filter(|&s| s <= CODEWORD_ENUMERATION_BUDGET)?;
-        let mut out = Vec::with_capacity(total);
-        for mask in 0..total {
-            let mut coeffs = vec![0u128; self.dim()];
-            let mut x = mask as u128;
-            for coeff in &mut coeffs {
-                *coeff = x % P;
-                x /= P;
+        let mut coeffs = vec![0u128; self.dim()];
+        let mut word = vec![0u128; self.n];
+        for ordinal in 0..total {
+            visit(&word);
+            if ordinal + 1 == total {
+                break;
             }
-            let mut word = vec![0u128; self.n];
-            for (coeff, row) in coeffs.iter().zip(&self.generators) {
-                if *coeff == 0 {
-                    continue;
+            let mut changed_row = 0usize;
+            loop {
+                coeffs[changed_row] = fp_add::<P>(coeffs[changed_row], 1);
+                for (x, &g) in word.iter_mut().zip(&self.generators[changed_row]) {
+                    *x = fp_add::<P>(*x, g);
                 }
-                for j in 0..self.n {
-                    word[j] = fp_add::<P>(word[j], fp_mul::<P>(*coeff, row[j]));
+                if coeffs[changed_row] != 0 {
+                    break;
                 }
+                changed_row += 1;
             }
-            out.push(word);
         }
-        Some(out)
+        Some(())
     }
 
     fn contains_word(&self, word: &[u128]) -> bool {
@@ -763,11 +817,14 @@ impl<const P: u128> PrimeCode<P> {
     /// The minimum nonzero Hamming weight, or `None` for the zero code (or past
     /// [`CODEWORD_ENUMERATION_BUDGET`]).
     pub fn minimum_distance(&self) -> Option<usize> {
-        self.codewords()?
-            .into_iter()
-            .map(|word| row_weight_p(&word))
-            .filter(|&w| w > 0)
-            .min()
+        let mut minimum = None;
+        self.for_each_codeword(|word| {
+            let weight = row_weight_p(word);
+            if weight > 0 {
+                minimum = Some(minimum.map_or(weight, |old: usize| old.min(weight)));
+            }
+        })?;
+        minimum
     }
 
     /// The Hamming weight enumerator coefficients:
@@ -777,12 +834,8 @@ impl<const P: u128> PrimeCode<P> {
     /// rather than silently truncating the enumerator.
     pub fn weight_enumerator(&self) -> Vec<i128> {
         let mut out = vec![0i128; self.n + 1];
-        for word in self
-            .codewords()
-            .expect("code dimension exceeds CODEWORD_ENUMERATION_BUDGET")
-        {
-            out[row_weight_p(&word)] += 1;
-        }
+        self.for_each_codeword(|word| out[row_weight_p(word)] += 1)
+            .expect("code dimension exceeds CODEWORD_ENUMERATION_BUDGET");
         out
     }
 
@@ -795,13 +848,13 @@ impl<const P: u128> PrimeCode<P> {
     pub fn complete_weight_enumerator(&self) -> Option<BTreeMap<Vec<usize>, i128>> {
         let p = usize::try_from(P).ok()?;
         let mut out = BTreeMap::new();
-        for word in self.codewords()? {
+        self.for_each_codeword(|word| {
             let mut counts = vec![0usize; p];
             for x in word {
-                counts[usize::try_from(x).ok()?] += 1;
+                counts[*x as usize] += 1;
             }
             *out.entry(counts).or_insert(0) += 1;
-        }
+        })?;
         Some(out)
     }
 
@@ -875,7 +928,12 @@ pub fn construction_d(codes: &[BinaryCode]) -> Option<IntegralForm> {
     for (level, code) in codes.iter().enumerate() {
         let scale = pow2_i128(level)?;
         for row in &code.generators {
-            rows.push(row.iter().map(|&x| scale * x as i128).collect());
+            rows.push(
+                row.to_bytes(n)
+                    .into_iter()
+                    .map(|x| scale * i128::from(x))
+                    .collect(),
+            );
         }
     }
     for i in 0..n {
@@ -975,12 +1033,12 @@ pub fn type_ii_e8_sum_code() -> BinaryCode {
     let mut rows = Vec::new();
     for row in extended_hamming_code().generators() {
         let mut r = vec![0u8; 16];
-        r[..8].copy_from_slice(row);
+        r[..8].copy_from_slice(&row);
         rows.push(r);
     }
     for row in extended_hamming_code().generators() {
         let mut r = vec![0u8; 16];
-        r[8..].copy_from_slice(row);
+        r[8..].copy_from_slice(&row);
         rows.push(r);
     }
     BinaryCode::new(16, rows).expect("direct sum generator is binary")
@@ -1065,6 +1123,23 @@ pub(crate) fn extended_golay_generator_rows() -> Vec<Vec<u8>> {
 mod tests {
     use super::*;
     use crate::forms::e_8;
+
+    #[test]
+    fn packed_binary_generators_round_trip_across_word_boundaries() {
+        let mut first = vec![0u8; 130];
+        first[0] = 1;
+        first[64] = 1;
+        first[129] = 1;
+        let mut second = vec![0u8; 130];
+        second[65] = 1;
+        second[128] = 1;
+        let code = BinaryCode::new(130, vec![first.clone(), second.clone()]).unwrap();
+        assert_eq!(code.generators(), vec![first, second]);
+        let enumerator = code.weight_enumerator();
+        assert_eq!(enumerator[2], 1);
+        assert_eq!(enumerator[3], 1);
+        assert_eq!(enumerator[5], 1);
+    }
 
     #[test]
     fn hamming_macwilliams_matches_dual() {

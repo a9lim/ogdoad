@@ -22,7 +22,7 @@ use crate::clifford::engine::grade_k_masks;
 use crate::clifford::{bits, grade, CliffordAlgebra, Multivector};
 use crate::linalg::field;
 use crate::scalar::Scalar;
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 /// The common grade of a homogeneous multivector, or `None` if it is zero or of
 /// mixed grade.
@@ -91,14 +91,14 @@ fn plucker_relations_hold<S: Scalar>(
 }
 
 /// A grade-1 multivector from a coefficient vector over `e_0..e_{n-1}`.
-fn vector_from_coeffs<S: Scalar>(alg: &CliffordAlgebra<S>, x: &[S]) -> Multivector<S> {
-    let mut out = alg.zero();
+fn vector_from_coeffs<S: Scalar>(x: &[S]) -> Multivector<S> {
+    let mut terms = BTreeMap::new();
     for (i, c) in x.iter().enumerate() {
         if !c.is_zero() {
-            out = alg.add(&out, &alg.scalar_mul(c, &alg.e(i)));
+            terms.insert(1u128 << i, c.clone());
         }
     }
-    out
+    Multivector { terms }
 }
 
 /// A basis of the **blade subspace** `⟨A⟩ = { x : x ∧ A = 0 }` of a homogeneous
@@ -210,7 +210,7 @@ pub fn factor_blade<S: Scalar>(
     if basis.len() != k {
         return None;
     }
-    let mut vecs: Vec<Multivector<S>> = basis.iter().map(|x| vector_from_coeffs(alg, x)).collect();
+    let mut vecs: Vec<Multivector<S>> = basis.iter().map(|x| vector_from_coeffs(x)).collect();
     // The wedge of the basis is some nonzero scalar multiple λ·A; rescale one
     // factor by 1/λ so the product is A exactly.
     let mut w = alg.scalar(S::one());

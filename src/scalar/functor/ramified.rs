@@ -34,12 +34,12 @@ use crate::scalar::{ResidueField, Scalar, Valued};
 use std::fmt;
 
 /// An element of `L = S(π)` with `πᴱ = ϖ`: the coordinate vector
-/// `a₀ + a₁π + … + a_{E−1}π^{E−1}` over the base field `S`. The `coeffs` vector is
-/// always exactly length `E` (a fixed basis — there is nothing to canonicalize but
-/// the length), all-zero being the field zero.
+/// `a₀ + a₁π + … + a_{E−1}π^{E−1}` over the base field `S`. The
+/// `coeffs` array has exactly length `E` (a fixed basis), all-zero being the
+/// field zero.
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct Ramified<S: Valued, const E: usize> {
-    coeffs: Vec<S>,
+    coeffs: [S; E],
 }
 
 impl<S: Valued, const E: usize> Ramified<S, E> {
@@ -57,26 +57,25 @@ impl<S: Valued, const E: usize> Ramified<S, E> {
     }
 
     /// Build from components, padding with zeros (or truncating) to length `E`.
-    pub fn new(mut coeffs: Vec<S>) -> Self {
+    pub fn new(coeffs: Vec<S>) -> Self {
         Self::assert_supported_params();
-        coeffs.resize(E, S::zero());
-        Ramified { coeffs }
+        Ramified {
+            coeffs: std::array::from_fn(|i| coeffs.get(i).cloned().unwrap_or_else(S::zero)),
+        }
     }
 
     /// Embed a base scalar `s` as the constant `a₀ = s`.
     pub fn from_base(s: S) -> Self {
         Self::assert_supported_params();
-        let mut coeffs = vec![S::zero(); E];
-        if E > 0 {
-            coeffs[0] = s;
-        }
+        let mut coeffs = std::array::from_fn(|_| S::zero());
+        coeffs[0] = s;
         Ramified { coeffs }
     }
 
     /// The uniformizer `π` (the basis element `a₁ = 1`).
     pub fn pi() -> Self {
         Self::assert_supported_params();
-        let mut coeffs = vec![S::zero(); E];
+        let mut coeffs = std::array::from_fn(|_| S::zero());
         coeffs[1] = S::one();
         Ramified { coeffs }
     }
@@ -84,7 +83,7 @@ impl<S: Valued, const E: usize> Ramified<S, E> {
     /// The basis power `π^k` for `k < E` — i.e. the unit basis vector `e_k`.
     fn pi_basis(k: usize) -> Self {
         Self::assert_supported_params();
-        let mut coeffs = vec![S::zero(); E];
+        let mut coeffs = std::array::from_fn(|_| S::zero());
         coeffs[k] = S::one();
         Ramified { coeffs }
     }
@@ -170,35 +169,28 @@ impl<S: Valued, const E: usize> Scalar for Ramified<S, E> {
     fn zero() -> Self {
         Self::assert_supported_params();
         Ramified {
-            coeffs: vec![S::zero(); E],
+            coeffs: std::array::from_fn(|_| S::zero()),
         }
     }
 
     fn one() -> Self {
         Self::assert_supported_params();
-        let mut coeffs = vec![S::zero(); E];
-        if E > 0 {
-            coeffs[0] = S::one();
-        }
+        let mut coeffs = std::array::from_fn(|_| S::zero());
+        coeffs[0] = S::one();
         Ramified { coeffs }
     }
 
     fn add(&self, rhs: &Self) -> Self {
         Self::assert_supported_params();
         Ramified {
-            coeffs: self
-                .coeffs
-                .iter()
-                .zip(&rhs.coeffs)
-                .map(|(a, b)| a.add(b))
-                .collect(),
+            coeffs: std::array::from_fn(|i| self.coeffs[i].add(&rhs.coeffs[i])),
         }
     }
 
     fn neg(&self) -> Self {
         Self::assert_supported_params();
         Ramified {
-            coeffs: self.coeffs.iter().map(|a| a.neg()).collect(),
+            coeffs: std::array::from_fn(|i| self.coeffs[i].neg()),
         }
     }
 
@@ -207,7 +199,7 @@ impl<S: Valued, const E: usize> Scalar for Ramified<S, E> {
         // Polynomial multiplication mod (xᴱ − ϖ): an exponent k ≥ E folds once via
         // x^E = ϖ to ϖ·x^{k−E} (single pass — the largest k is 2E−2, so k−E ≤ E−2).
         let w = S::uniformizer();
-        let mut out = vec![S::zero(); E];
+        let mut out = std::array::from_fn(|_| S::zero());
         for (i, a) in self.coeffs.iter().enumerate() {
             if a.is_zero() {
                 continue;
@@ -250,7 +242,11 @@ impl<S: Valued, const E: usize> Scalar for Ramified<S, E> {
             let norm = a.mul(a).sub(&w.mul(&b.mul(b)));
             let ninv = norm.inv()?;
             return Some(Ramified {
-                coeffs: vec![a.mul(&ninv), b.neg().mul(&ninv)],
+                coeffs: std::array::from_fn(|i| match i {
+                    0 => a.mul(&ninv),
+                    1 => b.neg().mul(&ninv),
+                    _ => S::zero(),
+                }),
             });
         }
         // General E: the regular representation `L_α : x ↦ α·x` is S-linear; its
@@ -266,7 +262,7 @@ impl<S: Valued, const E: usize> Scalar for Ramified<S, E> {
         let mut e0 = vec![S::zero(); E];
         e0[0] = S::one();
         let c = crate::linalg::field::solve(m, e0)?;
-        Some(Ramified { coeffs: c })
+        Some(Ramified::new(c))
     }
 
     fn is_zero(&self) -> bool {

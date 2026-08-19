@@ -698,7 +698,7 @@ pub(crate) fn partizan_game_element(graph: LoopyPartizanGraph) -> GameElement {
 
     let has_draw = graph
         .outcomes()
-        .into_iter()
+        .iter()
         .map(|outcome| outcome.has_draw())
         .collect();
     let nodes = graph

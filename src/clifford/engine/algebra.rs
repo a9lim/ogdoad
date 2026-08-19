@@ -2,10 +2,10 @@
 //! The context owns the metric; its dimension is always derived from that
 //! metric.
 
-use super::basis::{bits, grade, MAX_BASIS_DIM};
+use super::basis::{bit_indices, grade, MAX_BASIS_DIM};
 use super::metric::Metric;
 use super::multivector::Multivector;
-use super::terms::{merge, scale, wedge_terms};
+use super::terms::{add_term, merge, scale, wedge_terms};
 use crate::scalar::Scalar;
 use std::collections::BTreeMap;
 
@@ -134,6 +134,20 @@ impl<S: Scalar> CliffordAlgebra<S> {
         Multivector { terms }
     }
 
+    /// A basis blade from its canonical bitmask representation.
+    pub(crate) fn blade_mask(&self, mask: u128) -> Multivector<S> {
+        if self.dim() < MAX_BASIS_DIM {
+            assert!(
+                mask >> self.dim() == 0,
+                "blade mask has a generator outside algebra dimension {}",
+                self.dim()
+            );
+        }
+        let mut terms = BTreeMap::new();
+        terms.insert(mask, S::one());
+        Multivector { terms }
+    }
+
     /// Adds two multivectors.
     pub fn add(&self, a: &Multivector<S>, b: &Multivector<S>) -> Multivector<S> {
         let mut terms = a.terms.clone();
@@ -151,6 +165,19 @@ impl<S: Scalar> CliffordAlgebra<S> {
     /// Geometric (Clifford) product.
     pub fn mul(&self, a: &Multivector<S>, b: &Multivector<S>) -> Multivector<S> {
         let mut out: BTreeMap<u128, S> = BTreeMap::new();
+        if self.metric.is_orthogonal() {
+            for (&ba, ca) in &a.terms {
+                for (&bb, cb) in &b.terms {
+                    if let Some((blade, blade_coeff)) =
+                        self.metric.geom_product_blades_orthogonal(ba, bb)
+                    {
+                        let coeff = ca.mul(cb).mul(&blade_coeff);
+                        add_term(&mut out, blade, &coeff);
+                    }
+                }
+            }
+            return Multivector { terms: out };
+        }
         for (&ba, ca) in &a.terms {
             for (&bb, cb) in &b.terms {
                 let reduced = self.metric.geom_product_blades(ba, bb);
@@ -177,7 +204,7 @@ impl<S: Scalar> CliffordAlgebra<S> {
 
     fn sorted_generator_product(&self, blade: u128) -> Multivector<S> {
         let mut out = self.scalar(S::one());
-        for g in bits(blade) {
+        for g in bit_indices(blade) {
             out = self.mul(&out, &self.e(g));
         }
         out
@@ -272,7 +299,7 @@ impl<S: Scalar> CliffordAlgebra<S> {
         let mut out = self.zero();
         for (&blade, coeff) in &a.terms {
             let mut rev_blade = self.scalar(S::one());
-            let mut gens = bits(blade);
+            let mut gens: Vec<_> = bit_indices(blade).collect();
             gens.reverse();
             for g in gens {
                 rev_blade = self.mul(&rev_blade, &self.e(g));
