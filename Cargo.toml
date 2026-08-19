@@ -47,6 +47,10 @@ harness = false
 name = "optimization_followups"
 harness = false
 
+[[bench]]
+name = "major_speedups"
+harness = false
+
 [dependencies]
 # PyO3 is optional and only pulled in for the Python build. Gating it behind
 # the `python` feature keeps `cargo test` pure-Rust (no libpython linkage),

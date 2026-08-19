@@ -107,27 +107,27 @@ impl<const P: u128, const K: u128> Zp<P, K> {
 
     fn is_square_odd(&self) -> bool {
         debug_assert!(P != 2);
-        if self.0 == 0 {
+        if self.value() == 0 {
             return true; // 0 = 0²
         }
         let v = self.valuation();
         if !v.is_multiple_of(2) {
             return false;
         }
-        let unit = self.0 / ipow(P, v);
+        let unit = self.value() / ipow(P, v);
         fp_is_square(unit % P, P)
     }
 
     fn sqrt_odd(&self) -> Option<Self> {
         debug_assert!(P != 2);
-        if self.0 == 0 {
-            return Some(Zp(0));
+        if self.value() == 0 {
+            return Some(Self::zero());
         }
         let v = self.valuation();
         if !v.is_multiple_of(2) {
             return None;
         }
-        let unit_val = self.0 / ipow(P, v);
+        let unit_val = self.value() / ipow(P, v);
         let seed_res = fp_sqrt(unit_val % P, P)?;
         let two_inv = Self::two_inv().expect("odd p ⇒ 2 is a unit");
         let root_unit = newton_sqrt(
@@ -146,7 +146,7 @@ impl<const P: u128, const K: u128> Zp<P, K> {
             return Some(self.is_square_odd());
         }
         Self::assert_supported_params();
-        Some(is_square_mod_two_power(self.0, K))
+        Some(is_square_mod_two_power(self.value(), K))
     }
 
     /// Checked square-root entry point. The outer `None` means that the
@@ -157,10 +157,10 @@ impl<const P: u128, const K: u128> Zp<P, K> {
             return Some(self.sqrt_odd());
         }
         Self::assert_supported_params();
-        if self.0 == 0 {
-            return Some(Some(Zp(0)));
+        if self.value() == 0 {
+            return Some(Some(Self::zero()));
         }
-        if !is_square_mod_two_power(self.0, K) {
+        if !is_square_mod_two_power(self.value(), K) {
             return Some(None);
         }
         None
@@ -416,7 +416,7 @@ mod tests {
         fn check<const P: u128, const K: u128>() {
             let m = Zp::<P, K>::modulus();
             for a in 0..m {
-                let x = Zp::<P, K>(a);
+                let x = Zp::<P, K>::from_u128(a);
                 let is_sq = x.is_square().expect("odd p squarehood is decidable");
                 match x.sqrt().expect("odd p root construction is implemented") {
                     Some(r) => {
@@ -465,7 +465,7 @@ mod tests {
         type Z = Zp<7, 4>;
         for a in 1..7u128 {
             let t = Z::teichmuller(Fp::<7>::from_u128(a));
-            assert_eq!(t.0 % 7, a, "τ lifts the residue");
+            assert_eq!(t.value() % 7, a, "τ lifts the residue");
             assert_eq!(t.pow(7), t, "τ is Frobenius-fixed (τ^p = τ)");
             // a (p−1)-th root of unity
             assert_eq!(t.pow(6), Z::one(), "τ^{{p-1}} = 1");
@@ -473,7 +473,10 @@ mod tests {
         // Qp agrees with Zp on the lift.
         for a in 1..7u128 {
             let tq = Qp::<7, 4>::teichmuller(Fp::<7>::from_u128(a));
-            assert_eq!(tq.unit(), Zp::<7, 4>::teichmuller(Fp::<7>::from_u128(a)).0);
+            assert_eq!(
+                tq.unit(),
+                Zp::<7, 4>::teichmuller(Fp::<7>::from_u128(a)).value()
+            );
         }
     }
 
@@ -544,14 +547,14 @@ mod tests {
     #[test]
     fn dyadic_square_apis_are_checked_and_honest() {
         type Z = Zp<2, 5>;
-        assert_eq!(Zp::<2, 5>(0).is_square(), Some(true));
-        assert_eq!(Zp::<2, 5>(1).is_square(), Some(true));
-        assert_eq!(Zp::<2, 5>(4).is_square(), Some(true));
-        assert_eq!(Zp::<2, 5>(2).is_square(), Some(false)); // odd 2-adic valuation
-        assert_eq!(Zp::<2, 5>(3).is_square(), Some(false)); // odd unit not 1 mod 8
-        assert_eq!(Zp::<2, 5>(0).sqrt(), Some(Some(Z::zero())));
-        assert_eq!(Zp::<2, 5>(3).sqrt(), Some(None));
-        assert_eq!(Zp::<2, 5>(1).sqrt(), None); // square known, dyadic root not constructed
+        assert_eq!(Z::from_u128(0).is_square(), Some(true));
+        assert_eq!(Z::from_u128(1).is_square(), Some(true));
+        assert_eq!(Z::from_u128(4).is_square(), Some(true));
+        assert_eq!(Z::from_u128(2).is_square(), Some(false)); // odd 2-adic valuation
+        assert_eq!(Z::from_u128(3).is_square(), Some(false)); // odd unit not 1 mod 8
+        assert_eq!(Z::from_u128(0).sqrt(), Some(Some(Z::zero())));
+        assert_eq!(Z::from_u128(3).sqrt(), Some(None));
+        assert_eq!(Z::from_u128(1).sqrt(), None); // square known, dyadic root not constructed
 
         type Q = Qp<2, 5>;
         assert_eq!(Q::zero().is_square(), Some(true));

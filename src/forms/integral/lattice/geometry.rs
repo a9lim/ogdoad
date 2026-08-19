@@ -14,6 +14,9 @@ use std::collections::{BTreeMap, VecDeque};
 /// has order ~7·10⁸, or the Leech lattice). The bound is explicit, not silent.
 pub const AUTO_NODE_BUDGET: u128 = 100_000_000;
 pub(super) const SHORT_VECTOR_EXACT_ENUM_LIMIT: u128 = 2_000_000;
+/// Above this rank, computing an exact rational inverse merely to discover a
+/// large unpruned box costs more than the size-reduced Fincke–Pohst search.
+const SHORT_VECTOR_EXACT_MAX_DIM: usize = 4;
 
 // ── small combinatorial helpers ──
 
@@ -370,8 +373,12 @@ impl IntegralForm {
         if self.dim() == 0 || bound <= 0 {
             return Some(Vec::new());
         }
-        if let Some(vecs) = self.short_vectors_exact_bounded(bound, SHORT_VECTOR_EXACT_ENUM_LIMIT) {
-            return Some(vecs);
+        if self.dim() <= SHORT_VECTOR_EXACT_MAX_DIM {
+            if let Some(vecs) =
+                self.short_vectors_exact_bounded(bound, SHORT_VECTOR_EXACT_ENUM_LIMIT)
+            {
+                return Some(vecs);
+            }
         }
         let (reduced, transform) = self.size_reduced_basis();
         let mut out = Vec::new();
@@ -389,7 +396,7 @@ impl IntegralForm {
         let ranges = self.exact_box_ranges(bound, limit)?;
         let mut out = Vec::new();
         let mut x = vec![0i128; self.dim()];
-        self.visit_exact_box(&ranges, 0, bound, &mut x, &mut |vector, _| {
+        self.visit_exact_box(&ranges, 0, bound, 0, &mut x, &mut |vector, _| {
             out.push(vector.to_vec());
         });
         Some(out)
@@ -424,21 +431,43 @@ impl IntegralForm {
         ranges: &[i128],
         idx: usize,
         bound: i128,
+        partial_norm: i128,
         x: &mut [i128],
         visit: &mut F,
     ) where
         F: FnMut(&[i128], i128),
     {
         if idx == ranges.len() {
-            let q = self.norm(x);
-            if q > 0 && q <= bound {
-                visit(x, q);
+            if partial_norm > 0 && partial_norm <= bound {
+                visit(x, partial_norm);
             }
             return;
         }
+        let mut cross = 0i128;
+        for (j, &xj) in x[..idx].iter().enumerate() {
+            cross = cross
+                .checked_add(
+                    self.gram[idx][j]
+                        .checked_mul(xj)
+                        .expect("lattice norm exceeds i128"),
+                )
+                .expect("lattice norm exceeds i128");
+        }
         for xi in -ranges[idx]..=ranges[idx] {
             x[idx] = xi;
-            self.visit_exact_box(ranges, idx + 1, bound, x, visit);
+            let diagonal = self.gram[idx][idx]
+                .checked_mul(xi)
+                .and_then(|value| value.checked_mul(xi))
+                .expect("lattice norm exceeds i128");
+            let mixed = cross
+                .checked_mul(xi)
+                .and_then(|value| value.checked_mul(2))
+                .expect("lattice norm exceeds i128");
+            let next_norm = partial_norm
+                .checked_add(diagonal)
+                .and_then(|value| value.checked_add(mixed))
+                .expect("lattice norm exceeds i128");
+            self.visit_exact_box(ranges, idx + 1, bound, next_norm, x, visit);
         }
         x[idx] = 0;
     }
@@ -460,10 +489,12 @@ impl IntegralForm {
         if self.dim() == 0 || bound <= 0 {
             return Some(());
         }
-        if let Some(ranges) = self.exact_box_ranges(bound, SHORT_VECTOR_EXACT_ENUM_LIMIT) {
-            let mut x = vec![0i128; self.dim()];
-            self.visit_exact_box(&ranges, 0, bound, &mut x, &mut |_, q| visit(q));
-            return Some(());
+        if self.dim() <= SHORT_VECTOR_EXACT_MAX_DIM {
+            if let Some(ranges) = self.exact_box_ranges(bound, SHORT_VECTOR_EXACT_ENUM_LIMIT) {
+                let mut x = vec![0i128; self.dim()];
+                self.visit_exact_box(&ranges, 0, bound, 0, &mut x, &mut |_, q| visit(q));
+                return Some(());
+            }
         }
         let (reduced, _) = self.size_reduced_basis();
         reduced.visit_short_vectors_raw(bound, &mut |_, q| visit(q))

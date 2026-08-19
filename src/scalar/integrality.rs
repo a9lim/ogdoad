@@ -119,7 +119,7 @@ impl HasRingOfIntegers for Surreal {
 impl<const P: u128, const K: u128> HasFractionField for Zp<P, K> {
     type Frac = Qp<P, K>;
     fn to_fraction(&self) -> Qp<P, K> {
-        Qp::from_int((self.0 % Zp::<P, K>::modulus()) as i128)
+        Qp::from_int(self.value() as i128)
     }
 }
 
@@ -131,7 +131,7 @@ impl<const P: u128, const K: u128> HasRingOfIntegers for Qp<P, K> {
     }
     fn to_integer(&self) -> Option<Zp<P, K>> {
         let Some(v) = self.valuation() else {
-            return Some(Zp(0)); // zero
+            return Some(Zp::zero()); // zero
         };
         if v < 0 {
             return None;
@@ -142,7 +142,7 @@ impl<const P: u128, const K: u128> HasRingOfIntegers for Qp<P, K> {
         for _ in 0..v {
             acc = mul_mod_u128(acc, P % m, m);
         }
-        Some(Zp(acc))
+        Some(Zp::from_u128(acc))
     }
 }
 
@@ -287,7 +287,7 @@ mod tests {
     #[test]
     fn zp_qp_pairing() {
         for r in 0..27u128 {
-            assert_pairs(&Zp::<3, 3>(r));
+            assert_pairs(&Zp::<3, 3>::from_u128(r));
         }
         // 1/p is a genuine fraction: valuation -1, not integral.
         let inv_p = Qp::<3, 3>::from_p_power(-1);
@@ -296,7 +296,7 @@ mod tests {
         // p itself IS integral and lands on Zp(p).
         let p = Qp::<3, 3>::from_int(3);
         assert!(p.is_integral());
-        assert_eq!(p.to_integer(), Some(Zp::<3, 3>(3)));
+        assert_eq!(p.to_integer(), Some(Zp::<3, 3>::from_u128(3)));
     }
 
     #[test]
@@ -304,7 +304,10 @@ mod tests {
         type Q = Qp<3, 80>;
         let x = Q::from_int(-1).mul(&Q::from_int(3));
         assert_eq!(x.valuation(), Some(1));
-        assert_eq!(x.to_integer(), Some(Zp::<3, 80>(Q::modulus() - 3)));
+        assert_eq!(
+            x.to_integer(),
+            Some(Zp::<3, 80>::from_u128(Q::modulus() - 3))
+        );
     }
 
     #[test]

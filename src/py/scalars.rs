@@ -1991,7 +1991,7 @@ macro_rules! zp_pyclass {
             }
             #[getter]
             fn value(&self) -> u128 {
-                self.inner.0
+                self.inner.value()
             }
             fn valuation(&self) -> u128 {
                 self.inner.valuation()
@@ -2065,7 +2065,7 @@ macro_rules! zp_pyclass {
                 matches!(other.cast::<$py>(), Ok(x) if x.borrow().inner == self.inner)
             }
             fn __hash__(&self) -> usize {
-                self.inner.0 as usize
+                self.inner.value() as usize
             }
             fn __repr__(&self) -> String {
                 format!("{}", self.inner)

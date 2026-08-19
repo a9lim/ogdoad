@@ -8,7 +8,66 @@
 
 use super::lattice::IntegralForm;
 
+fn convolve_truncated(left: &[i128], right: &[i128], terms: usize) -> Vec<i128> {
+    let mut out = vec![0i128; terms];
+    for (left_index, &left_coefficient) in left.iter().enumerate() {
+        if left_coefficient == 0 {
+            continue;
+        }
+        for (right_index, &right_coefficient) in right.iter().take(terms - left_index).enumerate() {
+            if right_coefficient == 0 {
+                continue;
+            }
+            let product = left_coefficient
+                .checked_mul(right_coefficient)
+                .expect("theta coefficient exceeds i128");
+            out[left_index + right_index] = out[left_index + right_index]
+                .checked_add(product)
+                .expect("theta coefficient exceeds i128");
+        }
+    }
+    out
+}
+
 impl IntegralForm {
+    /// Connected components of the graph whose edges are nonzero off-diagonal
+    /// Gram entries. Distinct components are exactly orthogonal coordinate
+    /// summands, including when their coordinates are interleaved.
+    fn orthogonal_components(&self) -> Vec<IntegralForm> {
+        let n = self.dim();
+        let mut seen = vec![false; n];
+        let mut components = Vec::new();
+        for start in 0..n {
+            if seen[start] {
+                continue;
+            }
+            seen[start] = true;
+            let mut stack = vec![start];
+            let mut indices = Vec::new();
+            while let Some(index) = stack.pop() {
+                indices.push(index);
+                for (other, was_seen) in seen.iter_mut().enumerate() {
+                    if !*was_seen && self.gram()[index][other] != 0 {
+                        *was_seen = true;
+                        stack.push(other);
+                    }
+                }
+            }
+            indices.sort_unstable();
+            let gram = indices
+                .iter()
+                .map(|&row| {
+                    indices
+                        .iter()
+                        .map(|&column| self.gram()[row][column])
+                        .collect()
+                })
+                .collect();
+            components.push(IntegralForm::new(gram).expect("principal Gram block is symmetric"));
+        }
+        components
+    }
+
     /// The first `terms` coefficients of `theta_L(q) = sum_m r_L(m) q^m`, where
     /// `r_L(m) = #{v in L : Q(v) = 2m}`.
     ///
@@ -22,6 +81,15 @@ impl IntegralForm {
         if !self.is_even() {
             return None;
         }
+        let components = self.orthogonal_components();
+        if components.len() > 1 {
+            let mut out = vec![0i128; terms];
+            out[0] = 1;
+            for component in components {
+                out = convolve_truncated(&out, &component.theta_series(terms)?, terms);
+            }
+            return Some(out);
+        }
         let mut out = vec![0i128; terms];
         out[0] = 1;
         let bound = 2i128
@@ -31,7 +99,9 @@ impl IntegralForm {
             debug_assert_eq!(q % 2, 0);
             let idx = usize::try_from(q / 2).expect("enumerated theta index fits usize");
             if idx < terms {
-                out[idx] += 1;
+                out[idx] = out[idx]
+                    .checked_add(1)
+                    .expect("theta coefficient exceeds i128");
             }
         })?;
         Some(out)
@@ -48,13 +118,24 @@ impl IntegralForm {
         if terms == 0 {
             return Some(Vec::new());
         }
+        let components = self.orthogonal_components();
+        if components.len() > 1 {
+            let mut out = vec![0i128; terms];
+            out[0] = 1;
+            for component in components {
+                out = convolve_truncated(&out, &component.theta_series_level4(terms)?, terms);
+            }
+            return Some(out);
+        }
         let mut out = vec![0i128; terms];
         out[0] = 1;
         let bound = (terms - 1) as i128;
         self.visit_short_vector_norms(bound, |q| {
             let idx = usize::try_from(q).expect("enumerated theta index fits usize");
             if idx < terms {
-                out[idx] += 1;
+                out[idx] = out[idx]
+                    .checked_add(1)
+                    .expect("theta coefficient exceeds i128");
             }
         })?;
         Some(out)
@@ -98,6 +179,27 @@ mod tests {
         assert!(IntegralForm::diagonal(&[1, -1])
             .theta_series_level4(3)
             .is_none());
+    }
+
+    #[test]
+    fn theta_convolves_orthogonal_components() {
+        assert_eq!(
+            IntegralForm::diagonal(&[2; 8]).theta_series(3),
+            Some(vec![1, 16, 112])
+        );
+        assert_eq!(
+            IntegralForm::diagonal(&[1; 8]).theta_series_level4(3),
+            Some(vec![1, 16, 112])
+        );
+
+        // The A2 block occupies coordinates 0 and 2, so component detection
+        // must follow the Gram graph rather than assume contiguous blocks.
+        let interleaved =
+            IntegralForm::new(vec![vec![2, 0, -1], vec![0, 2, 0], vec![-1, 0, 2]]).unwrap();
+        let contiguous = IntegralForm::new(vec![vec![2, -1], vec![-1, 2]])
+            .unwrap()
+            .direct_sum(&IntegralForm::diagonal(&[2]));
+        assert_eq!(interleaved.theta_series(5), contiguous.theta_series(5));
     }
 
     #[test]

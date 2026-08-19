@@ -86,7 +86,7 @@ fn f9() -> impl Strategy<Value = Fpn<3, 2>> {
 }
 
 fn zp125() -> impl Strategy<Value = Zp<5, 3>> {
-    (0u128..Zp::<5, 3>::modulus()).prop_map(Zp::<5, 3>)
+    (0u128..Zp::<5, 3>::modulus()).prop_map(Zp::<5, 3>::from_u128)
 }
 
 fn witt_f9() -> impl Strategy<Value = WittVec<3, 3, 2>> {

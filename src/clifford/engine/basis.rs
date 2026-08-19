@@ -74,13 +74,16 @@ pub fn grade(mask: u128) -> usize {
 /// Whether reordering two disjoint ascending blades when concatenated has odd
 /// parity — i.e. the number of `(i in a, j in b)` with `i > j`, mod 2.
 pub(super) fn wedge_is_negative(a: u128, b: u128) -> bool {
-    let mut swaps = 0usize;
-    let mut aa = a;
-    while aa != 0 {
-        let i = aa.trailing_zeros() as usize;
-        aa &= aa - 1;
-        let below = b & ((1u128 << i) - 1);
-        swaps += below.count_ones() as usize;
-    }
-    swaps & 1 == 1
+    // Parallel prefix XOR turns bit i into the parity of b's bits 0..=i.
+    // Shifting once therefore gives, at each bit of a, the parity of the b
+    // indices strictly below it. Their dot product over F_2 is the swap parity.
+    let mut prefix_parity = b;
+    prefix_parity ^= prefix_parity << 1;
+    prefix_parity ^= prefix_parity << 2;
+    prefix_parity ^= prefix_parity << 4;
+    prefix_parity ^= prefix_parity << 8;
+    prefix_parity ^= prefix_parity << 16;
+    prefix_parity ^= prefix_parity << 32;
+    prefix_parity ^= prefix_parity << 64;
+    (a & (prefix_parity << 1)).count_ones() & 1 == 1
 }

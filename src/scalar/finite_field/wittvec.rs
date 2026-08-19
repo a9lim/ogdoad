@@ -324,11 +324,11 @@ mod tests {
         for a in 0..8u128 {
             for b in 0..8u128 {
                 let (wa, wb) = (WittVec::<2, 3, 1>([a]), WittVec::<2, 3, 1>([b]));
-                let (za, zb) = (Zp::<2, 3>(a), Zp::<2, 3>(b));
-                assert_eq!(wa.add(&wb).0[0], za.add(&zb).0);
-                assert_eq!(wa.mul(&wb).0[0], za.mul(&zb).0);
-                assert_eq!(wa.neg().0[0], za.neg().0);
-                assert_eq!(wa.inv().map(|w| w.0[0]), za.inv().map(|z| z.0));
+                let (za, zb) = (Zp::<2, 3>::from_u128(a), Zp::<2, 3>::from_u128(b));
+                assert_eq!(wa.add(&wb).0[0], za.add(&zb).value());
+                assert_eq!(wa.mul(&wb).0[0], za.mul(&zb).value());
+                assert_eq!(wa.neg().0[0], za.neg().value());
+                assert_eq!(wa.inv().map(|w| w.0[0]), za.inv().map(Zp::value));
             }
         }
     }

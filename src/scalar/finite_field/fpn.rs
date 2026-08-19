@@ -30,6 +30,7 @@ use super::fp::{add_mod, mul_mod};
 use super::FiniteField;
 use crate::linalg::integer::prime_factors;
 use crate::scalar::{add_mod_u128, is_prime_u128, mod_inverse_u128, sub_mod_u128, Fp, Scalar};
+use std::cell::RefCell;
 use std::collections::{BTreeMap, HashMap};
 use std::fmt;
 use std::mem::size_of;
@@ -39,6 +40,16 @@ use std::sync::{Mutex, OnceLock};
 /// fields fall back to the exact constant-memory linear walk rather than
 /// allocating an unbounded `sqrt(|F*|)` table.
 const DISCRETE_LOG_BSGS_MEMORY_BUDGET: usize = 64 * 1024 * 1024;
+const THREAD_REDUCTION_CACHE_CAPACITY: usize = 4;
+type ThreadReductionEntry = ((u128, usize), &'static [u128]);
+
+thread_local! {
+    /// Multiplication overwhelmingly reuses one or a few monomorphized fields
+    /// on a thread. A tiny thread-local front cache avoids taking the global
+    /// reduction-polynomial mutex for every product after first use.
+    static THREAD_REDUCTIONS: RefCell<Vec<ThreadReductionEntry>> =
+        RefCell::new(Vec::with_capacity(THREAD_REDUCTION_CACHE_CAPACITY));
+}
 
 fn ceil_sqrt_u128(n: u128) -> u128 {
     if n <= 1 {
@@ -94,7 +105,24 @@ pub(crate) fn reduction<const P: u128, const N: usize>() -> &'static [u128] {
     if N == 1 {
         return &[0];
     }
-    generated_reduction(P, N)
+    let key = (P, N);
+    if let Some(rule) = THREAD_REDUCTIONS.with(|cache| {
+        cache
+            .borrow()
+            .iter()
+            .find_map(|&(cached_key, rule)| (cached_key == key).then_some(rule))
+    }) {
+        return rule;
+    }
+    let rule = generated_reduction(P, N);
+    THREAD_REDUCTIONS.with(|cache| {
+        let mut cache = cache.borrow_mut();
+        if cache.len() == THREAD_REDUCTION_CACHE_CAPACITY {
+            cache.remove(0);
+        }
+        cache.push((key, rule));
+    });
+    rule
 }
 
 /// Metadata companion to [`reduction`].
@@ -327,6 +355,10 @@ fn checked_pow_u128(base: u128, exp: usize) -> Option<u128> {
 }
 
 impl<const P: u128, const N: usize> Fpn<P, N> {
+    fn field_order_unchecked() -> u128 {
+        field_order_for(P, N).expect("constructed Fpn has a supported field order")
+    }
+
     /// Whether this const-generic pair has a prime base field, positive degree, and
     /// field order fitting the crate's `u128` payload model. When `N > 1`, the
     /// extension (reduction) polynomial is generated deterministically and cached on
@@ -425,7 +457,6 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
     /// classifier reads — so this is what lets the invariant theory run over a
     /// genuine extension field, not just a prime field.
     pub fn is_square(&self) -> bool {
-        Self::assert_supported_params();
         if self.is_zero() {
             return true;
         }
@@ -433,7 +464,7 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
             return true; // Frobenius is onto in char 2
         }
         // a^{(q−1)/2} == 1
-        Scalar::pow(self, (Self::field_order() - 1) / 2) == Self::one()
+        Scalar::pow(self, (Self::field_order_unchecked() - 1) / 2) == Self::one()
     }
 
     /// The generator `x` (the class of the indeterminate), i.e. `[0, 1, 0, …]`.
@@ -513,7 +544,6 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
 /// giant-step, while nimbers use their separate Pohlig--Hellman path.
 impl<const P: u128, const N: usize> FiniteField for Fpn<P, N> {
     fn frobenius(&self) -> Self {
-        Self::assert_supported_params();
         FiniteField::pow(self, P)
     }
 
@@ -621,7 +651,6 @@ impl<const P: u128, const N: usize> Scalar for Fpn<P, N> {
     }
 
     fn add(&self, rhs: &Self) -> Self {
-        Self::assert_supported_params();
         let mut out = [0u128; N];
         for i in 0..N {
             out[i] = add_mod::<P>(self.0[i], rhs.0[i]);
@@ -630,7 +659,6 @@ impl<const P: u128, const N: usize> Scalar for Fpn<P, N> {
     }
 
     fn neg(&self) -> Self {
-        Self::assert_supported_params();
         let mut out = [0u128; N];
         for i in 0..N {
             out[i] = if self.0[i] == 0 { 0 } else { P - self.0[i] };
@@ -639,7 +667,6 @@ impl<const P: u128, const N: usize> Scalar for Fpn<P, N> {
     }
 
     fn mul(&self, rhs: &Self) -> Self {
-        Self::assert_supported_params();
         // Schoolbook product into a degree-(2N-2) scratch, then reduce mod m(x).
         let mut scratch = vec![0u128; 2 * N - 1];
         for i in 0..N {
@@ -678,12 +705,11 @@ impl<const P: u128, const N: usize> Scalar for Fpn<P, N> {
     }
 
     fn inv(&self) -> Option<Self> {
-        Self::assert_supported_params();
         if self.is_zero() {
             return None;
         }
         // Fermat: a^{p^N − 2} = a^{−1} in F_{p^N}.
-        Some(Scalar::pow(self, Self::field_order() - 2))
+        Some(Scalar::pow(self, Self::field_order_unchecked() - 2))
     }
     fn is_zero(&self) -> bool {
         self.0.iter().all(|&coefficient| coefficient == 0)

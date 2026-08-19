@@ -19,11 +19,11 @@
 //! lattice is **positive definite** and return `None` otherwise. Vectors are
 //! reported in lattice coordinates as integer vectors, with both signs included.
 //!
-//! Short-vector enumeration first tries an exact rational ellipsoid
-//! box from `G⁻¹` when the box is small enough; larger boxes apply a conservative
-//! unimodular size-reduction pass (integral shears/swaps, so the lattice is
-//! unchanged), then run Fincke–Pohst (an LDL-bounded box search with exact norm
-//! filtering) and map the vectors back to the original coordinates. Automorphism
+//! Low-rank short-vector enumeration first tries an exact rational ellipsoid
+//! box from `G⁻¹` when the box is small enough. Higher-rank and larger boxes apply
+//! a conservative unimodular size-reduction pass (integral shears/swaps, so the
+//! lattice is unchanged), then run Fincke–Pohst (an LDL-bounded box search with
+//! exact norm filtering) and map the vectors back to the original coordinates. Automorphism
 //! counting first checks closed-form families: diagonal signed-permutation
 //! lattices, literal `A`/`D`/`E` Cartan bases, and then basis-independent root
 //! systems recovered from the norm-2 roots. Everything else falls back to a
@@ -220,6 +220,20 @@ mod tests {
             vec![vec![-10, 1], vec![-1, 0], vec![1, 0], vec![10, -1]]
         );
         assert!(vecs.iter().all(|v| g.norm(v) == 1));
+    }
+
+    #[test]
+    fn incremental_exact_box_norms_match_the_public_quadratic_form() {
+        let form =
+            IntegralForm::new(vec![vec![4, -1, 1], vec![-1, 3, -1], vec![1, -1, 5]]).unwrap();
+        let vectors = form
+            .short_vectors_exact_bounded(12, SHORT_VECTOR_EXACT_ENUM_LIMIT)
+            .expect("small exact box fits the enumeration budget");
+        assert!(!vectors.is_empty());
+        assert!(vectors.iter().all(|vector| {
+            let norm = form.norm(vector);
+            norm > 0 && norm <= 12
+        }));
     }
 
     #[test]

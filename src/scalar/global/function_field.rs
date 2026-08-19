@@ -59,9 +59,18 @@ impl<S: ExactFieldScalar> RationalFunction<S> {
             debug_assert!(nr.is_zero() && dr.is_zero(), "gcd must divide both");
             (nq, dq)
         };
+        Self::from_coprime_polys(num, den)
+    }
+
+    /// Assemble an already-coprime fraction, normalizing only the denominator.
+    fn from_coprime_polys(num: Poly<S>, den: Poly<S>) -> Self {
+        debug_assert!(!den.is_zero());
+        if den.leading() == Some(&S::one()) {
+            return RationalFunction { num, den };
+        }
         let lead_inv = den
             .leading()
-            .unwrap()
+            .expect("nonzero denominator has a leading coefficient")
             .inv()
             .expect("a field's nonzero leading coefficient inverts");
         RationalFunction {
@@ -77,7 +86,10 @@ impl<S: ExactFieldScalar> RationalFunction<S> {
 
     /// A polynomial as a rational function `p / 1`.
     pub fn from_poly(p: Poly<S>) -> Self {
-        RationalFunction::from_polys(p, Poly::one())
+        RationalFunction {
+            num: p,
+            den: Poly::one(),
+        }
     }
 
     /// Embed a base scalar as the constant `s / 1`.
@@ -98,6 +110,17 @@ impl<S: ExactFieldScalar> RationalFunction<S> {
     /// The (monic) denominator polynomial.
     pub fn den(&self) -> &Poly<S> {
         &self.den
+    }
+
+    fn has_unit_denominator(&self) -> bool {
+        // Canonical denominators are monic, so a constant denominator is 1.
+        self.den.degree() == Some(0)
+    }
+
+    fn is_one(&self) -> bool {
+        self.has_unit_denominator()
+            && self.num.degree() == Some(0)
+            && self.num.leading() == Some(&S::one())
     }
 }
 
@@ -142,6 +165,18 @@ impl<S: ExactFieldScalar> Scalar for RationalFunction<S> {
     }
 
     fn add(&self, rhs: &Self) -> Self {
+        if self.is_zero() {
+            return rhs.clone();
+        }
+        if rhs.is_zero() {
+            return self.clone();
+        }
+        if self.has_unit_denominator() && rhs.has_unit_denominator() {
+            return RationalFunction::from_poly(self.num.add(&rhs.num));
+        }
+        if self.den == rhs.den {
+            return RationalFunction::from_polys(self.num.add(&rhs.num), self.den.clone());
+        }
         // a/b + c/d = (a·d + c·b) / (b·d)
         let num = self.num.mul(&rhs.den).add(&rhs.num.mul(&self.den));
         let den = self.den.mul(&rhs.den);
@@ -156,6 +191,18 @@ impl<S: ExactFieldScalar> Scalar for RationalFunction<S> {
     }
 
     fn mul(&self, rhs: &Self) -> Self {
+        if self.is_zero() || rhs.is_zero() {
+            return Self::zero();
+        }
+        if self.is_one() {
+            return rhs.clone();
+        }
+        if rhs.is_one() {
+            return self.clone();
+        }
+        if self.has_unit_denominator() && rhs.has_unit_denominator() {
+            return RationalFunction::from_poly(self.num.mul(&rhs.num));
+        }
         RationalFunction::from_polys(self.num.mul(&rhs.num), self.den.mul(&rhs.den))
     }
 
@@ -168,7 +215,7 @@ impl<S: ExactFieldScalar> Scalar for RationalFunction<S> {
             return None;
         }
         // (num/den)⁻¹ = den/num — total on nonzero, no gcd needed.
-        Some(RationalFunction::from_polys(
+        Some(RationalFunction::from_coprime_polys(
             self.den.clone(),
             self.num.clone(),
         ))
