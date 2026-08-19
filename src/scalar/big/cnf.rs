@@ -48,3 +48,38 @@ pub(crate) fn merge_descending<E, C>(
     out.retain(|(_, c)| !coeff_is_zero(c));
     out
 }
+
+/// Merge two already-canonical descending term slices in linear time.
+pub(crate) fn merge_canonical<E: Clone, C: Clone>(
+    left: &[(E, C)],
+    right: &[(E, C)],
+    exp_cmp: impl Fn(&E, &E) -> Ordering,
+    coeff_merge: impl Fn(&C, &C) -> C,
+    coeff_is_zero: impl Fn(&C) -> bool,
+) -> Vec<(E, C)> {
+    let mut out = Vec::with_capacity(left.len() + right.len());
+    let (mut i, mut j) = (0usize, 0usize);
+    while i < left.len() && j < right.len() {
+        match exp_cmp(&left[i].0, &right[j].0) {
+            Ordering::Greater => {
+                out.push(left[i].clone());
+                i += 1;
+            }
+            Ordering::Less => {
+                out.push(right[j].clone());
+                j += 1;
+            }
+            Ordering::Equal => {
+                let coefficient = coeff_merge(&left[i].1, &right[j].1);
+                if !coeff_is_zero(&coefficient) {
+                    out.push((left[i].0.clone(), coefficient));
+                }
+                i += 1;
+                j += 1;
+            }
+        }
+    }
+    out.extend_from_slice(&left[i..]);
+    out.extend_from_slice(&right[j..]);
+    out
+}

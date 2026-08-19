@@ -160,6 +160,10 @@ impl<S: Scalar> Metric<S> {
         self.q.get(i).cloned().unwrap_or_else(S::zero)
     }
 
+    pub(crate) fn q_ref(&self, i: usize) -> &S {
+        &self.q[i]
+    }
+
     /// Applies `f` to every coefficient while preserving all `q`, `b`, and `a`
     /// indices. The caller is responsible for using a map compatible with the
     /// intended algebraic structure.

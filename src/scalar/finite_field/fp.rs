@@ -119,6 +119,9 @@ impl<const P: u128> Scalar for Fp<P> {
         }
         Some(self.pow(P - 2))
     }
+    fn is_zero(&self) -> bool {
+        self.0 == 0
+    }
     /// Faster direct construction; semantically identical to the default double-and-add.
     fn from_int(n: i128) -> Self {
         Self::assert_supported_params();

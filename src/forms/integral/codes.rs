@@ -136,27 +136,31 @@ fn fp_inv<const P: u128>(a: u128) -> u128 {
         .value()
 }
 
-fn normalize_generators(mut rows: Vec<Vec<u8>>, n: usize) -> Option<Vec<Vec<u8>>> {
+fn normalize_binary_generators(rows: Vec<Vec<u8>>, n: usize) -> Option<Vec<PackedBinaryRow>> {
     if rows
         .iter()
         .any(|row| row.len() != n || row.iter().any(|&x| x > 1))
     {
         return None;
     }
-    rows.retain(|row| row.iter().any(|&x| x != 0));
+    let mut rows = rows
+        .iter()
+        .map(|row| PackedBinaryRow::from_bytes(row))
+        .filter(|row| row.first_one().is_some())
+        .collect::<Vec<_>>();
     let mut rank = 0usize;
     for col in 0..n {
-        let Some(pivot) = (rank..rows.len()).find(|&r| rows[r][col] != 0) else {
+        let Some(pivot) = (rank..rows.len()).find(|&r| rows[r].bit(col) != 0) else {
             continue;
         };
         rows.swap(rank, pivot);
         let pivot_row = rows[rank].clone();
         for r in 0..rows.len() {
-            if r == rank || rows[r][col] == 0 {
+            if r == rank || rows[r].bit(col) == 0 {
                 continue;
             }
-            for c in col..n {
-                rows[r][c] ^= pivot_row[c];
+            for (target, &word) in rows[r].words.iter_mut().zip(&pivot_row.words) {
+                *target ^= word;
             }
         }
         rank += 1;
@@ -265,16 +269,18 @@ fn convolve_i128(a: &[i128], b: &[i128], terms: usize) -> Vec<i128> {
     out
 }
 
-fn series_pow_i128(base: &[i128], exp: usize, terms: usize) -> Vec<i128> {
-    let mut out = vec![0i128; terms];
-    if terms == 0 {
-        return out;
+fn series_powers_i128(base: &[i128], max_exp: usize, terms: usize) -> Vec<Vec<i128>> {
+    let mut powers = Vec::with_capacity(max_exp + 1);
+    let mut one = vec![0i128; terms];
+    if terms > 0 {
+        one[0] = 1;
     }
-    out[0] = 1;
-    for _ in 0..exp {
-        out = convolve_i128(&out, base, terms);
+    powers.push(one);
+    for exponent in 1..=max_exp {
+        let next = convolve_i128(&powers[exponent - 1], base, terms);
+        powers.push(next);
     }
-    out
+    powers
 }
 
 fn even_residue_theta(terms: usize) -> Vec<i128> {
@@ -337,10 +343,7 @@ impl BinaryCode {
     /// Build a binary code from generator rows. The stored basis is row-reduced
     /// over F2, so equivalent generator matrices compare equal.
     pub fn new(n: usize, generators: Vec<Vec<u8>>) -> Option<Self> {
-        let generators = normalize_generators(generators, n)?
-            .iter()
-            .map(|row| PackedBinaryRow::from_bytes(row))
-            .collect();
+        let generators = normalize_binary_generators(generators, n)?;
         Some(BinaryCode { n, generators })
     }
 
@@ -436,11 +439,8 @@ impl BinaryCode {
         BinaryCode::new(self.n + other.n, rows).expect("direct-sum rows are binary")
     }
 
-    fn contains_word(&self, word: &[u8]) -> bool {
-        if word.len() != self.n || word.iter().any(|&x| x > 1) {
-            return false;
-        }
-        let mut remainder = PackedBinaryRow::from_bytes(word).words.into_vec();
+    fn contains_packed(&self, word: &PackedBinaryRow) -> bool {
+        let mut remainder = word.words.to_vec();
         for row in &self.generators {
             let pivot = row.first_one().expect("stored generator row is nonzero");
             if (remainder[pivot / 64] >> (pivot % 64)) & 1 == 0 {
@@ -455,11 +455,7 @@ impl BinaryCode {
 
     /// Whether `other <= self` as a binary row space.
     pub fn contains(&self, other: &BinaryCode) -> bool {
-        self.n == other.n
-            && other
-                .generators
-                .iter()
-                .all(|row| self.contains_word(&row.to_bytes(other.n)))
+        self.n == other.n && other.generators.iter().all(|row| self.contains_packed(row))
     }
 
     /// `C = C^perp`.
@@ -615,6 +611,8 @@ impl BinaryCode {
         let weights = self.weight_enumerator();
         let even = even_residue_theta(terms);
         let odd = odd_residue_theta_without_quarter(terms);
+        let even_powers = series_powers_i128(&even, self.n, terms);
+        let odd_powers = series_powers_i128(&odd, self.n, terms);
         let mut out = vec![0i128; terms];
         for (w, &count) in weights.iter().enumerate() {
             if count == 0 {
@@ -625,9 +623,7 @@ impl BinaryCode {
             if shift >= terms {
                 continue;
             }
-            let even_part = series_pow_i128(&even, self.n - w, terms - shift);
-            let odd_part = series_pow_i128(&odd, w, terms - shift);
-            let product = convolve_i128(&even_part, &odd_part, terms - shift);
+            let product = convolve_i128(&even_powers[self.n - w], &odd_powers[w], terms - shift);
             for (i, &coeff) in product.iter().enumerate() {
                 out[i + shift] = out[i + shift]
                     .checked_add(
@@ -1139,6 +1135,27 @@ mod tests {
         assert_eq!(enumerator[2], 1);
         assert_eq!(enumerator[3], 1);
         assert_eq!(enumerator[5], 1);
+    }
+
+    #[test]
+    fn packed_rref_and_containment_cross_every_word_boundary() {
+        for n in [63usize, 64, 65, 127, 128, 129] {
+            let mut a = vec![0u8; n];
+            let mut b = vec![0u8; n];
+            a[0] = 1;
+            a[n - 1] = 1;
+            b[n / 2] = 1;
+            b[n - 1] = 1;
+            let mut sum = a.clone();
+            for (bit, &rhs) in sum.iter_mut().zip(&b) {
+                *bit ^= rhs;
+            }
+            let code = BinaryCode::new(n, vec![a.clone(), b.clone(), sum.clone()]).unwrap();
+            let equivalent = BinaryCode::new(n, vec![sum, b]).unwrap();
+            assert_eq!(code, equivalent, "length {n}");
+            assert!(code.contains(&equivalent));
+            assert!(equivalent.contains(&code));
+        }
     }
 
     #[test]

@@ -243,6 +243,10 @@ impl<const P: u128, const K: u128> Scalar for Qp<P, K> {
         }
     }
 
+    fn is_zero(&self) -> bool {
+        self.unit == 0
+    }
+
     fn characteristic() -> u128 {
         Self::assert_supported_params();
         0 // a genuine field of characteristic 0 — unlike Zp's modulus p^k

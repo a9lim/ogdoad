@@ -8,6 +8,17 @@ use crate::scalar::Scalar;
 use std::collections::BTreeMap;
 
 impl<S: Scalar> CliffordAlgebra<S> {
+    fn reverse_norm_data(&self, v: &Multivector<S>) -> Option<(Multivector<S>, S, S)> {
+        let rev = self.reverse(v);
+        let vrev = self.mul(v, &rev);
+        let norm = self.scalar_part(&vrev);
+        if self.scalar(norm.clone()) != vrev {
+            return None;
+        }
+        let norm_inv = norm.inv()?;
+        Some((rev, norm, norm_inv))
+    }
+
     /// Projection onto the even subalgebra (the sum of even-grade blades). The
     /// even part is closed under the geometric product — it is a subalgebra.
     pub fn even_part(&self, v: &Multivector<S>) -> Multivector<S> {
@@ -86,23 +97,15 @@ impl<S: Scalar> CliffordAlgebra<S> {
     /// a pure, invertible scalar; `None` if `v ṽ` carries any non-scalar grade or
     /// its scalar part is not invertible in the backend.
     pub(super) fn pure_scalar_norm(&self, v: &Multivector<S>) -> Option<S> {
-        let rev = self.reverse(v);
-        let vrev = self.mul(v, &rev);
-        let n = self.scalar_part(&vrev);
-        if self.scalar(n.clone()) != vrev {
-            return None;
-        }
-        n.inv()?;
-        Some(n)
+        Some(self.reverse_norm_data(v)?.1)
     }
 
     /// The inverse formula `v⁻¹ = ṽ / (v ṽ)`, returned when
     /// `v * reverse(v)` is a pure invertible scalar. Every invertible versor
     /// satisfies this gate, but the gate alone does not prove versor membership.
     pub fn versor_inverse(&self, v: &Multivector<S>) -> Option<Multivector<S>> {
-        let n = self.pure_scalar_norm(v)?;
-        let ninv = n.inv()?;
-        Some(self.scalar_mul(&ninv, &self.reverse(v)))
+        let (reverse, _norm, norm_inv) = self.reverse_norm_data(v)?;
+        Some(self.scalar_mul(&norm_inv, &reverse))
     }
 
     /// The untwisted sandwich expression `v x v⁻¹`. For an even witnessed

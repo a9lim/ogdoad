@@ -37,6 +37,7 @@ fn eisenstein_constant(k: i128) -> i128 {
 /// [`eisenstein_e12`] needs), the boundary is `n = 2989`: `2989^11` fits `i128`,
 /// `2990^11` does not — and since `n` always divides itself, `n >= 2990` is
 /// exactly where this starts panicking.
+#[cfg(test)]
 fn sigma_power(n: usize, power: u32) -> i128 {
     let mut out = 0i128;
     for d in 1..=n {
@@ -48,6 +49,23 @@ fn sigma_power(n: usize, power: u32) -> i128 {
         }
     }
     out
+}
+
+/// All divisor-power sums below `terms`, preserving the scalar implementation's
+/// increasing-divisor checked-arithmetic order for every coefficient.
+fn sigma_powers(terms: usize, power: u32) -> Vec<i128> {
+    let mut sums = vec![0i128; terms];
+    for divisor in 1..terms {
+        let divisor_power = (divisor as i128)
+            .checked_pow(power)
+            .expect("divisor power exceeds i128 (see sigma_power's documented n cap)");
+        for multiple in (divisor..terms).step_by(divisor) {
+            sums[multiple] = sums[multiple]
+                .checked_add(divisor_power)
+                .expect("divisor-power sum exceeds i128");
+        }
+    }
+    sums
 }
 
 fn qexp_add(a: &[Rational], b: &[Rational], terms: usize) -> Vec<Rational> {
@@ -107,9 +125,10 @@ pub fn eisenstein_e4(terms: usize) -> Vec<Rational> {
     }
     out[0] = Rational::one();
     let c4 = eisenstein_constant(2); // −8/B₄ = 240
+    let sigma = sigma_powers(terms, 3);
     for (n, coeff) in out.iter_mut().enumerate().skip(1) {
         *coeff = Rational::from_int(
-            c4.checked_mul(sigma_power(n, 3))
+            c4.checked_mul(sigma[n])
                 .expect("E4 coefficient exceeds i128"),
         );
     }
@@ -124,9 +143,10 @@ pub fn eisenstein_e6(terms: usize) -> Vec<Rational> {
     }
     out[0] = Rational::one();
     let c6 = eisenstein_constant(3); // −12/B₆ = −504
+    let sigma = sigma_powers(terms, 5);
     for (n, coeff) in out.iter_mut().enumerate().skip(1) {
         *coeff = Rational::from_int(
-            c6.checked_mul(sigma_power(n, 5))
+            c6.checked_mul(sigma[n])
                 .expect("E6 coefficient exceeds i128"),
         );
     }
@@ -141,8 +161,9 @@ pub fn eisenstein_e12(terms: usize) -> Vec<Rational> {
     }
     out[0] = Rational::one();
     let c12 = eisenstein_constant_rational(6);
+    let sigma = sigma_powers(terms, 11);
     for (n, coeff) in out.iter_mut().enumerate().skip(1) {
-        *coeff = c12.mul(&Rational::from_int(sigma_power(n, 11)));
+        *coeff = c12.mul(&Rational::from_int(sigma[n]));
     }
     out
 }

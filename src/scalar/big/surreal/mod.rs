@@ -113,7 +113,27 @@ impl Surreal {
     // operators are opt-in here, not blanket trait impls (see AGENTS.md).
     #[allow(clippy::should_implement_trait)]
     pub fn cmp(&self, other: &Surreal) -> Ordering {
-        self.sub(other).sign()
+        let (mut i, mut j) = (0usize, 0usize);
+        while i < self.terms.len() && j < other.terms.len() {
+            match self.terms[i].0.cmp(&other.terms[j].0) {
+                Ordering::Greater => return self.terms[i].1.sign(),
+                Ordering::Less => return other.terms[j].1.sign().reverse(),
+                Ordering::Equal => match self.terms[i].1.cmp(&other.terms[j].1) {
+                    Ordering::Equal => {
+                        i += 1;
+                        j += 1;
+                    }
+                    ordering => return ordering,
+                },
+            }
+        }
+        if i < self.terms.len() {
+            self.terms[i].1.sign()
+        } else if j < other.terms.len() {
+            other.terms[j].1.sign().reverse()
+        } else {
+            Ordering::Equal
+        }
     }
 
     /// Sign of this number: the sign of its dominant (leading) coefficient.
@@ -235,10 +255,14 @@ impl Scalar for Surreal {
     }
 
     fn add(&self, rhs: &Self) -> Self {
-        let mut raw = self.terms.clone();
-        raw.extend(rhs.terms.iter().cloned());
         Surreal {
-            terms: canonicalize(raw),
+            terms: super::cnf::merge_canonical(
+                &self.terms,
+                &rhs.terms,
+                |a, b| a.cmp(b),
+                |x, y| x.add(y),
+                |c| c.is_zero(),
+            ),
         }
     }
 

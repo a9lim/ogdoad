@@ -21,11 +21,11 @@ pub(crate) fn unit_pivot_rank<S: Scalar>(mut m: Vec<Vec<S>>) -> Option<usize> {
 
     let mut row = 0;
     for col in 0..ncols {
-        let Some(piv) = (row..nrows).find(|&r| m[r][col].inv().is_some()) else {
+        let Some((piv, pinv)) = (row..nrows).find_map(|r| m[r][col].inv().map(|pinv| (r, pinv)))
+        else {
             continue;
         };
         m.swap(row, piv);
-        let pinv = m[row][col].inv().expect("pivot is invertible");
         for c in 0..ncols {
             m[row][c] = m[row][c].mul(&pinv);
         }
@@ -67,10 +67,9 @@ pub(crate) fn solve<S: Scalar>(mut a: Vec<Vec<S>>, mut b: Vec<S>) -> Option<Vec<
         assert_eq!(row.len(), n, "solve expects a square matrix");
     }
     for col in 0..n {
-        let piv = (col..n).find(|&r| a[r][col].inv().is_some())?;
+        let (piv, inv) = (col..n).find_map(|r| a[r][col].inv().map(|inv| (r, inv)))?;
         a.swap(col, piv);
         b.swap(col, piv);
-        let inv = a[col][col].inv().expect("pivot was checked invertible");
         for k in col..n {
             a[col][k] = a[col][k].mul(&inv);
         }
@@ -110,10 +109,9 @@ pub(crate) fn inverse_matrix<S: Scalar>(mut m: Vec<Vec<S>>) -> Option<Vec<Vec<S>
         })
         .collect();
     for col in 0..n {
-        let piv = (col..n).find(|&r| m[r][col].inv().is_some())?;
+        let (piv, pinv) = (col..n).find_map(|r| m[r][col].inv().map(|pinv| (r, pinv)))?;
         m.swap(col, piv);
         inv.swap(col, piv);
-        let pinv = m[col][col].inv()?;
         for c in 0..n {
             m[col][c] = m[col][c].mul(&pinv);
             inv[col][c] = inv[col][c].mul(&pinv);
@@ -150,14 +148,14 @@ pub(crate) fn unit_pivot_nullspace<S: Scalar>(
     let mut pivot_cols: Vec<usize> = Vec::new();
     let mut row = 0;
     for col in 0..ncols {
-        let Some(piv) = (row..nrows).find(|&r| m[r][col].inv().is_some()) else {
+        let Some((piv, pinv)) = (row..nrows).find_map(|r| m[r][col].inv().map(|pinv| (r, pinv)))
+        else {
             // No unit pivot here yet; leave the column alone and let a later
             // column try. Whether that was actually safe is checked once,
             // after the loop, against the leftover (never-pivoted) rows.
             continue;
         };
         m.swap(row, piv);
-        let pinv = m[row][col].inv().expect("pivot is invertible");
         for c in 0..ncols {
             m[row][c] = m[row][c].mul(&pinv);
         }

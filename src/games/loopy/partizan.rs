@@ -599,29 +599,28 @@ fn opponent_winner(turn: LoopyMover) -> LoopyWinner {
 fn solve_partizan_outcomes(left: &[Vec<usize>], right: &[Vec<usize>]) -> Vec<LoopyPartizanOutcome> {
     let n = left.len();
     let states = 2 * n;
-    let mut succ = vec![Vec::new(); states];
     let mut pred = vec![Vec::new(); states];
+    let mut remaining = vec![0usize; states];
     for v in 0..n {
+        remaining[state(v, LoopyMover::Left)] = left[v].len();
+        remaining[state(v, LoopyMover::Right)] = right[v].len();
         for &w in &left[v] {
             let s = state(v, LoopyMover::Left);
             let t = state(w, LoopyMover::Right);
-            succ[s].push(t);
             pred[t].push(s);
         }
         for &w in &right[v] {
             let s = state(v, LoopyMover::Right);
             let t = state(w, LoopyMover::Left);
-            succ[s].push(t);
             pred[t].push(s);
         }
     }
 
-    let mut remaining: Vec<usize> = succ.iter().map(Vec::len).collect();
     let mut label: Vec<Option<LoopyWinner>> = vec![None; states];
     let mut queue = VecDeque::new();
 
     for s in 0..states {
-        if succ[s].is_empty() {
+        if remaining[s] == 0 {
             let (_, turn) = state_parts(s);
             label[s] = Some(opponent_winner(turn));
             queue.push_back(s);

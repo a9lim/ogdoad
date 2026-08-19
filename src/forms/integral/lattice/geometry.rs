@@ -496,20 +496,40 @@ impl IntegralForm {
     /// The minimum `min { Q(x) : x ∈ L, x ≠ 0 }`, or `None` if the lattice is
     /// empty or not positive definite.
     pub fn minimum(&self) -> Option<i128> {
+        Some(self.minimum_and_vectors()?.0)
+    }
+
+    fn minimum_and_vectors(&self) -> Option<(i128, Vec<Vec<i128>>)> {
         if self.dim() == 0 {
             return None;
         }
         let min_diag = (0..self.dim()).map(|i| self.gram[i][i]).min()?;
         let vecs = self.short_vectors(min_diag)?;
-        vecs.iter().map(|v| self.norm(v)).min()
+        let mut minimum = None;
+        let mut minimal = Vec::new();
+        for vector in vecs {
+            let norm = self.norm(&vector);
+            match minimum {
+                None => {
+                    minimum = Some(norm);
+                    minimal.push(vector);
+                }
+                Some(current) if norm < current => {
+                    minimum = Some(norm);
+                    minimal.clear();
+                    minimal.push(vector);
+                }
+                Some(current) if norm == current => minimal.push(vector),
+                Some(_) => {}
+            }
+        }
+        Some((minimum?, minimal))
     }
 
     /// All minimal vectors (norm equal to [`minimum`](IntegralForm::minimum)),
     /// both signs included. `None` if not positive definite.
     pub fn minimal_vectors(&self) -> Option<Vec<Vec<i128>>> {
-        let m = self.minimum()?;
-        let vecs = self.short_vectors(m)?;
-        Some(vecs.into_iter().filter(|v| self.norm(v) == m).collect())
+        Some(self.minimum_and_vectors()?.1)
     }
 
     /// The kissing number: the count of minimal vectors. `None` if not positive
@@ -620,12 +640,16 @@ impl IntegralForm {
     }
 
     fn root_system_automorphism_order(&self) -> Option<u128> {
-        if !self.is_even() || self.minimum()? != 2 {
+        if !self.is_even() {
+            return None;
+        }
+        let (minimum, minimal_vectors) = self.minimum_and_vectors()?;
+        if minimum != 2 {
             return None;
         }
         let n = self.dim();
         let mut roots: Vec<Vec<i128>> = Vec::new();
-        for root in self.minimal_vectors()? {
+        for root in minimal_vectors {
             let root = canonical_root(root);
             if !roots.contains(&root) {
                 roots.push(root);

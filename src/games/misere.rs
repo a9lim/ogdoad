@@ -150,14 +150,16 @@ impl AbstractGame {
     fn sum_moves(&self, pos: &[usize]) -> Vec<Vec<usize>> {
         let mut out = Vec::new();
         for idx in 0..pos.len() {
+            if idx > 0 && pos[idx] == pos[idx - 1] {
+                continue;
+            }
             for &q in &self.moves[pos[idx]] {
                 let mut np = pos.to_vec();
-                if q == 0 {
-                    np.remove(idx);
-                } else {
-                    np[idx] = q;
+                np.remove(idx);
+                if q != 0 {
+                    let insertion = np.partition_point(|&component| component <= q);
+                    np.insert(insertion, q);
                 }
-                np.sort_unstable();
                 out.push(np);
             }
         }
@@ -374,9 +376,14 @@ fn build_multiplication(
         .collect();
     let mut table = vec![None; num_classes * num_classes];
     let mut closed_under_sum = true;
+    let max_element_len = elements.iter().map(Vec::len).max().unwrap_or(0);
 
     for (i, a) in elements.iter().enumerate() {
         for (j, b) in elements.iter().enumerate().skip(i) {
+            if a.len() + b.len() > max_element_len {
+                closed_under_sum = false;
+                continue;
+            }
             let prod = sum_multiset(a, b);
             let Some(&k) = element_index.get(prod.as_slice()) else {
                 closed_under_sum = false;
@@ -403,6 +410,9 @@ fn build_multiplication(
             let ab = a * num_classes + b;
             let ba = b * num_classes + a;
             if table[ab].is_none() {
+                if class_rep[a].len() + class_rep[b].len() > max_element_len {
+                    return (None, false, closed_under_sum);
+                }
                 let prod = sum_multiset(&class_rep[a], &class_rep[b]);
                 let Some(&k) = element_index.get(prod.as_slice()) else {
                     return (None, false, closed_under_sum);

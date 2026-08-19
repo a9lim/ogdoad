@@ -357,50 +357,45 @@ fn collect_turn_masks(
 }
 
 fn decode_word(mut code: u128, base: u128, n: usize) -> Vec<u128> {
+    let bits = base.trailing_zeros();
+    let mask = base - 1;
     let mut out = vec![0u128; n];
     for slot in out.iter_mut().rev() {
-        *slot = code % base;
-        code /= base;
+        *slot = code & mask;
+        code >>= bits;
     }
     out
 }
 
 fn hamming_distance_packed(mut a: u128, mut b: u128, base: u128, n: usize) -> usize {
+    let bits = base.trailing_zeros();
+    let mask = base - 1;
     let mut dist = 0usize;
     for _ in 0..n {
-        if a % base != b % base {
+        if a & mask != b & mask {
             dist += 1;
         }
-        a /= base;
-        b /= base;
+        a >>= bits;
+        b >>= bits;
     }
     dist
 }
 
-fn nim_add_packed(mut a: u128, mut b: u128, base: u128, n: usize) -> u128 {
-    let mut out = 0u128;
-    let mut place = 1u128;
-    for _ in 0..n {
-        let digit = (a % base) ^ (b % base);
-        out += digit * place;
-        place *= base;
-        a /= base;
-        b /= base;
-    }
-    out
+fn nim_add_packed(a: u128, b: u128, _base: u128, _n: usize) -> u128 {
+    a ^ b
 }
 
 fn nim_scalar_mul_packed(scalar: u128, mut word: u128, base: u128, n: usize) -> Option<u128> {
+    let bits = base.trailing_zeros();
+    let mask = base - 1;
     let mut out = 0u128;
-    let mut place = 1u128;
-    for _ in 0..n {
-        let digit = nim_mul(scalar, word % base);
+    for coordinate in 0..n {
+        let digit = nim_mul(scalar, word & mask);
         if digit >= base {
             return None;
         }
-        out += digit * place;
-        place *= base;
-        word /= base;
+        out |= digit << (coordinate as u32 * bits);
+        word >>= bits;
     }
     Some(out)
 }

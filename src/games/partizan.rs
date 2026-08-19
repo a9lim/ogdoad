@@ -19,6 +19,7 @@
 use crate::games::PartizanOutcome;
 use crate::scalar::{Scalar, Surreal};
 use std::cmp::Ordering;
+use std::collections::HashMap;
 use std::fmt;
 use std::sync::Arc;
 
@@ -78,8 +79,12 @@ impl Game {
     /// Left and Right options coincide). `⋆0 = 0`, `⋆1 = ⋆`. Used as the **remote
     /// (far) star** in the atomic-weight calculus.
     pub fn nim_heap(n: u128) -> Game {
-        let opts: Vec<Game> = (0..n).map(Game::nim_heap).collect();
-        Game::new(opts.clone(), opts)
+        let mut heaps = vec![Game::zero()];
+        for _ in 0..n {
+            let options = heaps.clone();
+            heaps.push(Game::new(options.clone(), options));
+        }
+        heaps.pop().expect("the zero heap is always present")
     }
 
     /// The integer game `n`: `{ n−1 | }` for n>0, `{ | n+1 }` for n<0, `0` for 0.
@@ -106,35 +111,58 @@ impl Game {
 
     /// Negation `−G = { −G^R | −G^L }` (the additive inverse in the game group).
     pub fn neg(&self) -> Game {
-        Game::new(
-            self.right().iter().map(|g| g.neg()).collect(),
-            self.left().iter().map(|g| g.neg()).collect(),
-        )
+        fn visit(game: &Game, memo: &mut HashMap<usize, Game>) -> Game {
+            let key = game.ptr_id();
+            if let Some(negated) = memo.get(&key) {
+                return negated.clone();
+            }
+            let negated = Game::new(
+                game.right().iter().map(|g| visit(g, memo)).collect(),
+                game.left().iter().map(|g| visit(g, memo)).collect(),
+            );
+            memo.insert(key, negated.clone());
+            negated
+        }
+        visit(self, &mut HashMap::new())
     }
 
     /// Disjunctive sum `G + H` — the group operation.
     pub fn add(&self, other: &Game) -> Game {
-        let mut left = Vec::new();
-        for gl in self.left() {
-            left.push(gl.add(other));
+        fn visit(a: &Game, b: &Game, memo: &mut HashMap<(usize, usize), Game>) -> Game {
+            let key = (a.ptr_id(), b.ptr_id());
+            if let Some(sum) = memo.get(&key) {
+                return sum.clone();
+            }
+            let mut left = Vec::with_capacity(a.left().len() + b.left().len());
+            left.extend(a.left().iter().map(|option| visit(option, b, memo)));
+            left.extend(b.left().iter().map(|option| visit(a, option, memo)));
+            let mut right = Vec::with_capacity(a.right().len() + b.right().len());
+            right.extend(a.right().iter().map(|option| visit(option, b, memo)));
+            right.extend(b.right().iter().map(|option| visit(a, option, memo)));
+            let sum = Game::new(left, right);
+            memo.insert(key, sum.clone());
+            sum
         }
-        for hl in other.left() {
-            left.push(self.add(hl));
-        }
-        let mut right = Vec::new();
-        for gr in self.right() {
-            right.push(gr.add(other));
-        }
-        for hr in other.right() {
-            right.push(self.add(hr));
-        }
-        Game::new(left, right)
+        visit(self, other, &mut HashMap::new())
     }
 
     /// The order: `G ≤ H ⟺ (∄ G^L ≥ H) ∧ (∄ H^R ≤ G)`. Recurses on options
     /// (strictly simpler games), so it terminates.
     pub fn le(&self, other: &Game) -> bool {
-        self.left().iter().all(|gl| !other.le(gl)) && other.right().iter().all(|hr| !hr.le(self))
+        fn visit(a: &Game, b: &Game, memo: &mut HashMap<(usize, usize), bool>) -> bool {
+            if a.ptr_eq(b) {
+                return true;
+            }
+            let key = (a.ptr_id(), b.ptr_id());
+            if let Some(&answer) = memo.get(&key) {
+                return answer;
+            }
+            let answer = a.left().iter().all(|left| !visit(b, left, memo))
+                && b.right().iter().all(|right| !visit(right, a, memo));
+            memo.insert(key, answer);
+            answer
+        }
+        visit(self, other, &mut HashMap::new())
     }
 
     /// Value equality: `G = H ⟺ G ≤ H ≤ G`.
@@ -253,19 +281,27 @@ impl Game {
     /// that makes equality a syntactic check and `birthday` the true (least)
     /// formation day.
     pub fn canonical(&self) -> Game {
-        let left: Vec<Game> = self.left().iter().map(Game::canonical).collect();
-        let right: Vec<Game> = self.right().iter().map(Game::canonical).collect();
-        let mut cur = Game::new(left, right);
-        loop {
-            let (bypassed, bypassed_any) = cur.bypass_reversible_once();
-            let reduced = bypassed.remove_dominated();
-            let removed_any = reduced.left().len() != bypassed.left().len()
-                || reduced.right().len() != bypassed.right().len();
-            cur = reduced;
-            if !bypassed_any && !removed_any {
-                return cur;
+        fn visit(game: &Game, memo: &mut HashMap<usize, Game>) -> Game {
+            let key = game.ptr_id();
+            if let Some(canonical) = memo.get(&key) {
+                return canonical.clone();
+            }
+            let left = game.left().iter().map(|g| visit(g, memo)).collect();
+            let right = game.right().iter().map(|g| visit(g, memo)).collect();
+            let mut current = Game::new(left, right);
+            loop {
+                let (bypassed, bypassed_any) = current.bypass_reversible_once();
+                let reduced = bypassed.remove_dominated();
+                let removed_any = reduced.left().len() != bypassed.left().len()
+                    || reduced.right().len() != bypassed.right().len();
+                current = reduced;
+                if !bypassed_any && !removed_any {
+                    memo.insert(key, current.clone());
+                    return current;
+                }
             }
         }
+        visit(self, &mut HashMap::new())
     }
 
     /// One pass of reversibility bypass: a Left option `G^L` with some Right
@@ -567,6 +603,19 @@ mod tests {
             let z = g.add(&g.neg());
             assert!(z.eq(&Game::zero()));
             assert!(z.canonical().structural_eq(&Game::zero()));
+        }
+    }
+
+    #[test]
+    fn nim_heaps_share_the_iteratively_built_option_dag() {
+        let heap = Game::nim_heap(8);
+        assert_eq!(heap.left().len(), 8);
+        assert_eq!(heap.right().len(), 8);
+        for (left, right) in heap.left().iter().zip(heap.right()) {
+            assert!(left.ptr_eq(right));
+        }
+        for size in 0..8 {
+            assert!(heap.left()[size].eq(&Game::nim_heap(size as u128)));
         }
     }
 

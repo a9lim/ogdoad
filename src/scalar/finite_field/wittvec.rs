@@ -301,6 +301,11 @@ impl<const P: u128, const N: usize, const F: usize> Scalar for WittVec<P, N, F> 
         }
         Some(b)
     }
+    fn is_zero(&self) -> bool {
+        Self::assert_supported_params();
+        let modulus = Self::modulus();
+        self.0.iter().all(|&coefficient| coefficient % modulus == 0)
+    }
     /// Faster direct construction; semantically identical to the default double-and-add.
     fn from_int(n: i128) -> Self {
         WittVec::<P, N, F>::from_int(n)

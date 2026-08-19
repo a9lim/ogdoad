@@ -10,9 +10,11 @@ use crate::forms::integral::diagonal::{
 };
 use crate::forms::integral::{is_prime_power, Genus, IntegralForm};
 use crate::linalg::field::inverse_matrix;
-use crate::linalg::integer::{gcd, normalize_relation_rows, prime_factors, reduce_integer_vector};
+use crate::linalg::integer::{
+    gcd, normalize_relation_rows, prime_factors, reduce_integer_vector_normalized,
+};
 use crate::scalar::{Rational, Scalar};
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashMap};
 use std::fmt;
 use std::ops::{Index, IndexMut};
 
@@ -60,29 +62,26 @@ fn enumerate_hnf_reps(rows: &[Vec<i128>]) -> Option<Vec<Vec<i128>>> {
         pivots.push(row[i]);
     }
 
-    let mut reps = BTreeSet::new();
+    let count = pivots.iter().try_fold(1usize, |count, &pivot| {
+        count.checked_mul(usize::try_from(pivot).ok()?)
+    })?;
+    let mut reps = Vec::with_capacity(count);
     let mut cur = vec![0i128; n];
-    fn rec(
-        idx: usize,
-        pivots: &[i128],
-        cur: &mut [i128],
-        rows: &[Vec<i128>],
-        reps: &mut BTreeSet<Vec<i128>>,
-    ) {
+    fn rec(idx: usize, pivots: &[i128], cur: &mut [i128], reps: &mut Vec<Vec<i128>>) {
         if idx == pivots.len() {
-            let mut v = cur.to_vec();
-            reduce_integer_vector(&mut v, rows.to_vec());
-            reps.insert(v);
+            // `0 <= cur[i] < pivot[i]` is already the canonical remainder box
+            // for this row-HNF: every leading coordinate has quotient zero.
+            reps.push(cur.to_vec());
             return;
         }
         for x in 0..pivots[idx] {
             cur[idx] = x;
-            rec(idx + 1, pivots, cur, rows, reps);
+            rec(idx + 1, pivots, cur, reps);
         }
         cur[idx] = 0;
     }
-    rec(0, &pivots, &mut cur, rows, &mut reps);
-    Some(reps.into_iter().collect())
+    rec(0, &pivots, &mut cur, &mut reps);
+    Some(reps)
 }
 
 // ── genus-signature helpers (used by genus_signature_mod8 / verify_milgram) ──
@@ -627,6 +626,10 @@ struct DiscriminantCore {
     group: Vec<i128>,
     /// Canonical representatives `y` for `Z^n / GZ^n`.
     reps: Vec<Vec<i128>>,
+    /// Normalized row-HNF defining the quotient `Z^n / GZ^n`.
+    hnf: Vec<Vec<i128>>,
+    /// Exact canonical representative to its stable position in `reps`.
+    rep_indices: HashMap<Vec<i128>, usize>,
     /// The exact inverse Gram matrix.
     gram_inv: Vec<Vec<Rational>>,
 }
@@ -636,7 +639,8 @@ impl DiscriminantCore {
     /// caller's concern: each public wrapper checks its own parity boundary before
     /// calling this.
     fn from_lattice(lattice: &IntegralForm) -> Option<Self> {
-        if lattice.determinant() == 0 {
+        let determinant = lattice.determinant();
+        if determinant == 0 {
             return None;
         }
         let mat: Vec<Vec<Rational>> = lattice
@@ -647,10 +651,16 @@ impl DiscriminantCore {
         let gram_inv = inverse_matrix(mat)?;
         let hnf = normalize_relation_rows(lattice.gram().to_vec());
         let reps = enumerate_hnf_reps(&hnf)?;
-        let det = lattice.determinant().unsigned_abs() as usize;
+        let det = usize::try_from(determinant.unsigned_abs()).ok()?;
         if reps.len() != det {
             return None;
         }
+        let rep_indices = reps
+            .iter()
+            .cloned()
+            .enumerate()
+            .map(|(index, rep)| (rep, index))
+            .collect();
         let group = lattice
             .invariant_factors()
             .into_iter()
@@ -659,6 +669,8 @@ impl DiscriminantCore {
         Some(DiscriminantCore {
             group,
             reps,
+            hnf,
+            rep_indices,
             gram_inv,
         })
     }
@@ -834,10 +846,15 @@ impl DiscriminantForm {
 
     /// The `reps` index of the coset containing the raw integer vector `v`.
     fn element_index(&self, v: &[i128]) -> Option<usize> {
+        if v.len() != self.core.hnf.len() {
+            return None;
+        }
+        let mut representative = v.to_vec();
+        reduce_integer_vector_normalized(&mut representative, &self.core.hnf);
         self.core
-            .reps
-            .iter()
-            .position(|r| self.equivalent_mod_lattice(r, v))
+            .rep_indices
+            .get(representative.as_slice())
+            .copied()
     }
 
     /// Tabulate the finite abelian group `(A_L, +)` with each element's `q_L` value
@@ -859,14 +876,18 @@ impl DiscriminantForm {
             .map(|r| self.quadratic_value_mod2(r))
             .collect();
         let mut add = SquareTable::filled(n, 0usize);
+        let mut sum = vec![0i128; self.core.hnf.len()];
         for i in 0..n {
             for j in 0..n {
-                let s: Vec<i128> = self.core.reps[i]
-                    .iter()
+                for ((coordinate, &a), &b) in sum
+                    .iter_mut()
+                    .zip(&self.core.reps[i])
                     .zip(&self.core.reps[j])
-                    .map(|(&a, &b)| a + b)
-                    .collect();
-                add[i][j] = self.element_index(&s)?;
+                {
+                    *coordinate = a.checked_add(b)?;
+                }
+                reduce_integer_vector_normalized(&mut sum, &self.core.hnf);
+                add[i][j] = self.core.rep_indices.get(sum.as_slice()).copied()?;
             }
         }
         let mut order = vec![1usize; n];
@@ -1001,45 +1022,20 @@ impl DiscriminantForm {
         search_iso(&lt, &mt, &gens, &mut img, &mut budget)
     }
 
-    fn equivalent_mod_lattice(&self, a: &[i128], b: &[i128]) -> bool {
-        let n = self.core.gram_inv.len();
-        if a.len() != n || b.len() != n {
-            return false;
-        }
-        let diff: Vec<i128> = a.iter().zip(b).map(|(&x, &y)| x - y).collect();
-        for row in &self.core.gram_inv {
-            let mut coord = Rational::zero();
-            for (r, &d) in row.iter().zip(&diff) {
-                if d != 0 {
-                    coord = coord.add(&r.mul(&Rational::from_int(d)));
-                }
-            }
-            if !coord.is_integer() {
-                return false;
-            }
-        }
-        true
-    }
-
     fn negation_matrix(&self) -> Option<Vec<Vec<Complex64>>> {
         let n = self.core.reps.len();
         let mut out = vec![vec![Complex64::zero(); n]; n];
         for (col, gamma) in self.core.reps.iter().enumerate() {
             let neg_gamma: Vec<i128> = gamma.iter().map(|&x| -x).collect();
-            let row = self
-                .core
-                .reps
-                .iter()
-                .position(|delta| self.equivalent_mod_lattice(delta, &neg_gamma))?;
+            let row = self.element_index(&neg_gamma)?;
             out[row][col] = Complex64::one();
         }
         Some(out)
     }
 
-    fn weil_t_matrix(&self) -> Vec<Vec<Complex64>> {
-        let t = self.weil_t();
+    fn diagonal_matrix(t: &[Complex64]) -> Vec<Vec<Complex64>> {
         let mut out = vec![vec![Complex64::zero(); t.len()]; t.len()];
-        for (i, z) in t.into_iter().enumerate() {
+        for (i, &z) in t.iter().enumerate() {
             out[i][i] = z;
         }
         out
@@ -1073,11 +1069,16 @@ impl DiscriminantForm {
     /// The Weil `S` matrix in the basis of discriminant representatives:
     /// `(sigma/sqrt(|A|)) * exp(-2*pi*i*b_L(gamma,delta))`.
     pub fn weil_s(&self) -> Option<Vec<Vec<Complex64>>> {
+        let phase = self.weil_s_prefactor_phase_mod8()?;
+        self.weil_s_with_phase(phase)
+    }
+
+    fn weil_s_with_phase(&self, phase: i128) -> Option<Vec<Vec<Complex64>>> {
         let n = self.core.reps.len();
         if n == 0 {
             return None;
         }
-        let sigma = Complex64::eighth_root(self.weil_s_prefactor_phase_mod8()?);
+        let sigma = Complex64::eighth_root(phase);
         let scale = 1.0 / (n as f64).sqrt();
         let mut out = vec![vec![Complex64::zero(); n]; n];
         for (col, gamma) in self.core.reps.iter().enumerate() {
@@ -1097,21 +1098,23 @@ impl DiscriminantForm {
     /// `(ST)^3 = S^2`; for unimodular signature `0 mod 8` these collapse to the
     /// familiar scalar relations.
     pub fn verify_weil_relations(&self) -> bool {
-        let Some(s_phase) = self.weil_s_prefactor_phase_mod8() else {
+        let Some(milgram_phase) = self.milgram_signature_mod8() else {
             return false;
         };
-        if self.weil_s_recovers_milgram_phase_mod8() != self.milgram_signature_mod8() {
+        let s_phase = (-milgram_phase).rem_euclid(8);
+        if (-s_phase).rem_euclid(8) != milgram_phase {
             return false;
         }
-        let Some(s) = self.weil_s() else {
+        let Some(s) = self.weil_s_with_phase(s_phase) else {
             return false;
         };
-        let t = self.weil_t_matrix();
+        let t_diagonal = self.weil_t();
+        let t = Self::diagonal_matrix(&t_diagonal);
         let Some(neg) = self.negation_matrix() else {
             return false;
         };
         let tol = 1e-8;
-        if self.weil_t().iter().any(|z| (z.abs() - 1.0).abs() > tol) {
+        if t_diagonal.iter().any(|z| (z.abs() - 1.0).abs() > tol) {
             return false;
         }
         let s2 = mat_pow(&s, 2);
@@ -1234,4 +1237,26 @@ pub fn odd_milgram_report(lattice: &IntegralForm) -> Option<OddMilgramInvariants
 /// Verify the odd-lattice Milgram/van der Blij congruence.
 pub fn verify_odd_milgram(lattice: &IntegralForm) -> Option<bool> {
     Some(odd_milgram_report(lattice)?.verified())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn indexed_hnf_reduction_agrees_on_shifted_representatives() {
+        let lattice = IntegralForm::new(vec![vec![4, 2], vec![2, 6]]).unwrap();
+        let form = DiscriminantForm::from_lattice(&lattice).unwrap();
+        for (index, representative) in form.core.reps.iter().enumerate() {
+            assert_eq!(form.element_index(representative), Some(index));
+            for row in &form.core.hnf {
+                let shifted = representative
+                    .iter()
+                    .zip(row)
+                    .map(|(&coordinate, &offset)| coordinate + offset)
+                    .collect::<Vec<_>>();
+                assert_eq!(form.element_index(&shifted), Some(index));
+            }
+        }
+    }
 }

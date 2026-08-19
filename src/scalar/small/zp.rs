@@ -147,6 +147,10 @@ impl<const P: u128, const K: u128> Scalar for Zp<P, K> {
         }
         Some(Zp(mod_inverse_u128(self.0, Self::modulus())?))
     }
+    fn is_zero(&self) -> bool {
+        Self::assert_supported_params();
+        self.0.is_multiple_of(Self::modulus())
+    }
     /// Faster direct construction; semantically identical to the default double-and-add.
     fn from_int(n: i128) -> Self {
         Self::assert_supported_params();

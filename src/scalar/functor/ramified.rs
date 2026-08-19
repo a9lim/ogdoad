@@ -80,14 +80,6 @@ impl<S: Valued, const E: usize> Ramified<S, E> {
         Ramified { coeffs }
     }
 
-    /// The basis power `π^k` for `k < E` — i.e. the unit basis vector `e_k`.
-    fn pi_basis(k: usize) -> Self {
-        Self::assert_supported_params();
-        let mut coeffs = std::array::from_fn(|_| S::zero());
-        coeffs[k] = S::one();
-        Ramified { coeffs }
-    }
-
     /// The (extension-normalized, `v(π) = 1`) valuation: `min_i (E·v_S(a_i) + i)`
     /// over the nonzero components, or `None` for zero.
     ///
@@ -253,10 +245,15 @@ impl<S: Valued, const E: usize> Scalar for Ramified<S, E> {
         // matrix column `col` is `α·π^col` in the basis. Solve `M·c = e₀` for the
         // coordinates of α⁻¹.
         let mut m = vec![vec![S::zero(); E]; E];
+        let uniformizer = S::uniformizer();
         for col in 0..E {
-            let prod = self.mul(&Self::pi_basis(col));
-            for row in 0..E {
-                m[row][col] = prod.coeffs[row].clone();
+            for (index, coefficient) in self.coeffs.iter().enumerate() {
+                let target = index + col;
+                if target < E {
+                    m[target][col] = coefficient.clone();
+                } else {
+                    m[target - E][col] = coefficient.mul(&uniformizer);
+                }
             }
         }
         let mut e0 = vec![S::zero(); E];

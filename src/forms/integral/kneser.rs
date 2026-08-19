@@ -283,14 +283,28 @@ pub fn kneser_neighbor(lattice: &IntegralForm, p: u128, line: &[u128]) -> Option
 
     let denom = p_i.checked_mul(p_i)?;
     let n = basis.len();
+    let mut gram_times_basis = vec![vec![0i128; n]; n];
+    for (column, vector) in basis.iter().enumerate() {
+        for row in 0..n {
+            let mut entry = 0i128;
+            for (&coefficient, &coordinate) in lattice.gram()[row].iter().zip(vector) {
+                entry = entry.checked_add(coefficient.checked_mul(coordinate)?)?;
+            }
+            gram_times_basis[column][row] = entry;
+        }
+    }
     let mut gram = vec![vec![0i128; n]; n];
     for i in 0..n {
-        for j in 0..n {
-            let inner = lattice.inner(&basis[i], &basis[j]);
+        for j in i..n {
+            let mut inner = 0i128;
+            for (&coordinate, &transformed) in basis[i].iter().zip(&gram_times_basis[j]) {
+                inner = inner.checked_add(coordinate.checked_mul(transformed)?)?;
+            }
             if inner % denom != 0 {
                 return None;
             }
             gram[i][j] = inner / denom;
+            gram[j][i] = gram[i][j];
         }
     }
     IntegralForm::new(gram)

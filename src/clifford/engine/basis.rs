@@ -2,12 +2,8 @@
 //! structured-algebra layer above it: `bits`/`grade` decode a `u128` blade
 //! mask, `MAX_BASIS_DIM` caps the basis at 128 generators, `grade_k_masks` is
 //! the one grade-`k` blade-mask enumerator (Gosper's hack, ascending order)
-//! shared by `blade.rs` and `outermorphism.rs`, and `wedge_sign` reads off the
-//! antisymmetric reordering sign of two disjoint ascending blades through the
-//! scalar's own `neg()` — never a literal `-1`, so char-2 sign-vanishing falls
-//! out for free.
-
-use crate::scalar::Scalar;
+//! shared by `blade.rs` and `outermorphism.rs`, and `wedge_is_negative` reads
+//! off the antisymmetric reordering parity of two disjoint ascending blades.
 
 /// Blade masks are `u128`, so the basis has at most 128 named generators.
 pub const MAX_BASIS_DIM: usize = 128;
@@ -69,9 +65,9 @@ pub fn grade(mask: u128) -> usize {
     mask.count_ones() as usize
 }
 
-/// Sign (+1/-1 as a Scalar) of reordering two disjoint ascending blades when
-/// concatenated — i.e. the number of (i in a, j in b) with i > j, mod 2.
-pub(super) fn wedge_sign<S: Scalar>(a: u128, b: u128) -> S {
+/// Whether reordering two disjoint ascending blades when concatenated has odd
+/// parity — i.e. the number of `(i in a, j in b)` with `i > j`, mod 2.
+pub(super) fn wedge_is_negative(a: u128, b: u128) -> bool {
     let mut swaps = 0usize;
     let mut aa = a;
     while aa != 0 {
@@ -80,9 +76,5 @@ pub(super) fn wedge_sign<S: Scalar>(a: u128, b: u128) -> S {
         let below = b & ((1u128 << i) - 1);
         swaps += below.count_ones() as usize;
     }
-    if swaps & 1 == 0 {
-        S::one()
-    } else {
-        S::one().neg()
-    }
+    swaps & 1 == 1
 }

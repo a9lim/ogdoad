@@ -661,16 +661,20 @@ fn evaluate_quadratic(vector: u128, diagonal: &[bool], polar: &[u128]) -> bool {
 }
 
 fn adapted_frame(dimension: usize, polar: &[u128]) -> (Vec<u128>, Vec<Option<usize>>) {
-    let mut remaining: Vec<u128> = (0..dimension).map(|i| 1u128 << i).collect();
+    let mut remaining: VecDeque<u128> = (0..dimension).map(|i| 1u128 << i).collect();
     let mut basis = Vec::with_capacity(dimension);
     let mut mates = Vec::with_capacity(dimension);
     while !remaining.is_empty() {
-        let left = remaining.remove(0);
+        let left = remaining
+            .pop_front()
+            .expect("the remaining frame is nonempty");
         if let Some(position) = remaining
             .iter()
             .position(|&right| polar_pair(left, right, polar))
         {
-            let right = remaining.remove(position);
+            let right = remaining
+                .remove(position)
+                .expect("the mate position came from this queue");
             for vector in &mut remaining {
                 if polar_pair(*vector, right, polar) {
                     *vector ^= left;

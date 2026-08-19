@@ -7,7 +7,7 @@
 //! exterior product of two term maps used by both `Multivector`'s `&` operator
 //! and `CliffordAlgebra::wedge`.
 
-use super::basis::wedge_sign;
+use super::basis::wedge_is_negative;
 use crate::scalar::Scalar;
 use std::collections::BTreeMap;
 
@@ -53,7 +53,12 @@ pub(super) fn wedge_terms<S: Scalar>(
             if ba & bb != 0 {
                 continue;
             }
-            let coeff = ca.mul(cb).mul(&wedge_sign::<S>(ba, bb));
+            let coeff = ca.mul(cb);
+            let coeff = if wedge_is_negative(ba, bb) {
+                coeff.neg()
+            } else {
+                coeff
+            };
             if !coeff.is_zero() {
                 add_term(&mut out, ba | bb, &coeff);
             }

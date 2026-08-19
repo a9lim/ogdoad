@@ -43,6 +43,10 @@ crate-type = ["cdylib", "rlib"]
 name = "data_structures"
 harness = false
 
+[[bench]]
+name = "optimization_followups"
+harness = false
+
 [dependencies]
 # PyO3 is optional and only pulled in for the Python build. Gating it behind
 # the `python` feature keeps `cargo test` pure-Rust (no libpython linkage),

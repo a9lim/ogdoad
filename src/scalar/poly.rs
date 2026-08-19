@@ -257,6 +257,10 @@ impl<S: Scalar> Poly<S> {
     /// Euclidean division `self = q·divisor + r` with `deg r < deg divisor`,
     /// returning `(q, r)`. Requires `divisor` nonzero over a field.
     pub fn divrem(&self, divisor: &Self) -> (Self, Self) {
+        Self::divrem_coeffs(self.coeffs.clone(), divisor)
+    }
+
+    fn divrem_coeffs(mut rem: Vec<S>, divisor: &Self) -> (Self, Self) {
         let dd = divisor
             .degree()
             .expect("polynomial division by the zero polynomial");
@@ -265,8 +269,7 @@ impl<S: Scalar> Poly<S> {
             .unwrap()
             .inv()
             .expect("a field's nonzero leading coefficient inverts");
-        let mut rem = self.coeffs.clone();
-        let mut quot = vec![S::zero(); self.coeffs.len().saturating_sub(dd).max(1)];
+        let mut quot = vec![S::zero(); rem.len().saturating_sub(dd).max(1)];
         loop {
             rem = trim(rem);
             let rdeg = match rem.len().checked_sub(1) {
@@ -311,7 +314,7 @@ impl<S: Scalar> Poly<S> {
 
     /// `self · other mod modulus`.
     pub fn mul_mod(&self, other: &Self, modulus: &Self) -> Self {
-        self.mul(other).rem(modulus)
+        Self::divrem_coeffs(self.mul(other).coeffs, modulus).1
     }
 
     /// `self^e mod modulus` by square-and-multiply.
@@ -322,8 +325,10 @@ impl<S: Scalar> Poly<S> {
             if e & 1 == 1 {
                 acc = acc.mul_mod(&base, modulus);
             }
-            base = base.mul_mod(&base, modulus);
             e >>= 1;
+            if e > 0 {
+                base = base.mul_mod(&base, modulus);
+            }
         }
         acc
     }

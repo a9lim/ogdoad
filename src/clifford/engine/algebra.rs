@@ -168,10 +168,10 @@ impl<S: Scalar> CliffordAlgebra<S> {
         if self.metric.is_orthogonal() {
             for (&ba, ca) in &a.terms {
                 for (&bb, cb) in &b.terms {
-                    if let Some((blade, blade_coeff)) =
-                        self.metric.geom_product_blades_orthogonal(ba, bb)
+                    if let Some((blade, coeff)) =
+                        self.metric
+                            .geom_product_blades_orthogonal_scaled(ba, bb, ca.mul(cb))
                     {
-                        let coeff = ca.mul(cb).mul(&blade_coeff);
                         add_term(&mut out, blade, &coeff);
                     }
                 }
@@ -295,6 +295,22 @@ impl<S: Scalar> CliffordAlgebra<S> {
             return ordinary
                 .transport_gauge_to(self, &reversed)
                 .expect("gauge transport has unit leading terms");
+        }
+        if self.metric.is_orthogonal() {
+            let terms = a
+                .terms
+                .iter()
+                .map(|(&blade, coefficient)| {
+                    let grade = blade.count_ones();
+                    let coefficient = if (grade * grade.saturating_sub(1) / 2) & 1 == 1 {
+                        coefficient.neg()
+                    } else {
+                        coefficient.clone()
+                    };
+                    (blade, coefficient)
+                })
+                .collect();
+            return Multivector { terms };
         }
         let mut out = self.zero();
         for (&blade, coeff) in &a.terms {

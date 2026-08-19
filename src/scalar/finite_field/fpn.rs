@@ -608,6 +608,9 @@ impl<const P: u128, const N: usize> Scalar for Fpn<P, N> {
         // Fermat: a^{p^N − 2} = a^{−1} in F_{p^N}.
         Some(Scalar::pow(self, Self::field_order() - 2))
     }
+    fn is_zero(&self) -> bool {
+        self.0.iter().all(|&coefficient| coefficient == 0)
+    }
     /// Faster direct construction via the constant coefficient; semantically
     /// identical to the default double-and-add (reduction mod p in degree-0).
     fn from_int(n: i128) -> Self {

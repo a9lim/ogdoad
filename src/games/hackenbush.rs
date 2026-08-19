@@ -23,10 +23,10 @@
 
 use crate::games::Game;
 use crate::scalar::Surreal;
-use std::collections::{BTreeSet, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
 
 /// An edge colour: who may remove it.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub enum Color {
     /// Left's edge.
     Blue,
@@ -76,16 +76,20 @@ impl Hackenbush {
 
     /// The vertices connected to the ground (`0`) through the current edges.
     fn grounded(&self) -> HashSet<usize> {
+        let mut adjacency: HashMap<usize, Vec<usize>> = HashMap::new();
+        for &(u, v, _) in &self.edges {
+            adjacency.entry(u).or_default().push(v);
+            adjacency.entry(v).or_default().push(u);
+        }
         let mut reach = HashSet::new();
         reach.insert(0usize);
-        let mut changed = true;
-        while changed {
-            changed = false;
-            for &(u, v, _) in &self.edges {
-                let (ur, vr) = (reach.contains(&u), reach.contains(&v));
-                if ur ^ vr {
-                    reach.insert(if ur { v } else { u });
-                    changed = true;
+        let mut queue = VecDeque::from([0usize]);
+        while let Some(vertex) = queue.pop_front() {
+            if let Some(neighbors) = adjacency.get(&vertex) {
+                for &neighbor in neighbors {
+                    if reach.insert(neighbor) {
+                        queue.push_back(neighbor);
+                    }
                 }
             }
         }
@@ -111,20 +115,31 @@ impl Hackenbush {
     /// options are the blue/green deletions, Right options the red/green ones,
     /// each followed by pruning.
     pub fn to_game(&self) -> Game {
-        let mut left = Vec::new();
-        let mut right = Vec::new();
-        for (i, &(_, _, c)) in self.edges.iter().enumerate() {
-            let sub = self.remove_edge(i).to_game();
-            match c {
-                Color::Blue => left.push(sub),
-                Color::Red => right.push(sub),
-                Color::Green => {
-                    left.push(sub.clone());
-                    right.push(sub);
+        fn visit(
+            position: &Hackenbush,
+            memo: &mut HashMap<Vec<(usize, usize, Color)>, Game>,
+        ) -> Game {
+            if let Some(game) = memo.get(&position.edges) {
+                return game.clone();
+            }
+            let mut left = Vec::new();
+            let mut right = Vec::new();
+            for (i, &(_, _, color)) in position.edges.iter().enumerate() {
+                let sub = visit(&position.remove_edge(i), memo);
+                match color {
+                    Color::Blue => left.push(sub),
+                    Color::Red => right.push(sub),
+                    Color::Green => {
+                        left.push(sub.clone());
+                        right.push(sub);
+                    }
                 }
             }
+            let game = Game::new(left, right);
+            memo.insert(position.edges.clone(), game.clone());
+            game
         }
-        Game::new(left, right)
+        visit(self, &mut HashMap::new())
     }
 
     /// The **surreal number** value — `Some` exactly when the position's value is
@@ -145,14 +160,24 @@ impl Hackenbush {
     }
 
     fn grundy_green(&self) -> u128 {
-        let reachable: BTreeSet<u128> = (0..self.edges.len())
-            .map(|i| self.remove_edge(i).grundy_green())
-            .collect();
-        let mut m = 0u128;
-        while reachable.contains(&m) {
-            m += 1;
+        fn visit(
+            position: &Hackenbush,
+            memo: &mut HashMap<Vec<(usize, usize, Color)>, u128>,
+        ) -> u128 {
+            if let Some(&value) = memo.get(&position.edges) {
+                return value;
+            }
+            let reachable: BTreeSet<u128> = (0..position.edges.len())
+                .map(|i| visit(&position.remove_edge(i), memo))
+                .collect();
+            let mut value = 0u128;
+            while reachable.contains(&value) {
+                value += 1;
+            }
+            memo.insert(position.edges.clone(), value);
+            value
         }
-        m
+        visit(self, &mut HashMap::new())
     }
 }
 
