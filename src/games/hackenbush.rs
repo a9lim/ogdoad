@@ -42,6 +42,126 @@ pub struct Hackenbush {
     edges: Vec<(usize, usize, Color)>,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+enum EdgeMask {
+    Inline(u128),
+    Heap(Box<[u128]>),
+}
+
+impl EdgeMask {
+    fn full(edges: usize) -> Self {
+        if edges <= 128 {
+            EdgeMask::Inline(if edges == 128 {
+                u128::MAX
+            } else if edges == 0 {
+                0
+            } else {
+                (1u128 << edges) - 1
+            })
+        } else {
+            let mut words = vec![u128::MAX; edges.div_ceil(128)];
+            let tail = edges % 128;
+            if tail != 0 {
+                *words.last_mut().expect("a nonempty mask has a last word") = (1u128 << tail) - 1;
+            }
+            EdgeMask::Heap(words.into_boxed_slice())
+        }
+    }
+
+    fn contains(&self, edge: usize) -> bool {
+        match self {
+            EdgeMask::Inline(bits) => bits & (1u128 << edge) != 0,
+            EdgeMask::Heap(words) => words[edge / 128] & (1u128 << (edge % 128)) != 0,
+        }
+    }
+
+    fn clear(&mut self, edge: usize) {
+        match self {
+            EdgeMask::Inline(bits) => *bits &= !(1u128 << edge),
+            EdgeMask::Heap(words) => words[edge / 128] &= !(1u128 << (edge % 128)),
+        }
+    }
+
+    fn without(&self, edge: usize) -> Self {
+        let mut out = self.clone();
+        out.clear(edge);
+        out
+    }
+}
+
+struct HackenbushEvaluator<'a> {
+    edges: &'a [(usize, usize, Color)],
+    endpoints: Vec<(usize, usize)>,
+    incidence: Vec<Vec<usize>>,
+    ground: usize,
+}
+
+impl<'a> HackenbushEvaluator<'a> {
+    fn new(edges: &'a [(usize, usize, Color)]) -> Self {
+        let mut vertices = BTreeSet::from([0usize]);
+        for &(u, v, _) in edges {
+            vertices.insert(u);
+            vertices.insert(v);
+        }
+        let index = vertices
+            .into_iter()
+            .enumerate()
+            .map(|(dense, vertex)| (vertex, dense))
+            .collect::<HashMap<_, _>>();
+        let ground = index[&0];
+        let endpoints = edges
+            .iter()
+            .map(|&(u, v, _)| (index[&u], index[&v]))
+            .collect::<Vec<_>>();
+        let mut incidence = vec![Vec::new(); index.len()];
+        for (edge, &(u, v)) in endpoints.iter().enumerate() {
+            incidence[u].push(edge);
+            if u != v {
+                incidence[v].push(edge);
+            }
+        }
+        HackenbushEvaluator {
+            edges,
+            endpoints,
+            incidence,
+            ground,
+        }
+    }
+
+    fn initial(&self) -> EdgeMask {
+        EdgeMask::full(self.edges.len())
+    }
+
+    fn prune(&self, mut active: EdgeMask) -> EdgeMask {
+        let mut reached = vec![false; self.incidence.len()];
+        reached[self.ground] = true;
+        let mut queue = VecDeque::from([self.ground]);
+        while let Some(vertex) = queue.pop_front() {
+            for &edge in &self.incidence[vertex] {
+                if !active.contains(edge) {
+                    continue;
+                }
+                let (u, v) = self.endpoints[edge];
+                let neighbor = if vertex == u { v } else { u };
+                if !reached[neighbor] {
+                    reached[neighbor] = true;
+                    queue.push_back(neighbor);
+                }
+            }
+        }
+        for (edge, &(u, v)) in self.endpoints.iter().enumerate() {
+            if active.contains(edge) && (!reached[u] || !reached[v]) {
+                active.clear(edge);
+            }
+        }
+        active
+    }
+
+    fn remove_and_prune(&self, active: &EdgeMask, edge: usize) -> EdgeMask {
+        self.prune(active.without(edge))
+    }
+}
+
 impl Hackenbush {
     /// A position from an explicit edge list `(u, v, colour)`. Vertex `0` is the
     /// ground. Edges not connected to the ground (directly or through other edges)
@@ -96,50 +216,59 @@ impl Hackenbush {
         reach
     }
 
-    /// Remove edge `i`, then drop every edge that has fallen off the ground.
-    fn remove_edge(&self, i: usize) -> Hackenbush {
-        let mut edges = self.edges.clone();
-        edges.remove(i);
-        let pruned = Hackenbush { edges };
-        let grounded = pruned.grounded();
-        Hackenbush {
-            edges: pruned
-                .edges
-                .into_iter()
-                .filter(|&(u, v, _)| grounded.contains(&u) && grounded.contains(&v))
-                .collect(),
-        }
-    }
-
     /// The partizan game value, as a [`Game`] — the universal evaluator. Left
     /// options are the blue/green deletions, Right options the red/green ones,
     /// each followed by pruning.
     pub fn to_game(&self) -> Game {
         fn visit(
-            position: &Hackenbush,
-            memo: &mut HashMap<Vec<(usize, usize, Color)>, Game>,
+            evaluator: &HackenbushEvaluator<'_>,
+            active: &EdgeMask,
+            memo: &mut HashMap<EdgeMask, Game>,
         ) -> Game {
-            if let Some(game) = memo.get(&position.edges) {
+            if let Some(game) = memo.get(active) {
                 return game.clone();
             }
             let mut left = Vec::new();
             let mut right = Vec::new();
-            for (i, &(_, _, color)) in position.edges.iter().enumerate() {
-                let sub = visit(&position.remove_edge(i), memo);
+            let mut seen_left = HashSet::new();
+            let mut seen_right = HashSet::new();
+            for (edge, &(_, _, color)) in evaluator.edges.iter().enumerate() {
+                if !active.contains(edge) {
+                    continue;
+                }
+                let next = evaluator.remove_and_prune(active, edge);
                 match color {
-                    Color::Blue => left.push(sub),
-                    Color::Red => right.push(sub),
+                    Color::Blue => {
+                        if seen_left.insert(next.clone()) {
+                            left.push(visit(evaluator, &next, memo));
+                        }
+                    }
+                    Color::Red => {
+                        if seen_right.insert(next.clone()) {
+                            right.push(visit(evaluator, &next, memo));
+                        }
+                    }
                     Color::Green => {
-                        left.push(sub.clone());
-                        right.push(sub);
+                        let left_new = seen_left.insert(next.clone());
+                        let right_new = seen_right.insert(next.clone());
+                        if left_new || right_new {
+                            let sub = visit(evaluator, &next, memo);
+                            if left_new {
+                                left.push(sub.clone());
+                            }
+                            if right_new {
+                                right.push(sub);
+                            }
+                        }
                     }
                 }
             }
             let game = Game::new(left, right);
-            memo.insert(position.edges.clone(), game.clone());
+            memo.insert(active.clone(), game.clone());
             game
         }
-        visit(self, &mut HashMap::new())
+        let evaluator = HackenbushEvaluator::new(&self.edges);
+        visit(&evaluator, &evaluator.initial(), &mut HashMap::new())
     }
 
     /// The **surreal number** value — `Some` exactly when the position's value is
@@ -161,23 +290,32 @@ impl Hackenbush {
 
     fn grundy_green(&self) -> u128 {
         fn visit(
-            position: &Hackenbush,
-            memo: &mut HashMap<Vec<(usize, usize, Color)>, u128>,
+            evaluator: &HackenbushEvaluator<'_>,
+            active: &EdgeMask,
+            memo: &mut HashMap<EdgeMask, u128>,
         ) -> u128 {
-            if let Some(&value) = memo.get(&position.edges) {
+            if let Some(&value) = memo.get(active) {
                 return value;
             }
-            let reachable: BTreeSet<u128> = (0..position.edges.len())
-                .map(|i| visit(&position.remove_edge(i), memo))
+            let mut successors = HashSet::new();
+            for edge in 0..evaluator.edges.len() {
+                if active.contains(edge) {
+                    successors.insert(evaluator.remove_and_prune(active, edge));
+                }
+            }
+            let reachable: BTreeSet<u128> = successors
+                .iter()
+                .map(|next| visit(evaluator, next, memo))
                 .collect();
             let mut value = 0u128;
             while reachable.contains(&value) {
                 value += 1;
             }
-            memo.insert(position.edges.clone(), value);
+            memo.insert(active.clone(), value);
             value
         }
-        visit(self, &mut HashMap::new())
+        let evaluator = HackenbushEvaluator::new(&self.edges);
+        visit(&evaluator, &evaluator.initial(), &mut HashMap::new())
     }
 }
 
@@ -357,5 +495,17 @@ mod tests {
         );
         // A 3-edge blue stalk = value 3.
         assert_eq!(h.value(), Some(Surreal::from_int(3)));
+    }
+
+    #[test]
+    fn edge_masks_cover_inline_and_heap_boundaries() {
+        let inline = EdgeMask::full(128);
+        assert!(inline.contains(0));
+        assert!(inline.contains(127));
+        let mut heap = EdgeMask::full(129);
+        assert!(heap.contains(128));
+        heap.clear(128);
+        assert!(!heap.contains(128));
+        assert!(heap.contains(127));
     }
 }

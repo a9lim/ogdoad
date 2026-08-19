@@ -19,7 +19,7 @@ impl IntegralForm {
         if terms == 0 {
             return Some(Vec::new());
         }
-        if !self.is_even() || !self.is_positive_definite() {
+        if !self.is_even() {
             return None;
         }
         let mut out = vec![0i128; terms];
@@ -27,14 +27,13 @@ impl IntegralForm {
         let bound = 2i128
             .checked_mul((terms - 1) as i128)
             .expect("theta bound exceeds i128");
-        for v in self.short_vectors(bound)? {
-            let q = self.norm(&v);
+        self.visit_short_vector_norms(bound, |q| {
             debug_assert_eq!(q % 2, 0);
-            let idx = usize::try_from(q / 2).ok()?;
+            let idx = usize::try_from(q / 2).expect("enumerated theta index fits usize");
             if idx < terms {
                 out[idx] += 1;
             }
-        }
+        })?;
         Some(out)
     }
 
@@ -49,19 +48,15 @@ impl IntegralForm {
         if terms == 0 {
             return Some(Vec::new());
         }
-        if !self.is_positive_definite() {
-            return None;
-        }
         let mut out = vec![0i128; terms];
         out[0] = 1;
         let bound = (terms - 1) as i128;
-        for v in self.short_vectors(bound)? {
-            let q = self.norm(&v);
-            let idx = usize::try_from(q).ok()?;
+        self.visit_short_vector_norms(bound, |q| {
+            let idx = usize::try_from(q).expect("enumerated theta index fits usize");
             if idx < terms {
                 out[idx] += 1;
             }
-        }
+        })?;
         Some(out)
     }
 }

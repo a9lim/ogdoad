@@ -544,40 +544,33 @@ pub(super) fn min_generators(t: &IsoTables) -> Vec<usize> {
     gens
 }
 
-/// Given images for the generators of `lt`, extend by the homomorphism property
-/// (BFS over `lt`'s generator steps) and check the result is a `q`-preserving
-/// bijection `lt → mt`. Returns `false` on any inconsistency.
-fn verify_iso(lt: &IsoTables, mt: &IsoTables, gens: &[usize], img: &[usize]) -> bool {
+/// Extend a partial generator assignment over its generated subgroup. Reject
+/// relation failures, collisions, and q-value mismatches immediately rather
+/// than waiting until every generator has an image.
+fn partial_iso_consistent(lt: &IsoTables, mt: &IsoTables, gens: &[usize], img: &[usize]) -> bool {
     let n = lt.order.len();
     let mut phi = vec![usize::MAX; n];
     phi[lt.zero] = mt.zero;
+    let mut seen = vec![false; n];
+    seen[mt.zero] = true;
     let mut frontier = vec![lt.zero];
     while let Some(x) = frontier.pop() {
         for (t, &g) in gens.iter().enumerate() {
             let nx = lt.add[x][g];
             let nimg = mt.add[phi[x]][img[t]];
             if phi[nx] == usize::MAX {
+                if seen[nimg] || lt.q[nx] != mt.q[nimg] {
+                    return false;
+                }
                 phi[nx] = nimg;
+                seen[nimg] = true;
                 frontier.push(nx);
             } else if phi[nx] != nimg {
                 return false; // not a well-defined homomorphism
             }
         }
     }
-    if phi.contains(&usize::MAX) {
-        return false; // gens did not generate (should not happen)
-    }
-    // Injective ⇒ bijective (equal finite cardinality).
-    let mut seen = vec![false; n];
-    for &p in &phi {
-        if seen[p] {
-            return false;
-        }
-        seen[p] = true;
-    }
-    // q preserved on *every* element (the complete quadratic-form check; homomorphism
-    // + matching q on generators alone does not force it).
-    (0..n).all(|i| mt.q[phi[i]] == lt.q[i])
+    true
 }
 
 /// DFS over generator-image assignments (pruned by equal order and equal `q`),
@@ -587,27 +580,26 @@ fn search_iso(
     lt: &IsoTables,
     mt: &IsoTables,
     gens: &[usize],
+    candidates: &[Vec<usize>],
     img: &mut Vec<usize>,
     budget: &mut u128,
 ) -> Option<bool> {
     let depth = img.len();
     if depth == gens.len() {
-        return Some(verify_iso(lt, mt, gens, img));
+        return Some(true);
     }
-    let g = gens[depth];
-    for cand in 0..mt.order.len() {
-        if mt.order[cand] != lt.order[g] || mt.q[cand] != lt.q[g] {
-            continue;
-        }
+    for &cand in &candidates[depth] {
         if *budget == 0 {
             return None;
         }
         *budget -= 1;
         img.push(cand);
-        match search_iso(lt, mt, gens, img, budget) {
-            Some(true) => return Some(true),
-            Some(false) => {}
-            None => return None,
+        if partial_iso_consistent(lt, mt, &gens[..=depth], img) {
+            match search_iso(lt, mt, gens, candidates, img, budget) {
+                Some(true) => return Some(true),
+                Some(false) => {}
+                None => return None,
+            }
         }
         img.pop();
     }
@@ -639,22 +631,17 @@ impl DiscriminantCore {
     /// caller's concern: each public wrapper checks its own parity boundary before
     /// calling this.
     fn from_lattice(lattice: &IntegralForm) -> Option<Self> {
-        let determinant = lattice.determinant();
-        if determinant == 0 {
+        let hnf = normalize_relation_rows(lattice.gram().to_vec());
+        if hnf.len() != lattice.dim() {
             return None;
         }
+        let reps = enumerate_hnf_reps(&hnf)?;
         let mat: Vec<Vec<Rational>> = lattice
             .gram()
             .iter()
             .map(|row| row.iter().map(|&x| Rational::from_int(x)).collect())
             .collect();
         let gram_inv = inverse_matrix(mat)?;
-        let hnf = normalize_relation_rows(lattice.gram().to_vec());
-        let reps = enumerate_hnf_reps(&hnf)?;
-        let det = usize::try_from(determinant.unsigned_abs()).ok()?;
-        if reps.len() != det {
-            return None;
-        }
         let rep_indices = reps
             .iter()
             .cloned()
@@ -678,6 +665,25 @@ impl DiscriminantCore {
     /// `b_L(y,z) = y^T G^{-1} z mod Z`, represented in `[0, 1)`.
     fn bilinear_value_mod1(&self, y: &[i128], z: &[i128]) -> Rational {
         rational_mod_int(dot_inv(y, &self.gram_inv, z), 1)
+    }
+
+    /// Order of `y mod GZ^n`: the least common multiple of the denominators of
+    /// `G^-1 y`, since `k y` lies in `GZ^n` exactly when `k G^-1 y` is integral.
+    fn element_order(&self, y: &[i128]) -> Option<usize> {
+        if y.len() != self.gram_inv.len() {
+            return None;
+        }
+        let mut order = 1usize;
+        for row in &self.gram_inv {
+            let coordinate = row
+                .iter()
+                .zip(y)
+                .fold(Rational::zero(), |acc, (coefficient, &value)| {
+                    acc.add(&coefficient.mul(&Rational::from_int(value)))
+                });
+            order = lcm_usize(order, usize::try_from(coordinate.denom()).ok()?)?;
+        }
+        Some(order)
     }
 }
 
@@ -920,9 +926,23 @@ impl DiscriminantForm {
     /// the principal embedding.
     pub fn fqm_gauss_phase(&self) -> Option<super::phases::FqmGaussPhase> {
         use super::phases::FqmPrimaryPhase;
-        let tables = self.tables_bounded(FQM_GAUSS_GROUP_CAP)?;
         let order = self.core.reps.len();
-        let total = phase_mod8_from_q_values(tables.q.iter(), order)?;
+        if order > FQM_GAUSS_GROUP_CAP {
+            return None;
+        }
+        let q = self
+            .core
+            .reps
+            .iter()
+            .map(|representative| self.quadratic_value_mod2(representative))
+            .collect::<Vec<_>>();
+        let element_orders = self
+            .core
+            .reps
+            .iter()
+            .map(|representative| self.core.element_order(representative))
+            .collect::<Option<Vec<_>>>()?;
+        let total = phase_mod8_from_q_values(q.iter(), order)?;
         let mut primes = BTreeSet::new();
         for &d in &self.core.group {
             for p in prime_factors(d.unsigned_abs()) {
@@ -932,18 +952,17 @@ impl DiscriminantForm {
 
         let mut primary = Vec::new();
         for p in primes {
-            let indices: Vec<usize> = tables
-                .order
+            let indices: Vec<usize> = element_orders
                 .iter()
                 .enumerate()
                 .filter_map(|(i, &ord)| is_prime_power(ord as u128, p).then_some(i))
                 .collect();
             let exponent = indices
                 .iter()
-                .map(|&i| tables.order[i] as u128)
+                .map(|&i| element_orders[i] as u128)
                 .max()
                 .unwrap_or(1);
-            let qs: Vec<&Rational> = indices.iter().map(|&i| &tables.q[i]).collect();
+            let qs: Vec<&Rational> = indices.iter().map(|&i| &q[i]).collect();
             let phase_mod8 = phase_mod8_from_q_values(qs, indices.len())?;
             primary.push(FqmPrimaryPhase {
                 prime: p,
@@ -1016,10 +1035,27 @@ impl DiscriminantForm {
         if ql != qm {
             return Some(false);
         }
-        let gens = min_generators(&lt);
+        let mut gens = min_generators(&lt);
+        gens.sort_by_key(|&g| {
+            mt.order
+                .iter()
+                .zip(&mt.q)
+                .filter(|&(&order, value)| order == lt.order[g] && value == &lt.q[g])
+                .count()
+        });
+        let candidates = gens
+            .iter()
+            .map(|&g| {
+                (0..mt.order.len())
+                    .filter(|&candidate| {
+                        mt.order[candidate] == lt.order[g] && mt.q[candidate] == lt.q[g]
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>();
         let mut budget = node_budget;
         let mut img: Vec<usize> = Vec::with_capacity(gens.len());
-        search_iso(&lt, &mt, &gens, &mut img, &mut budget)
+        search_iso(&lt, &mt, &gens, &candidates, &mut img, &mut budget)
     }
 
     fn negation_matrix(&self) -> Option<Vec<Vec<Complex64>>> {

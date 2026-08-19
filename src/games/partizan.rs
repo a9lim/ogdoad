@@ -23,6 +23,14 @@ use std::collections::HashMap;
 use std::fmt;
 use std::sync::Arc;
 
+type ComparisonMemo = HashMap<(usize, usize), bool>;
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+struct StructuralNodeKey {
+    left: Vec<usize>,
+    right: Vec<usize>,
+}
+
 /// A short partizan game `{ left | right }`. Reference-counted (atomically, so the
 /// PyO3 wrapper is `Send + Sync`) — options are shared cheaply across the
 /// recursive sum/negation.
@@ -149,7 +157,11 @@ impl Game {
     /// The order: `G ≤ H ⟺ (∄ G^L ≥ H) ∧ (∄ H^R ≤ G)`. Recurses on options
     /// (strictly simpler games), so it terminates.
     pub fn le(&self, other: &Game) -> bool {
-        fn visit(a: &Game, b: &Game, memo: &mut HashMap<(usize, usize), bool>) -> bool {
+        self.le_memoized(other, &mut HashMap::new())
+    }
+
+    fn le_memoized(&self, other: &Game, memo: &mut ComparisonMemo) -> bool {
+        fn visit(a: &Game, b: &Game, memo: &mut ComparisonMemo) -> bool {
             if a.ptr_eq(b) {
                 return true;
             }
@@ -162,7 +174,7 @@ impl Game {
             memo.insert(key, answer);
             answer
         }
-        visit(self, other, &mut HashMap::new())
+        visit(self, other, memo)
     }
 
     /// Value equality: `G = H ⟺ G ≤ H ≤ G`.
@@ -171,13 +183,15 @@ impl Game {
     // via std — kept an inherent method by design (see AGENTS.md).
     #[allow(clippy::should_implement_trait)]
     pub fn eq(&self, other: &Game) -> bool {
-        self.le(other) && other.le(self)
+        let mut memo = HashMap::new();
+        self.le_memoized(other, &mut memo) && other.le_memoized(self, &mut memo)
     }
 
     /// Confused/incomparable: `G ‖ H` (neither `≤` holds) — the hallmark of a
     /// non-number relative to its options.
     pub fn fuzzy(&self, other: &Game) -> bool {
-        !self.le(other) && !other.le(self)
+        let mut memo = HashMap::new();
+        !self.le_memoized(other, &mut memo) && !other.le_memoized(self, &mut memo)
     }
 
     /// The ordinary normal-play outcome class of this finite acyclic game.
@@ -187,7 +201,11 @@ impl Game {
     /// short game cannot have the loopy [`PartizanOutcome::Draw`] outcome.
     pub fn outcome_class(&self) -> PartizanOutcome {
         let zero = Game::zero();
-        match (zero.le(self), self.le(&zero)) {
+        let mut memo = HashMap::new();
+        match (
+            zero.le_memoized(self, &mut memo),
+            self.le_memoized(&zero, &mut memo),
+        ) {
             (true, true) => PartizanOutcome::P,
             (true, false) => PartizanOutcome::L,
             (false, true) => PartizanOutcome::R,
@@ -197,27 +215,45 @@ impl Game {
 
     /// The birthday (formation day): `0` for `{|}`, else `1 + max` over options.
     pub fn birthday(&self) -> u128 {
-        self.left()
-            .iter()
-            .chain(self.right())
-            .map(|g| g.birthday())
-            .max()
-            .map_or(0, |m| m + 1)
+        fn visit(game: &Game, memo: &mut HashMap<usize, u128>) -> u128 {
+            let key = game.ptr_id();
+            if let Some(&birthday) = memo.get(&key) {
+                return birthday;
+            }
+            let birthday = game
+                .left()
+                .iter()
+                .chain(game.right())
+                .map(|option| visit(option, memo))
+                .max()
+                .map_or(0, |m| m + 1);
+            memo.insert(key, birthday);
+            birthday
+        }
+        visit(self, &mut HashMap::new())
     }
 
-    /// The integer multiple `n · G` in the game group (repeated sum / negation).
+    /// The integer multiple `n · G` in the game group (binary double-and-add).
     pub fn times_int(&self, n: i128) -> Game {
         if n == 0 {
-            Game::zero()
-        } else if n > 0 {
-            let mut acc = self.clone();
-            for _ in 1..n {
-                acc = acc.add(self);
-            }
-            acc
-        } else {
-            self.neg().times_int(-n)
+            return Game::zero();
         }
+        let mut multiple = n.unsigned_abs();
+        let mut base = if n < 0 { self.neg() } else { self.clone() };
+        let mut acc: Option<Game> = None;
+        while multiple != 0 {
+            if multiple & 1 == 1 {
+                acc = Some(match acc {
+                    Some(value) => value.add(&base),
+                    None => base.clone(),
+                });
+            }
+            multiple >>= 1;
+            if multiple != 0 {
+                base = base.add(&base);
+            }
+        }
+        acc.expect("a nonzero multiple has a set bit")
     }
 
     /// The **ordinal sum** `G : H` ("`G` then `H`"): play in the subordinate `H`
@@ -227,15 +263,20 @@ impl Game {
     /// distinct from the disjunctive [`add`](Self::add). (Berlekamp's Hackenbush
     /// strings are ordinal sums of single edges.)
     pub fn ordinal_sum(&self, h: &Game) -> Game {
-        let mut left: Vec<Game> = self.left().to_vec();
-        for hl in h.left() {
-            left.push(self.ordinal_sum(hl));
+        fn visit(base: &Game, h: &Game, memo: &mut HashMap<usize, Game>) -> Game {
+            let key = h.ptr_id();
+            if let Some(sum) = memo.get(&key) {
+                return sum.clone();
+            }
+            let mut left: Vec<Game> = base.left().to_vec();
+            left.extend(h.left().iter().map(|hl| visit(base, hl, memo)));
+            let mut right: Vec<Game> = base.right().to_vec();
+            right.extend(h.right().iter().map(|hr| visit(base, hr, memo)));
+            let sum = Game::new(left, right);
+            memo.insert(key, sum.clone());
+            sum
         }
-        let mut right: Vec<Game> = self.right().to_vec();
-        for hr in h.right() {
-            right.push(self.ordinal_sum(hr));
-        }
-        Game::new(left, right)
+        visit(self, h, &mut HashMap::new())
     }
 
     /// A readable structural form: `0` for `{|}`, else `{L|R}` recursively.
@@ -249,12 +290,7 @@ impl Game {
     /// characteristic-2 mirror) are the game subclasses the Conway product and hence
     /// the Clifford story can reach.
     pub fn is_number(&self) -> bool {
-        self.left().iter().all(|g| g.is_number())
-            && self.right().iter().all(|g| g.is_number())
-            && self
-                .left()
-                .iter()
-                .all(|gl| self.right().iter().all(|gr| gl.le(gr) && !gr.le(gl)))
+        self.number_value().is_some()
     }
 
     /// Whether `G` is **all-small**: at every position, there is a Left option iff
@@ -262,13 +298,21 @@ impl Game {
     /// ones (built from `0`, `⋆`, `↑`, …) on which the atomic weight is defined;
     /// numbers and switches are *not* all-small.
     pub fn is_all_small(&self) -> bool {
-        if self.left().is_empty() != self.right().is_empty() {
-            return false;
+        fn visit(game: &Game, memo: &mut HashMap<usize, bool>) -> bool {
+            let key = game.ptr_id();
+            if let Some(&answer) = memo.get(&key) {
+                return answer;
+            }
+            let answer = game.left().is_empty() == game.right().is_empty()
+                && game
+                    .left()
+                    .iter()
+                    .chain(game.right())
+                    .all(|option| visit(option, memo));
+            memo.insert(key, answer);
+            answer
         }
-        self.left()
-            .iter()
-            .chain(self.right())
-            .all(|g| g.is_all_small())
+        visit(self, &mut HashMap::new())
     }
 
     // ---- Canonical form (Conway's simplicity theorem) ----
@@ -290,8 +334,12 @@ impl Game {
             let right = game.right().iter().map(|g| visit(g, memo)).collect();
             let mut current = Game::new(left, right);
             loop {
-                let (bypassed, bypassed_any) = current.bypass_reversible_once();
-                let reduced = bypassed.remove_dominated();
+                // Keep one comparison context for the whole pass. It is dropped
+                // before `current` is replaced, so pointer-identity keys cannot
+                // outlive any temporary game nodes they name.
+                let mut comparisons = HashMap::new();
+                let (bypassed, bypassed_any) = current.bypass_reversible_once(&mut comparisons);
+                let reduced = bypassed.remove_dominated(&mut comparisons);
                 let removed_any = reduced.left().len() != bypassed.left().len()
                     || reduced.right().len() != bypassed.right().len();
                 current = reduced;
@@ -308,11 +356,11 @@ impl Game {
     /// option `G^LR ≤ G` is replaced by all Left options of that `G^LR`
     /// (symmetrically on the Right). Returns the new game and whether anything
     /// was bypassed.
-    fn bypass_reversible_once(&self) -> (Game, bool) {
+    fn bypass_reversible_once(&self, memo: &mut ComparisonMemo) -> (Game, bool) {
         let mut changed = false;
         let mut new_left = Vec::new();
         for l in self.left() {
-            if let Some(lr) = l.right().iter().find(|lr| lr.le(self)) {
+            if let Some(lr) = l.right().iter().find(|lr| lr.le_memoized(self, memo)) {
                 changed = true;
                 new_left.extend(lr.left().iter().cloned());
             } else {
@@ -321,7 +369,7 @@ impl Game {
         }
         let mut new_right = Vec::new();
         for r in self.right() {
-            if let Some(rl) = r.left().iter().find(|rl| self.le(rl)) {
+            if let Some(rl) = r.left().iter().find(|rl| self.le_memoized(rl, memo)) {
                 changed = true;
                 new_right.extend(rl.right().iter().cloned());
             } else {
@@ -333,8 +381,11 @@ impl Game {
 
     /// Drop dominated options: keep only the order-maximal Left options and the
     /// order-minimal Right options (one representative per equal value).
-    fn remove_dominated(&self) -> Game {
-        Game::new(maximal_games(self.left()), minimal_games(self.right()))
+    fn remove_dominated(&self, memo: &mut ComparisonMemo) -> Game {
+        Game::new(
+            maximal_games(self.left(), memo),
+            minimal_games(self.right(), memo),
+        )
     }
 
     /// An order-independent string `{L|R}` of the game *as given* (options sorted
@@ -361,7 +412,37 @@ impl Game {
     /// for value equality prefer [`eq`](Self::eq) or matching
     /// [`canonical_string`](Self::canonical_string)s.
     pub fn structural_eq(&self, other: &Game) -> bool {
-        self.structural_string() == other.structural_string()
+        fn visit(
+            game: &Game,
+            by_pointer: &mut HashMap<usize, usize>,
+            interned: &mut HashMap<StructuralNodeKey, usize>,
+        ) -> usize {
+            let pointer = game.ptr_id();
+            if let Some(&id) = by_pointer.get(&pointer) {
+                return id;
+            }
+            let mut left = game
+                .left()
+                .iter()
+                .map(|option| visit(option, by_pointer, interned))
+                .collect::<Vec<_>>();
+            let mut right = game
+                .right()
+                .iter()
+                .map(|option| visit(option, by_pointer, interned))
+                .collect::<Vec<_>>();
+            left.sort_unstable();
+            right.sort_unstable();
+            let node = StructuralNodeKey { left, right };
+            let next_id = interned.len();
+            let id = *interned.entry(node).or_insert(next_id);
+            by_pointer.insert(pointer, id);
+            id
+        }
+
+        let mut by_pointer = HashMap::new();
+        let mut interned = HashMap::new();
+        visit(self, &mut by_pointer, &mut interned) == visit(other, &mut by_pointer, &mut interned)
     }
 
     /// Whether `self` is already in canonical form.
@@ -377,31 +458,58 @@ impl Game {
     /// (`⋆`, `↑`, switches, …) or its value is not dyadic. Inverse of
     /// [`from_surreal`](Self::from_surreal) on dyadics.
     pub fn number_value(&self) -> Option<Surreal> {
-        if !self.is_number() {
-            return None;
+        fn visit(game: &Game, memo: &mut HashMap<usize, Option<Surreal>>) -> Option<Surreal> {
+            let key = game.ptr_id();
+            if let Some(value) = memo.get(&key) {
+                return value.clone();
+            }
+            let lvals: Vec<Surreal> = match game
+                .left()
+                .iter()
+                .map(|option| visit(option, memo))
+                .collect()
+            {
+                Some(values) => values,
+                None => {
+                    memo.insert(key, None);
+                    return None;
+                }
+            };
+            let rvals: Vec<Surreal> = match game
+                .right()
+                .iter()
+                .map(|option| visit(option, memo))
+                .collect()
+            {
+                Some(values) => values,
+                None => {
+                    memo.insert(key, None);
+                    return None;
+                }
+            };
+            if lvals
+                .iter()
+                .any(|left| rvals.iter().any(|right| left.cmp(right) != Ordering::Less))
+            {
+                memo.insert(key, None);
+                return None;
+            }
+            let lmax = lvals
+                .into_iter()
+                .reduce(|a, b| if a.cmp(&b) == Ordering::Less { b } else { a });
+            let rmin = rvals
+                .into_iter()
+                .reduce(|a, b| if a.cmp(&b) == Ordering::Greater { b } else { a });
+            let value = match (lmax, rmin) {
+                (None, None) => Some(Surreal::zero()),
+                (Some(l), None) => l.simplest_above(),
+                (None, Some(r)) => r.simplest_below(),
+                (Some(l), Some(r)) => Surreal::simplest_between(&l, &r),
+            };
+            memo.insert(key, value.clone());
+            value
         }
-        let lvals: Vec<Surreal> = self
-            .left()
-            .iter()
-            .map(Game::number_value)
-            .collect::<Option<_>>()?;
-        let rvals: Vec<Surreal> = self
-            .right()
-            .iter()
-            .map(Game::number_value)
-            .collect::<Option<_>>()?;
-        let lmax = lvals
-            .into_iter()
-            .reduce(|a, b| if a.cmp(&b) == Ordering::Less { b } else { a });
-        let rmin = rvals
-            .into_iter()
-            .reduce(|a, b| if a.cmp(&b) == Ordering::Greater { b } else { a });
-        match (lmax, rmin) {
-            (None, None) => Some(Surreal::zero()),
-            (Some(l), None) => l.simplest_above(),
-            (None, Some(r)) => r.simplest_below(),
-            (Some(l), Some(r)) => Surreal::simplest_between(&l, &r),
-        }
+        visit(self, &mut HashMap::new())
     }
 
     /// The canonical game of a dyadic-rational surreal — the `{L|R}` form Conway's
@@ -451,26 +559,26 @@ pub(crate) fn integer_value(g: &Game) -> Option<i128> {
 
 /// Keep only the order-maximal games (Left options of a canonical form): drop any
 /// option dominated by — or equal to — a kept one.
-fn maximal_games(opts: &[Game]) -> Vec<Game> {
+fn maximal_games(opts: &[Game], memo: &mut ComparisonMemo) -> Vec<Game> {
     let mut kept: Vec<Game> = Vec::new();
     for cand in opts {
-        if kept.iter().any(|k| cand.le(k)) {
+        if kept.iter().any(|k| cand.le_memoized(k, memo)) {
             continue; // dominated by (or equal to) a kept option
         }
-        kept.retain(|k| !k.le(cand)); // drop kept options strictly below cand
+        kept.retain(|k| !k.le_memoized(cand, memo)); // drop kept options strictly below cand
         kept.push(cand.clone());
     }
     kept
 }
 
 /// Keep only the order-minimal games (Right options of a canonical form).
-fn minimal_games(opts: &[Game]) -> Vec<Game> {
+fn minimal_games(opts: &[Game], memo: &mut ComparisonMemo) -> Vec<Game> {
     let mut kept: Vec<Game> = Vec::new();
     for cand in opts {
-        if kept.iter().any(|k| k.le(cand)) {
+        if kept.iter().any(|k| k.le_memoized(cand, memo)) {
             continue; // dominated by (or equal to) a kept option
         }
-        kept.retain(|k| !cand.le(k)); // drop kept options strictly above cand
+        kept.retain(|k| !cand.le_memoized(k, memo)); // drop kept options strictly above cand
         kept.push(cand.clone());
     }
     kept
@@ -519,6 +627,22 @@ mod tests {
         assert_eq!(Game::zero().birthday(), 0);
         assert_eq!(Game::star().birthday(), 1);
         assert_eq!(Game::integer(3).birthday(), 3);
+    }
+
+    #[test]
+    fn binary_integer_multiples_match_repeated_sum_and_cover_i128_min() {
+        let one = Game::integer(1);
+        assert_eq!(
+            one.times_int(13).number_value(),
+            Game::integer(13).number_value()
+        );
+        assert_eq!(
+            one.times_int(-13).number_value(),
+            Game::integer(-13).number_value()
+        );
+        assert!(Game::zero()
+            .times_int(i128::MIN)
+            .structural_eq(&Game::zero()));
     }
 
     #[test]

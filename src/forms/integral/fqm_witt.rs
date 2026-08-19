@@ -12,7 +12,7 @@ use crate::forms::integral::discriminant::{
 };
 use crate::forms::integral::is_prime_power;
 use crate::forms::try_is_square_qp;
-use crate::linalg::integer::prime_factors;
+use crate::linalg::integer::{gcd_u128, prime_factors};
 use crate::scalar::{Rational, Scalar};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
@@ -359,13 +359,7 @@ impl FiniteQuadraticModule {
             cyclic_factors,
             q_values_mod2,
         };
-        let table = FqmTable::from_native(&module)?;
-        let generators = module.standard_generator_indices()?;
-        if table.q[table.zero] != Rational::zero()
-            || !table.quadratic_values_are_even()
-            || !table.bilinear_form_is_biadditive(&generators)
-            || !table.is_nondegenerate(&generators)
-        {
+        if !module.valid_quadratic_module()? {
             return None;
         }
         Some(module)
@@ -379,6 +373,122 @@ impl FiniteQuadraticModule {
             stride = stride.checked_mul(usize::try_from(factor).ok()?)?;
         }
         Some(generators)
+    }
+
+    fn coords(&self, index: usize) -> Option<Vec<u128>> {
+        coords_from_index(index, &self.cyclic_factors)
+    }
+
+    fn add_indices(&self, left: usize, right: usize) -> Option<usize> {
+        let mut stride = 1usize;
+        let mut out = 0usize;
+        for &factor in self.cyclic_factors.iter().rev() {
+            let factor = usize::try_from(factor).ok()?;
+            let a = left.checked_div(stride)? % factor;
+            let b = right.checked_div(stride)? % factor;
+            let digit = (a + b) % factor;
+            out = out.checked_add(digit.checked_mul(stride)?)?;
+            stride = stride.checked_mul(factor)?;
+        }
+        Some(out)
+    }
+
+    fn element_order(&self, index: usize) -> Option<usize> {
+        let coordinates = self.coords(index)?;
+        let mut order = 1u128;
+        for (&coordinate, &factor) in coordinates.iter().zip(&self.cyclic_factors) {
+            let component = factor.checked_div(gcd_u128(coordinate, factor))?;
+            let divisor = gcd_u128(order, component);
+            order = order.checked_div(divisor)?.checked_mul(component)?;
+        }
+        usize::try_from(order).ok()
+    }
+
+    /// Validate the quadratic law from generator finite differences. Once each
+    /// generator row is additive, symmetry propagates the pairing over the whole
+    /// cyclic product; comparing the resulting quadratic polynomial at every
+    /// element avoids constructing an `|A|^2` Cayley table merely to validate it.
+    fn valid_quadratic_module(&self) -> Option<bool> {
+        if self.q_values_mod2.first()? != &Rational::zero() {
+            return Some(false);
+        }
+        let generators = self.standard_generator_indices()?;
+        let rank = generators.len();
+        let generator_q = generators
+            .iter()
+            .map(|&g| self.q_values_mod2[g].clone())
+            .collect::<Vec<_>>();
+        let mut pairing = vec![vec![Rational::zero(); rank]; rank];
+        let mut twice_pairing = vec![vec![Rational::zero(); rank]; rank];
+        for i in 0..rank {
+            for j in i..rank {
+                let sum = self.add_indices(generators[i], generators[j])?;
+                let diff = self.q_values_mod2[sum]
+                    .sub(&generator_q[i])
+                    .sub(&generator_q[j]);
+                twice_pairing[i][j] = rational_mod_int(diff.clone(), 2);
+                twice_pairing[j][i] = twice_pairing[i][j].clone();
+                pairing[i][j] = rational_half_mod1(diff);
+                pairing[j][i] = pairing[i][j].clone();
+            }
+        }
+
+        // The formula must descend through each cyclic relation d_i g_i = 0.
+        for i in 0..rank {
+            let factor = i128::try_from(self.cyclic_factors[i]).ok()?;
+            let square = factor.checked_mul(factor)?;
+            if rational_mod_int(generator_q[i].mul(&Rational::from_int(square)), 2)
+                != Rational::zero()
+            {
+                return Some(false);
+            }
+            for j in 0..rank {
+                if rational_mod_int(pairing[i][j].mul(&Rational::from_int(factor)), 1)
+                    != Rational::zero()
+                {
+                    return Some(false);
+                }
+            }
+        }
+
+        for index in 0..self.q_values_mod2.len() {
+            let coordinates = self.coords(index)?;
+            let mut predicted = Rational::zero();
+            for i in 0..rank {
+                let coordinate = i128::try_from(coordinates[i]).ok()?;
+                let square = coordinate.checked_mul(coordinate)?;
+                predicted = predicted.add(&generator_q[i].mul(&Rational::from_int(square)));
+                for j in i + 1..rank {
+                    let other = i128::try_from(coordinates[j]).ok()?;
+                    predicted = predicted.add(
+                        &twice_pairing[i][j]
+                            .mul(&Rational::from_int(coordinate.checked_mul(other)?)),
+                    );
+                }
+            }
+            if rational_mod_int(predicted, 2) != self.q_values_mod2[index] {
+                return Some(false);
+            }
+        }
+
+        // Nonsingularity is injectivity of A -> Hom(A,Q/Z); pairing against the
+        // standard generators detects the zero functional.
+        for index in 1..self.q_values_mod2.len() {
+            let coordinates = self.coords(index)?;
+            let detected = (0..rank).any(|j| {
+                let mut value = Rational::zero();
+                for i in 0..rank {
+                    let coordinate = i128::try_from(coordinates[i])
+                        .expect("validated FQM coordinate fits its bounded group order");
+                    value = value.add(&pairing[i][j].mul(&Rational::from_int(coordinate)));
+                }
+                rational_mod_int(value, 1) != Rational::zero()
+            });
+            if !detected {
+                return Some(false);
+            }
+        }
+        Some(true)
     }
 
     /// The cyclic module generated by `g` with `q(g) = generator_q`.
@@ -397,17 +507,27 @@ impl FiniteQuadraticModule {
 
     /// Orthogonal direct sum.
     pub fn direct_sum(&self, other: &Self) -> Option<Self> {
-        let left = FqmTable::from_native(self)?;
-        let right = FqmTable::from_native(other)?;
         let mut factors = self.cyclic_factors.clone();
         factors.extend(other.cyclic_factors.iter().copied());
-        let mut q_values = Vec::with_capacity(left.q.len().checked_mul(right.q.len())?);
-        for ql in &left.q {
-            for qr in &right.q {
+        let order = self
+            .q_values_mod2
+            .len()
+            .checked_mul(other.q_values_mod2.len())?;
+        if order > FQM_WITT_GROUP_CAP {
+            return None;
+        }
+        let mut q_values = Vec::with_capacity(order);
+        for ql in &self.q_values_mod2 {
+            for qr in &other.q_values_mod2 {
                 q_values.push(rational_mod_int(ql.add(qr), 2));
             }
         }
-        Self::new(factors, q_values)
+        // Both operands already satisfy the quadratic law and are nonsingular;
+        // their orthogonal sum inherits both properties without revalidation.
+        Some(FiniteQuadraticModule {
+            cyclic_factors: factors,
+            q_values_mod2: q_values,
+        })
     }
 
     /// Order of the finite module.
@@ -511,30 +631,19 @@ impl FqmTable {
     fn from_native(module: &FiniteQuadraticModule) -> Option<Self> {
         let n = module.q_values_mod2.len();
         let mut add = SquareTable::filled(n, 0usize);
-        let coords = (0..n)
-            .map(|index| coords_from_index(index, &module.cyclic_factors))
-            .collect::<Option<Vec<_>>>()?;
         for i in 0..n {
             for j in 0..n {
-                let mut sum_index = 0usize;
-                for ((&a, &b), &d) in coords[i].iter().zip(&coords[j]).zip(&module.cyclic_factors) {
-                    let digit = a.checked_add(b)? % d;
-                    sum_index = sum_index
-                        .checked_mul(usize::try_from(d).ok()?)?
-                        .checked_add(usize::try_from(digit).ok()?)?;
-                }
-                add[i][j] = sum_index;
+                add[i][j] = module.add_indices(i, j)?;
             }
         }
-        let zero = 0;
-        let mut out = FqmTable {
-            zero,
+        Some(FqmTable {
+            zero: 0,
             q: module.q_values_mod2.clone(),
-            order: vec![1; n],
+            order: (0..n)
+                .map(|index| module.element_order(index))
+                .collect::<Option<_>>()?,
             add,
-        };
-        out.compute_orders();
-        Some(out)
+        })
     }
 
     fn compute_orders(&mut self) {
@@ -716,13 +825,12 @@ impl FqmTable {
                 add[i][j] = mapped;
             }
         }
-        let mut out = FqmTable {
+        let out = FqmTable {
             zero,
             q: indices.iter().map(|&i| self.q[i].clone()).collect(),
-            order: vec![1; indices.len()],
+            order: indices.iter().map(|&i| self.order[i]).collect(),
             add,
         };
-        out.compute_orders();
         Some(out)
     }
 
@@ -1055,6 +1163,7 @@ impl FqmTable {
         rational_half_mod1(diff)
     }
 
+    #[cfg(test)]
     fn quadratic_values_are_even(&self) -> bool {
         (0..self.q.len()).all(|x| {
             let nx = self.neg(x);
@@ -1066,6 +1175,7 @@ impl FqmTable {
     /// `b(x,y+g) = b(x,y)+b(x,g)` for every `y` and standard generator `g`
     /// propagates along every word in the generators. The polarization formula
     /// is symmetric, so this also gives additivity in the first variable.
+    #[cfg(test)]
     fn bilinear_form_is_biadditive(&self, generators: &[usize]) -> bool {
         for x in 0..self.q.len() {
             for y in 0..self.q.len() {
@@ -1086,6 +1196,7 @@ impl FqmTable {
         true
     }
 
+    #[cfg(test)]
     fn is_nondegenerate(&self, generators: &[usize]) -> bool {
         (0..self.q.len()).all(|x| {
             x == self.zero
@@ -1122,6 +1233,7 @@ impl FqmTable {
         })
     }
 
+    #[cfg(test)]
     fn neg(&self, x: usize) -> usize {
         (0..self.q.len())
             .find(|&y| self.add[x][y] == self.zero)
@@ -1263,6 +1375,11 @@ mod tests {
             let generators = module.standard_generator_indices().unwrap();
             let generated = table.bilinear_form_is_biadditive(&generators);
             assert_eq!(generated, table.bilinear_form_is_biadditive_exhaustive());
+            let legacy_valid = table.q[table.zero] == Rational::zero()
+                && table.quadratic_values_are_even()
+                && generated
+                && table.is_nondegenerate(&generators);
+            assert_eq!(module.valid_quadratic_module(), Some(legacy_valid));
             if generated {
                 assert_eq!(
                     table.is_nondegenerate(&generators),

@@ -65,6 +65,38 @@ pub(super) fn bareiss_det(mut a: Vec<Vec<i128>>) -> i128 {
     sign * a[n - 1][n - 1]
 }
 
+/// Sylvester's criterion in one fraction-free elimination pass. With no row
+/// swaps, each Bareiss pivot is the next leading principal determinant, so a
+/// nonpositive pivot rejects the form immediately.
+fn bareiss_positive_definite(mut a: Vec<Vec<i128>>) -> bool {
+    let n = a.len();
+    if n == 0 {
+        return true;
+    }
+    let mut prev = 1i128;
+    for k in 0..n - 1 {
+        if a[k][k] <= 0 {
+            return false;
+        }
+        for i in k + 1..n {
+            for j in k + 1..n {
+                let p1 = a[i][j]
+                    .checked_mul(a[k][k])
+                    .expect("Bareiss determinant exceeds i128");
+                let p2 = a[i][k]
+                    .checked_mul(a[k][j])
+                    .expect("Bareiss determinant exceeds i128");
+                a[i][j] = p1
+                    .checked_sub(p2)
+                    .expect("Bareiss determinant exceeds i128")
+                    / prev;
+            }
+        }
+        prev = a[k][k];
+    }
+    a[n - 1][n - 1] > 0
+}
+
 // ── IntegralForm ──
 
 /// A positive-definite or indefinite integral lattice, recorded by its symmetric integer
@@ -166,16 +198,9 @@ impl IntegralForm {
     }
 
     /// Positive definiteness, via Sylvester's criterion: every leading principal
-    /// minor is `> 0` (computed exactly with Bareiss).
+    /// minor is `> 0` (computed exactly in one Bareiss pass).
     pub fn is_positive_definite(&self) -> bool {
-        let n = self.dim();
-        for k in 1..=n {
-            let minor: Vec<Vec<i128>> = (0..k).map(|i| self.gram[i][..k].to_vec()).collect();
-            if bareiss_det(minor) <= 0 {
-                return false;
-            }
-        }
-        true
+        bareiss_positive_definite(self.gram.clone())
     }
 
     /// The real signature `(p, q)`: positive and negative dimensions after exact

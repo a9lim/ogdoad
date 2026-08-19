@@ -186,8 +186,14 @@ impl<S: Scalar> Poly<S> {
     pub fn add(&self, rhs: &Self) -> Self {
         let n = self.coeffs.len().max(rhs.coeffs.len());
         let mut out = Vec::with_capacity(n);
-        for i in 0..n {
-            out.push(self.coeff(i).add(&rhs.coeff(i)));
+        let overlap = self.coeffs.len().min(rhs.coeffs.len());
+        for (left, right) in self.coeffs[..overlap].iter().zip(&rhs.coeffs[..overlap]) {
+            out.push(left.add(right));
+        }
+        if self.coeffs.len() > overlap {
+            out.extend_from_slice(&self.coeffs[overlap..]);
+        } else {
+            out.extend_from_slice(&rhs.coeffs[overlap..]);
         }
         Poly::new(out)
     }
@@ -201,7 +207,18 @@ impl<S: Scalar> Poly<S> {
 
     /// Polynomial subtraction.
     pub fn sub(&self, rhs: &Self) -> Self {
-        self.add(&rhs.neg())
+        let n = self.coeffs.len().max(rhs.coeffs.len());
+        let mut out = Vec::with_capacity(n);
+        let overlap = self.coeffs.len().min(rhs.coeffs.len());
+        for (left, right) in self.coeffs[..overlap].iter().zip(&rhs.coeffs[..overlap]) {
+            out.push(left.sub(right));
+        }
+        if self.coeffs.len() > overlap {
+            out.extend_from_slice(&self.coeffs[overlap..]);
+        } else {
+            out.extend(rhs.coeffs[overlap..].iter().map(Scalar::neg));
+        }
+        Poly::new(out)
     }
 
     /// Polynomial multiplication.
@@ -286,9 +303,33 @@ impl<S: Scalar> Poly<S> {
         (Poly::new(quot), Poly::new(rem))
     }
 
+    fn rem_coeffs(mut rem: Vec<S>, divisor: &Self) -> Self {
+        let dd = divisor
+            .degree()
+            .expect("polynomial division by the zero polynomial");
+        let dlead_inv = divisor
+            .leading()
+            .unwrap()
+            .inv()
+            .expect("a field's nonzero leading coefficient inverts");
+        loop {
+            rem = trim(rem);
+            let rdeg = match rem.len().checked_sub(1) {
+                Some(degree) if degree >= dd => degree,
+                _ => break,
+            };
+            let shift = rdeg - dd;
+            let factor = rem[rdeg].mul(&dlead_inv);
+            for (i, coefficient) in divisor.coeffs.iter().enumerate() {
+                rem[shift + i] = rem[shift + i].sub(&factor.mul(coefficient));
+            }
+        }
+        Poly::new(rem)
+    }
+
     /// The remainder `self mod divisor`.
     pub fn rem(&self, divisor: &Self) -> Self {
-        self.divrem(divisor).1
+        Self::rem_coeffs(self.coeffs.clone(), divisor)
     }
 
     /// Whether `divisor` divides `self` exactly.
@@ -314,7 +355,7 @@ impl<S: Scalar> Poly<S> {
 
     /// `self · other mod modulus`.
     pub fn mul_mod(&self, other: &Self, modulus: &Self) -> Self {
-        Self::divrem_coeffs(self.mul(other).coeffs, modulus).1
+        Self::rem_coeffs(self.mul(other).coeffs, modulus)
     }
 
     /// `self^e mod modulus` by square-and-multiply.

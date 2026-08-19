@@ -93,6 +93,21 @@ impl PackedBinaryRow {
     fn to_bytes(&self, n: usize) -> Vec<u8> {
         (0..n).map(|column| self.bit(column)).collect()
     }
+
+    fn shifted(&self, new_len: usize, offset: usize) -> Self {
+        let mut words = vec![0u64; new_len.div_ceil(64)];
+        let word_offset = offset / 64;
+        let bit_offset = offset % 64;
+        for (index, &word) in self.words.iter().enumerate() {
+            words[word_offset + index] |= word << bit_offset;
+            if bit_offset != 0 && word_offset + index + 1 < words.len() {
+                words[word_offset + index + 1] |= word >> (64 - bit_offset);
+            }
+        }
+        Self {
+            words: words.into_boxed_slice(),
+        }
+    }
 }
 
 fn pow2_i128(exp: usize) -> Option<i128> {
@@ -101,20 +116,6 @@ fn pow2_i128(exp: usize) -> Option<i128> {
     } else {
         Some(1i128 << exp)
     }
-}
-
-fn pow_i128_checked(mut base: i128, mut exp: usize) -> Option<i128> {
-    let mut acc = 1i128;
-    while exp > 0 {
-        if exp & 1 == 1 {
-            acc = acc.checked_mul(base)?;
-        }
-        exp >>= 1;
-        if exp > 0 {
-            base = base.checked_mul(base)?;
-        }
-    }
-    Some(acc)
 }
 
 fn fp_add<const P: u128>(a: u128, b: u128) -> u128 {
@@ -229,8 +230,7 @@ fn rows_from_strings(rows: &[&str]) -> Vec<Vec<u8>> {
         .collect()
 }
 
-/// `binomial(n, k)`, `None` on `i128` overflow. The crate's one binomial-coefficient
-/// recurrence; [`binomial`] and [`binomial_usize_checked`] are thin wrappers over it.
+/// `binomial(n, k)`, `None` on `i128` overflow.
 fn binomial_checked(n: usize, k: usize) -> Option<i128> {
     if k > n {
         return Some(0);
@@ -243,12 +243,30 @@ fn binomial_checked(n: usize, k: usize) -> Option<i128> {
     Some(out)
 }
 
-fn binomial(n: usize, k: usize) -> i128 {
-    binomial_checked(n, k).expect("binomial coefficient exceeds i128")
-}
-
 fn binomial_usize_checked(n: usize, k: usize) -> Option<usize> {
     usize::try_from(binomial_checked(n, k)?).ok()
+}
+
+fn pascal_table(n: usize) -> Option<Vec<Vec<i128>>> {
+    let mut rows = vec![vec![0i128; n + 1]; n + 1];
+    rows[0][0] = 1;
+    for row in 1..=n {
+        rows[row][0] = 1;
+        rows[row][row] = 1;
+        for column in 1..row {
+            rows[row][column] = rows[row - 1][column - 1].checked_add(rows[row - 1][column])?;
+        }
+    }
+    Some(rows)
+}
+
+fn powers_i128_checked(base: i128, n: usize) -> Option<Vec<i128>> {
+    let mut powers: Vec<i128> = Vec::with_capacity(n + 1);
+    powers.push(1);
+    for exponent in 1..=n {
+        powers.push(powers[exponent - 1].checked_mul(base)?);
+    }
+    Some(powers)
 }
 
 fn convolve_i128(a: &[i128], b: &[i128], terms: usize) -> Vec<i128> {
@@ -425,18 +443,14 @@ impl BinaryCode {
 
     /// The block direct sum `C ⊕ D`.
     pub fn direct_sum(&self, other: &BinaryCode) -> BinaryCode {
-        let mut rows = Vec::with_capacity(self.dim() + other.dim());
-        for row in &self.generators {
-            let mut out = vec![0u8; self.n + other.n];
-            out[..self.n].copy_from_slice(&row.to_bytes(self.n));
-            rows.push(out);
-        }
-        for row in &other.generators {
-            let mut out = vec![0u8; self.n + other.n];
-            out[self.n..].copy_from_slice(&row.to_bytes(other.n));
-            rows.push(out);
-        }
-        BinaryCode::new(self.n + other.n, rows).expect("direct-sum rows are binary")
+        let n = self
+            .n
+            .checked_add(other.n)
+            .expect("direct-sum code length exceeds usize");
+        let mut generators = Vec::with_capacity(self.dim() + other.dim());
+        generators.extend(self.generators.iter().map(|row| row.shifted(n, 0)));
+        generators.extend(other.generators.iter().map(|row| row.shifted(n, self.n)));
+        BinaryCode { n, generators }
     }
 
     fn contains_packed(&self, word: &PackedBinaryRow) -> bool {
@@ -516,6 +530,7 @@ impl BinaryCode {
         let a = self.weight_enumerator();
         let size = i128::try_from(self.size().expect("code size exceeds u128"))
             .expect("code size exceeds i128");
+        let binomials = pascal_table(self.n).expect("binomial coefficient exceeds i128");
         let mut out = vec![0i128; self.n + 1];
         for (j, out_j) in out.iter_mut().enumerate() {
             let mut acc = 0i128;
@@ -528,8 +543,8 @@ impl BinaryCode {
                     let sign = if s % 2 == 0 { 1 } else { -1 };
                     kraw = kraw
                         .checked_add(
-                            sign * binomial(i, s)
-                                .checked_mul(binomial(self.n - i, j - s))
+                            sign * binomials[i][s]
+                                .checked_mul(binomials[self.n - i][j - s])
                                 .expect("Krawtchouk coefficient exceeds i128"),
                         )
                         .expect("Krawtchouk coefficient exceeds i128");
@@ -659,16 +674,22 @@ fn row_weight_p(row: &[u128]) -> usize {
     row.iter().filter(|&&x| x != 0).count()
 }
 
-fn qary_krawtchouk(q: i128, n: usize, i: usize, j: usize) -> Option<i128> {
+fn qary_krawtchouk(
+    binomials: &[Vec<i128>],
+    powers: &[i128],
+    n: usize,
+    i: usize,
+    j: usize,
+) -> Option<i128> {
     let mut out = 0i128;
     for s in 0..=j.min(i) {
         if j - s > n - i {
             continue;
         }
         let sign = if s % 2 == 0 { 1 } else { -1 };
-        let term = binomial_checked(i, s)?
-            .checked_mul(binomial_checked(n - i, j - s)?)?
-            .checked_mul(pow_i128_checked(q - 1, j - s)?)?;
+        let term = binomials[i][s]
+            .checked_mul(binomials[n - i][j - s])?
+            .checked_mul(powers[j - s])?;
         out = out.checked_add(sign * term)?;
     }
     Some(out)
@@ -746,9 +767,22 @@ impl<const P: u128> PrimeCode<P> {
         if word.len() != self.n || word.iter().any(|&x| x >= P) {
             return false;
         }
-        let mut rows = self.generators.clone();
-        rows.push(word.to_vec());
-        normalize_generators_mod_p::<P>(rows, self.n).is_some_and(|basis| basis.len() == self.dim())
+        let mut remainder = word.to_vec();
+        for row in &self.generators {
+            let pivot = row
+                .iter()
+                .position(|&entry| entry != 0)
+                .expect("stored generator row is nonzero");
+            let factor = fp_neg::<P>(remainder[pivot]);
+            if factor == 0 {
+                continue;
+            }
+            for column in pivot..self.n {
+                remainder[column] =
+                    fp_add::<P>(remainder[column], fp_mul::<P>(factor, row[column]));
+            }
+        }
+        remainder.iter().all(|&entry| entry == 0)
     }
 
     /// Whether `other <= self` as an `F_P` row space.
@@ -784,18 +818,22 @@ impl<const P: u128> PrimeCode<P> {
 
     /// The block direct sum `C ⊕ D`.
     pub fn direct_sum(&self, other: &PrimeCode<P>) -> PrimeCode<P> {
-        let mut rows = Vec::with_capacity(self.dim() + other.dim());
+        let n = self
+            .n
+            .checked_add(other.n)
+            .expect("direct-sum code length exceeds usize");
+        let mut generators = Vec::with_capacity(self.dim() + other.dim());
         for row in &self.generators {
-            let mut out = vec![0u128; self.n + other.n];
+            let mut out = vec![0u128; n];
             out[..self.n].copy_from_slice(row);
-            rows.push(out);
+            generators.push(out);
         }
         for row in &other.generators {
-            let mut out = vec![0u128; self.n + other.n];
+            let mut out = vec![0u128; n];
             out[self.n..].copy_from_slice(row);
-            rows.push(out);
+            generators.push(out);
         }
-        PrimeCode::new(self.n + other.n, rows).expect("direct-sum rows are p-ary")
+        PrimeCode { n, generators }
     }
 
     /// `C = C^perp`.
@@ -860,6 +898,8 @@ impl<const P: u128> PrimeCode<P> {
         let q = i128::try_from(P).ok()?;
         let a = self.weight_enumerator();
         let size = i128::try_from(self.size()?).ok()?;
+        let binomials = pascal_table(self.n)?;
+        let powers = powers_i128_checked(q - 1, self.n)?;
         let mut out = vec![0i128; self.n + 1];
         for (j, out_j) in out.iter_mut().enumerate() {
             let mut acc = 0i128;
@@ -867,7 +907,9 @@ impl<const P: u128> PrimeCode<P> {
                 if ai == 0 {
                     continue;
                 }
-                acc = acc.checked_add(ai.checked_mul(qary_krawtchouk(q, self.n, i, j)?)?)?;
+                acc = acc.checked_add(
+                    ai.checked_mul(qary_krawtchouk(&binomials, &powers, self.n, i, j)?)?,
+                )?;
             }
             if acc % size != 0 {
                 return None;
@@ -1156,6 +1198,33 @@ mod tests {
             assert!(code.contains(&equivalent));
             assert!(equivalent.contains(&code));
         }
+    }
+
+    #[test]
+    fn optimized_direct_sums_preserve_rref_across_packed_boundaries() {
+        let mut left_row = vec![0u8; 65];
+        left_row[64] = 1;
+        let mut right_row = vec![0u8; 65];
+        right_row[0] = 1;
+        right_row[64] = 1;
+        let left = BinaryCode::new(65, vec![left_row.clone()]).unwrap();
+        let right = BinaryCode::new(65, vec![right_row.clone()]).unwrap();
+        let sum = left.direct_sum(&right);
+        let mut expected_left = vec![0u8; 130];
+        expected_left[..65].copy_from_slice(&left_row);
+        let mut expected_right = vec![0u8; 130];
+        expected_right[65..].copy_from_slice(&right_row);
+        assert_eq!(
+            sum,
+            BinaryCode::new(130, vec![expected_left, expected_right]).unwrap()
+        );
+
+        let ternary_left = PrimeCode::<3>::new(2, vec![vec![1, 2]]).unwrap();
+        let ternary_right = PrimeCode::<3>::new(2, vec![vec![1, 1]]).unwrap();
+        assert_eq!(
+            ternary_left.direct_sum(&ternary_right),
+            PrimeCode::<3>::new(4, vec![vec![1, 2, 0, 0], vec![0, 0, 1, 1]]).unwrap()
+        );
     }
 
     #[test]

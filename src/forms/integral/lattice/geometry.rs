@@ -363,6 +363,10 @@ impl IntegralForm {
         if !self.is_positive_definite() {
             return None;
         }
+        self.short_vectors_definite(bound)
+    }
+
+    fn short_vectors_definite(&self, bound: i128) -> Option<Vec<Vec<i128>>> {
         if self.dim() == 0 || bound <= 0 {
             return Some(Vec::new());
         }
@@ -370,12 +374,11 @@ impl IntegralForm {
             return Some(vecs);
         }
         let (reduced, transform) = self.size_reduced_basis();
-        let vecs = reduced.short_vectors_raw(bound)?;
-        Some(
-            vecs.into_iter()
-                .map(|v| map_coords(&transform, &v))
-                .collect(),
-        )
+        let mut out = Vec::new();
+        reduced.visit_short_vectors_raw(bound, &mut |vector, _| {
+            out.push(map_coords(&transform, vector));
+        })?;
+        Some(out)
     }
 
     pub(super) fn short_vectors_exact_bounded(
@@ -383,6 +386,16 @@ impl IntegralForm {
         bound: i128,
         limit: u128,
     ) -> Option<Vec<Vec<i128>>> {
+        let ranges = self.exact_box_ranges(bound, limit)?;
+        let mut out = Vec::new();
+        let mut x = vec![0i128; self.dim()];
+        self.visit_exact_box(&ranges, 0, bound, &mut x, &mut |vector, _| {
+            out.push(vector.to_vec());
+        });
+        Some(out)
+    }
+
+    fn exact_box_ranges(&self, bound: i128, limit: u128) -> Option<Vec<i128>> {
         let n = self.dim();
         let mat: Vec<Vec<Rational>> = self
             .gram
@@ -403,59 +416,80 @@ impl IntegralForm {
             }
             ranges.push(r);
         }
-        let mut out = Vec::new();
-        let mut x = vec![0i128; n];
-        self.enumerate_exact_box(&ranges, 0, bound, &mut x, &mut out);
-        Some(out)
+        Some(ranges)
     }
 
-    fn enumerate_exact_box(
+    fn visit_exact_box<F>(
         &self,
         ranges: &[i128],
         idx: usize,
         bound: i128,
         x: &mut [i128],
-        out: &mut Vec<Vec<i128>>,
-    ) {
+        visit: &mut F,
+    ) where
+        F: FnMut(&[i128], i128),
+    {
         if idx == ranges.len() {
             let q = self.norm(x);
             if q > 0 && q <= bound {
-                out.push(x.to_vec());
+                visit(x, q);
             }
             return;
         }
         for xi in -ranges[idx]..=ranges[idx] {
             x[idx] = xi;
-            self.enumerate_exact_box(ranges, idx + 1, bound, x, out);
+            self.visit_exact_box(ranges, idx + 1, bound, x, visit);
         }
         x[idx] = 0;
     }
 
-    fn short_vectors_raw(&self, bound: i128) -> Option<Vec<Vec<i128>>> {
+    /// Visit the exact norm of every nonzero vector through the cheapest safe
+    /// enumeration path. This is the allocation-free surface used by theta
+    /// series, which does not need the vectors themselves.
+    pub(in crate::forms::integral) fn visit_short_vector_norms<F>(
+        &self,
+        bound: i128,
+        mut visit: F,
+    ) -> Option<()>
+    where
+        F: FnMut(i128),
+    {
         if !self.is_positive_definite() {
             return None;
         }
-        let n = self.dim();
-        if n == 0 || bound <= 0 {
-            return Some(Vec::new());
+        if self.dim() == 0 || bound <= 0 {
+            return Some(());
         }
+        if let Some(ranges) = self.exact_box_ranges(bound, SHORT_VECTOR_EXACT_ENUM_LIMIT) {
+            let mut x = vec![0i128; self.dim()];
+            self.visit_exact_box(&ranges, 0, bound, &mut x, &mut |_, q| visit(q));
+            return Some(());
+        }
+        let (reduced, _) = self.size_reduced_basis();
+        reduced.visit_short_vectors_raw(bound, &mut |_, q| visit(q))
+    }
+
+    fn visit_short_vectors_raw<F>(&self, bound: i128, visit: &mut F) -> Option<()>
+    where
+        F: FnMut(&[i128], i128),
+    {
+        let n = self.dim();
         // `ldl` returns None if any pivot rounds to <= 0 (unexpected loss of
         // definiteness under floating-point). Fall back to None so the caller
         // can return an error rather than silently omitting vectors.
         let (d, u) = self.ldl()?;
-        let mut out = Vec::new();
         let mut x = vec![0i128; n];
         // Pad the float radius outward; the exact integer filter at the leaf
         // removes any spurious vectors admitted by the float bound. Small boxes
         // are handled above by exact rational bounds; this path is for larger
         // enumerations where the float bound is the practical cutoff.
         let eps = 1e-9 * (bound as f64).max(1.0) + 1e-9;
-        self.fp_search(n, bound, &d, &u, eps, 0.0, &mut x, &mut out);
-        Some(out)
+        self.fp_search(n, bound, &d, &u, eps, 0.0, &mut x, visit);
+        Some(())
     }
 
     #[allow(clippy::too_many_arguments)]
-    fn fp_search(
+    fn fp_search<F>(
         &self,
         i: usize,
         bound: i128,
@@ -464,12 +498,14 @@ impl IntegralForm {
         eps: f64,
         tail: f64,
         x: &mut [i128],
-        out: &mut Vec<Vec<i128>>,
-    ) {
+        visit: &mut F,
+    ) where
+        F: FnMut(&[i128], i128),
+    {
         if i == 0 {
             let q = self.norm(x);
             if q > 0 && q <= bound {
-                out.push(x.to_vec());
+                visit(x, q);
             }
             return;
         }
@@ -488,7 +524,16 @@ impl IntegralForm {
         for xi in lo..=hi {
             x[idx] = xi;
             let coord = xi as f64 + center;
-            self.fp_search(idx, bound, d, u, eps, tail + d[idx] * coord * coord, x, out);
+            self.fp_search(
+                idx,
+                bound,
+                d,
+                u,
+                eps,
+                tail + d[idx] * coord * coord,
+                x,
+                visit,
+            );
         }
         x[idx] = 0;
     }
@@ -566,7 +611,7 @@ impl IntegralForm {
             return Some(order);
         }
         let max_diag = (0..n).map(|i| self.gram[i][i]).max().unwrap();
-        let cands = self.short_vectors(max_diag)?;
+        let cands = self.short_vectors_definite(max_diag)?;
         // Precompute G·v for each candidate so inner products are plain dot
         // products: ⟨v_a, v_b⟩ = v_aᵀ G v_b = v_a · (G v_b).
         let gv: Vec<Vec<i128>> = cands.iter().map(|v| self.matvec(v)).collect();

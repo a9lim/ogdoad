@@ -2,7 +2,7 @@
 //! [`GameRelationCertificate`], and [`RelationSearchCertificate`].
 
 use crate::games::partizan::Game;
-use crate::linalg::integer::reduce_integer_vector;
+use crate::linalg::integer::{normalize_relation_rows, reduce_integer_vector_normalized};
 use std::fmt;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -145,9 +145,10 @@ pub(super) fn relation_certificates(
         .iter()
         .map(|rel| {
             let mut reduced = rel.coeffs.clone();
-            reduce_integer_vector(&mut reduced, previous.clone());
+            reduce_integer_vector_normalized(&mut reduced, &previous);
             let independent = trust_independent || reduced.iter().any(|&c| c != 0);
             previous.push(rel.coeffs.clone());
+            previous = normalize_relation_rows(std::mem::take(&mut previous));
             GameRelationCertificate {
                 coeffs: rel.coeffs.clone(),
                 value_key: eval_relation(gens, &rel.coeffs).canonical_string(),
@@ -160,7 +161,9 @@ pub(super) fn relation_certificates(
 pub(super) fn eval_relation(gens: &[Game], coeffs: &[i128]) -> Game {
     let mut acc = Game::zero();
     for (g, &c) in gens.iter().zip(coeffs) {
-        acc = acc.add(&g.times_int(c));
+        if c != 0 {
+            acc = acc.add(&g.times_int(c));
+        }
     }
     acc
 }

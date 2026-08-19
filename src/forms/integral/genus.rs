@@ -542,6 +542,26 @@ impl Genus {
         })
     }
 
+    pub(crate) fn same_genus(&self, other: &Self) -> bool {
+        if self.dim != other.dim || self.signature != other.signature || self.det != other.det {
+            return false;
+        }
+        if self.symbols.keys().ne(other.symbols.keys()) {
+            return false;
+        }
+        for (&p, symbols) in &self.symbols {
+            let other_symbols = &other.symbols[&p];
+            if p == 2 {
+                if canonical_2adic_symbol(symbols) != canonical_2adic_symbol(other_symbols) {
+                    return false;
+                }
+            } else if symbols != other_symbols {
+                return false;
+            }
+        }
+        true
+    }
+
     /// The Conway–Sloane symbol at prime `p` (per-scale), or an empty slice if `p`
     /// carries no constituent.
     pub fn symbol_at(&self, p: u128) -> &[ScaleSymbol] {
@@ -779,23 +799,7 @@ pub fn are_in_same_genus(a: &IntegralForm, b: &IntegralForm) -> bool {
     let (Some(ga), Some(gb)) = (Genus::from_lattice(a), Genus::from_lattice(b)) else {
         return false;
     };
-    if ga.dim != gb.dim || ga.signature != gb.signature || ga.det != gb.det {
-        return false;
-    }
-    if ga.symbols.keys().ne(gb.symbols.keys()) {
-        return false;
-    }
-    for (&p, sa) in &ga.symbols {
-        let sb = &gb.symbols[&p];
-        if p == 2 {
-            if canonical_2adic_symbol(sa) != canonical_2adic_symbol(sb) {
-                return false;
-            }
-        } else if sa != sb {
-            return false;
-        }
-    }
-    true
+    ga.same_genus(&gb)
 }
 
 #[cfg(test)]

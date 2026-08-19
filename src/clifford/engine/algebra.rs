@@ -7,7 +7,7 @@ use super::metric::Metric;
 use super::multivector::Multivector;
 use super::terms::{add_term, merge, scale, wedge_terms};
 use crate::scalar::Scalar;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 
 /// A Clifford algebra: metric + derived dimension. Produces and combines multivectors.
 ///
@@ -178,9 +178,12 @@ impl<S: Scalar> CliffordAlgebra<S> {
             }
             return Multivector { terms: out };
         }
+        let mut products = HashMap::new();
         for (&ba, ca) in &a.terms {
             for (&bb, cb) in &b.terms {
-                let reduced = self.metric.geom_product_blades(ba, bb);
+                let reduced = self
+                    .metric
+                    .geom_product_blades_memoized(ba, bb, &mut products);
                 let coeff = ca.mul(cb);
                 merge(&mut out, scale(reduced, &coeff));
             }

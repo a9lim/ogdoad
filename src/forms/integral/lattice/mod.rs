@@ -162,6 +162,15 @@ mod tests {
                 .signature(),
             (0, 0)
         );
+        assert!(IntegralForm::new(vec![vec![1, 10], vec![10, 101]])
+            .unwrap()
+            .is_positive_definite());
+        assert!(!IntegralForm::new(vec![vec![1, 2], vec![2, 1]])
+            .unwrap()
+            .is_positive_definite());
+        assert!(!IntegralForm::new(vec![vec![1, 1], vec![1, 1]])
+            .unwrap()
+            .is_positive_definite());
     }
 
     #[test]

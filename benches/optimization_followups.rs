@@ -4,9 +4,12 @@
 //! evaluator is deliberately excluded for a separate focused session.
 
 use ogdoad::clifford::{char_poly, exterior_power_trace, CliffordAlgebra, LinearMap, Metric};
-use ogdoad::forms::{DiscriminantForm, FiniteQuadraticModule, IntegralForm};
+use ogdoad::forms::{
+    e_8, even_unimodular_kneser_report, golay_code, leech, type_i_z2_code, DiscriminantForm,
+    FiniteQuadraticModule, IntegralForm, PrimeCode,
+};
 use ogdoad::games::{Color, Game, Hackenbush};
-use ogdoad::scalar::{Rational, Scalar, Surreal};
+use ogdoad::scalar::{Fp, Poly, Rational, Scalar, Surreal};
 use std::hint::black_box;
 use std::time::{Duration, Instant};
 
@@ -309,5 +312,74 @@ fn main() {
     );
     report("memoized Hackenbush 10 edges", 5, || {
         bush.to_game().birthday() as usize
+    });
+
+    let shared_heap = Game::nim_heap(48);
+    report("DAG birthday nim heap 48", 2_000, || {
+        shared_heap.birthday() as usize
+    });
+
+    let leech_lattice = leech();
+    report("one-pass definiteness rank 24", 2_000, || {
+        leech_lattice.is_positive_definite() as usize
+    });
+    let e8 = e_8();
+    report("visitor theta E8 through q^3", 500, || {
+        e8.theta_series(4).unwrap().into_iter().sum::<i128>() as usize
+    });
+    report("prepared Kneser rank 16 report", 1, || {
+        even_unimodular_kneser_report(16)
+            .unwrap()
+            .generated_neighbor_count
+    });
+
+    let q = vec![Rational::one(); 6];
+    let polar = (0..6)
+        .flat_map(|i| (i + 1..6).map(move |j| ((i, j), Rational::from_int((i + j + 1) as i128))))
+        .collect::<Vec<_>>();
+    let contraction = (0..6)
+        .flat_map(|i| {
+            (i + 1..6).map(move |j| ((i, j), Rational::from_int((i * 2 + j + 1) as i128)))
+        })
+        .collect::<Vec<_>>();
+    let general = CliffordAlgebra::new(6, Metric::general(q, polar, contraction));
+    let mut dense = general.scalar(Rational::one());
+    for i in 0..6 {
+        dense = general.add(&dense, &general.e(i));
+        for j in i + 1..6 {
+            dense = general.add(&dense, &general.wedge(&general.e(i), &general.e(j)));
+        }
+    }
+    report("shared Clifford cache dense n=6", 100, || {
+        general.mul(&dense, &dense).terms().len()
+    });
+
+    let binary = type_i_z2_code();
+    report("packed code direct sum x8", 2_000, || {
+        let mut sum = binary.clone();
+        for _ in 1..8 {
+            sum = sum.direct_sum(&binary);
+        }
+        sum.dim()
+    });
+    let ternary_left = PrimeCode::<3>::new(16, vec![vec![1; 16]]).unwrap();
+    let ternary_right = PrimeCode::<3>::new(16, vec![vec![1; 16]]).unwrap();
+    let ternary_sum = ternary_left.direct_sum(&ternary_right);
+    report("prime-code RREF containment", 10_000, || {
+        ternary_sum.contains(&ternary_sum) as usize
+    });
+    let golay = golay_code();
+    report("cached MacWilliams Golay", 20, || {
+        golay.macwilliams_transform().into_iter().sum::<i128>() as usize
+    });
+
+    let polynomial = Poly::<Fp<5>>::new((0..64).map(Fp::<5>::from_u128).collect());
+    let modulus = Poly::<Fp<5>>::new(
+        (0..33)
+            .map(|degree| Fp::<5>::from_u128((degree == 0 || degree == 32) as u128))
+            .collect(),
+    );
+    report("remainder-only polynomial power", 200, || {
+        polynomial.pow_mod(257, &modulus).degree().unwrap_or(0)
     });
 }
