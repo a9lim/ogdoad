@@ -8,38 +8,44 @@
 /// Blade masks are `u128`, so the basis has at most 128 named generators.
 pub const MAX_BASIS_DIM: usize = 128;
 
-/// All `u128` bitmasks with exactly `k` bits set among the first `n` bits,
-/// enumerated by Gosper's hack in ascending numerical order (`C(n,k)` masks).
-pub(crate) fn grade_k_masks(n: usize, k: usize) -> Vec<u128> {
-    if k == 0 {
-        return vec![0];
-    }
-    if k > n {
-        return vec![];
-    }
-    assert!(n <= u128::BITS as usize, "basis masks fit in u128");
-    if k == u128::BITS as usize {
-        return vec![u128::MAX];
-    }
-    let mut out = Vec::new();
-    let mut c: u128 = (1u128 << k) - 1;
+/// Iterate over all `u128` bitmasks with exactly `k` bits set among the first
+/// `n` bits. Gosper's hack yields ascending numerical order without allocating
+/// the `C(n,k)`-element mask set.
+pub(crate) fn grade_k_masks(n: usize, k: usize) -> impl Iterator<Item = u128> {
+    let mut current = if k == 0 {
+        Some(0)
+    } else if k > n {
+        None
+    } else {
+        assert!(n <= u128::BITS as usize, "basis masks fit in u128");
+        Some(if k == u128::BITS as usize {
+            u128::MAX
+        } else {
+            (1u128 << k) - 1
+        })
+    };
     let limit = (n < u128::BITS as usize).then(|| 1u128 << n);
-    loop {
-        out.push(c);
+    std::iter::from_fn(move || {
+        let c = current?;
+        if c == 0 {
+            current = None;
+            return Some(c);
+        }
         let u = c & c.wrapping_neg();
         let v = c.checked_add(u);
-        match v {
+        current = match v {
             Some(v) if v != 0 => {
                 let next = v + (((v ^ c) / u) >> 2);
                 if limit.is_some_and(|lim| next >= lim) {
-                    break;
+                    None
+                } else {
+                    Some(next)
                 }
-                c = next;
             }
-            _ => break,
-        }
-    }
-    out
+            _ => None,
+        };
+        Some(c)
+    })
 }
 
 /// Iterate over set-bit indices of a blade mask in ascending order without

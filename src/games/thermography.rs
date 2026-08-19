@@ -31,6 +31,11 @@ use crate::games::piecewise::{combine, rdiv, sub_pl};
 use crate::games::Game;
 use crate::scalar::{Rational, Scalar};
 use std::cmp::Ordering;
+use std::collections::HashMap;
+use std::rc::Rc;
+
+type Walls = (Pl, Pl, Rational, Rational);
+type SharedWalls = Rc<Walls>;
 
 /// Least `t ≥ 0` where `D(t) = E(t) − 2t = 0`, given `D(0) ≥ 0` and `D → −∞`.
 /// Here `E = left_raw − right_raw`, so this is the temperature at which the
@@ -113,44 +118,68 @@ impl Thermograph {
 /// the domain of ordinary temperature theory). The caller supplies the fold used
 /// to combine option walls; ordinary thermography uses `combine`, while the
 /// tropical naming layer routes the same recursion through `oplus_max/min`.
-pub(crate) fn walls_with<F>(g: &Game, fold: F) -> Option<(Pl, Pl, Rational, Rational)>
+pub(crate) fn walls_with<F>(g: &Game, fold: F) -> Option<Walls>
 where
     F: Fn(&Pl, &Pl, bool) -> Pl + Copy,
 {
     let g = g.canonical();
-    if g.is_number() {
-        let v = g.number_value()?.as_rational()?; // dyadic ⇒ rational
-        let c = Pl::constant(v.clone());
-        return Some((c.clone(), c, v, Rational::from_int(-1)));
+    let mut memo = HashMap::new();
+    let result = walls_canonical_with(&g, fold, &mut memo)?;
+    drop(memo);
+    Some(Rc::try_unwrap(result).unwrap_or_else(|shared| (*shared).clone()))
+}
+
+fn walls_canonical_with<F>(
+    g: &Game,
+    fold: F,
+    memo: &mut HashMap<usize, Option<SharedWalls>>,
+) -> Option<SharedWalls>
+where
+    F: Fn(&Pl, &Pl, bool) -> Pl + Copy,
+{
+    let key = g.ptr_id();
+    if let Some(cached) = memo.get(&key) {
+        return cached.clone();
     }
-    if g.left().is_empty() || g.right().is_empty() {
-        return None;
-    }
-    // left_raw = max over Left options of the option's RIGHT wall
-    let mut left_raw: Option<Pl> = None;
-    for l in g.left() {
-        let rw = walls_with(l, fold)?.1;
-        left_raw = Some(match left_raw {
-            None => rw,
-            Some(acc) => fold(&acc, &rw, true),
-        });
-    }
-    // right_raw = min over Right options of the option's LEFT wall
-    let mut right_raw: Option<Pl> = None;
-    for r in g.right() {
-        let lw = walls_with(r, fold)?.0;
-        right_raw = Some(match right_raw {
-            None => lw,
-            Some(acc) => fold(&acc, &lw, false),
-        });
-    }
-    let (left_raw, right_raw) = (left_raw.unwrap(), right_raw.unwrap());
-    let e = sub_pl(&left_raw, &right_raw);
-    let tau = meeting_temperature(&e);
-    let mast = left_raw.value_at(&tau).sub(&tau);
-    let left_wall = freeze(&left_raw, &tau, &mast, true);
-    let right_wall = freeze(&right_raw, &tau, &mast, false);
-    Some((left_wall, right_wall, mast, tau))
+
+    let result = (|| {
+        if let Some(v) = g.number_value().and_then(|value| value.as_rational()) {
+            let c = Pl::constant(v.clone());
+            return Some(Rc::new((c.clone(), c, v, Rational::from_int(-1))));
+        }
+        if g.left().is_empty() || g.right().is_empty() {
+            return None;
+        }
+        // left_raw = max over Left options of the option's RIGHT wall
+        let mut left_raw: Option<Pl> = None;
+        for l in g.left() {
+            let child = walls_canonical_with(l, fold, memo)?;
+            let rw = &child.1;
+            left_raw = Some(match left_raw {
+                None => rw.clone(),
+                Some(acc) => fold(&acc, rw, true),
+            });
+        }
+        // right_raw = min over Right options of the option's LEFT wall
+        let mut right_raw: Option<Pl> = None;
+        for r in g.right() {
+            let child = walls_canonical_with(r, fold, memo)?;
+            let lw = &child.0;
+            right_raw = Some(match right_raw {
+                None => lw.clone(),
+                Some(acc) => fold(&acc, lw, false),
+            });
+        }
+        let (left_raw, right_raw) = (left_raw?, right_raw?);
+        let e = sub_pl(&left_raw, &right_raw);
+        let tau = meeting_temperature(&e);
+        let mast = left_raw.value_at(&tau).sub(&tau);
+        let left_wall = freeze(&left_raw, &tau, &mast, true);
+        let right_wall = freeze(&right_raw, &tau, &mast, false);
+        Some(Rc::new((left_wall, right_wall, mast, tau)))
+    })();
+    memo.insert(key, result.clone());
+    result
 }
 
 fn walls(g: &Game) -> Option<(Pl, Pl, Rational, Rational)> {
@@ -244,6 +273,16 @@ mod tests {
         let th = thermograph(&star2).unwrap();
         assert!(req(&th.temperature, &int(0)));
         assert!(req(&th.mast, &int(0)));
+    }
+
+    #[test]
+    fn shared_dag_walls_store_one_result_per_source_node() {
+        let heap = Game::nim_heap(8).canonical();
+        let mut memo = HashMap::new();
+        let result = walls_canonical_with(&heap, combine, &mut memo).unwrap();
+        assert!(req(&result.2, &int(0)));
+        assert!(req(&result.3, &int(0)));
+        assert_eq!(memo.len(), 9, "one entry for each shared heap size");
     }
 
     #[test]

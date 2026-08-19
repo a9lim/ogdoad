@@ -35,6 +35,9 @@ pub(crate) fn add_mod<const P: u128>(a: u128, b: u128) -> u128 {
 
 pub(crate) fn mul_mod<const P: u128>(mut a: u128, mut b: u128) -> u128 {
     debug_assert!(P > 0 && a < P && b < P);
+    if let Some(product) = a.checked_mul(b) {
+        return product % P;
+    }
     let mut acc = 0u128;
     while b > 0 {
         if b & 1 == 1 {

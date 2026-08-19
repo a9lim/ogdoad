@@ -3,13 +3,16 @@
 //! Run with `cargo bench --bench optimization_followups`. The Grundy language
 //! evaluator is deliberately excluded for a separate focused session.
 
-use ogdoad::clifford::{char_poly, exterior_power_trace, CliffordAlgebra, LinearMap, Metric};
+use ogdoad::clifford::{
+    char_poly, exterior_power_trace, is_blade, CliffordAlgebra, LinearMap, Metric, Multivector,
+};
 use ogdoad::forms::{
     e_8, even_unimodular_kneser_report, golay_code, leech, type_i_z2_code, DiscriminantForm,
     FiniteQuadraticModule, IntegralForm, PrimeCode,
 };
-use ogdoad::games::{Color, Game, Hackenbush};
+use ogdoad::games::{heat, thermograph, Color, Game, Hackenbush, LoopyPartizanGraph};
 use ogdoad::scalar::{Fp, Poly, Rational, Scalar, Surreal};
+use std::collections::VecDeque;
 use std::hint::black_box;
 use std::time::{Duration, Instant};
 
@@ -59,6 +62,119 @@ fn report(name: &str, iterations: usize, workload: impl FnMut() -> usize) {
 fn recursive_nim_heap(n: u128) -> Game {
     let options = (0..n).map(recursive_nim_heap).collect::<Vec<_>>();
     Game::new(options.clone(), options)
+}
+
+fn unfolded_game_node_count(game: &Game) -> usize {
+    let mut left = vec![Vec::new()];
+    let mut right = vec![Vec::new()];
+    let mut queue = VecDeque::from([(0, game.clone())]);
+    while let Some((node, position)) = queue.pop_front() {
+        for option in position.left() {
+            let target = left.len();
+            left.push(Vec::new());
+            right.push(Vec::new());
+            left[node].push(target);
+            queue.push_back((target, option.clone()));
+        }
+        for option in position.right() {
+            let target = left.len();
+            left.push(Vec::new());
+            right.push(Vec::new());
+            right[node].push(target);
+            queue.push_back((target, option.clone()));
+        }
+    }
+    LoopyPartizanGraph::new(left, right).unwrap().node_count()
+}
+
+fn fp_mul_double_add<const P: u128>(mut a: u128, mut b: u128) -> u128 {
+    let add = |a: u128, b: u128| {
+        if a >= P - b {
+            a - (P - b)
+        } else {
+            a + b
+        }
+    };
+    let mut acc = 0u128;
+    while b > 0 {
+        if b & 1 == 1 {
+            acc = add(acc, a);
+        }
+        b >>= 1;
+        if b > 0 {
+            a = add(a, a);
+        }
+    }
+    acc
+}
+
+fn grade_masks_vec(n: usize, k: usize) -> Vec<u128> {
+    if k == 0 {
+        return vec![0];
+    }
+    if k > n {
+        return Vec::new();
+    }
+    let mut out = Vec::new();
+    let mut current = (1u128 << k) - 1;
+    let limit = 1u128 << n;
+    loop {
+        out.push(current);
+        let low = current & current.wrapping_neg();
+        let next_high = current + low;
+        let next = next_high + (((next_high ^ current) / low) >> 2);
+        if next >= limit {
+            return out;
+        }
+        current = next;
+    }
+}
+
+fn higher_bits(mask: u128, index: usize) -> usize {
+    (mask >> (index + 1)).count_ones() as usize
+}
+
+fn plucker_owned_reference(
+    algebra: &CliffordAlgebra<Rational>,
+    candidate: &Multivector<Rational>,
+    grade: usize,
+) -> bool {
+    let i_masks = grade_masks_vec(algebra.dim(), grade - 1);
+    let j_masks = grade_masks_vec(algebra.dim(), grade + 1);
+    for i_mask in i_masks {
+        for &j_mask in &j_masks {
+            let mut acc = Rational::zero();
+            let mut bits = j_mask;
+            let mut position = 0usize;
+            while bits != 0 {
+                let index = bits.trailing_zeros() as usize;
+                let bit = 1u128 << index;
+                bits &= bits - 1;
+                if i_mask & bit == 0 {
+                    let left = candidate
+                        .terms()
+                        .get(&(i_mask | bit))
+                        .cloned()
+                        .unwrap_or_else(Rational::zero);
+                    let right = candidate
+                        .terms()
+                        .get(&(j_mask ^ bit))
+                        .cloned()
+                        .unwrap_or_else(Rational::zero);
+                    let mut term = left.mul(&right);
+                    if (position + higher_bits(i_mask, index)) & 1 == 1 {
+                        term = term.neg();
+                    }
+                    acc = acc.add(&term);
+                }
+                position += 1;
+            }
+            if !acc.is_zero() {
+                return false;
+            }
+        }
+    }
+    true
 }
 
 fn recursive_game_add(left_game: &Game, right_game: &Game) -> Game {
@@ -184,6 +300,93 @@ fn main() {
         10,
         || recursive_game_add(&left_heap, &right_heap).left().len(),
         || left_heap.add(&right_heap).left().len(),
+    );
+
+    let graph_heap = Game::nim_heap(7);
+    compare(
+        "shared Game -> loopy graph *7",
+        50,
+        || unfolded_game_node_count(&graph_heap),
+        || {
+            LoopyPartizanGraph::from_game(&graph_heap, 8)
+                .unwrap()
+                .node_count()
+        },
+    );
+
+    let unshared_thermo_heap = recursive_nim_heap(5);
+    let shared_thermo_heap = Game::nim_heap(5);
+    compare(
+        "shared DAG thermograph *5",
+        5,
+        || {
+            thermograph(&unshared_thermo_heap)
+                .unwrap()
+                .left_wall
+                .points()
+                .len()
+        },
+        || {
+            thermograph(&shared_thermo_heap)
+                .unwrap()
+                .left_wall
+                .points()
+                .len()
+        },
+    );
+    let heat_amount = Rational::one();
+    compare(
+        "shared DAG heat *5 by 1",
+        5,
+        || {
+            heat(&unshared_thermo_heap, &heat_amount)
+                .unwrap()
+                .birthday() as usize
+        },
+        || heat(&shared_thermo_heap, &heat_amount).unwrap().birthday() as usize,
+    );
+
+    let modular_pairs = (0..4_096u128)
+        .map(|value| {
+            (
+                value.wrapping_mul(31_337) % 65_537,
+                value.wrapping_mul(47_101) % 65_537,
+            )
+        })
+        .collect::<Vec<_>>();
+    let fp_pairs = modular_pairs
+        .iter()
+        .map(|&(a, b)| (Fp::<65_537>::from_u128(a), Fp::<65_537>::from_u128(b)))
+        .collect::<Vec<_>>();
+    compare(
+        "Fp checked-mul fast path 4096",
+        100,
+        || {
+            modular_pairs
+                .iter()
+                .map(|&(a, b)| {
+                    Fp::<65_537>::assert_supported_params();
+                    fp_mul_double_add::<65_537>(a, b)
+                })
+                .fold(0u128, u128::wrapping_add) as usize
+        },
+        || {
+            fp_pairs
+                .iter()
+                .map(|(a, b)| a.mul(b).value())
+                .fold(0u128, u128::wrapping_add) as usize
+        },
+    );
+
+    let blade_algebra = CliffordAlgebra::new(10, Metric::grassmann(10));
+    let sparse_middle_blade = (0..5).fold(blade_algebra.scalar(Rational::one()), |blade, index| {
+        blade_algebra.wedge(&blade, &blade_algebra.e(index))
+    });
+    compare(
+        "sparse Plucker grade 5 in n=10",
+        20,
+        || plucker_owned_reference(&blade_algebra, &sparse_middle_blade, 5) as usize,
+        || is_blade(&blade_algebra, &sparse_middle_blade) as usize,
     );
 
     let dimension = 7usize;

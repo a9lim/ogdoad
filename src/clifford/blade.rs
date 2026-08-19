@@ -39,10 +39,6 @@ fn homogeneous_grade<S: Scalar>(a: &Multivector<S>) -> Option<usize> {
     g // None ⇔ zero (no terms)
 }
 
-fn coeff<S: Scalar>(a: &Multivector<S>, mask: u128) -> S {
-    a.terms.get(&mask).cloned().unwrap_or_else(S::zero)
-}
-
 fn higher_bits(mask: u128, i: usize) -> usize {
     if i + 1 >= u128::BITS as usize {
         0
@@ -75,11 +71,15 @@ fn plucker_relations_hold<S: Scalar>(
                     pos += 1;
                     continue;
                 }
-                let mut term = coeff(a, i_mask | bit).mul(&coeff(a, j_mask ^ bit));
-                if (pos + higher_bits(i_mask, j)) & 1 == 1 {
-                    term = term.neg();
+                if let (Some(left), Some(right)) =
+                    (a.terms.get(&(i_mask | bit)), a.terms.get(&(j_mask ^ bit)))
+                {
+                    let mut term = left.mul(right);
+                    if (pos + higher_bits(i_mask, j)) & 1 == 1 {
+                        term = term.neg();
+                    }
+                    acc = acc.add(&term);
                 }
-                acc = acc.add(&term);
                 pos += 1;
             }
             if !acc.is_zero() {
@@ -230,13 +230,85 @@ pub fn factor_blade<S: Scalar>(
 mod tests {
     use super::*;
     use crate::clifford::Metric;
-    use crate::scalar::{Integer, Rational};
+    use crate::scalar::{Fp, Integer, Rational};
 
     fn r(n: i128) -> Rational {
         Rational::from_int(n)
     }
     fn euclid(n: usize) -> CliffordAlgebra<Rational> {
         CliffordAlgebra::new(n, Metric::diagonal(vec![r(1); n]))
+    }
+
+    fn plucker_reference<S: Scalar>(
+        alg: &CliffordAlgebra<S>,
+        a: &Multivector<S>,
+        k: usize,
+    ) -> bool {
+        let n = alg.dim();
+        if k == 0 || k == 1 || k == n {
+            return true;
+        }
+        let i_masks = grade_k_masks(n, k - 1).collect::<Vec<_>>();
+        let j_masks = grade_k_masks(n, k + 1).collect::<Vec<_>>();
+        for i_mask in i_masks {
+            for &j_mask in &j_masks {
+                let mut acc = S::zero();
+                let mut jj = j_mask;
+                let mut pos = 0usize;
+                while jj != 0 {
+                    let j = jj.trailing_zeros() as usize;
+                    let bit = 1u128 << j;
+                    jj &= jj - 1;
+                    if i_mask & bit == 0 {
+                        let left = a
+                            .terms
+                            .get(&(i_mask | bit))
+                            .cloned()
+                            .unwrap_or_else(S::zero);
+                        let right = a
+                            .terms
+                            .get(&(j_mask ^ bit))
+                            .cloned()
+                            .unwrap_or_else(S::zero);
+                        let mut term = left.mul(&right);
+                        if (pos + higher_bits(i_mask, j)) & 1 == 1 {
+                            term = term.neg();
+                        }
+                        acc = acc.add(&term);
+                    }
+                    pos += 1;
+                }
+                if !acc.is_zero() {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+
+    fn exhaustive_plucker_check<S: Scalar>() {
+        let alg = CliffordAlgebra::new(5, Metric::<S>::grassmann(5));
+        let masks = grade_k_masks(5, 2).collect::<Vec<_>>();
+        for support in 0usize..(1usize << masks.len()) {
+            let terms = masks
+                .iter()
+                .enumerate()
+                .filter(|(index, _)| support & (1usize << index) != 0)
+                .map(|(_, &mask)| (mask, S::one()))
+                .collect();
+            let candidate = Multivector { terms };
+            assert_eq!(
+                plucker_relations_hold(&alg, &candidate, 2),
+                plucker_reference(&alg, &candidate, 2),
+                "support={support:#x}"
+            );
+        }
+    }
+
+    #[test]
+    fn sparse_plucker_path_matches_owned_coefficient_oracle() {
+        exhaustive_plucker_check::<Rational>();
+        exhaustive_plucker_check::<Fp<2>>();
     }
 
     #[test]

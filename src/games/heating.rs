@@ -20,6 +20,7 @@ use crate::games::partizan::integer_value;
 use crate::games::Game;
 use crate::scalar::{Rational, Scalar, Surreal};
 use std::cmp::Ordering;
+use std::collections::HashMap;
 
 /// True iff `g > 0` in the short-game order.
 pub fn is_positive_game(g: &Game) -> bool {
@@ -117,10 +118,9 @@ pub fn numeric_norton_composition_defect(
 /// `None` when `unit` is not a positive number or `G` lies outside ordinary
 /// thermography's domain.
 pub fn numeric_norton_mean_temperature(g: &Game, unit: &Game) -> Option<(Rational, Rational)> {
-    let g = g.canonical();
     let (scale, shift) = numeric_norton_regrade(unit)?;
-    let input_mean = crate::games::thermography::mean_value(&g)?;
-    let output_mean = scale.mul(&input_mean);
+    let input = crate::games::thermography::thermograph(g)?;
+    let output_mean = scale.mul(&input.mast);
 
     let output_temperature = if let Some(value) = g.number_value() {
         let value = value.as_rational()?;
@@ -132,8 +132,7 @@ pub fn numeric_norton_mean_temperature(g: &Game, unit: &Game) -> Option<(Rationa
             candidate
         }
     } else {
-        let input_temperature = crate::games::thermography::temperature(&g)?;
-        scale.mul(&input_temperature).add(&shift)
+        scale.mul(&input.temperature).add(&shift)
     };
     Some((output_mean, output_temperature))
 }
@@ -145,7 +144,9 @@ pub fn numeric_norton_mean_temperature(g: &Game, unit: &Game) -> Option<(Rationa
 /// dyadic, because arbitrary rationals are not short games.
 pub fn heat(g: &Game, t: &Rational) -> Option<Game> {
     let shift = Game::from_surreal(&Surreal::from_rational(t.clone()))?;
-    Some(heat_by_game(g, &shift))
+    let neg_shift = shift.neg();
+    let g = g.canonical();
+    Some(heat_canonical(&g, &shift, &neg_shift, &mut HashMap::new()))
 }
 
 /// Norton multiplication `G.U` by a positive unit game `U`.
@@ -157,7 +158,19 @@ pub fn norton_multiply(g: &Game, unit: &Game) -> Option<Game> {
     if !is_positive_game(unit) {
         return None;
     }
-    Some(norton_multiply_unchecked(g, unit))
+    let g = g.canonical();
+    let unit = unit.canonical();
+    let neg_unit = unit.neg();
+    let increments = norton_increments_canonical(&unit);
+    let neg_increments = increments.iter().map(Game::neg).collect::<Vec<_>>();
+    Some(norton_multiply_canonical(
+        &g,
+        &unit,
+        &neg_unit,
+        &increments,
+        &neg_increments,
+        &mut HashMap::new(),
+    ))
 }
 
 /// Berlekamp overheating `int_s^t G`.
@@ -168,61 +181,100 @@ pub fn overheat(g: &Game, s: &Game, t: &Game) -> Option<Game> {
     if !is_positive_game(s) {
         return None;
     }
-    Some(overheat_unchecked(g, s, t))
+    let g = g.canonical();
+    let s = s.canonical();
+    let neg_s = s.neg();
+    let increments = norton_increments_canonical(&s);
+    let neg_increments = increments.iter().map(Game::neg).collect::<Vec<_>>();
+    let t = t.canonical();
+    let neg_t = t.neg();
+    Some(overheat_canonical(
+        &g,
+        &s,
+        &neg_s,
+        &increments,
+        &neg_increments,
+        &t,
+        &neg_t,
+        &mut HashMap::new(),
+        &mut HashMap::new(),
+    ))
 }
 
-fn heat_by_game(g: &Game, shift: &Game) -> Game {
-    let g = g.canonical();
-    if g.is_number() {
-        return g;
+fn heat_canonical(
+    g: &Game,
+    shift: &Game,
+    neg_shift: &Game,
+    memo: &mut HashMap<usize, Game>,
+) -> Game {
+    let key = g.ptr_id();
+    if let Some(heated) = memo.get(&key) {
+        return heated.clone();
     }
-    let neg_shift = shift.neg();
+    if g.is_number() {
+        memo.insert(key, g.clone());
+        return g.clone();
+    }
     let left = g
         .left()
         .iter()
-        .map(|gl| heat_by_game(gl, shift).add(shift))
+        .map(|gl| heat_canonical(gl, shift, neg_shift, memo).add(shift))
         .collect();
     let right = g
         .right()
         .iter()
-        .map(|gr| heat_by_game(gr, shift).add(&neg_shift))
+        .map(|gr| heat_canonical(gr, shift, neg_shift, memo).add(neg_shift))
         .collect();
-    Game::new(left, right).canonical()
+    let heated = Game::new(left, right).canonical();
+    memo.insert(key, heated.clone());
+    heated
 }
 
-fn norton_multiply_unchecked(g: &Game, unit: &Game) -> Game {
-    let g = g.canonical();
-    if let Some(n) = integer_game_value(&g) {
-        return if n >= 0 {
+fn norton_multiply_canonical(
+    g: &Game,
+    unit: &Game,
+    neg_unit: &Game,
+    increments: &[Game],
+    neg_increments: &[Game],
+    memo: &mut HashMap<usize, Game>,
+) -> Game {
+    let key = g.ptr_id();
+    if let Some(product) = memo.get(&key) {
+        return product.clone();
+    }
+    if let Some(n) = integer_game_value(g) {
+        let product = if n >= 0 {
             unit.times_int(n)
         } else {
-            unit.neg().times_int(-n)
+            neg_unit.times_int(-n)
         }
         .canonical();
+        memo.insert(key, product.clone());
+        return product;
     }
 
-    let increments = norton_increments(unit);
     let mut left = Vec::new();
     for gl in g.left() {
-        let gl_u = norton_multiply_unchecked(gl, unit);
-        for inc in &increments {
+        let gl_u = norton_multiply_canonical(gl, unit, neg_unit, increments, neg_increments, memo);
+        for inc in increments {
             left.push(gl_u.add(inc));
         }
     }
 
     let mut right = Vec::new();
     for gr in g.right() {
-        let gr_u = norton_multiply_unchecked(gr, unit);
-        for inc in &increments {
-            right.push(gr_u.add(&inc.neg()));
+        let gr_u = norton_multiply_canonical(gr, unit, neg_unit, increments, neg_increments, memo);
+        for inc in neg_increments {
+            right.push(gr_u.add(inc));
         }
     }
 
-    Game::new(left, right).canonical()
+    let product = Game::new(left, right).canonical();
+    memo.insert(key, product.clone());
+    product
 }
 
-fn norton_increments(unit: &Game) -> Vec<Game> {
-    let unit = unit.canonical();
+fn norton_increments_canonical(unit: &Game) -> Vec<Game> {
     let mut out = Vec::new();
     for u in unit.left() {
         out.push(u.clone()); // U + (u - U)
@@ -233,23 +285,67 @@ fn norton_increments(unit: &Game) -> Vec<Game> {
     out
 }
 
-fn overheat_unchecked(g: &Game, s: &Game, t: &Game) -> Game {
-    let g = g.canonical();
-    if integer_game_value(&g).is_some() {
-        return norton_multiply_unchecked(&g, s);
+#[allow(clippy::too_many_arguments)]
+fn overheat_canonical(
+    g: &Game,
+    s: &Game,
+    neg_s: &Game,
+    increments: &[Game],
+    neg_increments: &[Game],
+    t: &Game,
+    neg_t: &Game,
+    overheat_memo: &mut HashMap<usize, Game>,
+    norton_memo: &mut HashMap<usize, Game>,
+) -> Game {
+    let key = g.ptr_id();
+    if let Some(overheated) = overheat_memo.get(&key) {
+        return overheated.clone();
     }
-    let neg_t = t.neg();
+    if integer_game_value(g).is_some() {
+        let overheated =
+            norton_multiply_canonical(g, s, neg_s, increments, neg_increments, norton_memo);
+        overheat_memo.insert(key, overheated.clone());
+        return overheated;
+    }
     let left = g
         .left()
         .iter()
-        .map(|gl| overheat_unchecked(gl, s, t).add(t))
+        .map(|gl| {
+            overheat_canonical(
+                gl,
+                s,
+                neg_s,
+                increments,
+                neg_increments,
+                t,
+                neg_t,
+                overheat_memo,
+                norton_memo,
+            )
+            .add(t)
+        })
         .collect();
     let right = g
         .right()
         .iter()
-        .map(|gr| overheat_unchecked(gr, s, t).add(&neg_t))
+        .map(|gr| {
+            overheat_canonical(
+                gr,
+                s,
+                neg_s,
+                increments,
+                neg_increments,
+                t,
+                neg_t,
+                overheat_memo,
+                norton_memo,
+            )
+            .add(neg_t)
+        })
         .collect();
-    Game::new(left, right).canonical()
+    let overheated = Game::new(left, right).canonical();
+    overheat_memo.insert(key, overheated.clone());
+    overheated
 }
 
 #[cfg(test)]
@@ -321,6 +417,17 @@ mod tests {
     }
 
     #[test]
+    fn heating_transforms_each_shared_source_node_once() {
+        let heap = Game::nim_heap(6).canonical();
+        let shift = Game::integer(1);
+        let neg_shift = shift.neg();
+        let mut memo = HashMap::new();
+        let heated = heat_canonical(&heap, &shift, &neg_shift, &mut memo);
+        assert_eq!(memo.len(), 7, "one entry for each shared heap size");
+        assert_value_eq(&heated, &heat(&heap, &Rational::one()).unwrap());
+    }
+
+    #[test]
     fn norton_unit_one_is_identity_and_rejects_nonpositive_units() {
         let g = Game::switch(3, -1);
         assert_value_eq(&norton_multiply(&g, &Game::integer(1)).unwrap(), &g);
@@ -330,8 +437,8 @@ mod tests {
 
     /// A second, independently written transcription of Norton multiplication's
     /// recursive definition (Winning Ways / Siegel's CGT, "Norton's product") —
-    /// deliberately NOT calling `norton_multiply`/`norton_multiply_unchecked`/
-    /// `norton_increments` — used below as the oracle for the non-integer-`G` /
+    /// deliberately NOT calling `norton_multiply`/`norton_multiply_canonical`/
+    /// `norton_increments_canonical` — used below as the oracle for the non-integer-`G` /
     /// non-integer-`U` recursive branch. No citable page-pinned Winning Ways
     /// worked example for this exact case was found on hand, so per AGENTS.md this
     /// pins a cross-check computed two ways instead. The one deliberate structural

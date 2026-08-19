@@ -205,11 +205,11 @@ impl LoopyPartizanGraph {
 
     /// Embed a finite short [`Game`] as an acyclic graph whose root is node `0`.
     ///
-    /// The embedding preserves every option occurrence. Shared `Arc` subtrees may
-    /// therefore appear more than once in the graph, which does not change play.
-    /// The root is the first budgeted node, and each option occurrence is counted
-    /// when it is discovered. Exactly `node_budget` nodes are allowed; failure
-    /// exposes no partial graph.
+    /// Pointer-shared [`Game`] nodes remain shared graph nodes; duplicate option
+    /// occurrences remain duplicate edges. Structurally equal but independently
+    /// allocated games are not merged. The root is the first budgeted node, and
+    /// each distinct shared node is counted when first discovered. Exactly
+    /// `node_budget` nodes are allowed; failure exposes no partial graph.
     pub fn from_game(
         game: &Game,
         node_budget: u128,
@@ -222,31 +222,30 @@ impl LoopyPartizanGraph {
         let mut left = vec![Vec::new()];
         let mut right = vec![Vec::new()];
         let mut queue = VecDeque::from([(0, game.clone())]);
+        let mut indices = HashMap::from([(game.ptr_id(), 0)]);
 
         while let Some((node, position)) = queue.pop_front() {
             for option in position.left() {
-                if left.len() as u128 >= node_budget {
-                    return Err(LoopyPartizanGraphError::NodeBudgetExceeded {
-                        budget: node_budget,
-                    });
-                }
-                let target = left.len();
-                left.push(Vec::new());
-                right.push(Vec::new());
+                let target = discover_game_node(
+                    option,
+                    node_budget,
+                    &mut indices,
+                    &mut queue,
+                    &mut left,
+                    &mut right,
+                )?;
                 left[node].push(target);
-                queue.push_back((target, option.clone()));
             }
             for option in position.right() {
-                if left.len() as u128 >= node_budget {
-                    return Err(LoopyPartizanGraphError::NodeBudgetExceeded {
-                        budget: node_budget,
-                    });
-                }
-                let target = left.len();
-                left.push(Vec::new());
-                right.push(Vec::new());
+                let target = discover_game_node(
+                    option,
+                    node_budget,
+                    &mut indices,
+                    &mut queue,
+                    &mut left,
+                    &mut right,
+                )?;
                 right[node].push(target);
-                queue.push_back((target, option.clone()));
             }
         }
 
@@ -519,6 +518,31 @@ impl LoopyPartizanGraph {
     }
 }
 
+fn discover_game_node(
+    game: &Game,
+    node_budget: u128,
+    indices: &mut HashMap<usize, usize>,
+    queue: &mut VecDeque<(usize, Game)>,
+    left: &mut Vec<Vec<usize>>,
+    right: &mut Vec<Vec<usize>>,
+) -> Result<usize, LoopyPartizanGraphError> {
+    let key = game.ptr_id();
+    if let Some(&node) = indices.get(&key) {
+        return Ok(node);
+    }
+    if left.len() as u128 >= node_budget {
+        return Err(LoopyPartizanGraphError::NodeBudgetExceeded {
+            budget: node_budget,
+        });
+    }
+    let node = left.len();
+    indices.insert(key, node);
+    left.push(Vec::new());
+    right.push(Vec::new());
+    queue.push_back((node, game.clone()));
+    Ok(node)
+}
+
 fn validate_edges(
     adjacency: &[Vec<usize>],
     mover: LoopyMover,
@@ -789,7 +813,7 @@ mod tests {
     #[test]
     fn finite_embedding_supports_mixed_sums() {
         let finite_star =
-            LoopyPartizanGraph::from_game(&Game::star(), 3).expect("three-node star unfolding");
+            LoopyPartizanGraph::from_game(&Game::star(), 2).expect("two-node shared star DAG");
         assert_eq!(
             finite_star.outcome_pair(0).unwrap(),
             LoopyValue::Star.outcome()
@@ -799,15 +823,33 @@ mod tests {
     }
 
     #[test]
-    fn finite_embedding_stops_during_shared_dag_unfolding() {
-        let mut dag = Game::star();
-        for _ in 0..26 {
-            dag = Game::new(vec![dag.clone()], vec![dag.clone()]);
-        }
+    fn finite_embedding_counts_distinct_shared_nodes_against_budget() {
+        let dag = Game::nim_heap(26);
         assert_eq!(
-            LoopyPartizanGraph::from_game(&dag, 8),
-            Err(LoopyPartizanGraphError::NodeBudgetExceeded { budget: 8 })
+            LoopyPartizanGraph::from_game(&dag, 26),
+            Err(LoopyPartizanGraphError::NodeBudgetExceeded { budget: 26 })
         );
+        assert_eq!(
+            LoopyPartizanGraph::from_game(&dag, 27)
+                .expect("nim heap has one shared node per heap size")
+                .node_count(),
+            27
+        );
+    }
+
+    #[test]
+    fn finite_embedding_preserves_only_pointer_sharing() {
+        let shared = Game::zero();
+        let shared_root = Game::new(vec![shared.clone(), shared.clone()], vec![shared.clone()]);
+        let shared_graph = LoopyPartizanGraph::from_game(&shared_root, 2).unwrap();
+        assert_eq!(shared_graph.node_count(), 2);
+        assert_eq!(shared_graph.left[0], vec![1, 1]);
+        assert_eq!(shared_graph.right[0], vec![1]);
+
+        let distinct_root = Game::new(vec![Game::zero(), Game::zero()], vec![]);
+        let distinct_graph = LoopyPartizanGraph::from_game(&distinct_root, 3).unwrap();
+        assert_eq!(distinct_graph.node_count(), 3);
+        assert_eq!(distinct_graph.left[0], vec![1, 2]);
     }
 
     #[test]

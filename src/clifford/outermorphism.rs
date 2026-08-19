@@ -437,11 +437,11 @@ mod tests {
 
     #[test]
     fn grade_masks_cover_the_full_u128_basis_window() {
-        let one_blades = grade_k_masks(128, 1);
+        let one_blades = grade_k_masks(128, 1).collect::<Vec<_>>();
         assert_eq!(one_blades.len(), 128);
         assert_eq!(one_blades[0], 1);
         assert_eq!(one_blades[127], 1u128 << 127);
-        assert_eq!(grade_k_masks(128, 128), vec![u128::MAX]);
+        assert_eq!(grade_k_masks(128, 128).collect::<Vec<_>>(), vec![u128::MAX]);
     }
 
     #[test]
