@@ -6,7 +6,7 @@
 //! `grundy/docs/spec.md` §12: wedge-blade labels, coefficient attachment,
 //! `1`/`-1` elision, the leading-`-` join rule, and the zero-render rule.
 
-use super::basis::bits;
+use super::basis::bit_indices;
 use super::terms::{merge, wedge_terms};
 use crate::scalar::Scalar;
 use std::collections::BTreeMap;
@@ -96,8 +96,7 @@ impl<S: Scalar> fmt::Display for Multivector<S> {
             }
             // Blades are wedge expressions `e0∧e1` (a single
             // basis vector stays `e0`).
-            let label: String = bits(blade)
-                .iter()
+            let label: String = bit_indices(blade)
                 .map(|i| format!("e{i}"))
                 .collect::<Vec<_>>()
                 .join("∧");

@@ -10,13 +10,19 @@
 //! the characteristic-two determinant (equal to the permanent), with no sign
 //! hardcoded.
 //!
-//! The determinant is read off the top grade: `f(I) = det(f)·I` for the unit
-//! pseudoscalar `I`.
+//! The determinant identity remains `f(I) = det(f)·I` for the unit
+//! pseudoscalar `I`; production determinant and characteristic-polynomial
+//! evaluation use the division-free Berkowitz recurrence, while the exterior
+//! lift remains an independent oracle in tests and a public operation in its
+//! own right.
 
+use crate::clifford::engine::bit_indices;
+#[cfg(test)]
 use crate::clifford::engine::grade_k_masks;
-use crate::clifford::{bits, CliffordAlgebra, Multivector};
+use crate::clifford::{CliffordAlgebra, Multivector};
 use crate::linalg::field;
 use crate::scalar::Scalar;
+use std::collections::BTreeMap;
 
 /// A linear map `V → V` on grade 1, stored column-major: `cols()[i]` is the
 /// image `f(e_i)` as a length-`n` coefficient vector over `e_0..e_{n-1}` (so
@@ -66,13 +72,14 @@ impl<S: Scalar> LinearMap<S> {
 
     /// `f(e_i)` as a grade-1 multivector in `alg`.
     pub fn image(&self, alg: &CliffordAlgebra<S>, i: usize) -> Multivector<S> {
-        let mut out = alg.zero();
+        assert!(i < alg.dim(), "generator index {i} out of range");
+        let mut terms = BTreeMap::new();
         for (j, c) in self.cols[i].iter().enumerate() {
             if !c.is_zero() {
-                out = alg.add(&out, &alg.scalar_mul(c, &alg.e(j)));
+                terms.insert(1u128 << j, c.clone());
             }
         }
-        out
+        Multivector { terms }
     }
 
     /// The composite `self ∘ inner` (apply `inner`, then `self`): the ordinary
@@ -115,7 +122,7 @@ pub fn apply_outermorphism<S: Scalar>(
     for (&mask, coeff) in &mv.terms {
         // Fold f(e_i) over the set bits in ascending order, starting at 1.
         let mut acc = alg.scalar(S::one());
-        for i in bits(mask) {
+        for i in bit_indices(mask) {
             acc = alg.wedge(&acc, &f.image(alg, i));
         }
         out = alg.add(&out, &alg.scalar_mul(coeff, &acc));
@@ -123,30 +130,116 @@ pub fn apply_outermorphism<S: Scalar>(
     out
 }
 
+fn row_major<S: Scalar>(f: &LinearMap<S>) -> Vec<Vec<S>> {
+    (0..f.n())
+        .map(|row| (0..f.n()).map(|col| f.cols[col][row].clone()).collect())
+        .collect()
+}
+
+/// Division-free Berkowitz characteristic polynomial over an arbitrary
+/// commutative ring, in descending-degree coefficient order.
+fn berkowitz_char_poly<S: Scalar>(matrix: &[Vec<S>]) -> Vec<S> {
+    let n = matrix.len();
+    if n == 0 {
+        return vec![S::one()];
+    }
+    let minor = matrix[1..]
+        .iter()
+        .map(|row| row[1..].to_vec())
+        .collect::<Vec<_>>();
+    let minor_poly = berkowitz_char_poly(&minor);
+
+    // First column of the lower-triangular Toeplitz Berkowitz transform:
+    // 1, -a_00, -R S, -R M S, ..., -R M^(n-2) S.
+    let mut transform = Vec::with_capacity(n + 1);
+    transform.push(S::one());
+    transform.push(matrix[0][0].neg());
+    if n > 1 {
+        let mut vector = (1..n).map(|row| matrix[row][0].clone()).collect::<Vec<_>>();
+        for power in 0..n - 1 {
+            let mut contraction = S::zero();
+            for (col, value) in vector.iter().enumerate() {
+                contraction = contraction.add(&matrix[0][col + 1].mul(value));
+            }
+            transform.push(contraction.neg());
+            if power + 1 < n - 1 {
+                let mut next = vec![S::zero(); n - 1];
+                for row in 0..n - 1 {
+                    for (col, value) in vector.iter().enumerate() {
+                        next[row] = next[row].add(&minor[row][col].mul(value));
+                    }
+                }
+                vector = next;
+            }
+        }
+    }
+
+    let mut coefficients = vec![S::zero(); n + 1];
+    for degree in 0..=n {
+        for source in 0..minor_poly.len().min(degree + 1) {
+            coefficients[degree] =
+                coefficients[degree].add(&transform[degree - source].mul(&minor_poly[source]));
+        }
+    }
+    coefficients
+}
+
 /// The determinant of `f`: the scalar by which its outermorphism scales the unit
-/// pseudoscalar, `f(I) = det(f)·I`.
+/// pseudoscalar, `f(I) = det(f)·I`, computed division-free by Berkowitz.
 pub fn determinant<S: Scalar>(alg: &CliffordAlgebra<S>, f: &LinearMap<S>) -> S {
-    let pseudo = alg.pseudoscalar();
-    let image = apply_outermorphism(alg, f, &pseudo);
-    // Pseudoscalar mask = the single key of `pseudo`.
-    let mask = *pseudo.terms.keys().next().expect("pseudoscalar is nonzero");
-    image.terms.get(&mask).cloned().unwrap_or_else(S::zero)
+    debug_assert_eq!(
+        alg.dim(),
+        f.n(),
+        "LinearMap dimension must match the algebra"
+    );
+    let constant = berkowitz_char_poly(&row_major(f))
+        .pop()
+        .expect("a characteristic polynomial is nonempty");
+    if f.n().is_multiple_of(2) {
+        constant
+    } else {
+        constant.neg()
+    }
 }
 
 /// The trace of the `k`-th exterior power `Λᵏf` — the `k`-th elementary
 /// symmetric function of the eigenvalues, equivalently the sum of the `k×k`
 /// principal minors. `Λ⁰f` has trace `1`, `Λ¹f` is the ordinary trace, and
-/// `Λⁿf` is the [`determinant`]. Computed straight from the outermorphism:
-/// `tr Λᵏf = Σ_{|S|=k} ⟨e_S , f(e_S)⟩`, so it is character-faithful for free.
+/// `Λⁿf` is the [`determinant`]. Interior grades are read from the corresponding
+/// signed coefficient of the division-free characteristic polynomial. Signs use
+/// [`Scalar::neg`], so the path remains character-faithful.
 pub fn exterior_power_trace<S: Scalar>(alg: &CliffordAlgebra<S>, f: &LinearMap<S>, k: usize) -> S {
     debug_assert_eq!(
         f.n(),
         alg.dim(),
         "LinearMap dimension must match the algebra"
     );
+    match k {
+        0 => return S::one(),
+        1 => return trace(alg, f),
+        _ if k > f.n() => return S::zero(),
+        _ if k == f.n() => return determinant(alg, f),
+        _ => {}
+    }
+    let coefficient = char_poly(alg, f)[k].clone();
+    if k % 2 == 1 {
+        coefficient.neg()
+    } else {
+        coefficient
+    }
+}
+
+/// Independent exterior-lift oracle retained for testing the faster
+/// characteristic-polynomial path.
+#[cfg(test)]
+fn exterior_power_trace_via_outermorphism<S: Scalar>(
+    alg: &CliffordAlgebra<S>,
+    f: &LinearMap<S>,
+    k: usize,
+) -> S {
     let mut acc = S::zero();
     for mask in grade_k_masks(alg.dim(), k) {
-        let blade = alg.blade(&bits(mask));
+        let blade = alg.blade_mask(mask);
         let img = apply_outermorphism(alg, f, &blade);
         // ⟨e_S , f(e_S)⟩ — the diagonal entry of Λᵏf at this blade.
         if let Some(c) = img.terms.get(&mask) {
@@ -160,7 +253,12 @@ pub fn exterior_power_trace<S: Scalar>(alg: &CliffordAlgebra<S>, f: &LinearMap<S
 
 /// The ordinary trace of `f` (`= tr Λ¹f = Σᵢ Mᵢᵢ`).
 pub fn trace<S: Scalar>(alg: &CliffordAlgebra<S>, f: &LinearMap<S>) -> S {
-    exterior_power_trace(alg, f, 1)
+    debug_assert_eq!(
+        alg.dim(),
+        f.n(),
+        "LinearMap dimension must match the algebra"
+    );
+    (0..f.n()).fold(S::zero(), |trace, index| trace.add(&f.cols[index][index]))
 }
 
 /// The characteristic polynomial `det(t·I − f)`, returned as coefficients in
@@ -169,17 +267,12 @@ pub fn trace<S: Scalar>(alg: &CliffordAlgebra<S>, f: &LinearMap<S>) -> S {
 /// Char-faithful — over the nimbers every sign collapses, giving the char-2
 /// characteristic polynomial with no special-casing.
 pub fn char_poly<S: Scalar>(alg: &CliffordAlgebra<S>, f: &LinearMap<S>) -> Vec<S> {
-    let n = alg.dim();
-    (0..=n)
-        .map(|k| {
-            let ck = exterior_power_trace(alg, f, k);
-            if k % 2 == 1 {
-                ck.neg()
-            } else {
-                ck
-            }
-        })
-        .collect()
+    debug_assert_eq!(
+        alg.dim(),
+        f.n(),
+        "LinearMap dimension must match the algebra"
+    );
+    berkowitz_char_poly(&row_major(f))
 }
 
 /// The inverse outermorphism, if `f` is invertible over `S`: returns the
@@ -220,6 +313,39 @@ mod tests {
         let alg = euclid(3);
         let id = LinearMap::identity(3);
         assert_eq!(determinant(&alg, &id), r(1));
+    }
+
+    #[test]
+    fn berkowitz_matches_exterior_coefficients_on_dense_small_maps() {
+        for n in 0..=5 {
+            let alg = euclid(n);
+            let cols = (0..n)
+                .map(|col| {
+                    (0..n)
+                        .map(|row| r(((row * 7 + col * 11 + row * col) % 9) as i128 - 4))
+                        .collect()
+                })
+                .collect();
+            let map = LinearMap::from_columns(cols);
+            let expected = (0..=n)
+                .map(|grade| {
+                    let coefficient = exterior_power_trace_via_outermorphism(&alg, &map, grade);
+                    if grade % 2 == 1 {
+                        coefficient.neg()
+                    } else {
+                        coefficient
+                    }
+                })
+                .collect::<Vec<_>>();
+            assert_eq!(char_poly(&alg, &map), expected, "dimension {n}");
+            for grade in 0..=n + 1 {
+                assert_eq!(
+                    exterior_power_trace(&alg, &map, grade),
+                    exterior_power_trace_via_outermorphism(&alg, &map, grade),
+                    "dimension {n}, grade {grade}"
+                );
+            }
+        }
     }
 
     #[test]
@@ -344,11 +470,11 @@ mod tests {
 
     #[test]
     fn grade_masks_cover_the_full_u128_basis_window() {
-        let one_blades = grade_k_masks(128, 1);
+        let one_blades = grade_k_masks(128, 1).collect::<Vec<_>>();
         assert_eq!(one_blades.len(), 128);
         assert_eq!(one_blades[0], 1);
         assert_eq!(one_blades[127], 1u128 << 127);
-        assert_eq!(grade_k_masks(128, 128), vec![u128::MAX]);
+        assert_eq!(grade_k_masks(128, 128).collect::<Vec<_>>(), vec![u128::MAX]);
     }
 
     #[test]

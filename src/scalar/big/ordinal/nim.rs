@@ -23,10 +23,14 @@ fn canonicalize(raw: Vec<(Ordinal, u128)>) -> Vec<(Ordinal, u128)> {
 impl Ordinal {
     /// Nim-addition: XOR the coefficients of like `ω`-powers. Complete and exact.
     pub fn nim_add(&self, other: &Ordinal) -> Ordinal {
-        let mut raw = self.terms.clone();
-        raw.extend(other.terms.iter().cloned());
         Ordinal {
-            terms: canonicalize(raw),
+            terms: super::super::cnf::merge_canonical(
+                &self.terms,
+                &other.terms,
+                |a, b| a.cmp(b),
+                |x, y| x ^ y,
+                |c| *c == 0,
+            ),
         }
     }
 

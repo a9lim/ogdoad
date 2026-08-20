@@ -14,6 +14,12 @@ use std::collections::{BTreeMap, VecDeque};
 /// has order ~7·10⁸, or the Leech lattice). The bound is explicit, not silent.
 pub const AUTO_NODE_BUDGET: u128 = 100_000_000;
 pub(super) const SHORT_VECTOR_EXACT_ENUM_LIMIT: u128 = 2_000_000;
+/// Above this rank, computing an exact rational inverse merely to discover a
+/// large unpruned box costs more than the size-reduced Fincke–Pohst search.
+const SHORT_VECTOR_EXACT_MAX_DIM: usize = 4;
+/// Below this rank, recomputing the exact norm at the relatively few leaves is
+/// cheaper than carrying checked exact cross-terms through every search node.
+const FP_INCREMENTAL_NORM_MIN_DIM: usize = 10;
 
 // ── small combinatorial helpers ──
 
@@ -363,19 +369,26 @@ impl IntegralForm {
         if !self.is_positive_definite() {
             return None;
         }
+        self.short_vectors_definite(bound)
+    }
+
+    fn short_vectors_definite(&self, bound: i128) -> Option<Vec<Vec<i128>>> {
         if self.dim() == 0 || bound <= 0 {
             return Some(Vec::new());
         }
-        if let Some(vecs) = self.short_vectors_exact_bounded(bound, SHORT_VECTOR_EXACT_ENUM_LIMIT) {
-            return Some(vecs);
+        if self.dim() <= SHORT_VECTOR_EXACT_MAX_DIM {
+            if let Some(vecs) =
+                self.short_vectors_exact_bounded(bound, SHORT_VECTOR_EXACT_ENUM_LIMIT)
+            {
+                return Some(vecs);
+            }
         }
         let (reduced, transform) = self.size_reduced_basis();
-        let vecs = reduced.short_vectors_raw(bound)?;
-        Some(
-            vecs.into_iter()
-                .map(|v| map_coords(&transform, &v))
-                .collect(),
-        )
+        let mut out = Vec::new();
+        reduced.visit_short_vectors_raw(bound, &mut |vector, _| {
+            out.push(map_coords(&transform, vector));
+        })?;
+        Some(out)
     }
 
     pub(super) fn short_vectors_exact_bounded(
@@ -383,6 +396,16 @@ impl IntegralForm {
         bound: i128,
         limit: u128,
     ) -> Option<Vec<Vec<i128>>> {
+        let ranges = self.exact_box_ranges(bound, limit)?;
+        let mut out = Vec::new();
+        let mut x = vec![0i128; self.dim()];
+        self.visit_exact_box(&ranges, 0, bound, 0, &mut x, &mut |vector, _| {
+            out.push(vector.to_vec());
+        });
+        Some(out)
+    }
+
+    fn exact_box_ranges(&self, bound: i128, limit: u128) -> Option<Vec<i128>> {
         let n = self.dim();
         let mat: Vec<Vec<Rational>> = self
             .gram
@@ -403,59 +426,105 @@ impl IntegralForm {
             }
             ranges.push(r);
         }
-        let mut out = Vec::new();
-        let mut x = vec![0i128; n];
-        self.enumerate_exact_box(&ranges, 0, bound, &mut x, &mut out);
-        Some(out)
+        Some(ranges)
     }
 
-    fn enumerate_exact_box(
+    fn visit_exact_box<F>(
         &self,
         ranges: &[i128],
         idx: usize,
         bound: i128,
+        partial_norm: i128,
         x: &mut [i128],
-        out: &mut Vec<Vec<i128>>,
-    ) {
+        visit: &mut F,
+    ) where
+        F: FnMut(&[i128], i128),
+    {
         if idx == ranges.len() {
-            let q = self.norm(x);
-            if q > 0 && q <= bound {
-                out.push(x.to_vec());
+            if partial_norm > 0 && partial_norm <= bound {
+                visit(x, partial_norm);
             }
             return;
         }
+        let mut cross = 0i128;
+        for (j, &xj) in x[..idx].iter().enumerate() {
+            cross = cross
+                .checked_add(
+                    self.gram[idx][j]
+                        .checked_mul(xj)
+                        .expect("lattice norm exceeds i128"),
+                )
+                .expect("lattice norm exceeds i128");
+        }
         for xi in -ranges[idx]..=ranges[idx] {
             x[idx] = xi;
-            self.enumerate_exact_box(ranges, idx + 1, bound, x, out);
+            let diagonal = self.gram[idx][idx]
+                .checked_mul(xi)
+                .and_then(|value| value.checked_mul(xi))
+                .expect("lattice norm exceeds i128");
+            let mixed = cross
+                .checked_mul(xi)
+                .and_then(|value| value.checked_mul(2))
+                .expect("lattice norm exceeds i128");
+            let next_norm = partial_norm
+                .checked_add(diagonal)
+                .and_then(|value| value.checked_add(mixed))
+                .expect("lattice norm exceeds i128");
+            self.visit_exact_box(ranges, idx + 1, bound, next_norm, x, visit);
         }
         x[idx] = 0;
     }
 
-    fn short_vectors_raw(&self, bound: i128) -> Option<Vec<Vec<i128>>> {
+    /// Visit the exact norm of every nonzero vector through the cheapest safe
+    /// enumeration path. This is the allocation-free surface used by theta
+    /// series, which does not need the vectors themselves.
+    pub(in crate::forms::integral) fn visit_short_vector_norms<F>(
+        &self,
+        bound: i128,
+        mut visit: F,
+    ) -> Option<()>
+    where
+        F: FnMut(i128),
+    {
         if !self.is_positive_definite() {
             return None;
         }
-        let n = self.dim();
-        if n == 0 || bound <= 0 {
-            return Some(Vec::new());
+        if self.dim() == 0 || bound <= 0 {
+            return Some(());
         }
+        if self.dim() <= SHORT_VECTOR_EXACT_MAX_DIM {
+            if let Some(ranges) = self.exact_box_ranges(bound, SHORT_VECTOR_EXACT_ENUM_LIMIT) {
+                let mut x = vec![0i128; self.dim()];
+                self.visit_exact_box(&ranges, 0, bound, 0, &mut x, &mut |_, q| visit(q));
+                return Some(());
+            }
+        }
+        let (reduced, _) = self.size_reduced_basis();
+        reduced.visit_short_vectors_raw(bound, &mut |_, q| visit(q))
+    }
+
+    fn visit_short_vectors_raw<F>(&self, bound: i128, visit: &mut F) -> Option<()>
+    where
+        F: FnMut(&[i128], i128),
+    {
+        let n = self.dim();
         // `ldl` returns None if any pivot rounds to <= 0 (unexpected loss of
         // definiteness under floating-point). Fall back to None so the caller
         // can return an error rather than silently omitting vectors.
         let (d, u) = self.ldl()?;
-        let mut out = Vec::new();
         let mut x = vec![0i128; n];
         // Pad the float radius outward; the exact integer filter at the leaf
         // removes any spurious vectors admitted by the float bound. Small boxes
         // are handled above by exact rational bounds; this path is for larger
         // enumerations where the float bound is the practical cutoff.
         let eps = 1e-9 * (bound as f64).max(1.0) + 1e-9;
-        self.fp_search(n, bound, &d, &u, eps, 0.0, &mut x, &mut out);
-        Some(out)
+        let exact_tail = (n >= FP_INCREMENTAL_NORM_MIN_DIM).then_some(0);
+        self.fp_search(n, bound, &d, &u, eps, 0.0, exact_tail, &mut x, visit);
+        Some(())
     }
 
     #[allow(clippy::too_many_arguments)]
-    fn fp_search(
+    fn fp_search<F>(
         &self,
         i: usize,
         bound: i128,
@@ -463,13 +532,16 @@ impl IntegralForm {
         u: &[Vec<f64>],
         eps: f64,
         tail: f64,
+        exact_tail: Option<i128>,
         x: &mut [i128],
-        out: &mut Vec<Vec<i128>>,
-    ) {
+        visit: &mut F,
+    ) where
+        F: FnMut(&[i128], i128),
+    {
         if i == 0 {
-            let q = self.norm(x);
-            if q > 0 && q <= bound {
-                out.push(x.to_vec());
+            let norm = exact_tail.unwrap_or_else(|| self.norm(x));
+            if norm > 0 && norm <= bound {
+                visit(x, norm);
             }
             return;
         }
@@ -478,6 +550,19 @@ impl IntegralForm {
         for j in i..d.len() {
             center += u[idx][j] * x[j] as f64;
         }
+        let exact_cross = exact_tail.map(|_| {
+            let mut cross = 0i128;
+            for (j, &xj) in x.iter().enumerate().skip(i) {
+                cross = cross
+                    .checked_add(
+                        self.gram[idx][j]
+                            .checked_mul(xj)
+                            .expect("lattice norm exceeds i128"),
+                    )
+                    .expect("lattice norm exceeds i128");
+            }
+            cross
+        });
         let remaining = bound as f64 - tail;
         if remaining < -eps {
             return;
@@ -488,7 +573,32 @@ impl IntegralForm {
         for xi in lo..=hi {
             x[idx] = xi;
             let coord = xi as f64 + center;
-            self.fp_search(idx, bound, d, u, eps, tail + d[idx] * coord * coord, x, out);
+            let next_exact_tail = exact_tail.map(|tail_norm| {
+                let diagonal = self.gram[idx][idx]
+                    .checked_mul(xi)
+                    .and_then(|value| value.checked_mul(xi))
+                    .expect("lattice norm exceeds i128");
+                let mixed = exact_cross
+                    .expect("incremental norm has an exact cross-term")
+                    .checked_mul(xi)
+                    .and_then(|value| value.checked_mul(2))
+                    .expect("lattice norm exceeds i128");
+                tail_norm
+                    .checked_add(diagonal)
+                    .and_then(|value| value.checked_add(mixed))
+                    .expect("lattice norm exceeds i128")
+            });
+            self.fp_search(
+                idx,
+                bound,
+                d,
+                u,
+                eps,
+                tail + d[idx] * coord * coord,
+                next_exact_tail,
+                x,
+                visit,
+            );
         }
         x[idx] = 0;
     }
@@ -496,20 +606,40 @@ impl IntegralForm {
     /// The minimum `min { Q(x) : x ∈ L, x ≠ 0 }`, or `None` if the lattice is
     /// empty or not positive definite.
     pub fn minimum(&self) -> Option<i128> {
+        Some(self.minimum_and_vectors()?.0)
+    }
+
+    fn minimum_and_vectors(&self) -> Option<(i128, Vec<Vec<i128>>)> {
         if self.dim() == 0 {
             return None;
         }
         let min_diag = (0..self.dim()).map(|i| self.gram[i][i]).min()?;
         let vecs = self.short_vectors(min_diag)?;
-        vecs.iter().map(|v| self.norm(v)).min()
+        let mut minimum = None;
+        let mut minimal = Vec::new();
+        for vector in vecs {
+            let norm = self.norm(&vector);
+            match minimum {
+                None => {
+                    minimum = Some(norm);
+                    minimal.push(vector);
+                }
+                Some(current) if norm < current => {
+                    minimum = Some(norm);
+                    minimal.clear();
+                    minimal.push(vector);
+                }
+                Some(current) if norm == current => minimal.push(vector),
+                Some(_) => {}
+            }
+        }
+        Some((minimum?, minimal))
     }
 
     /// All minimal vectors (norm equal to [`minimum`](IntegralForm::minimum)),
     /// both signs included. `None` if not positive definite.
     pub fn minimal_vectors(&self) -> Option<Vec<Vec<i128>>> {
-        let m = self.minimum()?;
-        let vecs = self.short_vectors(m)?;
-        Some(vecs.into_iter().filter(|v| self.norm(v) == m).collect())
+        Some(self.minimum_and_vectors()?.1)
     }
 
     /// The kissing number: the count of minimal vectors. `None` if not positive
@@ -546,7 +676,7 @@ impl IntegralForm {
             return Some(order);
         }
         let max_diag = (0..n).map(|i| self.gram[i][i]).max().unwrap();
-        let cands = self.short_vectors(max_diag)?;
+        let cands = self.short_vectors_definite(max_diag)?;
         // Precompute G·v for each candidate so inner products are plain dot
         // products: ⟨v_a, v_b⟩ = v_aᵀ G v_b = v_a · (G v_b).
         let gv: Vec<Vec<i128>> = cands.iter().map(|v| self.matvec(v)).collect();
@@ -620,12 +750,16 @@ impl IntegralForm {
     }
 
     fn root_system_automorphism_order(&self) -> Option<u128> {
-        if !self.is_even() || self.minimum()? != 2 {
+        if !self.is_even() {
+            return None;
+        }
+        let (minimum, minimal_vectors) = self.minimum_and_vectors()?;
+        if minimum != 2 {
             return None;
         }
         let n = self.dim();
         let mut roots: Vec<Vec<i128>> = Vec::new();
-        for root in self.minimal_vectors()? {
+        for root in minimal_vectors {
             let root = canonical_root(root);
             if !roots.contains(&root) {
                 roots.push(root);
@@ -764,5 +898,32 @@ impl IntegralForm {
             }
         }
         true
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn fincke_pohst_incremental_norm_matches_the_public_form() {
+        let rank = FP_INCREMENTAL_NORM_MIN_DIM;
+        let mut gram = vec![vec![0i128; rank]; rank];
+        for index in 0..rank {
+            gram[index][index] = 2;
+            if index + 1 < rank {
+                gram[index][index + 1] = -1;
+                gram[index + 1][index] = -1;
+            }
+        }
+        let form = IntegralForm::new(gram).expect("A-type Cartan matrix is symmetric");
+        let mut visited = 0usize;
+        form.visit_short_vectors_raw(8, &mut |vector, norm| {
+            assert_eq!(norm, form.norm(vector));
+            assert!(norm > 0 && norm <= 8);
+            visited += 1;
+        })
+        .expect("positive-definite LDL decomposition succeeds");
+        assert!(visited > 0);
     }
 }

@@ -104,14 +104,14 @@ pub fn loopy_nim_values_certified(
     let out = kernel::outcomes(succ);
     let is_side: Vec<bool> = out.iter().map(|o| *o == Outcome::Draw).collect();
     let mut val = vec![0u128; n];
-    let mut state = vec![0u128; n]; // 0 unvisited, 1 visiting, 2 done
+    let mut state = vec![0u8; n]; // 0 unvisited, 1 visiting, 2 done
     let mut needs_sidling = false;
 
     fn dfs(
         succ: &[Vec<usize>],
         is_side: &[bool],
         v: usize,
-        state: &mut [u128],
+        state: &mut [u8],
         val: &mut [u128],
     ) -> Option<()> {
         match state[v] {

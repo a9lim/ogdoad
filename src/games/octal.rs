@@ -235,7 +235,24 @@ impl GuySmithCertificate {
             let value = single_heap_grundy(&code, heap, &nim_values);
             nim_values.push(value);
         }
-        GuySmithWitness::new(preperiod, period, nim_values).verify(code, term_budget)
+        for heap in bounds.preperiod..bounds.window_end {
+            let shifted = heap + bounds.period;
+            if nim_values[heap] != nim_values[shifted] {
+                return Err(GuySmithError::PeriodMismatch {
+                    heap: heap as u128,
+                    shifted: shifted as u128,
+                    value: nim_values[heap],
+                    shifted_value: nim_values[shifted],
+                });
+            }
+        }
+        Ok(GuySmithCertificate {
+            code,
+            preperiod,
+            period,
+            nim_values,
+            window_end: bounds.window_end as u128,
+        })
     }
 
     /// The checked finite octal code.

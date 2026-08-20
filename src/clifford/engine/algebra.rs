@@ -2,12 +2,20 @@
 //! The context owns the metric; its dimension is always derived from that
 //! metric.
 
-use super::basis::{bits, grade, MAX_BASIS_DIM};
+use super::basis::{bit_indices, grade, wedge_is_negative, MAX_BASIS_DIM};
 use super::metric::Metric;
 use super::multivector::Multivector;
-use super::terms::{merge, scale, wedge_terms};
+use super::terms::{add_term, merge, scale, wedge_terms};
 use crate::scalar::Scalar;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
+use std::fmt;
+use std::sync::{Arc, Mutex};
+
+type BladeProductCache<S> = HashMap<(u128, u128), BTreeMap<u128, S>>;
+
+const DENSE_ORTHOGONAL_MAX_DIM: usize = 12;
+const DENSE_ORTHOGONAL_MIN_PAIRS_PER_BLADE: usize = 4;
+const PERSISTENT_BLADE_CACHE_LIMIT: usize = 131_072;
 
 /// A Clifford algebra: metric + derived dimension. Produces and combines multivectors.
 ///
@@ -24,16 +32,35 @@ use std::collections::BTreeMap;
 /// **Note:** `^` is reserved for scalar power (`x ^ k: u128`); `&` is wedge
 /// (`∧` in grundy). See [`Multivector`]'s `BitAnd` impl for the precedence
 /// caveat (Rust `&` binds looser than `+` and `*`).
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone)]
 pub struct CliffordAlgebra<S: Scalar> {
     pub(crate) metric: Metric<S>,
+    product_cache: Arc<Mutex<BladeProductCache<S>>>,
+}
+
+impl<S: Scalar> fmt::Debug for CliffordAlgebra<S> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("CliffordAlgebra")
+            .field("metric", &self.metric)
+            .finish()
+    }
+}
+
+impl<S: Scalar> PartialEq for CliffordAlgebra<S> {
+    fn eq(&self, other: &Self) -> bool {
+        self.metric == other.metric
+    }
 }
 
 impl<S: Scalar> CliffordAlgebra<S> {
     /// Constructs an algebra after validating that `metric` has dimension `dim`.
     pub fn new(dim: usize, metric: Metric<S>) -> Self {
         metric.validate_for_dim(dim);
-        CliffordAlgebra { metric }
+        CliffordAlgebra {
+            metric,
+            product_cache: Arc::new(Mutex::new(HashMap::new())),
+        }
     }
 
     /// The number of generators, i.e. the dimension of the underlying vector space.
@@ -134,6 +161,20 @@ impl<S: Scalar> CliffordAlgebra<S> {
         Multivector { terms }
     }
 
+    /// A basis blade from its canonical bitmask representation.
+    pub(crate) fn blade_mask(&self, mask: u128) -> Multivector<S> {
+        if self.dim() < MAX_BASIS_DIM {
+            assert!(
+                mask >> self.dim() == 0,
+                "blade mask has a generator outside algebra dimension {}",
+                self.dim()
+            );
+        }
+        let mut terms = BTreeMap::new();
+        terms.insert(mask, S::one());
+        Multivector { terms }
+    }
+
     /// Adds two multivectors.
     pub fn add(&self, a: &Multivector<S>, b: &Multivector<S>) -> Multivector<S> {
         let mut terms = a.terms.clone();
@@ -151,14 +192,128 @@ impl<S: Scalar> CliffordAlgebra<S> {
     /// Geometric (Clifford) product.
     pub fn mul(&self, a: &Multivector<S>, b: &Multivector<S>) -> Multivector<S> {
         let mut out: BTreeMap<u128, S> = BTreeMap::new();
+        if self.metric.is_orthogonal() {
+            if let Some(product) = self.dense_orthogonal_product(a, b) {
+                return product;
+            }
+            for (&ba, ca) in &a.terms {
+                for (&bb, cb) in &b.terms {
+                    if let Some((blade, coeff)) =
+                        self.metric
+                            .geom_product_blades_orthogonal_scaled(ba, bb, ca.mul(cb))
+                    {
+                        add_term(&mut out, blade, &coeff);
+                    }
+                }
+            }
+            return Multivector { terms: out };
+        }
+        // Move the shared memo out while computing, so independent threads do
+        // not serialize their whole product behind the cache mutex. A racing
+        // call may duplicate work, but its results are merged back safely.
+        let mut products = {
+            let mut cache = self
+                .product_cache
+                .lock()
+                .expect("Clifford blade-product cache poisoned");
+            std::mem::take(&mut *cache)
+        };
         for (&ba, ca) in &a.terms {
             for (&bb, cb) in &b.terms {
-                let reduced = self.metric.geom_product_blades(ba, bb);
+                let reduced = self
+                    .metric
+                    .geom_product_blades_memoized(ba, bb, &mut products);
                 let coeff = ca.mul(cb);
                 merge(&mut out, scale(reduced, &coeff));
             }
         }
+        self.restore_product_cache(products);
         Multivector { terms: out }
+    }
+
+    /// Dense exact finite-field products are cheaper in a contiguous blade
+    /// accumulator than in one balanced-tree lookup per input pair. Sparse,
+    /// wide, or fixed-width-overflow-sensitive scalar worlds retain the
+    /// established BTreeMap path.
+    fn dense_orthogonal_product(
+        &self,
+        a: &Multivector<S>,
+        b: &Multivector<S>,
+    ) -> Option<Multivector<S>> {
+        let dimension = self.dim();
+        if !S::REASSOCIATION_IS_EXACT || dimension > DENSE_ORTHOGONAL_MAX_DIM {
+            return None;
+        }
+        let blade_count = 1usize << dimension;
+        let pair_count = a.terms.len().saturating_mul(b.terms.len());
+        if a.terms.len().min(b.terms.len()) < blade_count.div_ceil(4)
+            || pair_count < blade_count.saturating_mul(DENSE_ORTHOGONAL_MIN_PAIRS_PER_BLADE)
+        {
+            return None;
+        }
+
+        let mut repeated_factors = vec![S::zero(); blade_count];
+        repeated_factors[0] = S::one();
+        for mask in 1..blade_count {
+            let generator = mask.trailing_zeros() as usize;
+            let rest = mask & (mask - 1);
+            repeated_factors[mask] = repeated_factors[rest].mul(self.metric.q_ref(generator));
+        }
+
+        let mut coefficients = vec![S::zero(); blade_count];
+        for (&left_blade, left_coefficient) in &a.terms {
+            for (&right_blade, right_coefficient) in &b.terms {
+                let repeated = &repeated_factors[(left_blade & right_blade) as usize];
+                if repeated.is_zero() {
+                    continue;
+                }
+                let mut coefficient = left_coefficient.mul(right_coefficient).mul(repeated);
+                if wedge_is_negative(left_blade, right_blade) {
+                    coefficient = coefficient.neg();
+                }
+                let destination = (left_blade ^ right_blade) as usize;
+                coefficients[destination] = coefficients[destination].add(&coefficient);
+            }
+        }
+        let terms = coefficients
+            .into_iter()
+            .enumerate()
+            .filter_map(|(blade, coefficient)| {
+                (!coefficient.is_zero()).then_some((blade as u128, coefficient))
+            })
+            .collect();
+        Some(Multivector { terms })
+    }
+
+    fn restore_product_cache(&self, mut products: BladeProductCache<S>) {
+        if products.len() > PERSISTENT_BLADE_CACHE_LIMIT {
+            products = products
+                .drain()
+                .take(PERSISTENT_BLADE_CACHE_LIMIT)
+                .collect();
+        }
+        let mut cache = self
+            .product_cache
+            .lock()
+            .expect("Clifford blade-product cache poisoned");
+        if cache.is_empty() {
+            *cache = products;
+            return;
+        }
+        for (key, product) in products {
+            if cache.len() == PERSISTENT_BLADE_CACHE_LIMIT {
+                break;
+            }
+            cache.entry(key).or_insert(product);
+        }
+    }
+
+    #[cfg(test)]
+    pub(super) fn product_cache_len(&self) -> usize {
+        self.product_cache
+            .lock()
+            .expect("Clifford blade-product cache poisoned")
+            .len()
     }
 
     /// Exterior (wedge) product — metric-independent.
@@ -177,7 +332,7 @@ impl<S: Scalar> CliffordAlgebra<S> {
 
     fn sorted_generator_product(&self, blade: u128) -> Multivector<S> {
         let mut out = self.scalar(S::one());
-        for g in bits(blade) {
+        for g in bit_indices(blade) {
             out = self.mul(&out, &self.e(g));
         }
         out
@@ -269,10 +424,26 @@ impl<S: Scalar> CliffordAlgebra<S> {
                 .transport_gauge_to(self, &reversed)
                 .expect("gauge transport has unit leading terms");
         }
+        if self.metric.is_orthogonal() {
+            let terms = a
+                .terms
+                .iter()
+                .map(|(&blade, coefficient)| {
+                    let grade = blade.count_ones();
+                    let coefficient = if (grade * grade.saturating_sub(1) / 2) & 1 == 1 {
+                        coefficient.neg()
+                    } else {
+                        coefficient.clone()
+                    };
+                    (blade, coefficient)
+                })
+                .collect();
+            return Multivector { terms };
+        }
         let mut out = self.zero();
         for (&blade, coeff) in &a.terms {
             let mut rev_blade = self.scalar(S::one());
-            let mut gens = bits(blade);
+            let mut gens: Vec<_> = bit_indices(blade).collect();
             gens.reverse();
             for g in gens {
                 rev_blade = self.mul(&rev_blade, &self.e(g));

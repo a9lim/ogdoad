@@ -301,6 +301,11 @@ impl<const P: u128, const N: usize, const F: usize> Scalar for WittVec<P, N, F> 
         }
         Some(b)
     }
+    fn is_zero(&self) -> bool {
+        Self::assert_supported_params();
+        let modulus = Self::modulus();
+        self.0.iter().all(|&coefficient| coefficient % modulus == 0)
+    }
     /// Faster direct construction; semantically identical to the default double-and-add.
     fn from_int(n: i128) -> Self {
         WittVec::<P, N, F>::from_int(n)
@@ -319,11 +324,11 @@ mod tests {
         for a in 0..8u128 {
             for b in 0..8u128 {
                 let (wa, wb) = (WittVec::<2, 3, 1>([a]), WittVec::<2, 3, 1>([b]));
-                let (za, zb) = (Zp::<2, 3>(a), Zp::<2, 3>(b));
-                assert_eq!(wa.add(&wb).0[0], za.add(&zb).0);
-                assert_eq!(wa.mul(&wb).0[0], za.mul(&zb).0);
-                assert_eq!(wa.neg().0[0], za.neg().0);
-                assert_eq!(wa.inv().map(|w| w.0[0]), za.inv().map(|z| z.0));
+                let (za, zb) = (Zp::<2, 3>::from_u128(a), Zp::<2, 3>::from_u128(b));
+                assert_eq!(wa.add(&wb).0[0], za.add(&zb).value());
+                assert_eq!(wa.mul(&wb).0[0], za.mul(&zb).value());
+                assert_eq!(wa.neg().0[0], za.neg().value());
+                assert_eq!(wa.inv().map(|w| w.0[0]), za.inv().map(Zp::value));
             }
         }
     }

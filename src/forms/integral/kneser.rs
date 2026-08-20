@@ -20,11 +20,11 @@
 //! representatives; see [`super::niemeier`].
 
 use super::{
-    are_in_same_genus, e_8, is_root_lattice, mass_even_unimodular,
-    root_lattices::E8_WEYL_GROUP_ORDER, IntegralForm, D16_PLUS_AUT_ORDER,
+    e_8, is_root_lattice, mass_even_unimodular, root_lattices::E8_WEYL_GROUP_ORDER, Genus,
+    IntegralForm, D16_PLUS_AUT_ORDER,
 };
 use crate::linalg::integer::normalize_relation_rows;
-use crate::scalar::{is_prime_u128, Rational};
+use crate::scalar::{add_mod_u128, is_prime_u128, mul_mod_u128, Rational};
 use std::collections::BTreeSet;
 use std::fmt;
 
@@ -162,11 +162,78 @@ fn projective_line_is_normalized(v: &[u128], p: u128) -> bool {
     v[first] == 1 && v.iter().all(|&x| x < p)
 }
 
-fn is_isotropic_line(lattice: &IntegralForm, p: u128, v: &[i128]) -> bool {
-    if p == 2 && lattice.is_even() {
-        lattice.norm(v).rem_euclid(4) == 0
-    } else {
-        lattice.norm(v).rem_euclid(p as i128) == 0
+struct KneserContext<'a> {
+    lattice: &'a IntegralForm,
+    prime: u128,
+    prime_i128: i128,
+    isotropy_modulus: u128,
+    gram_mod: Vec<Vec<u128>>,
+}
+
+impl<'a> KneserContext<'a> {
+    fn new(lattice: &'a IntegralForm, prime: u128) -> Option<Self> {
+        if !is_prime_u128(prime) || prime > i128::MAX as u128 {
+            return None;
+        }
+        let prime_i128 = prime as i128;
+        if lattice.determinant().rem_euclid(prime_i128) == 0 {
+            return None;
+        }
+        if prime == 2 && !lattice.is_even() {
+            return None;
+        }
+        let isotropy_modulus = if prime == 2 { 4 } else { prime };
+        let modulus_i128 = isotropy_modulus as i128;
+        let gram_mod = lattice
+            .gram()
+            .iter()
+            .map(|row| {
+                row.iter()
+                    .map(|entry| entry.rem_euclid(modulus_i128) as u128)
+                    .collect()
+            })
+            .collect();
+        Some(Self {
+            lattice,
+            prime,
+            prime_i128,
+            isotropy_modulus,
+            gram_mod,
+        })
+    }
+
+    fn extend_norm(&self, prefix: &[u128], idx: usize, value: u128, norm: u128) -> u128 {
+        let modulus = self.isotropy_modulus;
+        let value = value % modulus;
+        let diagonal = mul_mod_u128(
+            mul_mod_u128(value, value, modulus),
+            self.gram_mod[idx][idx],
+            modulus,
+        );
+        let mut cross = 0u128;
+        for (j, &prefix_value) in prefix[..idx].iter().enumerate() {
+            let term = mul_mod_u128(
+                mul_mod_u128(value, prefix_value % modulus, modulus),
+                self.gram_mod[idx][j],
+                modulus,
+            );
+            cross = add_mod_u128(cross, term, modulus);
+        }
+        add_mod_u128(
+            add_mod_u128(norm, diagonal, modulus),
+            add_mod_u128(cross, cross, modulus),
+            modulus,
+        )
+    }
+
+    fn norm_mod(&self, vector: &[u128]) -> u128 {
+        vector.iter().enumerate().fold(0, |norm, (idx, &value)| {
+            self.extend_norm(vector, idx, value, norm)
+        })
+    }
+
+    fn is_isotropic_line(&self, vector: &[u128]) -> bool {
+        vector.len() == self.lattice.dim() && self.norm_mod(vector) == 0
     }
 }
 
@@ -243,25 +310,26 @@ fn even_two_lift(lattice: &IntegralForm, lift: &mut [i128]) -> Option<()> {
 /// even lattice. For odd `p`, the bilinear isotropy condition is `Q(x)=0 mod p`,
 /// and the lift is adjusted so `Q(v)` is divisible by `p^2`.
 pub fn kneser_neighbor(lattice: &IntegralForm, p: u128, line: &[u128]) -> Option<IntegralForm> {
-    if !is_prime_u128(p) || p > i128::MAX as u128 || line.len() != lattice.dim() {
-        return None;
-    }
-    if p == 2 && !lattice.is_even() {
-        return None;
-    }
-    if lattice.determinant().rem_euclid(p as i128) == 0 {
+    let context = KneserContext::new(lattice, p)?;
+    kneser_neighbor_prepared(&context, line)
+}
+
+fn kneser_neighbor_prepared(context: &KneserContext<'_>, line: &[u128]) -> Option<IntegralForm> {
+    let lattice = context.lattice;
+    let p = context.prime;
+    if line.len() != lattice.dim() {
         return None;
     }
     if !projective_line_is_normalized(line, p) {
         return None;
     }
 
-    let p_i = p as i128;
+    let p_i = context.prime_i128;
     let mut lift: Vec<i128> = line
         .iter()
         .map(|&x| i128::try_from(x).ok())
         .collect::<Option<_>>()?;
-    if !is_isotropic_line(lattice, p, &lift) {
+    if !context.is_isotropic_line(line) {
         return None;
     }
     if p == 2 {
@@ -283,24 +351,38 @@ pub fn kneser_neighbor(lattice: &IntegralForm, p: u128, line: &[u128]) -> Option
 
     let denom = p_i.checked_mul(p_i)?;
     let n = basis.len();
+    let mut gram_times_basis = vec![vec![0i128; n]; n];
+    for (column, vector) in basis.iter().enumerate() {
+        for row in 0..n {
+            let mut entry = 0i128;
+            for (&coefficient, &coordinate) in lattice.gram()[row].iter().zip(vector) {
+                entry = entry.checked_add(coefficient.checked_mul(coordinate)?)?;
+            }
+            gram_times_basis[column][row] = entry;
+        }
+    }
     let mut gram = vec![vec![0i128; n]; n];
     for i in 0..n {
-        for j in 0..n {
-            let inner = lattice.inner(&basis[i], &basis[j]);
+        for j in i..n {
+            let mut inner = 0i128;
+            for (&coordinate, &transformed) in basis[i].iter().zip(&gram_times_basis[j]) {
+                inner = inner.checked_add(coordinate.checked_mul(transformed)?)?;
+            }
             if inner % denom != 0 {
                 return None;
             }
             gram[i][j] = inner / denom;
+            gram[j][i] = gram[i][j];
         }
     }
     IntegralForm::new(gram)
 }
 
 fn enumerate_projective_lines_rec(
-    lattice: &IntegralForm,
-    p: u128,
+    context: &KneserContext<'_>,
     first: usize,
     idx: usize,
+    norm: u128,
     max_lines: u128,
     cur: &mut [u128],
     out: &mut Vec<Vec<u128>>,
@@ -309,22 +391,23 @@ fn enumerate_projective_lines_rec(
         return;
     }
     if idx == cur.len() {
-        let v: Vec<i128> = cur.iter().map(|&x| x as i128).collect();
-        if is_isotropic_line(lattice, p, &v) {
+        if norm == 0 {
             out.push(cur.to_vec());
         }
         return;
     }
     if idx < first {
         cur[idx] = 0;
-        enumerate_projective_lines_rec(lattice, p, first, idx + 1, max_lines, cur, out);
+        enumerate_projective_lines_rec(context, first, idx + 1, norm, max_lines, cur, out);
     } else if idx == first {
         cur[idx] = 1;
-        enumerate_projective_lines_rec(lattice, p, first, idx + 1, max_lines, cur, out);
+        let next_norm = context.extend_norm(cur, idx, 1, norm);
+        enumerate_projective_lines_rec(context, first, idx + 1, next_norm, max_lines, cur, out);
     } else {
-        for x in 0..p {
+        for x in 0..context.prime {
             cur[idx] = x;
-            enumerate_projective_lines_rec(lattice, p, first, idx + 1, max_lines, cur, out);
+            let next_norm = context.extend_norm(cur, idx, x, norm);
+            enumerate_projective_lines_rec(context, first, idx + 1, next_norm, max_lines, cur, out);
             if out.len() as u128 >= max_lines {
                 break;
             }
@@ -342,23 +425,22 @@ pub fn isotropic_lines_mod_p(
     p: u128,
     max_lines: u128,
 ) -> Option<Vec<Vec<u128>>> {
-    if !is_prime_u128(p)
-        || p > i128::MAX as u128
-        || lattice.determinant().rem_euclid(p as i128) == 0
-    {
-        return None;
-    }
-    if p == 2 && !lattice.is_even() {
-        return None;
-    }
+    let context = KneserContext::new(lattice, p)?;
+    isotropic_lines_prepared(&context, max_lines)
+}
+
+fn isotropic_lines_prepared(
+    context: &KneserContext<'_>,
+    max_lines: u128,
+) -> Option<Vec<Vec<u128>>> {
     if max_lines == 0 {
         return Some(Vec::new());
     }
-    let n = lattice.dim();
+    let n = context.lattice.dim();
     let mut cur = vec![0u128; n];
     let mut out = Vec::new();
     for first in 0..n {
-        enumerate_projective_lines_rec(lattice, p, first, 0, max_lines, &mut cur, &mut out);
+        enumerate_projective_lines_rec(context, first, 0, 0, max_lines, &mut cur, &mut out);
         if out.len() as u128 >= max_lines {
             break;
         }
@@ -372,10 +454,11 @@ pub fn kneser_neighbors(
     p: u128,
     max_lines: u128,
 ) -> Option<Vec<KneserNeighbor>> {
-    let lines = isotropic_lines_mod_p(lattice, p, max_lines)?;
+    let context = KneserContext::new(lattice, p)?;
+    let lines = isotropic_lines_prepared(&context, max_lines)?;
     let mut out = Vec::new();
     for line in lines {
-        let neighbor = kneser_neighbor(lattice, p, &line)?;
+        let neighbor = kneser_neighbor_prepared(&context, &line)?;
         out.push(KneserNeighbor {
             prime: p,
             line,
@@ -408,11 +491,11 @@ fn aut_e8_e8() -> Option<u128> {
         .checked_mul(E8_WEYL_GROUP_ORDER)
 }
 
-fn rank16_neighbor_label(neighbor: &IntegralForm, seed: &IntegralForm) -> Option<&'static str> {
-    if neighbor.dim() != 16 || !neighbor.is_even() || !neighbor.is_unimodular() {
+fn rank16_neighbor_label(neighbor: &IntegralForm, seed_genus: &Genus) -> Option<&'static str> {
+    if neighbor.dim() != 16 || !neighbor.is_even() {
         return None;
     }
-    if !are_in_same_genus(seed, neighbor) {
+    if !seed_genus.same_genus(&Genus::from_lattice(neighbor)?) {
         return None;
     }
     if is_root_lattice(neighbor) {
@@ -428,22 +511,21 @@ fn generated_rank_labels(
     prime: u128,
     max_lines: u128,
 ) -> Option<(usize, Vec<&'static str>)> {
-    let lines = isotropic_lines_mod_p(seed, prime, max_lines)?;
+    let context = KneserContext::new(seed, prime)?;
+    let lines = isotropic_lines_prepared(&context, max_lines)?;
+    let seed_genus = Genus::from_lattice(seed)?;
     let mut labels = BTreeSet::new();
     for line in &lines {
-        let neighbor = kneser_neighbor(seed, prime, line)?;
+        let neighbor = kneser_neighbor_prepared(&context, line)?;
         let label = match rank {
             8 => {
-                if neighbor.is_even()
-                    && neighbor.is_unimodular()
-                    && are_in_same_genus(seed, &neighbor)
-                {
+                if neighbor.is_even() && seed_genus.same_genus(&Genus::from_lattice(&neighbor)?) {
                     "E8"
                 } else {
                     return None;
                 }
             }
-            16 => rank16_neighbor_label(&neighbor, seed)?,
+            16 => rank16_neighbor_label(&neighbor, &seed_genus)?,
             _ => return None,
         };
         labels.insert(label);
@@ -536,6 +618,17 @@ mod tests {
         assert!(kneser_neighbor(&e8, 2, &[1, 0, 0, 0, 0, 0, 0, 0]).is_none());
         assert!(kneser_neighbor(&e8, 4, &[0, 1, 1, 0, 0, 0, 0, 0]).is_none());
         assert!(kneser_neighbor(&IntegralForm::diagonal(&[1, 1]), 2, &[1, 1]).is_none());
+    }
+
+    #[test]
+    fn incremental_norm_enumerator_matches_hyperbolic_isotropy() {
+        let hyperbolic = IntegralForm::new(vec![vec![0, 1], vec![1, 0]]).unwrap();
+        let expected = vec![vec![1, 0], vec![0, 1]];
+        assert_eq!(
+            isotropic_lines_mod_p(&hyperbolic, 2, 10),
+            Some(expected.clone())
+        );
+        assert_eq!(isotropic_lines_mod_p(&hyperbolic, 3, 10), Some(expected));
     }
 
     /// The static catalogue's label set, independent of anything neighbor

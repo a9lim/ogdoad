@@ -58,6 +58,10 @@ fn p_pow<const P: u128>(e: u128) -> u128 {
 }
 
 impl<const P: u128, const K: u128> Qp<P, K> {
+    fn modulus_unchecked() -> u128 {
+        p_pow::<P>(K)
+    }
+
     /// Validate that `P` is prime, `K` is positive, and `P^K` fits the carrier.
     pub fn assert_supported_params() {
         assert!(
@@ -77,14 +81,14 @@ impl<const P: u128, const K: u128> Qp<P, K> {
     /// The mantissa modulus `p^k`.
     pub fn modulus() -> u128 {
         Self::assert_supported_params();
-        p_pow::<P>(K)
+        Self::modulus_unchecked()
     }
 
     /// Build `p^{val} · unit`, normalizing: factor any `p` out of `unit` into the
     /// valuation, reduce the mantissa mod `p^k`. A `unit` reducing to `0 mod p^k`
     /// yields the field zero.
     fn normalized(unit_raw: u128, val: i128) -> Self {
-        let m = Self::modulus();
+        let m = Self::modulus_unchecked();
         let mut u = unit_raw % m;
         if u == 0 {
             return Qp { unit: 0, val: 0 };
@@ -110,7 +114,7 @@ impl<const P: u128, const K: u128> Qp<P, K> {
             nn /= pp;
             w += 1;
         }
-        let m = Self::modulus() as i128;
+        let m = Self::modulus_unchecked() as i128;
         let unit = (((nn % m) + m) % m) as u128;
         Qp { unit, val: w }
     }
@@ -118,10 +122,7 @@ impl<const P: u128, const K: u128> Qp<P, K> {
     /// `p^v` — the pure power, mantissa `1`. `from_p_power(-1)` is `1/p`.
     pub fn from_p_power(v: i128) -> Self {
         Self::assert_supported_params();
-        Qp {
-            unit: 1 % Self::modulus(),
-            val: v,
-        }
+        Qp { unit: 1, val: v }
     }
 
     /// Embed a rational number into `Q_p`: `from_int(num) · from_int(den)^{-1}`.
@@ -133,7 +134,6 @@ impl<const P: u128, const K: u128> Qp<P, K> {
 
     /// The p-adic valuation, or `None` for zero (whose valuation is `+∞`).
     pub fn valuation(&self) -> Option<i128> {
-        Self::assert_supported_params();
         if self.unit == 0 {
             None
         } else {
@@ -143,7 +143,6 @@ impl<const P: u128, const K: u128> Qp<P, K> {
 
     /// The unit mantissa in `[0, p^k)`.
     pub fn unit(&self) -> u128 {
-        Self::assert_supported_params();
         self.unit
     }
 }
@@ -175,21 +174,17 @@ impl<const P: u128, const K: u128> Scalar for Qp<P, K> {
 
     fn one() -> Self {
         Self::assert_supported_params();
-        Qp {
-            unit: 1 % Self::modulus(),
-            val: 0,
-        }
+        Qp { unit: 1, val: 0 }
     }
 
     fn add(&self, rhs: &Self) -> Self {
-        Self::assert_supported_params();
         if self.unit == 0 {
             return *rhs;
         }
         if rhs.unit == 0 {
             return *self;
         }
-        let m = Self::modulus();
+        let m = Self::modulus_unchecked();
         // Align on the smaller valuation: x + y = p^{vlo}·(ulo + p^{d}·uhi).
         let (lo, hi) = if self.val <= rhs.val {
             (self, rhs)
@@ -202,11 +197,7 @@ impl<const P: u128, const K: u128> Scalar for Qp<P, K> {
         } else {
             crate::scalar::mul_mod_u128(p_pow::<P>(d), hi.unit, m)
         };
-        let b = lo
-            .unit
-            .checked_add(shifted)
-            .expect("Qp addition mantissa sum exceeds u128")
-            % m;
+        let b = crate::scalar::add_mod_u128(lo.unit, shifted, m);
         if b == 0 {
             return Qp { unit: 0, val: 0 }; // cancelled below precision
         }
@@ -214,23 +205,21 @@ impl<const P: u128, const K: u128> Scalar for Qp<P, K> {
     }
 
     fn neg(&self) -> Self {
-        Self::assert_supported_params();
         if self.unit == 0 {
             return *self;
         }
         Qp {
-            unit: Self::modulus() - self.unit,
+            unit: Self::modulus_unchecked() - self.unit,
             val: self.val,
         }
     }
 
     fn mul(&self, rhs: &Self) -> Self {
-        Self::assert_supported_params();
         if self.unit == 0 || rhs.unit == 0 {
             return Qp { unit: 0, val: 0 };
         }
         // Product of units is a unit: no renormalization needed.
-        let m = Self::modulus();
+        let m = Self::modulus_unchecked();
         Qp {
             // mul_mod_u128, not checked_mul: for large precision K the modulus
             // p^k approaches i128::MAX, so a schoolbook unit×unit product
@@ -243,19 +232,22 @@ impl<const P: u128, const K: u128> Scalar for Qp<P, K> {
         }
     }
 
+    fn is_zero(&self) -> bool {
+        self.unit == 0
+    }
+
     fn characteristic() -> u128 {
         Self::assert_supported_params();
         0 // a genuine field of characteristic 0 — unlike Zp's modulus p^k
     }
 
     fn inv(&self) -> Option<Self> {
-        Self::assert_supported_params();
         // Total on nonzero: (p^v·u)^{-1} = p^{-v}·u^{-1}. THE field property,
         // versus Zp::inv which is None for any p-divisible element.
         if self.unit == 0 {
             return None;
         }
-        let uinv = mod_inverse_u128(self.unit, Self::modulus())?;
+        let uinv = mod_inverse_u128(self.unit, Self::modulus_unchecked())?;
         Some(Qp {
             unit: uinv,
             // checked_neg, not unary `-`: `val` at `i128::MIN` has no negation.

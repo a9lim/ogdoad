@@ -76,6 +76,12 @@ pub(crate) fn add_mod_u128(a: u128, b: u128, modulus: u128) -> u128 {
     debug_assert!(modulus > 0);
     let a = a % modulus;
     let b = b % modulus;
+    add_mod_u128_reduced(a, b, modulus)
+}
+
+#[inline]
+fn add_mod_u128_reduced(a: u128, b: u128, modulus: u128) -> u128 {
+    debug_assert!(modulus > 0 && a < modulus && b < modulus);
     if a >= modulus - b {
         a - (modulus - b)
     } else {
@@ -100,14 +106,18 @@ pub(crate) fn mul_mod_u128(mut a: u128, mut b: u128, modulus: u128) -> u128 {
         return 0;
     }
     a %= modulus;
+    b %= modulus;
+    if let Some(product) = a.checked_mul(b) {
+        return product % modulus;
+    }
     let mut acc = 0u128;
     while b > 0 {
         if b & 1 == 1 {
-            acc = add_mod_u128(acc, a, modulus);
+            acc = add_mod_u128_reduced(acc, a, modulus);
         }
         b >>= 1;
         if b > 0 {
-            a = add_mod_u128(a, a, modulus);
+            a = add_mod_u128_reduced(a, a, modulus);
         }
     }
     acc
@@ -288,6 +298,16 @@ macro_rules! impl_scalar_ops {
 /// [`inv`](Self::inv) returns `None` for nonunits and for inverses outside a
 /// backend's represented domain.
 pub trait Scalar: Clone + PartialEq + Debug + Display {
+    /// Whether addition and multiplication may be freely reassociated without
+    /// changing this backend's represented result or its checked failure boundary.
+    ///
+    /// This is an internal optimization contract, not merely an algebraic claim:
+    /// fixed-width exact backends can still leave it `false` when reassociation
+    /// would change which intermediate operation overflows. Generic algorithms use
+    /// the conservative default before selecting transformations such as Karatsuba.
+    #[doc(hidden)]
+    const REASSOCIATION_IS_EXACT: bool = false;
+
     /// The additive identity.
     fn zero() -> Self;
     /// The multiplicative identity.
@@ -538,5 +558,37 @@ mod ops_tests {
         let inv = mod_inverse_u128(2, m).expect("2 is a unit modulo 5^55");
         assert_eq!(mul_mod_u128(2, inv, m), 1);
         assert_eq!(reduce_i128_mod_u128(-2, m), m - 2);
+    }
+
+    #[test]
+    fn modular_multiply_fast_and_overflow_paths_match_reference() {
+        fn reference(mut a: u128, mut b: u128, modulus: u128) -> u128 {
+            a %= modulus;
+            b %= modulus;
+            let mut acc = 0u128;
+            while b > 0 {
+                if b & 1 == 1 {
+                    acc = add_mod_u128_reduced(acc, a, modulus);
+                }
+                b >>= 1;
+                if b > 0 {
+                    a = add_mod_u128_reduced(a, a, modulus);
+                }
+            }
+            acc
+        }
+
+        let large = (5u128).pow(55);
+        for modulus in [2, 5, 97, (1u128 << 64) - 59, large, u128::MAX] {
+            for a in [0, 1, 2, modulus / 2, modulus - 1, u128::MAX] {
+                for b in [0, 1, 3, modulus / 2, modulus - 1, u128::MAX] {
+                    assert_eq!(
+                        mul_mod_u128(a, b, modulus),
+                        reference(a, b, modulus),
+                        "a={a}, b={b}, modulus={modulus}"
+                    );
+                }
+            }
+        }
     }
 }

@@ -1,7 +1,7 @@
-//! Clifford algebras, quadratic forms, arithmetic, and combinatorial games.
+//! Clifford and Weyl algebras, quadratic forms, arithmetic, and combinatorial games.
 //!
 //! The pure-Rust core is generic over [`scalar::Scalar`]. Optional PyO3
-//! bindings are available behind the `python` feature. The public API has four
+//! bindings are available behind the `python` feature. The public API has five
 //! pillars:
 //!
 //! - [`scalar`] provides exact, finite, valued, global, surreal, and ordinal
@@ -12,6 +12,8 @@
 //!   Springer decompositions, and local--global and integral arithmetic.
 //! - [`games`] provides finite impartial, short partizan, misère, loopy,
 //!   thermographic, and game-exterior constructions.
+//! - [`weyl`] provides finite-support PBW Weyl algebras and their polynomial
+//!   differential action.
 //!
 //! Arbitrary partizan games form an abelian group, not a commutative scalar
 //! ring; game-valued constructions therefore remain separate from the generic
@@ -33,6 +35,7 @@ pub mod forms;
 pub mod games;
 pub(crate) mod linalg;
 pub mod scalar;
+pub mod weyl;
 
 #[cfg(feature = "python")]
 mod py;

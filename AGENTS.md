@@ -16,6 +16,7 @@ Before changing a subsystem, read its local instructions:
 | forms and invariants | `src/forms/AGENTS.md` |
 | integral forms and lattices | `src/forms/integral/AGENTS.md` |
 | games | `src/games/AGENTS.md` |
+| Weyl algebras | `src/weyl/AGENTS.md` |
 | Python bindings | `src/py/AGENTS.md` |
 | shared linear algebra | `src/linalg/AGENTS.md` |
 | expression language | `grundy/docs/spec.md` and `grundy/docs/implementation.md` |
@@ -27,8 +28,8 @@ changelogs.
 
 ## Architecture
 
-Ogdoad is a pure-Rust math core with optional PyO3 bindings. The four public
-pillars are `scalar`, `clifford`, `forms`, and `games`; `linalg` is
+Ogdoad is a pure-Rust math core with optional PyO3 bindings. The five public
+pillars are `scalar`, `clifford`, `forms`, `games`, and `weyl`; `linalg` is
 crate-private. Their public modules re-export children shallowly.
 
 - `scalar/` groups coefficient worlds by place and exactness.
@@ -37,6 +38,9 @@ crate-private. Their public modules re-export children shallowly.
 - `clifford/` owns metrics, multivectors, products, and metric-dependent GA.
 - `games/` is separate from scalar arithmetic except where a genuine
   commutative scalar subclass or checked bridge exists.
+- `weyl/` owns finite-support PBW algebras attached to alternating commutator
+  forms; it shares scalar and symplectic-form infrastructure without reusing
+  the finite Clifford blade representation.
 - `py/` monomorphizes selected Rust backends; PyO3 is never part of the default
   build.
 - `grundy/` is an unpublished workspace crate depending only on Ogdoad's public
@@ -66,6 +70,9 @@ crate-private. Their public modules re-export children shallowly.
    dimensions, indices, and ABI hooks.
 6. **Per-backend Python types do not mix.** Do not add a runtime-tagged
    any-scalar escape hatch.
+7. **Weyl PBW exponents are not Clifford blades.** Weyl algebras are
+   infinite-dimensional and use checked `u128` multidegrees. Positive-
+   characteristic centers and non-faithful polynomial actions remain explicit.
 
 ## Claim discipline
 
@@ -146,9 +153,10 @@ Additional gates:
   python scripts/check_writeups.py
   ```
 
-The product tests `associativity_*` and
-`general_product_reproduces_reduce_word_when_a_empty` are the core independent
-oracles. Add a focused test before trusting a new operation.
+The Clifford product tests `associativity_*` and
+`general_product_reproduces_reduce_word_when_a_empty` are its core independent
+oracles. The Weyl product independently compares its optimized standard path to
+the general PBW normalizer. Add a focused test before trusting a new operation.
 
 ## Documentation contract
 

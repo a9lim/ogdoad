@@ -6,8 +6,8 @@
 [![docs.rs](https://img.shields.io/docsrs/ogdoad)](https://docs.rs/ogdoad)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
-Ogdoad is a pure-Rust library for Clifford algebras, quadratic forms, and
-related arithmetic over exact, finite, local, transfinite, and game-adjacent
+Ogdoad is a pure-Rust library for Clifford and Weyl algebras, quadratic forms,
+and related arithmetic over exact, finite, local, transfinite, and game-adjacent
 coefficient systems. Optional PyO3 bindings expose selected concrete backends
 without entering the generic math core.
 
@@ -50,6 +50,7 @@ Representation limits are part of the API:
 | --- | --- |
 | `src/scalar/` | coefficient traits and exact, finite, valued, global, surreal, and ordinal backends |
 | `src/clifford/` | metrics, blades, multivectors, products, versors, spinors, and geometric-algebra constructions |
+| `src/weyl/` | alternating commutator forms, sparse PBW elements, Weyl products, filtrations, and the rank-one polynomial action |
 | `src/forms/` | quadratic-form classification, Clifford centers, Witt/Brauer and low Milnor-symbol theory, Springer and local--global arithmetic |
 | `src/forms/integral/` | lattices, discriminant forms, codes, theta series, genera, neighbors, and Weyl bridges |
 | `src/games/` | impartial, partizan, misere, loopy, thermographic, Witt--FIFO/Brown, octal-certificate, Hackenbush, and game-exterior constructions |
@@ -63,6 +64,14 @@ Public pillars re-export their children shallowly. Each source pillar has an
 `AGENTS.md` with its local invariants; [`docs/README.md`](docs/README.md)
 indexes the current project documentation.
 
+The Weyl pillar constructs
+`T(V)/(z_i*z_j - z_j*z_i - omega_ij)` from an alternating scalar-valued
+commutator form. `WeylAlgebra::standard(n)` uses PBW order
+`x_0,...,x_(n-1),d_0,...,d_(n-1)` with `[d_i,x_j] = delta_ij`. Elements have
+finite sparse support, while the algebra remains infinite-dimensional. In
+positive characteristic the enlarged center is retained explicitly; the
+ordinary polynomial differential action is therefore not claimed faithful.
+
 ## Use
 
 Rust:
@@ -70,6 +79,7 @@ Rust:
 ```sh
 cargo add ogdoad
 cargo run --example tour
+cargo run --example weyl
 ```
 
 Python 3.9 or newer:

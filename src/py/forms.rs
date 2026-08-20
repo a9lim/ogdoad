@@ -5879,7 +5879,7 @@ impl PyBinaryCode {
         self.inner.dim()
     }
     fn generators(&self) -> Vec<Vec<u8>> {
-        self.inner.generators().to_vec()
+        self.inner.generators()
     }
     fn size(&self) -> Option<u128> {
         self.inner.size()

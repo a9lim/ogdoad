@@ -53,6 +53,8 @@ impl std::fmt::Debug for Nimber {
 }
 
 impl Scalar for Nimber {
+    const REASSOCIATION_IS_EXACT: bool = true;
+
     fn zero() -> Self {
         Nimber(0)
     }

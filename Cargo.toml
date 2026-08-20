@@ -3,16 +3,16 @@ members = ["grundy"]
 
 [package]
 name = "ogdoad"
-version = "1.0.6"
+version = "1.0.7"
 edition = "2021"
-description = "Clifford algebras and quadratic forms over exact, finite, local, transfinite, and game-adjacent scalar backends."
+description = "Clifford and Weyl algebras, quadratic forms, and games over exact, finite, local, and transfinite scalar backends."
 license = "AGPL-3.0-or-later"
 authors = ["a9lim <mx@a9l.im>"]
 repository = "https://github.com/a9lim/ogdoad"
 homepage = "https://github.com/a9lim/ogdoad"
 documentation = "https://docs.rs/ogdoad"
 readme = "README.md"
-keywords = ["clifford-algebra", "surreal-numbers", "nimbers", "quadratic-forms", "game-theory"]
+keywords = ["clifford-algebra", "weyl-algebra", "surreal-numbers", "quadratic-forms", "game-theory"]
 categories = ["mathematics", "science"]
 # Keep the published crate to its compilable Rust surface, public examples and
 # tests, package metadata, and the instruction files colocated with the source.
@@ -20,6 +20,7 @@ categories = ["mathematics", "science"]
 # Python-distribution inputs remain in the repository but outside the `.crate`.
 include = [
     "/src/**",
+    "/benches/**",
     "/examples/**",
     "/tests/**",
     "/README.md",
@@ -37,6 +38,18 @@ no-default-features = false
 name = "ogdoad"
 # cdylib for the Python extension module; rlib for `cargo test` and examples.
 crate-type = ["cdylib", "rlib"]
+
+[[bench]]
+name = "data_structures"
+harness = false
+
+[[bench]]
+name = "optimization_followups"
+harness = false
+
+[[bench]]
+name = "major_speedups"
+harness = false
 
 [dependencies]
 # PyO3 is optional and only pulled in for the Python build. Gating it behind

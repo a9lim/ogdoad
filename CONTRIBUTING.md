@@ -6,8 +6,8 @@ on a "looks right" basis.
 
 ## Read the working notes first
 
-`AGENTS.md` is the map: the four pillars (`scalar/`, `clifford/`, `forms/`,
-`games/`) plus the PyO3 bindings. Each layer has a short local `AGENTS.md` with its
+`AGENTS.md` is the map: the five pillars (`scalar/`, `clifford/`, `forms/`,
+`games/`, `weyl/`) plus the PyO3 bindings. Each layer has a short local `AGENTS.md` with its
 module map and invariants. Read `docs/OPEN.md` before changing research claims or
 the open-question probes.
 
@@ -25,6 +25,9 @@ These are the invariants the whole thing rests on (full list in
 - **Signs go through the scalar's own `neg()`**, never a literal `-1` or a
   `characteristic()` branch — for nimbers `neg` is identity, so char-2
   sign-vanishing falls out for free.
+- **Weyl monomials are checked PBW multidegrees, not Clifford blades.** Preserve
+  positive-characteristic centers and the explicit non-faithfulness of the
+  ordinary polynomial action.
 - **Surreal arithmetic recurses only on exponents** (strictly simpler than the
   number). That's the entire termination argument.
 - **Verify, don't claim.** Add a test before trusting a new operation.

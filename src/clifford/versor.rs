@@ -8,6 +8,17 @@ use crate::scalar::Scalar;
 use std::collections::BTreeMap;
 
 impl<S: Scalar> CliffordAlgebra<S> {
+    fn reverse_norm_data(&self, v: &Multivector<S>) -> Option<(Multivector<S>, S, S)> {
+        let rev = self.reverse(v);
+        let vrev = self.mul(v, &rev);
+        let norm = self.scalar_part(&vrev);
+        if self.scalar(norm.clone()) != vrev {
+            return None;
+        }
+        let norm_inv = norm.inv()?;
+        Some((rev, norm, norm_inv))
+    }
+
     /// Projection onto the even subalgebra (the sum of even-grade blades). The
     /// even part is closed under the geometric product — it is a subalgebra.
     pub fn even_part(&self, v: &Multivector<S>) -> Multivector<S> {
@@ -86,23 +97,15 @@ impl<S: Scalar> CliffordAlgebra<S> {
     /// a pure, invertible scalar; `None` if `v ṽ` carries any non-scalar grade or
     /// its scalar part is not invertible in the backend.
     pub(super) fn pure_scalar_norm(&self, v: &Multivector<S>) -> Option<S> {
-        let rev = self.reverse(v);
-        let vrev = self.mul(v, &rev);
-        let n = self.scalar_part(&vrev);
-        if self.scalar(n.clone()) != vrev {
-            return None;
-        }
-        n.inv()?;
-        Some(n)
+        Some(self.reverse_norm_data(v)?.1)
     }
 
     /// The inverse formula `v⁻¹ = ṽ / (v ṽ)`, returned when
     /// `v * reverse(v)` is a pure invertible scalar. Every invertible versor
     /// satisfies this gate, but the gate alone does not prove versor membership.
     pub fn versor_inverse(&self, v: &Multivector<S>) -> Option<Multivector<S>> {
-        let n = self.pure_scalar_norm(v)?;
-        let ninv = n.inv()?;
-        Some(self.scalar_mul(&ninv, &self.reverse(v)))
+        let (reverse, _norm, norm_inv) = self.reverse_norm_data(v)?;
+        Some(self.scalar_mul(&norm_inv, &reverse))
     }
 
     /// The untwisted sandwich expression `v x v⁻¹`. For an even witnessed
@@ -219,6 +222,30 @@ impl<S: Scalar> CliffordAlgebra<S> {
 
     /// The **scalar product** ⟨a b⟩₀ — the grade-0 part of the geometric product.
     pub fn scalar_product(&self, a: &Multivector<S>, b: &Multivector<S>) -> S {
+        if self.metric.is_orthogonal() {
+            // In an orthogonal wedge basis, e_S e_T has scalar grade exactly
+            // when S = T. Intersect the sparse supports instead of constructing
+            // every non-scalar term of the full Cartesian product.
+            let (smaller, larger) = if a.terms.len() <= b.terms.len() {
+                (&a.terms, &b.terms)
+            } else {
+                (&b.terms, &a.terms)
+            };
+            let mut scalar = S::zero();
+            for (&blade, left) in smaller {
+                let Some(right) = larger.get(&blade) else {
+                    continue;
+                };
+                if let Some((product_blade, coefficient)) = self
+                    .metric
+                    .geom_product_blades_orthogonal_scaled(blade, blade, left.mul(right))
+                {
+                    debug_assert_eq!(product_blade, 0);
+                    scalar = scalar.add(&coefficient);
+                }
+            }
+            return scalar;
+        }
         self.scalar_part(&self.mul(a, b))
     }
 
@@ -312,6 +339,37 @@ mod tests {
         assert!(alg.anticommutator(&e0, &e1).is_zero());
         let two_e01 = alg.scalar_mul(&r(2), &alg.wedge(&e0, &e1));
         assert_eq!(alg.commutator(&e0, &e1), two_e01);
+    }
+
+    #[test]
+    fn orthogonal_scalar_product_matches_full_product_oracle() {
+        let alg = CliffordAlgebra::new(6, Metric::diagonal((1..=6).map(r).collect()));
+        let mut a = alg.zero();
+        let mut b = alg.zero();
+        for mask in 0..(1u128 << alg.dim()) {
+            let blade = alg.blade_mask(mask);
+            if !mask.is_multiple_of(5) {
+                a = alg.add(&a, &alg.scalar_mul(&r((mask % 7) as i128 - 3), &blade));
+            }
+            if !mask.is_multiple_of(3) {
+                b = alg.add(&b, &alg.scalar_mul(&r((mask % 11) as i128 - 5), &blade));
+            }
+        }
+        assert_eq!(
+            alg.scalar_product(&a, &b),
+            alg.scalar_part(&alg.mul(&a, &b))
+        );
+    }
+
+    #[test]
+    fn nonorthogonal_scalar_product_keeps_full_product_semantics() {
+        let alg = CliffordAlgebra::new(2, Metric::new(vec![r(2), r(3)], [((0, 1), r(5))]));
+        let a = alg.add(&alg.scalar(r(7)), &alg.wedge(&alg.e(0), &alg.e(1)));
+        let b = alg.add(&alg.e(0), &alg.e(1));
+        assert_eq!(
+            alg.scalar_product(&a, &b),
+            alg.scalar_part(&alg.mul(&a, &b))
+        );
     }
 
     #[test]

@@ -40,7 +40,7 @@ mod product;
 mod terms;
 
 pub use algebra::CliffordAlgebra;
-pub(crate) use basis::grade_k_masks;
+pub(crate) use basis::{bit_indices, grade_k_masks};
 pub use basis::{bits, grade, MAX_BASIS_DIM};
 pub use metric::Metric;
 pub use multivector::Multivector;
@@ -49,7 +49,7 @@ pub(crate) use terms::add_term;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::scalar::{Integer, Nimber, Ordinal, Rational, Scalar, Surreal};
+    use crate::scalar::{Fp, Integer, Nimber, Ordinal, Rational, Scalar, Surreal};
     use std::collections::BTreeMap;
 
     fn r(n: i128) -> Rational {
@@ -106,6 +106,80 @@ mod tests {
         // e_0e_1 · e_0e_1 = -q_0q_1.
         expect_scalar.insert(0, r(-6));
         assert_eq!(metric.geom_product_blades(0b011, 0b011), expect_scalar);
+    }
+
+    #[test]
+    fn broadword_wedge_parity_matches_the_bitwise_oracle() {
+        fn oracle(a: u128, b: u128) -> bool {
+            let mut swaps = 0u32;
+            for index in bit_indices(a) {
+                swaps ^= (b & ((1u128 << index) - 1)).count_ones() & 1;
+            }
+            swaps == 1
+        }
+
+        for a in 0u128..256 {
+            for b in 0u128..256 {
+                assert_eq!(basis::wedge_is_negative(a, b), oracle(a, b));
+            }
+        }
+        let boundary_cases = [0, 1, 1 << 63, 1 << 64, 1 << 127, u128::MAX];
+        for &a in &boundary_cases {
+            for &b in &boundary_cases {
+                assert_eq!(basis::wedge_is_negative(a, b), oracle(a, b));
+            }
+        }
+    }
+
+    #[test]
+    fn dense_orthogonal_accumulator_matches_the_independent_word_oracle() {
+        type F = Fp<17>;
+        let alg = CliffordAlgebra::new(6, Metric::diagonal(vec![F::from_int(2); 6]));
+        let dense = |offset: u128| Multivector {
+            terms: (0u128..64)
+                .map(|blade| (blade, F::from_u128((blade + offset) % 16 + 1)))
+                .collect(),
+        };
+        let left = dense(0);
+        let right = dense(7);
+
+        let mut expected = alg.zero();
+        for (&left_blade, left_coefficient) in &left.terms {
+            for (&right_blade, right_coefficient) in &right.terms {
+                let word: Vec<_> = bit_indices(left_blade)
+                    .chain(bit_indices(right_blade))
+                    .collect();
+                let product = Multivector {
+                    terms: alg.metric.reduce_word(&word),
+                };
+                expected = alg.add(
+                    &expected,
+                    &alg.scalar_mul(&left_coefficient.mul(right_coefficient), &product),
+                );
+            }
+        }
+        assert_eq!(alg.mul(&left, &right), expected);
+    }
+
+    #[test]
+    fn nonorthogonal_blade_products_persist_across_calls_and_clones() {
+        let mut b = BTreeMap::new();
+        b.insert((0usize, 1usize), r(1));
+        b.insert((1usize, 2usize), r(-1));
+        let alg = CliffordAlgebra::new(3, Metric::new(vec![r(2), r(3), r(5)], b.clone()));
+        let left = alg.add(&alg.e(0), &alg.blade(&[0, 1, 2]));
+        let right = alg.add(&alg.e(1), &alg.blade(&[0, 2]));
+        let first = alg.mul(&left, &right);
+        let populated = alg.product_cache_len();
+        assert!(populated > 0);
+        assert_eq!(alg.mul(&left, &right), first);
+        assert_eq!(alg.product_cache_len(), populated);
+
+        let cloned = alg.clone();
+        assert_eq!(cloned.product_cache_len(), populated);
+        assert_eq!(cloned.mul(&left, &right), first);
+        let fresh = CliffordAlgebra::new(3, Metric::new(vec![r(2), r(3), r(5)], b));
+        assert_eq!(alg, fresh, "memo state is not part of algebra identity");
     }
 
     #[test]

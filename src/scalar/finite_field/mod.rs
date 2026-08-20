@@ -75,23 +75,29 @@ pub trait FiniteField: Scalar + Copy {
     /// The **degree** of `self` over `F_p`: the least `d | ext_degree` with
     /// `x^{p^d} = x`, i.e. the dimension of the smallest subfield containing it.
     fn degree(&self) -> usize {
-        for d in divisors(Self::ext_degree()) {
-            if self.frobenius_iter(d) == *self {
-                return d;
+        let extension_degree = Self::ext_degree();
+        let mut conjugate = *self;
+        for degree in 1..=extension_degree {
+            conjugate = conjugate.frobenius();
+            if conjugate == *self {
+                return degree;
             }
         }
-        Self::ext_degree()
+        extension_degree
     }
 
     /// The distinct **Galois conjugates** `x, x^p, …, x^{p^{d-1}}` (`d = degree`) —
     /// the roots of the minimal polynomial, each once.
     fn conjugates(&self) -> Vec<Self> {
-        let d = self.degree();
-        let mut out = Vec::with_capacity(d);
-        let mut c = *self;
-        for _ in 0..d {
-            out.push(c);
-            c = c.frobenius();
+        let extension_degree = Self::ext_degree();
+        let mut out = Vec::with_capacity(extension_degree);
+        let mut conjugate = *self;
+        for _ in 0..extension_degree {
+            out.push(conjugate);
+            conjugate = conjugate.frobenius();
+            if conjugate == *self {
+                break;
+            }
         }
         out
     }
@@ -189,9 +195,4 @@ pub trait FiniteField: Scalar + Copy {
         }
         None
     }
-}
-
-/// The divisors of `n` in ascending order (small `n` = a field's extension degree).
-fn divisors(n: usize) -> Vec<usize> {
-    (1..=n).filter(|d| n.is_multiple_of(*d)).collect()
 }

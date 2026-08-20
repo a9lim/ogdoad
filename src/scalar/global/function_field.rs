@@ -31,6 +31,10 @@
 use crate::scalar::{ExactFieldScalar, Poly, Scalar};
 use std::fmt;
 
+/// Below this polynomial degree, constructing the products and reducing once
+/// is cheaper than four exact divisions around the two cross-gcds.
+const CROSS_CANCEL_MIN_DEGREE: usize = 32;
+
 /// An element of `F_q(t)` (more generally `S(t)` over any field `S`): `num / den`
 /// with `den` monic.
 #[derive(Clone)]
@@ -59,9 +63,18 @@ impl<S: ExactFieldScalar> RationalFunction<S> {
             debug_assert!(nr.is_zero() && dr.is_zero(), "gcd must divide both");
             (nq, dq)
         };
+        Self::from_coprime_polys(num, den)
+    }
+
+    /// Assemble an already-coprime fraction, normalizing only the denominator.
+    fn from_coprime_polys(num: Poly<S>, den: Poly<S>) -> Self {
+        debug_assert!(!den.is_zero());
+        if den.leading() == Some(&S::one()) {
+            return RationalFunction { num, den };
+        }
         let lead_inv = den
             .leading()
-            .unwrap()
+            .expect("nonzero denominator has a leading coefficient")
             .inv()
             .expect("a field's nonzero leading coefficient inverts");
         RationalFunction {
@@ -77,7 +90,10 @@ impl<S: ExactFieldScalar> RationalFunction<S> {
 
     /// A polynomial as a rational function `p / 1`.
     pub fn from_poly(p: Poly<S>) -> Self {
-        RationalFunction::from_polys(p, Poly::one())
+        RationalFunction {
+            num: p,
+            den: Poly::one(),
+        }
     }
 
     /// Embed a base scalar as the constant `s / 1`.
@@ -99,12 +115,50 @@ impl<S: ExactFieldScalar> RationalFunction<S> {
     pub fn den(&self) -> &Poly<S> {
         &self.den
     }
+
+    fn has_unit_denominator(&self) -> bool {
+        // Canonical denominators are monic, so a constant denominator is 1.
+        self.den.degree() == Some(0)
+    }
+
+    fn is_one(&self) -> bool {
+        self.has_unit_denominator()
+            && self.num.degree() == Some(0)
+            && self.num.leading() == Some(&S::one())
+    }
+
+    fn polynomial_is_one(polynomial: &Poly<S>) -> bool {
+        polynomial.degree() == Some(0) && polynomial.leading() == Some(&S::one())
+    }
+
+    fn exact_quotient(dividend: &Poly<S>, divisor: &Poly<S>) -> Poly<S> {
+        if Self::polynomial_is_one(divisor) {
+            return dividend.clone();
+        }
+        let (quotient, remainder) = dividend.divrem(divisor);
+        debug_assert!(remainder.is_zero(), "known factor must divide exactly");
+        quotient
+    }
+
+    fn should_cross_cancel_with(&self, rhs: &Self) -> bool {
+        [
+            self.num.degree(),
+            self.den.degree(),
+            rhs.num.degree(),
+            rhs.den.degree(),
+        ]
+        .into_iter()
+        .flatten()
+        .max()
+        .is_some_and(|degree| degree >= CROSS_CANCEL_MIN_DEGREE)
+    }
 }
 
 impl<S: ExactFieldScalar> PartialEq for RationalFunction<S> {
-    /// Cross-multiplication: `a/b = c/d ⇔ a·d = c·b`.
+    /// Canonical pairs are equal exactly when both stored polynomials are equal.
+    /// Every construction path gcd-reduces and makes the denominator monic.
     fn eq(&self, other: &Self) -> bool {
-        self.num.mul(&other.den) == other.num.mul(&self.den)
+        self.num == other.num && self.den == other.den
     }
 }
 
@@ -141,10 +195,46 @@ impl<S: ExactFieldScalar> Scalar for RationalFunction<S> {
     }
 
     fn add(&self, rhs: &Self) -> Self {
-        // a/b + c/d = (a·d + c·b) / (b·d)
-        let num = self.num.mul(&rhs.den).add(&rhs.num.mul(&self.den));
-        let den = self.den.mul(&rhs.den);
-        RationalFunction::from_polys(num, den)
+        if self.is_zero() {
+            return rhs.clone();
+        }
+        if rhs.is_zero() {
+            return self.clone();
+        }
+        if self.has_unit_denominator() && rhs.has_unit_denominator() {
+            return RationalFunction::from_poly(self.num.add(&rhs.num));
+        }
+        if self.den == rhs.den {
+            return RationalFunction::from_polys(self.num.add(&rhs.num), self.den.clone());
+        }
+        // Knuth's gcd-first fraction addition. With g = gcd(b,d), form
+        // t = a(d/g) + c(b/g), then cancel only gcd(t,g). This avoids building
+        // the duplicated denominator factor and running a gcd over the two
+        // full-size products.
+        let common_denominator = self.den.gcd(&rhs.den);
+        if Self::polynomial_is_one(&common_denominator) {
+            let numerator = self.num.mul(&rhs.den).add(&rhs.num.mul(&self.den));
+            if numerator.is_zero() {
+                return Self::zero();
+            }
+            return RationalFunction::from_coprime_polys(numerator, self.den.mul(&rhs.den));
+        }
+        let left_reduced_denominator = Self::exact_quotient(&self.den, &common_denominator);
+        let right_reduced_denominator = Self::exact_quotient(&rhs.den, &common_denominator);
+        let numerator = self
+            .num
+            .mul(&right_reduced_denominator)
+            .add(&rhs.num.mul(&left_reduced_denominator));
+        if numerator.is_zero() {
+            return Self::zero();
+        }
+        let cancellation = numerator.gcd(&common_denominator);
+        let numerator = Self::exact_quotient(&numerator, &cancellation);
+        let right_denominator = Self::exact_quotient(&rhs.den, &cancellation);
+        RationalFunction::from_coprime_polys(
+            numerator,
+            left_reduced_denominator.mul(&right_denominator),
+        )
     }
 
     fn neg(&self) -> Self {
@@ -155,7 +245,42 @@ impl<S: ExactFieldScalar> Scalar for RationalFunction<S> {
     }
 
     fn mul(&self, rhs: &Self) -> Self {
-        RationalFunction::from_polys(self.num.mul(&rhs.num), self.den.mul(&rhs.den))
+        if self.is_zero() || rhs.is_zero() {
+            return Self::zero();
+        }
+        if self.is_one() {
+            return rhs.clone();
+        }
+        if rhs.is_one() {
+            return self.clone();
+        }
+        if self.has_unit_denominator() && rhs.has_unit_denominator() {
+            return RationalFunction::from_poly(self.num.mul(&rhs.num));
+        }
+        if !self.should_cross_cancel_with(rhs) {
+            return RationalFunction::from_polys(self.num.mul(&rhs.num), self.den.mul(&rhs.den));
+        }
+        // Canonical inputs are internally coprime. Cancelling gcd(a,d) and
+        // gcd(c,b) before multiplication therefore produces a canonical pair
+        // directly while keeping polynomial intermediates small.
+        let left_cross = if rhs.has_unit_denominator() {
+            Poly::one()
+        } else {
+            self.num.gcd(&rhs.den)
+        };
+        let right_cross = if self.has_unit_denominator() {
+            Poly::one()
+        } else {
+            rhs.num.gcd(&self.den)
+        };
+        let left_numerator = Self::exact_quotient(&self.num, &left_cross);
+        let right_denominator = Self::exact_quotient(&rhs.den, &left_cross);
+        let right_numerator = Self::exact_quotient(&rhs.num, &right_cross);
+        let left_denominator = Self::exact_quotient(&self.den, &right_cross);
+        RationalFunction::from_coprime_polys(
+            left_numerator.mul(&right_numerator),
+            left_denominator.mul(&right_denominator),
+        )
     }
 
     fn characteristic() -> u128 {
@@ -167,7 +292,7 @@ impl<S: ExactFieldScalar> Scalar for RationalFunction<S> {
             return None;
         }
         // (num/den)⁻¹ = den/num — total on nonzero, no gcd needed.
-        Some(RationalFunction::from_polys(
+        Some(RationalFunction::from_coprime_polys(
             self.den.clone(),
             self.num.clone(),
         ))
@@ -210,10 +335,12 @@ mod tests {
     }
 
     #[test]
-    fn cross_multiplication_equality() {
+    fn canonical_structural_equality() {
         // t/t = 1; (2t)/2 = t; common factors are removed on construction.
         assert_eq!(rf(&[0, 1], &[0, 1]), F::one());
         assert_eq!(rf(&[0, 2], &[2]), F::t());
+        assert_eq!(F::t().add(&F::zero()), F::t());
+        assert_eq!(F::t().mul(&F::one()), F::t());
         assert_ne!(F::t(), F::one());
     }
 
@@ -226,6 +353,57 @@ mod tests {
             x.num(),
             &Poly::new(vec![Fp::<5>::from_int(1), Fp::<5>::from_int(3)])
         );
+    }
+
+    fn linear(constant: i128) -> Poly<Fp<5>> {
+        Poly::new(vec![Fp::<5>::from_int(constant), Fp::<5>::one()])
+    }
+
+    fn polynomial_power(mut base: Poly<Fp<5>>, mut exponent: usize) -> Poly<Fp<5>> {
+        let mut out = Poly::one();
+        while exponent > 0 {
+            if exponent & 1 == 1 {
+                out = out.mul(&base);
+            }
+            exponent >>= 1;
+            if exponent > 0 {
+                base = base.mul(&base);
+            }
+        }
+        out
+    }
+
+    #[test]
+    fn multiplication_cross_cancels_before_forming_products() {
+        let p = polynomial_power(linear(0), 16);
+        let q = polynomial_power(linear(1), 16);
+        let u = polynomial_power(linear(2), 16);
+        let v = polynomial_power(linear(3), 16);
+        let w = polynomial_power(linear(4), 16);
+        let z = polynomial_power(
+            Poly::new(vec![Fp::<5>::from_int(2), Fp::<5>::zero(), Fp::<5>::one()]),
+            16,
+        );
+        let left = RationalFunction::from_polys(p.mul(&u), q.mul(&v));
+        let right = RationalFunction::from_polys(q.mul(&w), p.mul(&z));
+        assert!(left.should_cross_cancel_with(&right));
+        let expected = RationalFunction::from_polys(u.mul(&w), v.mul(&z));
+        assert_eq!(left.mul(&right), expected);
+    }
+
+    #[test]
+    fn addition_reduces_a_shared_denominator_before_products() {
+        let p = linear(0);
+        let q = linear(1);
+        let u = linear(2);
+        let v = linear(3);
+        let w = linear(4);
+        let left = RationalFunction::from_polys(u, p.mul(&q));
+        let right = RationalFunction::from_polys(w, p.mul(&v));
+        let expected_numerator = left.num.mul(&right.den).add(&right.num.mul(&left.den));
+        let expected_denominator = left.den.mul(&right.den);
+        let expected = RationalFunction::from_polys(expected_numerator, expected_denominator);
+        assert_eq!(left.add(&right), expected);
     }
 
     #[test]

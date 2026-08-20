@@ -2,11 +2,11 @@
 //! contraction with the bilinear form reconstructed from `q`, `b`, and `a`;
 //! orthogonal metrics use a single-blade fast path.
 
-use super::basis::wedge_sign;
+use super::basis::wedge_is_negative;
 use super::metric::Metric;
 use super::terms::{add_term, merge, scale};
 use crate::scalar::Scalar;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 
 impl<S: Scalar> Metric<S> {
     fn a_val(&self, i: usize, j: usize) -> S {
@@ -50,7 +50,11 @@ impl<S: Scalar> Metric<S> {
     fn vec_times_blade(&self, i: usize, t: u128) -> BTreeMap<u128, S> {
         let mut out = self.contract_vec_blade(i, t);
         if t & (1 << i) == 0 {
-            let sign = wedge_sign::<S>(1 << i, t);
+            let sign = if wedge_is_negative(1 << i, t) {
+                S::one().neg()
+            } else {
+                S::one()
+            };
             add_term(&mut out, t | (1 << i), &sign);
         }
         out
@@ -66,26 +70,52 @@ impl<S: Scalar> Metric<S> {
 
     /// Fast path for an orthogonal basis: `e_S e_T` is a single blade `e_{S△T}`
     /// times the reordering sign and the product of `q_i` over repeated indices.
-    fn geom_product_blades_orthogonal(&self, s: u128, t: u128) -> BTreeMap<u128, S> {
-        let mut coeff = wedge_sign::<S>(s, t);
+    #[cfg(test)]
+    pub(super) fn geom_product_blades_orthogonal(&self, s: u128, t: u128) -> Option<(u128, S)> {
+        self.geom_product_blades_orthogonal_scaled(s, t, S::one())
+    }
+
+    pub(crate) fn geom_product_blades_orthogonal_scaled(
+        &self,
+        s: u128,
+        t: u128,
+        mut coeff: S,
+    ) -> Option<(u128, S)> {
         let mut common = s & t;
         while common != 0 {
             let i = common.trailing_zeros() as usize;
             common &= common - 1;
-            coeff = coeff.mul(&self.q_val(i));
+            coeff = coeff.mul(self.q_ref(i));
             if coeff.is_zero() {
-                return BTreeMap::new();
+                return None;
             }
         }
-        let mut m = BTreeMap::new();
-        m.insert(s ^ t, coeff);
-        m
+        if wedge_is_negative(s, t) {
+            coeff = coeff.neg();
+        }
+        Some((s ^ t, coeff))
     }
 
     /// The general-bilinear-form geometric product of two wedge blades.
+    #[cfg(test)]
     pub(super) fn geom_product_blades(&self, s: u128, t: u128) -> BTreeMap<u128, S> {
         if self.is_orthogonal() {
-            return self.geom_product_blades_orthogonal(s, t);
+            return self
+                .geom_product_blades_orthogonal(s, t)
+                .into_iter()
+                .collect();
+        }
+        self.geom_product_blades_memoized(s, t, &mut HashMap::new())
+    }
+
+    pub(super) fn geom_product_blades_memoized(
+        &self,
+        s: u128,
+        t: u128,
+        memo: &mut HashMap<(u128, u128), BTreeMap<u128, S>>,
+    ) -> BTreeMap<u128, S> {
+        if let Some(product) = memo.get(&(s, t)) {
+            return product.clone();
         }
         if s == 0 {
             let mut m = BTreeMap::new();
@@ -94,15 +124,22 @@ impl<S: Scalar> Metric<S> {
         }
         let i = s.trailing_zeros() as usize;
         let s_rest = s ^ (1 << i);
-        let xy = self.geom_product_blades(s_rest, t);
+        let xy = self.geom_product_blades_memoized(s_rest, t, memo);
         let part1 = self.vec_times_mv(i, &xy);
         let contraction = self.contract_vec_blade(i, s_rest);
         let mut part2: BTreeMap<u128, S> = BTreeMap::new();
         for (&u, cu) in &contraction {
-            merge(&mut part2, scale(self.geom_product_blades(u, t), cu));
+            merge(
+                &mut part2,
+                scale(self.geom_product_blades_memoized(u, t, memo), cu),
+            );
         }
         let mut out = part1;
-        merge(&mut out, scale(part2, &S::one().neg()));
+        for coefficient in part2.values_mut() {
+            *coefficient = coefficient.neg();
+        }
+        merge(&mut out, part2);
+        memo.insert((s, t), out.clone());
         out
     }
 

@@ -17,7 +17,7 @@
 //! conjecture.
 
 use crate::games::{mex, Game};
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::fmt;
 use std::sync::Arc;
 
@@ -82,10 +82,45 @@ impl WittFifoCoin {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct CorePosition {
-    untouched: Vec<bool>,
-    queue: Vec<WittFifoCoinId>,
+    untouched: [u128; 3],
+    queue: VecDeque<WittFifoCoinId>,
     ko: bool,
     charge: bool,
+}
+
+impl CorePosition {
+    fn with_untouched(coin_count: usize) -> Self {
+        debug_assert!(coin_count <= 384);
+        let mut untouched = [0u128; 3];
+        for coin in 0..coin_count {
+            untouched[coin / 128] |= 1u128 << (coin % 128);
+        }
+        CorePosition {
+            untouched,
+            queue: VecDeque::new(),
+            ko: false,
+            charge: false,
+        }
+    }
+
+    fn is_untouched(&self, coin: usize) -> bool {
+        self.untouched[coin / 128] & (1u128 << (coin % 128)) != 0
+    }
+
+    fn open(&mut self, coin: usize) {
+        self.untouched[coin / 128] &= !(1u128 << (coin % 128));
+    }
+
+    fn untouched_count(&self) -> usize {
+        self.untouched
+            .iter()
+            .map(|word| word.count_ones() as usize)
+            .sum()
+    }
+
+    fn untouched_empty(&self) -> bool {
+        self.untouched.iter().all(|&word| word == 0)
+    }
 }
 
 /// A coherent position of the arena. Fields are opaque so positions cannot be
@@ -100,14 +135,12 @@ pub struct WittFifoPosition {
 impl WittFifoPosition {
     /// Number of loaded coins not yet opened.
     pub fn untouched_count(&self) -> usize {
-        self.core
-            .as_ref()
-            .map_or(0, |core| core.untouched.iter().filter(|&&u| u).count())
+        self.core.as_ref().map_or(0, CorePosition::untouched_count)
     }
 
     /// FIFO queue of coins that are open and not yet closed.
-    pub fn queue(&self) -> &[WittFifoCoinId] {
-        self.core.as_ref().map_or(&[], |core| core.queue.as_slice())
+    pub fn queue(&self) -> impl Iterator<Item = WittFifoCoinId> + '_ {
+        self.core.iter().flat_map(|core| core.queue.iter().copied())
     }
 
     /// Current one-step ko bit. The optionless sink reports `false`.
@@ -124,7 +157,7 @@ impl WittFifoPosition {
     pub fn is_drained(&self) -> bool {
         self.core
             .as_ref()
-            .is_some_and(|core| core.queue.is_empty() && core.untouched.iter().all(|&u| !u))
+            .is_some_and(|core| core.queue.is_empty() && core.untouched_empty())
     }
 
     /// Whether this is the optionless sink reached by the charge-one tail.
@@ -135,9 +168,9 @@ impl WittFifoPosition {
     /// Exact number of core OPEN/CLOSE moves remaining. The optional tail is not
     /// included.
     pub fn core_clock(&self) -> usize {
-        self.core.as_ref().map_or(0, |core| {
-            2 * core.untouched.iter().filter(|&&u| u).count() + core.queue.len()
-        })
+        self.core
+            .as_ref()
+            .map_or(0, |core| 2 * core.untouched_count() + core.queue.len())
     }
 }
 
@@ -362,12 +395,7 @@ impl WittFifoArena {
         WittFifoPosition {
             owner: self.owner.clone(),
             owner_id: Arc::as_ptr(&self.owner) as usize,
-            core: Some(CorePosition {
-                untouched: vec![true; self.coins.len()],
-                queue: Vec::new(),
-                ko: false,
-                charge: false,
-            }),
+            core: Some(CorePosition::with_untouched(self.coins.len())),
         }
     }
 
@@ -376,9 +404,7 @@ impl WittFifoArena {
             return Err(WittFifoError::PositionArenaMismatch);
         }
         if let Some(core) = &position.core {
-            if core.untouched.len() != self.coins.len()
-                || core.queue.iter().any(|coin| coin.0 >= self.coins.len())
-            {
+            if core.queue.iter().any(|coin| coin.0 >= self.coins.len()) {
                 return Err(WittFifoError::PositionArenaMismatch);
             }
         }
@@ -394,7 +420,7 @@ impl WittFifoArena {
         let Some(core) = &position.core else {
             return Ok(Vec::new());
         };
-        let untouched_empty = core.untouched.iter().all(|&u| !u);
+        let untouched_empty = core.untouched_empty();
         if untouched_empty && core.queue.is_empty() {
             return Ok(if core.charge {
                 vec![WittFifoMove::Tail]
@@ -403,13 +429,9 @@ impl WittFifoArena {
             });
         }
 
-        let mut moves: Vec<WittFifoMove> = core
-            .untouched
-            .iter()
-            .enumerate()
-            .filter_map(|(i, &untouched)| {
-                untouched.then_some(WittFifoMove::Open(WittFifoCoinId(i)))
-            })
+        let mut moves: Vec<WittFifoMove> = (0..self.coins.len())
+            .filter(|&coin| core.is_untouched(coin))
+            .map(|coin| WittFifoMove::Open(WittFifoCoinId(coin)))
             .collect();
         if !core.queue.is_empty() && (!core.ko || untouched_empty) {
             moves.push(WittFifoMove::Close);
@@ -429,7 +451,7 @@ impl WittFifoArena {
         };
         match movement {
             WittFifoMove::Open(coin) => {
-                if coin.0 >= self.coins.len() || !core.untouched[coin.0] {
+                if coin.0 >= self.coins.len() || !core.is_untouched(coin.0) {
                     return Err(WittFifoError::IllegalMove);
                 }
                 let was_empty = core.queue.is_empty();
@@ -440,21 +462,21 @@ impl WittFifoArena {
                 {
                     core.charge ^= data.edge_weight;
                 }
-                core.untouched[coin.0] = false;
-                core.queue.push(coin);
+                core.open(coin.0);
+                core.queue.push_back(coin);
                 core.ko = was_empty;
             }
             WittFifoMove::Close => {
-                let untouched_empty = core.untouched.iter().all(|&u| !u);
+                let untouched_empty = core.untouched_empty();
                 if core.queue.is_empty() || (core.ko && !untouched_empty) {
                     return Err(WittFifoError::IllegalMove);
                 }
-                let front = core.queue.remove(0);
+                let front = core.queue.pop_front().expect("queue was checked nonempty");
                 core.charge ^= self.coins[front.0].close_charge;
                 core.ko = false;
             }
             WittFifoMove::Tail => {
-                let drained = core.queue.is_empty() && core.untouched.iter().all(|&u| !u);
+                let drained = core.queue.is_empty() && core.untouched_empty();
                 if !drained || !core.charge {
                     return Err(WittFifoError::IllegalMove);
                 }
@@ -482,18 +504,16 @@ impl WittFifoArena {
         let Some(core) = &position.core else {
             return Ok(None);
         };
-        if core.untouched.iter().any(|&u| u) {
-            if let Some(&front) = core.queue.first() {
+        if !core.untouched_empty() {
+            if let Some(&front) = core.queue.front() {
                 if let Some(mate) = self.coins[front.0].potential_mate {
-                    if core.untouched[mate.0] {
+                    if core.is_untouched(mate.0) {
                         return Ok(Some(WittFifoMove::Open(mate)));
                     }
                 }
             }
-            let least = core
-                .untouched
-                .iter()
-                .position(|&u| u)
+            let least = (0..self.coins.len())
+                .find(|&coin| core.is_untouched(coin))
                 .expect("an untouched coin exists");
             return Ok(Some(WittFifoMove::Open(WittFifoCoinId(least))));
         }
@@ -641,16 +661,20 @@ fn evaluate_quadratic(vector: u128, diagonal: &[bool], polar: &[u128]) -> bool {
 }
 
 fn adapted_frame(dimension: usize, polar: &[u128]) -> (Vec<u128>, Vec<Option<usize>>) {
-    let mut remaining: Vec<u128> = (0..dimension).map(|i| 1u128 << i).collect();
+    let mut remaining: VecDeque<u128> = (0..dimension).map(|i| 1u128 << i).collect();
     let mut basis = Vec::with_capacity(dimension);
     let mut mates = Vec::with_capacity(dimension);
     while !remaining.is_empty() {
-        let left = remaining.remove(0);
+        let left = remaining
+            .pop_front()
+            .expect("the remaining frame is nonempty");
         if let Some(position) = remaining
             .iter()
             .position(|&right| polar_pair(left, right, polar))
         {
-            let right = remaining.remove(position);
+            let right = remaining
+                .remove(position)
+                .expect("the mate position came from this queue");
             for vector in &mut remaining {
                 if polar_pair(*vector, right, polar) {
                     *vector ^= left;
@@ -889,5 +913,27 @@ mod tests {
         let sink = arena.play(&position, WittFifoMove::Tail).unwrap();
         assert!(sink.is_sink());
         assert!(arena.legal_moves(&sink).unwrap().is_empty());
+    }
+
+    #[test]
+    fn packed_position_covers_the_full_384_coin_bound() {
+        let diagonal = vec![false; 128];
+        let polar = vec![0u128; 128];
+        let arena = WittFifoArena::try_new(&diagonal, &polar, u128::MAX).unwrap();
+        assert_eq!(arena.coins().len(), 384);
+
+        let mut position = arena.initial();
+        assert_eq!(position.untouched_count(), 384);
+        for coin in 0..384 {
+            position = arena
+                .play(&position, WittFifoMove::Open(WittFifoCoinId(coin)))
+                .unwrap();
+        }
+        assert_eq!(position.untouched_count(), 0);
+        assert_eq!(position.queue().count(), 384);
+        for _ in 0..384 {
+            position = arena.play(&position, WittFifoMove::Close).unwrap();
+        }
+        assert!(position.is_drained());
     }
 }

@@ -16,21 +16,30 @@
 //! [`try_misere_is_n`](crate::games::try_misere_is_n)). Tests compare the two
 //! routes and verify the disjunctive-sum XOR law for Nim.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::hash::Hash;
 
 /// The minimal excludant of a set of nimbers: the least non-negative integer not
 /// present.
 pub fn mex<I: IntoIterator<Item = u128>>(values: I) -> u128 {
-    let seen: HashSet<u128> = values.into_iter().collect();
-    let mut m = 0u128;
-    while seen.contains(&m) {
-        m += 1;
+    let values: Vec<u128> = values.into_iter().collect();
+    // For n supplied values, mex is at most n. Values outside that interval
+    // cannot affect the result, so a dense marker avoids hashing arbitrary
+    // u128s on every game-node visit.
+    let mut seen = vec![false; values.len() + 1];
+    for value in values {
+        if let Ok(index) = usize::try_from(value) {
+            if index < seen.len() {
+                seen[index] = true;
+            }
+        }
     }
-    m
+    seen.iter()
+        .position(|present| !present)
+        .expect("n values cannot cover n+1 candidate mex values") as u128
 }
 
-fn grundy_dfs(succ: &[Vec<usize>], v: usize, state: &mut [u128], g: &mut [u128]) -> Option<()> {
+fn grundy_dfs(succ: &[Vec<usize>], v: usize, state: &mut [u8], g: &mut [u128]) -> Option<()> {
     match state[v] {
         2 => return Some(()),
         1 => return None, // back-edge ⇒ a cycle ⇒ Grundy value undefined
@@ -54,7 +63,7 @@ fn grundy_dfs(succ: &[Vec<usize>], v: usize, state: &mut [u128], g: &mut [u128])
 /// Position `v` is a P-position (Loss) iff `result[v] == 0`.
 pub fn grundy_graph(succ: &[Vec<usize>]) -> Option<Vec<u128>> {
     let n = succ.len();
-    let mut state = vec![0u128; n];
+    let mut state = vec![0u8; n];
     let mut g = vec![0u128; n];
     for v in 0..n {
         grundy_dfs(succ, v, &mut state, &mut g)?;
@@ -95,6 +104,7 @@ mod tests {
         assert_eq!(mex([1, 2, 3]), 0);
         assert_eq!(mex([0, 2, 3]), 1);
         assert_eq!(mex([0, 0, 1, 1]), 2); // duplicates ignored
+        assert_eq!(mex([0, 1, u128::MAX]), 2); // out-of-range values are irrelevant
     }
 
     #[test]

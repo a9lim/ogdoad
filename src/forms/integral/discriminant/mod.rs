@@ -34,7 +34,7 @@ pub use form::{
     genus_signature_mod8, odd_milgram_report, verify_milgram, verify_odd_milgram, DiscriminantForm,
     OddDiscriminantForm, OddMilgramInvariants,
 };
-pub(crate) use form::{phase_mod8_from_q_values, IsoTables};
+pub(crate) use form::{phase_mod8_from_q_values, IsoTables, SquareTable};
 pub use gauss_sum::GaussSum;
 pub use heisenberg::TwoElementaryWeilHeisenbergInvariants;
 pub use phases::{FqmGaussPhase, FqmPrimaryPhase};

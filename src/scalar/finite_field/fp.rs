@@ -10,9 +10,10 @@
 //! value alone. We carry it in the **type**: `Fp<P>` is the field of `P`
 //! elements. A different prime is a different type — exactly the per-backend,
 //! no-mixing discipline the rest of the crate already uses (you cannot
-//! accidentally add an `Fp<3>` to an `Fp<5>`). `P` must be prime; scalar
-//! operations assert this instead of silently turning field-theory APIs into
-//! arithmetic over `Z/PZ`.
+//! accidentally add an `Fp<3>` to an `Fp<5>`). `P` must be prime. Constructors
+//! and scalar entry points without an existing operand validate that boundary;
+//! arithmetic between existing values relies on the private-field invariant and
+//! does not repeat trial division on every operation.
 //!
 //! For odd `P`, `neg` is genuine negation (`P − a ≠ a` for `a ≠ 0`); for
 //! `P = 2`, negation is the identity.
@@ -35,6 +36,9 @@ pub(crate) fn add_mod<const P: u128>(a: u128, b: u128) -> u128 {
 
 pub(crate) fn mul_mod<const P: u128>(mut a: u128, mut b: u128) -> u128 {
     debug_assert!(P > 0 && a < P && b < P);
+    if let Some(product) = a.checked_mul(b) {
+        return product % P;
+    }
     let mut acc = 0u128;
     while b > 0 {
         if b & 1 == 1 {
@@ -84,6 +88,8 @@ impl<const P: u128> fmt::Debug for Fp<P> {
 }
 
 impl<const P: u128> Scalar for Fp<P> {
+    const REASSOCIATION_IS_EXACT: bool = true;
+
     fn zero() -> Self {
         Self::assert_supported_params();
         Fp(0)
@@ -93,11 +99,9 @@ impl<const P: u128> Scalar for Fp<P> {
         Fp(1 % P)
     }
     fn add(&self, rhs: &Self) -> Self {
-        Self::assert_supported_params();
         Fp(add_mod::<P>(self.0, rhs.0))
     }
     fn neg(&self) -> Self {
-        Self::assert_supported_params();
         if self.0 == 0 {
             Fp(0)
         } else {
@@ -105,7 +109,6 @@ impl<const P: u128> Scalar for Fp<P> {
         }
     }
     fn mul(&self, rhs: &Self) -> Self {
-        Self::assert_supported_params();
         Fp(mul_mod::<P>(self.0, rhs.0))
     }
     fn characteristic() -> u128 {
@@ -113,11 +116,13 @@ impl<const P: u128> Scalar for Fp<P> {
         P
     }
     fn inv(&self) -> Option<Self> {
-        Self::assert_supported_params();
         if self.0 == 0 {
             return None;
         }
         Some(self.pow(P - 2))
+    }
+    fn is_zero(&self) -> bool {
+        self.0 == 0
     }
     /// Faster direct construction; semantically identical to the default double-and-add.
     fn from_int(n: i128) -> Self {
@@ -224,5 +229,20 @@ mod tests {
     fn composite_modulus_is_rejected() {
         assert!(std::panic::catch_unwind(Fp::<4>::one).is_err());
         assert!(std::panic::catch_unwind(|| Fp::<9>::from_int(2)).is_err());
+    }
+
+    #[test]
+    fn arithmetic_reuses_the_valid_operand_invariant() {
+        // Every public constructor validates P. Once values exist, their private
+        // representation proves both the prime parameter and reduced payload,
+        // so arithmetic can stay on the hot path without changing results.
+        for a in 0..257u128 {
+            for b in 0..257u128 {
+                let a = Fp::<257>::from_u128(a);
+                let b = Fp::<257>::from_u128(b);
+                assert_eq!(a.add(&b).value(), (a.value() + b.value()) % 257);
+                assert_eq!(a.mul(&b).value(), (a.value() * b.value()) % 257);
+            }
+        }
     }
 }
