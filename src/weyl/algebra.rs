@@ -8,6 +8,8 @@ use std::fmt;
 /// algebra.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum WeylError {
+    /// Doubling the requested standard rank exceeded the host dimension type.
+    StandardDimensionOverflow,
     /// A commutator matrix row does not have the matrix dimension.
     NonSquareCommutator {
         /// The offending row.
@@ -29,15 +31,47 @@ pub enum WeylError {
         /// Second generator index.
         right: usize,
     },
-    /// An element or monomial belongs to a different generator dimension.
+    /// An algebraic object belongs to a different generator/variable dimension.
     DimensionMismatch {
         /// The algebra's generator dimension.
         expected: usize,
         /// The supplied dimension.
         actual: usize,
     },
+    /// A generator index lies outside the algebra's ordered generating set.
+    GeneratorOutOfRange {
+        /// The requested generator index.
+        index: usize,
+        /// The algebra's generator dimension.
+        dim: usize,
+    },
+    /// A standard position or differential generator was requested from a
+    /// general alternating presentation.
+    RequiresStandard,
+    /// A PBW monomial exponent vector has the wrong generator dimension.
+    MonomialDimensionMismatch {
+        /// The algebra's generator dimension.
+        expected: usize,
+        /// The supplied exponent-vector dimension.
+        actual: usize,
+    },
     /// Adding PBW exponents exceeded the fixed-width `u128` payload.
     ExponentOverflow,
+    /// A materialized multiplication or action crossed its caller-supplied
+    /// sparse-term budget.
+    TermBudgetExceeded {
+        /// Maximum permitted simultaneous sparse terms.
+        limit: usize,
+    },
+    /// A materialized multiplication or action crossed its caller-supplied
+    /// elementary-work budget.
+    StepBudgetExceeded {
+        /// Maximum permitted charged work steps.
+        limit: u128,
+    },
+    /// A combinatorial expansion index cannot be represented by the host
+    /// collection dimension type.
+    ExpansionIndexOverflow,
     /// A polynomial action was requested outside the standard rank-one algebra.
     RequiresStandardRankOne,
     /// A PBW `x` exponent cannot be represented as a host polynomial degree.
@@ -47,6 +81,9 @@ pub enum WeylError {
 impl fmt::Display for WeylError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::StandardDimensionOverflow => {
+                formatter.write_str("standard Weyl generator dimension exceeds usize")
+            }
             Self::NonSquareCommutator {
                 row,
                 expected,
@@ -67,9 +104,31 @@ impl fmt::Display for WeylError {
             ),
             Self::DimensionMismatch { expected, actual } => write!(
                 formatter,
-                "Weyl generator dimension mismatch: expected {expected}, got {actual}"
+                "Weyl object dimension mismatch: expected {expected}, got {actual}"
+            ),
+            Self::GeneratorOutOfRange { index, dim } => {
+                write!(
+                    formatter,
+                    "Weyl generator index {index} is outside dimension {dim}"
+                )
+            }
+            Self::RequiresStandard => {
+                formatter.write_str("operation requires a standard Weyl algebra")
+            }
+            Self::MonomialDimensionMismatch { expected, actual } => write!(
+                formatter,
+                "Weyl monomial has {actual} exponents, expected {expected}"
             ),
             Self::ExponentOverflow => formatter.write_str("Weyl PBW exponent exceeds u128"),
+            Self::TermBudgetExceeded { limit } => {
+                write!(formatter, "Weyl expansion exceeds its {limit}-term budget")
+            }
+            Self::StepBudgetExceeded { limit } => {
+                write!(formatter, "Weyl expansion exceeds its {limit}-step budget")
+            }
+            Self::ExpansionIndexOverflow => {
+                formatter.write_str("Weyl expansion index exceeds usize")
+            }
             Self::RequiresStandardRankOne => {
                 formatter.write_str("polynomial action requires the standard rank-one Weyl algebra")
             }
@@ -81,6 +140,68 @@ impl fmt::Display for WeylError {
 }
 
 impl std::error::Error for WeylError {}
+
+/// Caller-supplied bounds for a materialized Weyl expansion.
+///
+/// `max_terms` bounds every intermediate and final sparse map, while
+/// `max_steps` bounds charged normal-order, coefficient, and term-combination
+/// work across the whole public operation. The unbounded value preserves the
+/// original checked API; callers handling untrusted exponents should supply a
+/// finite budget.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct WeylExpansionBudget {
+    /// Maximum simultaneous sparse terms in an intermediate or output value.
+    pub max_terms: usize,
+    /// Maximum charged elementary work steps.
+    pub max_steps: u128,
+}
+
+impl WeylExpansionBudget {
+    /// Construct explicit sparse-term and work-step bounds.
+    pub const fn new(max_terms: usize, max_steps: u128) -> Self {
+        Self {
+            max_terms,
+            max_steps,
+        }
+    }
+
+    /// The compatibility budget used by the original checked API.
+    pub const fn unbounded() -> Self {
+        Self::new(usize::MAX, u128::MAX)
+    }
+}
+
+#[derive(Debug)]
+pub(crate) struct ExpansionTracker {
+    budget: WeylExpansionBudget,
+    steps: u128,
+}
+
+impl ExpansionTracker {
+    pub(crate) fn new(budget: WeylExpansionBudget) -> Self {
+        Self { budget, steps: 0 }
+    }
+
+    pub(crate) fn charge(&mut self, steps: u128) -> Result<(), WeylError> {
+        self.steps = self
+            .steps
+            .checked_add(steps)
+            .filter(|used| *used <= self.budget.max_steps)
+            .ok_or(WeylError::StepBudgetExceeded {
+                limit: self.budget.max_steps,
+            })?;
+        Ok(())
+    }
+
+    pub(crate) fn ensure_terms(&self, terms: usize) -> Result<(), WeylError> {
+        if terms > self.budget.max_terms {
+            return Err(WeylError::TermBudgetExceeded {
+                limit: self.budget.max_terms,
+            });
+        }
+        Ok(())
+    }
+}
 
 /// A finite-support PBW Weyl algebra over `S`.
 ///
@@ -139,19 +260,25 @@ impl<S: Scalar> WeylAlgebra<S> {
 
     /// Construct the standard rank-`pairs` Weyl algebra with generator order
     /// `x_0,...,x_(n-1),d_0,...,d_(n-1)` and `[d_i,x_j] = delta_ij`.
-    pub fn standard(pairs: usize) -> Self {
+    pub fn try_standard(pairs: usize) -> Result<Self, WeylError> {
         let dim = pairs
             .checked_mul(2)
-            .expect("standard Weyl generator dimension exceeds usize");
+            .ok_or(WeylError::StandardDimensionOverflow)?;
         let mut commutator = vec![vec![S::zero(); dim]; dim];
         for i in 0..pairs {
             commutator[pairs + i][i] = S::one();
             commutator[i][pairs + i] = S::one().neg();
         }
-        Self {
+        Ok(Self {
             commutator,
             standard_pairs: Some(pairs),
-        }
+        })
+    }
+
+    /// Construct a standard algebra, panicking only if its host dimension
+    /// cannot be represented. Use [`Self::try_standard`] for untrusted ranks.
+    pub fn standard(pairs: usize) -> Self {
+        Self::try_standard(pairs).expect("standard Weyl generator dimension exceeds usize")
     }
 
     /// The number of ordered generators.
@@ -196,45 +323,96 @@ impl<S: Scalar> WeylAlgebra<S> {
     }
 
     /// One ordered generator `z_i`.
-    pub fn generator(&self, index: usize) -> WeylElement<S> {
-        assert!(index < self.dim(), "Weyl generator index out of range");
+    pub fn try_generator(&self, index: usize) -> Result<WeylElement<S>, WeylError> {
+        if index >= self.dim() {
+            return Err(WeylError::GeneratorOutOfRange {
+                index,
+                dim: self.dim(),
+            });
+        }
         let mut exponents = vec![0; self.dim()];
         exponents[index] = 1;
-        self.monomial(&exponents, S::one())
+        self.try_monomial(&exponents, S::one())
+    }
+
+    /// One ordered generator `z_i`, panicking on an invalid index. Use
+    /// [`Self::try_generator`] for untrusted indices.
+    pub fn generator(&self, index: usize) -> WeylElement<S> {
+        self.try_generator(index)
+            .expect("Weyl generator index out of range")
     }
 
     /// The standard position generator `x_i`.
+    pub fn try_x(&self, index: usize) -> Result<WeylElement<S>, WeylError> {
+        let pairs = self.standard_pairs.ok_or(WeylError::RequiresStandard)?;
+        if index >= pairs {
+            return Err(WeylError::GeneratorOutOfRange { index, dim: pairs });
+        }
+        self.try_generator(index)
+    }
+
+    /// The standard position generator `x_i`, panicking outside a standard
+    /// presentation or on an invalid pair index.
     pub fn x(&self, index: usize) -> WeylElement<S> {
-        let pairs = self
-            .standard_pairs
-            .expect("x(i) requires a standard Weyl algebra");
-        assert!(index < pairs, "Weyl x generator index out of range");
-        self.generator(index)
+        self.try_x(index)
+            .expect("x(i) requires a valid standard Weyl generator")
     }
 
     /// The standard differential generator `d_i`.
+    pub fn try_d(&self, index: usize) -> Result<WeylElement<S>, WeylError> {
+        let pairs = self.standard_pairs.ok_or(WeylError::RequiresStandard)?;
+        if index >= pairs {
+            return Err(WeylError::GeneratorOutOfRange { index, dim: pairs });
+        }
+        self.try_generator(pairs + index)
+    }
+
+    /// The standard differential generator `d_i`, panicking outside a standard
+    /// presentation or on an invalid pair index.
     pub fn d(&self, index: usize) -> WeylElement<S> {
-        let pairs = self
-            .standard_pairs
-            .expect("d(i) requires a standard Weyl algebra");
-        assert!(index < pairs, "Weyl d generator index out of range");
-        self.generator(pairs + index)
+        self.try_d(index)
+            .expect("d(i) requires a valid standard Weyl generator")
     }
 
     /// Construct one PBW monomial with a scalar coefficient.
-    pub fn monomial(&self, exponents: &[u128], coefficient: S) -> WeylElement<S> {
-        assert_eq!(
-            exponents.len(),
-            self.dim(),
-            "Weyl monomial exponent vector has the wrong dimension"
-        );
+    pub fn try_monomial(
+        &self,
+        exponents: &[u128],
+        coefficient: S,
+    ) -> Result<WeylElement<S>, WeylError> {
+        if exponents.len() != self.dim() {
+            return Err(WeylError::MonomialDimensionMismatch {
+                expected: self.dim(),
+                actual: exponents.len(),
+            });
+        }
         let mut terms = BTreeMap::new();
         if !coefficient.is_zero() {
             terms.insert(WeylMonomial::new(exponents.to_vec()), coefficient);
         }
-        WeylElement {
+        Ok(WeylElement {
             dim: self.dim(),
             terms,
+        })
+    }
+
+    /// Construct one PBW monomial, panicking on a dimension mismatch. Use
+    /// [`Self::try_monomial`] for untrusted exponent vectors.
+    pub fn monomial(&self, exponents: &[u128], coefficient: S) -> WeylElement<S> {
+        self.try_monomial(exponents, coefficient)
+            .expect("Weyl monomial exponent vector has the wrong dimension")
+    }
+
+    /// Map the commutator presentation through a scalar homomorphism supplied
+    /// by the caller. The standard layout marker is preserved.
+    pub fn map<T: Scalar>(&self, f: impl Fn(&S) -> T) -> WeylAlgebra<T> {
+        WeylAlgebra {
+            commutator: self
+                .commutator
+                .iter()
+                .map(|row| row.iter().map(&f).collect())
+                .collect(),
+            standard_pairs: self.standard_pairs,
         }
     }
 
@@ -296,9 +474,20 @@ impl<S: Scalar> WeylAlgebra<S> {
         left: &WeylElement<S>,
         right: &WeylElement<S>,
     ) -> Result<WeylElement<S>, WeylError> {
+        self.checked_mul_with_budget(left, right, WeylExpansionBudget::unbounded())
+    }
+
+    /// Checked PBW multiplication under explicit materialization bounds.
+    pub fn checked_mul_with_budget(
+        &self,
+        left: &WeylElement<S>,
+        right: &WeylElement<S>,
+        budget: WeylExpansionBudget,
+    ) -> Result<WeylElement<S>, WeylError> {
         self.validate_element(left)?;
         self.validate_element(right)?;
-        super::product::multiply(self, left, right)
+        let mut tracker = ExpansionTracker::new(budget);
+        super::product::multiply(self, left, right, &mut tracker)
     }
 
     /// PBW multiplication, panicking only if the checked fixed-width exponent
@@ -313,18 +502,29 @@ impl<S: Scalar> WeylAlgebra<S> {
     pub fn checked_pow(
         &self,
         value: &WeylElement<S>,
+        exponent: u128,
+    ) -> Result<WeylElement<S>, WeylError> {
+        self.checked_pow_with_budget(value, exponent, WeylExpansionBudget::unbounded())
+    }
+
+    /// Checked square-and-multiply power under one shared expansion budget.
+    pub fn checked_pow_with_budget(
+        &self,
+        value: &WeylElement<S>,
         mut exponent: u128,
+        budget: WeylExpansionBudget,
     ) -> Result<WeylElement<S>, WeylError> {
         self.validate_element(value)?;
+        let mut tracker = ExpansionTracker::new(budget);
         let mut accumulator = self.one();
         let mut base = value.clone();
         while exponent > 0 {
             if exponent & 1 == 1 {
-                accumulator = self.checked_mul(&accumulator, &base)?;
+                accumulator = super::product::multiply(self, &accumulator, &base, &mut tracker)?;
             }
             exponent >>= 1;
             if exponent > 0 {
-                base = self.checked_mul(&base, &base)?;
+                base = super::product::multiply(self, &base, &base, &mut tracker)?;
             }
         }
         Ok(accumulator)
@@ -342,9 +542,31 @@ impl<S: Scalar> WeylAlgebra<S> {
         left: &WeylElement<S>,
         right: &WeylElement<S>,
     ) -> Result<WeylElement<S>, WeylError> {
-        let lr = self.checked_mul(left, right)?;
-        let rl = self.checked_mul(right, left)?;
-        Ok(lr - rl)
+        self.checked_commutator_with_budget(left, right, WeylExpansionBudget::unbounded())
+    }
+
+    /// Checked Lie commutator under one shared expansion budget.
+    pub fn checked_commutator_with_budget(
+        &self,
+        left: &WeylElement<S>,
+        right: &WeylElement<S>,
+        budget: WeylExpansionBudget,
+    ) -> Result<WeylElement<S>, WeylError> {
+        self.validate_element(left)?;
+        self.validate_element(right)?;
+        let mut tracker = ExpansionTracker::new(budget);
+        let lr = super::product::multiply(self, left, right, &mut tracker)?;
+        let rl = super::product::multiply(self, right, left, &mut tracker)?;
+        let mut terms = lr.terms;
+        for (monomial, coefficient) in rl.terms {
+            tracker.charge(1)?;
+            add_term(&mut terms, monomial, coefficient.neg());
+            tracker.ensure_terms(terms.len())?;
+        }
+        Ok(WeylElement {
+            dim: self.dim(),
+            terms,
+        })
     }
 
     /// The Lie commutator, with the convenience-boundary policy of [`Self::mul`].

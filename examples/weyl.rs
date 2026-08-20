@@ -2,7 +2,7 @@
 //!   cargo run --example weyl
 
 use ogdoad::scalar::{Poly, Rational, Scalar};
-use ogdoad::weyl::WeylAlgebra;
+use ogdoad::weyl::{SparsePolynomial, WeylAlgebra, WeylExpansionBudget};
 
 fn r(value: i128) -> Rational {
     Rational::from_int(value)
@@ -24,5 +24,20 @@ fn main() {
     println!(
         "(d x) ⋅ ({polynomial}) = {}",
         algebra.act_on_poly(&operator, &polynomial).unwrap()
+    );
+
+    let plane = WeylAlgebra::<Rational>::standard(2);
+    let polynomial =
+        SparsePolynomial::monomial(&[2, 3], r(1)) + SparsePolynomial::monomial(&[1, 0], r(2));
+    let operator = plane.mul(&plane.d(0), &plane.x(1));
+    println!(
+        "(d0 x1) ⋅ ({polynomial}) = {}",
+        plane
+            .act_on_sparse_poly_with_budget(
+                &operator,
+                &polynomial,
+                WeylExpansionBudget::new(32, 1_000),
+            )
+            .unwrap()
     );
 }

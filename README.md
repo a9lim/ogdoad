@@ -50,7 +50,7 @@ Representation limits are part of the API:
 | --- | --- |
 | `src/scalar/` | coefficient traits and exact, finite, valued, global, surreal, and ordinal backends |
 | `src/clifford/` | metrics, blades, multivectors, products, versors, spinors, and geometric-algebra constructions |
-| `src/weyl/` | alternating commutator forms, sparse PBW elements, Weyl products, filtrations, and the rank-one polynomial action |
+| `src/weyl/` | alternating commutator forms, budgeted sparse PBW products, checked `u128` multidegrees, and rank-`n` sparse polynomial actions |
 | `src/forms/` | quadratic-form classification, Clifford centers, Witt/Brauer and low Milnor-symbol theory, Springer and local--global arithmetic |
 | `src/forms/integral/` | lattices, discriminant forms, codes, theta series, genera, neighbors, and Weyl bridges |
 | `src/games/` | impartial, partizan, misere, loopy, thermographic, Witt--FIFO/Brown, octal-certificate, Hackenbush, and game-exterior constructions |
@@ -71,6 +71,9 @@ commutator form. `WeylAlgebra::standard(n)` uses PBW order
 finite sparse support, while the algebra remains infinite-dimensional. In
 positive characteristic the enlarged center is retained explicitly; the
 ordinary polynomial differential action is therefore not claimed faithful.
+Materialized products and actions accept explicit term/work budgets, and the
+general normalizer groups contractions so its work follows the available
+contraction degree rather than a potentially enormous appended exponent.
 
 ## Use
 

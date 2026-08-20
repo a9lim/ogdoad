@@ -13,7 +13,8 @@ subsets, while Weyl PBW monomials carry arbitrary natural-number exponents.
 | `element.rs` | PBW monomials, sparse elements, additive operations, rendering |
 | `algebra.rs` | alternating commutator contexts, construction, multiplication, filtration |
 | `product.rs` | general normal ordering and the standard-pair product |
-| `differential.rs` | the rank-one action on `Scalar::Poly` |
+| `polynomial.rs` | sparse commutative multivariate polynomials for Weyl modules and symbols |
+| `differential.rs` | standard rank-`n` polynomial action plus the dense rank-one convenience |
 
 ## Algebra contract
 
@@ -39,13 +40,17 @@ backend representation and never divide by a factorial in generic code.
 - Degenerate alternating forms are valid; radical generators are central.
 - `u128` exponent overflow is an explicit `WeylError`, with panicking convenience
   wrappers only where a checked method is also public.
+- Materialized PBW and polynomial expansions accept caller-supplied term and
+  work budgets. Resource exhaustion is distinct from exponent overflow and from
+  a mathematical zero.
 - Precision scalar backends inherit their existing reassociation boundary. Do
   not describe generic tests over exact backends as a proof for represented
   truncation models.
 
 ## Verification
 
-Product changes require the public relation tests, agreement between the
-standard and general normalizers, associativity over exact characteristic-zero
-and positive-characteristic backends, and the polynomial-action oracle. Then run
-the root Rust gate.
+Product changes require the public relation tests, agreement among the standard
+normalizer, grouped general normalizer, and literal adjacent-word reducer,
+associativity over exact characteristic-zero and positive-characteristic
+backends, budget-boundary tests, and the rank-`n` polynomial-action oracle. Then
+run the root Rust gate.

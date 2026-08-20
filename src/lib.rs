@@ -12,8 +12,8 @@
 //!   Springer decompositions, and local--global and integral arithmetic.
 //! - [`games`] provides finite impartial, short partizan, misère, loopy,
 //!   thermographic, and game-exterior constructions.
-//! - [`weyl`] provides finite-support PBW Weyl algebras and their polynomial
-//!   differential action.
+//! - [`weyl`] provides budgeted finite-support PBW Weyl algebras and their
+//!   rank-`n` sparse polynomial differential action.
 //!
 //! Arbitrary partizan games form an abelian group, not a commutative scalar
 //! ring; game-valued constructions therefore remain separate from the generic

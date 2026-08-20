@@ -15,6 +15,11 @@
 //! larger center remains visible, and the polynomial action is documented as
 //! non-faithful there.
 //!
+//! Materialized products and rank-`n` sparse polynomial actions accept
+//! [`WeylExpansionBudget`] bounds. The unbounded checked methods preserve the
+//! original convenience surface; finite budgets are the authoritative path for
+//! untrusted exponents and support sizes.
+//!
 //! This is a separate public pillar from [`crate::clifford`]. It shares the
 //! commutative [`crate::scalar::Scalar`] coefficient discipline, but a Weyl
 //! monomial needs an exponent vector rather than a finite blade mask.
@@ -22,7 +27,9 @@
 mod algebra;
 mod differential;
 mod element;
+mod polynomial;
 mod product;
 
 pub use algebra::*;
 pub use element::*;
+pub use polynomial::*;
