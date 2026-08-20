@@ -102,7 +102,8 @@ exact Euler nonpower test for one Conway-selected coordinate and retains the
 full primary valuation.  The reductions, the coordinate formulas, the
 packet-universal Fermat residual of Proposition~\ref{prop:z-packet-universal},
 the all-iterate ramification boundary of
-Proposition~\ref{prop:z-iterate-ramification},
+Proposition~\ref{prop:z-iterate-ramification}, the generalized-Prym
+saturation boundary of Proposition~\ref{prop:z-prym-boundary},
 selected Singer and partition bounds of Propositions~\ref{prop:sieve}
 and~\ref{prop:c-partition}, the cubic first-relation theorem
 and marked-projective obstruction of
@@ -738,6 +739,193 @@ place is totally inert through the Conway tower, but that is decomposition
 data at one marked place, not a consequence of the ramification just
 computed.  The proposition consequently supplies no generator or
 nonvanishing assertion.
+\end{proof}
+
+The anti-invariant generalized Jacobian can also be computed exactly.  It is
+large, but the Kummer function occupies only one tame boundary direction.
+
+\begin{proposition}[generalized-Prym saturation boundary]
+\label{prop:z-prym-boundary}
+For $r\geq1$, let
+\[
+ \pi_r:\mathcal X_r\longrightarrow\mathcal X_{r-1},\qquad
+ \tau_r(c_r)=c_r+1,\qquad
+ u_r=\frac{c_r+1}{c_r}.
+\]
+For $\epsilon=(\epsilon_0,\ldots,\epsilon_{r-1})\in\{0,1\}^r$ and
+$\delta\in\{0,1\}$, write $P_{\epsilon,\delta}$ for the corresponding
+binary point of $\mathcal X_r$, and put
+$z(\epsilon)=\#\{i:\epsilon_i=0\}$.  Then
+\[
+ \operatorname{div}(u_r)
+ =\sum_{\epsilon\in\{0,1\}^r}2^{z(\epsilon)}
+   \bigl([P_{\epsilon,1}]-[P_{\epsilon,0}]\bigr).
+\]
+In particular its reduced support $S_r$ consists of $2^{r+1}$
+$\mathbb F_2$-points, and $B_r=\pi_r(S_r)$ consists of $2^r$
+$\mathbb F_2$-points.
+
+Let $J(\mathcal X,S)$ denote the reduced-modulus generalized Jacobian.  The
+identity component of the generalized norm kernel
+\[
+ \ker\bigl(J(\mathcal X_r,S_r)\longrightarrow
+                 J(\mathcal X_{r-1},B_r)\bigr)
+\]
+has dimension $3^r$.  Its ordinary Prym quotient has dimension
+$3^r-2^r$, while its boundary-torus kernel has dimension $2^r$.
+
+For every odd prime $\ell$, with $U_r=\mathcal X_r\setminus S_r$, the
+Kummer class
+\[
+ \delta_\ell(u_r)\in H^1_{\mathrm{\acute et}}(U_r,\mu_\ell)
+\]
+comes from the unit term in the Kummer sequence, has tame residue vector
+given by the displayed divisor formula modulo $\ell$, and satisfies
+$\tau_r^*\delta_\ell(u_r)=-\delta_\ell(u_r)$.  This vector is nonzero for
+every odd $\ell$, but its Frobenius orbit spans only one line, up to the
+cyclotomic Tate twist.  The ray character defined by $u_r$ is nontrivial on
+the anti-invariant boundary torus and is geometrically surjective onto
+$\mathbb G_m$.
+\end{proposition}
+
+\begin{proof}
+The affine equations are triangular with derivative one in each new
+coordinate.  Hence the binary tuples are distinct smooth points.  Conversely,
+$c_r\in\{0,1\}$ forces
+\[
+ c_{r-1}^2(c_{r-1}+1)=c_r(c_r+1)=0,
+\]
+and induction forces every earlier coordinate to be binary.  At a binary
+point the same identities give
+\[
+ \operatorname{ord}(c_i-\epsilon_i)
+ =
+ \begin{cases}
+  2\operatorname{ord}(c_{i-1}),&\epsilon_{i-1}=0,\\
+  \operatorname{ord}(c_{i-1}+1),&\epsilon_{i-1}=1.
+ \end{cases}
+\]
+Starting with order one on $\mathcal X_0$ proves
+the divisor formula.  There is no contribution at infinity, since
+$u_r=1+c_r^{-1}$ there.  As a check, each of the zero and pole divisors has
+degree
+\[
+ \sum_{\epsilon\in\{0,1\}^r}2^{z(\epsilon)}=(2+1)^r=3^r,
+\]
+the pole degree of $c_r$.
+
+For a reduced modulus of $s$ geometric points, the boundary torus has
+dimension $s-1$.  The norm on the two boundary points above each point of
+$B_r$ is pairwise multiplication, so its toric kernel has dimension $2^r$.
+The ordinary Prym dimension is, by
+Proposition~\ref{prop:z-iterate-ramification},
+\[
+ g(\mathcal X_r)-g(\mathcal X_{r-1})=3^r-2^r.
+\]
+The generalized norm is surjective: its composite with pullback is
+multiplication by two, which is a finite surjective morphism of the
+semiabelian target even in characteristic two.  Subtracting dimensions now
+gives $3^r$ for the identity kernel.  On prime-to-two Tate modules, the
+toric norm kernel is exactly the $(-1)$-part of the boundary-torus module for
+$\tau_r$; this formulation avoids any false semisimplicity assertion at the
+characteristic prime.
+
+The Kummer exact sequence gives
+\[
+ 0\longrightarrow
+ \mathcal O(U_r)^\times/\mathcal O(U_r)^{\times\ell}
+ \longrightarrow H^1_{\mathrm{\acute et}}(U_r,\mu_\ell)
+ \longrightarrow \operatorname{Pic}(U_r)[\ell]
+ \longrightarrow0.
+\]
+The class of $u_r$ lies in the first term, and its tame residues are its
+valuations modulo $\ell$.  All displayed multiplicities are powers of two,
+so none vanishes modulo an odd $\ell$; in particular the reduced modulus
+loses no conductor information.  The coefficient belonging to the all-one
+prefix is one, proving nonvanishing.  Since
+$\tau_r(u_r)=u_r^{-1}$, the class is anti-invariant and its corestriction is
+zero.
+
+Every point of $S_r$ is rational over $\mathbb F_2$, so Frobenius has no
+permutation action on the residue vector.  Only the scalar cyclotomic twist
+remains, and the orbit therefore spans one line.  Finally, for a degree-zero
+divisor $D$ disjoint from $S_r$, put $\chi_{u_r}([D])=u_r(D)$.  If
+$D$ is changed by $\operatorname{div}(f)$ with $f=1$ on $S_r$, Weil
+reciprocity gives
+\[
+ u_r(\operatorname{div}(f))=f(\operatorname{div}(u_r))=1,
+\]
+so this is a character of the generalized Jacobian.  Its restriction to the
+toric norm kernel has the nonzero anti-invariant exponent vector
+displayed above; a nonzero character of a torus is geometrically
+surjective onto $\mathbb G_m$.
+\end{proof}
+
+This surjectivity concerns geometric generalized-divisor classes, not the
+literal totally inert Conway place.  It therefore supplies no full-order
+claim.  Rather, it shows sharply why the ordinary Prym and lower norm data
+cannot evaluate the selected phase: the relevant ray class is one
+Frobenius-stable line inside a $2^r$-dimensional anti-invariant boundary
+torus, and selecting its value requires decomposition data at the marked
+place.
+
+\begin{corollary}[fixed-five-torsion rank-one boundary]
+\label{cor:z-fixed-s-rank-one}
+Let $n\geq2$, put $A=2^{2^n}$, $q=A^2$, and let
+$\ell$ be an odd prime dividing $q+1=F_{n+1}$.  Set
+$L=\mathbb F_{q^2}$ and $S=\mathcal E(\mathbb F_2)$.  If $[z]_\ell$
+denotes the class of $z\in L^\times$ in
+$L^\times/L^{\times\ell}$, then
+\[
+ \operatorname{span}_{\mathbb F_\ell}
+ \bigl\{[F(P_n)]_\ell:
+ F\in\mathbb F_2(\mathcal E)^\times,\,
+ \operatorname{supp}\operatorname{div}(F)\subseteq S\bigr\}
+ =
+ \mathbb F_\ell[g(P_n)]_\ell .
+\]
+Thus no $\mathbb F_2$-rational unit supported on the fixed five-torsion
+supplies an independent Kummer detector for the selected endpoint.
+\end{corollary}
+
+\begin{proof}
+Write
+\[
+ A_0=[-T]-[T],\qquad B_0=[-2T]-[2T].
+\]
+Every anti-invariant degree-zero divisor supported on $S$ is $aA_0+bB_0$.
+Its class in $\operatorname{Pic}^0(\mathcal E)\simeq\mathcal E$ is
+$(3a+b)T$, so the principal lattice is
+$3a+b\equiv0\pmod5$.  Proposition~\ref{prop:z-elliptic} gives
+$\operatorname{div}(g)=2A_0-B_0$.  With
+\[
+ r=f_{5,T}=\frac{y^2(y+x)}{(x+1)^2},
+ \qquad s=\frac{r\circ[-1]}r,
+\]
+one has $\operatorname{div}(s)=5A_0$; these two divisor vectors have
+determinant five and hence form a basis of the principal lattice.
+
+For an $S$-unit $F$, put $R=(F\circ[-1])/F$.  Since
+$\mathbb F_2^\times=\{1\}$, the lattice calculation gives
+$R=g^m s^k$ for some integers $m,k$.  Direct substitution in the displayed
+functions gives
+\[
+ s=\frac{g^2}{g\circ\iota}.
+\]
+Now $c_n^A=c_n+1$, so $P_n^A$ and $\iota P_n$ have the same
+$x$-coordinate.  Hence $P_n^A=\epsilon\iota P_n$ for some
+$\epsilon\in\{1,-1\}$, and
+\[
+ s(P_n)=g(P_n)^{\,2-\epsilon A}.
+\]
+As $P_n^q=-P_n$, it follows that
+$F(P_n)^{q-1}=R(P_n)$, placing every displayed class on the line generated
+by $[g(P_n)]_\ell$ because $\gcd(\ell,q-1)=1$.
+
+Conversely, for $h=y/(x+1)$ one has
+$h\circ[-1]/h=g$.  Therefore
+$h(P_n)^{q-1}=g(P_n)$, and $[h(P_n)]_\ell$ spans the same line.  This proves
+the reverse inclusion.
 \end{proof}
 
 Proposition~\ref{prop:z-elliptic} supplies exact CM annihilator control but

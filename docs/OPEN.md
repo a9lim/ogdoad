@@ -189,6 +189,15 @@ Artin--Schreier curve through depth `r` is geometrically connected, ramifies
 only at its unique point above infinity, and has genus
 `(3^(r+1)-2^(r+2)+1)/2`; hence every finite torsion packet has the same
 trivial inertia, and the marked decomposition class remains unevaluated.
+For the top quadratic cover, the identity generalized Prym with the reduced
+zero/pole modulus has dimension `3^r`: its ordinary Prym quotient has
+dimension `3^r-2^r` and its anti-invariant boundary torus has dimension
+`2^r`.  The selected Kummer function gives only one Frobenius-stable tame
+boundary line.  Its ray character is geometrically surjective on generalized
+divisor classes, but this does not evaluate the literal totally inert place.
+More strongly, every `F_2`-rational elliptic-curve `S`-unit supported on those
+five rational torsion points evaluates into the same one-dimensional
+odd-primary Kummer line as the target, so none is an independent detector.
 The tempting curve
 `y^2+y=x^3` is not isomorphic to the selected curve over `F_2`, and its
 same-looking function has a trivial cubic Kummer class on positive-level
