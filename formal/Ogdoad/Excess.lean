@@ -388,6 +388,29 @@ theorem conwayUnit_eulerSymbol
 
 end FermatLocalSymbol
 
+/-- Fixed-field form of the exceptional Euler test.  For the literal
+exceptional coordinate, `A^(q-1)` is `M_k`; after putting
+`d = (q+1)/ell`, failure of the desired nontrivial Euler phase is exactly
+Frobenius fixity of `A^d`.  The cyclic three-block criterion in the paper
+is a concrete polynomial-coordinate refinement of this group identity. -/
+theorem exceptional_euler_fixed_iff
+    {G : Type*} [CommGroup G] (A : G) (q d : Nat) (hq : 0 < q) :
+    (A ^ (q - 1)) ^ d = 1 ↔ (A ^ d) ^ q = A ^ d := by
+  have hbalance : (A ^ (q - 1)) ^ d * A ^ d = (A ^ d) ^ q := by
+    simp only [← pow_mul, ← pow_add]
+    congr 1
+    calc
+      (q - 1) * d + d = (q - 1 + 1) * d := by rw [add_mul, one_mul]
+      _ = q * d := by
+        rw [Nat.sub_add_cancel (Nat.one_le_iff_ne_zero.mpr hq.ne')]
+      _ = d * q := Nat.mul_comm _ _
+  constructor
+  · intro h
+    rw [← hbalance, h, one_mul]
+  · intro h
+    apply mul_right_cancel (b := A ^ d)
+    rw [hbalance, h, one_mul]
+
 /-- If a primary factor `r` divides `a` but is coprime to a divisor `b`, then
 the whole factor survives in the quotient `a / b`.  Applied to
 `a = 2^N - 1` and `b = 2^d - 1`, this is the arithmetic reason every proper
@@ -5803,6 +5826,27 @@ theorem canonical_new_component_ratio
   simp [div_eq_mul_inv]
 
 end FermatEulerTail
+
+section FermatSelectedMultiplicationBlocks
+
+variable {R : Type*} [CommSemiring R]
+
+/-- Literal two-block multiplication at one Conway--Fermat edge.  If the
+new Artin--Schreier coordinate satisfies `c² = c + a`, then multiplication
+by the selected product `a*c`, in coordinates `R ⊕ cR`, has block form
+`[[0, A²], [A, A]]`, where `A` denotes multiplication by `a`.  This is an
+exact selector-retaining interface; it does not assert that any resulting
+Fibonacci/Kummer coordinate is nonzero. -/
+theorem fermat_selected_product_mul_pair
+    (a c x y : R) (hc : c ^ 2 = c + a) :
+    (a * c) * (x + c * y) =
+      a ^ 2 * y + c * (a * x + a * y) := by
+  calc
+    (a * c) * (x + c * y) = a * c * x + a * c ^ 2 * y := by ring
+    _ = a * c * x + a * (c + a) * y := by rw [hc]
+    _ = a ^ 2 * y + c * (a * x + a * y) := by ring
+
+end FermatSelectedMultiplicationBlocks
 
 section FermatFibonacciCompression
 

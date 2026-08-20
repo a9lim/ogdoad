@@ -7,8 +7,10 @@
 Some named finite arithmetic declarations use `native_decide`.  For those
 declarations, `#print axioms` reports Lean's generated native-decision axiom:
 they are exact replayable evaluator results, but they are not ordinary kernel
-reductions.  The ordinary algebraic theorems listed below do not cross
-that evaluator boundary.
+reductions.  Ordinary theorems may still report Lean's standard logical
+dependencies (`propext`, `Classical.choice`, and `Quot.sound`); the distinction
+here is ordinary kernel-checked Lean/algebra without native evaluation versus
+the additional `_native.native_decide.ax_1_1` evaluator boundary.
 
 ```sh
 cd formal

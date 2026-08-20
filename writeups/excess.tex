@@ -396,6 +396,28 @@ packet examples have identical full parent order but deterministic children
 of different conductor.  Consequently any induction must use the complete
 marked orbit, not only the integer conductor.
 
+The literal multiplication operator retains that selector in a compact
+two-block form.  At the edge $c_n^2=c_n+a_{n-1}$, let $A$ denote
+multiplication by $a_{n-1}$ on $E_{n-1}$.  Multiplication by
+$a_{n-1}c_n$ on $E_{n-1}\oplus c_nE_{n-1}$ has matrix
+\[
+ \begin{pmatrix}0&A^2\\ A&A\end{pmatrix}.
+\]
+This identity is kernel-checked.  The Lean declaration is
+\begin{center}
+\texttt{fermat\_selected\_product\_}\\
+\texttt{mul\_pair}.
+\end{center}
+If $S_r$ denotes the characteristic-two Fibonacci polynomial and
+$M_{a_{n-1}}$ the selected
+multiplication operator, the remaining primary target is precisely
+\[
+ S_{F_n/\ell}(M_{a_{n-1}})\ne0
+ \qquad(\ell\mid F_n\text{ prime}).
+\]
+The block formula is an exact interface to this nonvanishing problem; it
+does not prove the displayed target.
+
 This isolates the part not settled by the existing Conway-tower literature.
 Popovych proves lower bounds and verifies the required relative full orders
 through level eleven using the known Fermat factorizations
@@ -681,6 +703,34 @@ denominator-free equivalence above is also kernel-checked as
 \texttt{halfAngle\_pow\_eq\_one\_iff\_minpoly\_dvd}; it is a reduction of
 $C$, not a proof of $C$.
 
+There is also an exact stable-polynomial formulation.  Put $P_0(X)=X$ and
+\[
+ P_{j+1}(X)=P_j(X)^3+P_j(X)^2+1,
+\]
+so that $P_j=f^{\circ j}$ for $f(X)=X^3+X^2+1$.  In characteristic two,
+$t(X)=X+1$ conjugates $g(X)=X^3+X$ to $f$: $f=t\circ g\circ t$.
+The triple-angle identity gives $g(\gamma_j)=\gamma_{j-1}$ with
+$\gamma_0=1$, hence $b_j=\gamma_j+1$ is a root of $P_j$.  Since $b_j$ has
+degree $3^j$, $P_j$ is its minimal polynomial.  Lin and Wang prove that $f$
+is stable, equivalently that all these iterates are irreducible
+\cite{linwang2024}; their theorem does not assert multiplicative primitivity.
+
+Indeed, this missing strengthening is exactly arm $C$.  With
+$q=2^{3^{j-1}}$, both $\gamma_j$ and $b_j$ have relative norm
+$\gamma_{j-1}$ to $\mathbb F_q$, and
+\[
+ \gamma_j b_j^2=\gamma_{j-1}.
+\]
+Because $\gcd(q-1,q^2+q+1)=1$, the norm propagates every old primary part.
+For a new prime $\ell\mid q^2+q+1$, the base-field factor
+$\gamma_{j-1}$ is an $\ell$-th power, while the displayed identity gives
+$[\gamma_j]+2[b_j]=0$ in the $\ell$-Kummer quotient.  Since $\ell$ is odd,
+$\gamma_j$ is an $\ell$-th power exactly when $b_j$ is.  Induction therefore
+shows that all $P_j$ with $j\geq1$ are primitive polynomials exactly when
+all $\gamma_j$ with $j\geq1$ are primitive.  Stability supplies the degrees;
+primitive preservation is the original selected-order problem, not a known
+solution of it.
+
 Put $q_k=2^{3^{k-1}}$ and
 \[
  U_k=\ker\!\left(
@@ -876,6 +926,63 @@ this is equivalent to the full $\ell$-primary part occurring in
 $\operatorname{ord}(M_k)$.  Finally, $\mu_\ell$ lies in the defining field;
 Kummer theory and Capelli's lemma identify nonpower with irreducibility of
 $R_k(X^\ell)$.
+\end{proof}
+
+The exceptional Euler test also has a lossless sparse form parallel to the
+three-block criterion in the cubic arm.
+
+\begin{proposition}[sparse exceptional block criterion]
+\label{prop:d-block}
+Let $n=3h$, let $\ell\mid\Psi_k$ be prime, put
+$d=(q+1)/\ell$, and work in
+$\mathcal R_h=\mathbb F_2[X]/(X^n-1)$.  With $x$ the class of $X$, set
+\[
+ \mathcal A=x^2+x+x^h,\qquad
+ \iota(x)=x^{-1},\qquad C=\mathcal A^d.
+\]
+Write the unique cyclic representative of $V=C+\iota(C)$ as
+\[
+ V=V_0+X^hV_1+X^{2h}V_2,
+ \qquad \deg V_i<h.
+\]
+Then
+\[
+ M_k^{(q+1)/\ell}=1
+ \quad\Longleftrightarrow\quad
+ V_0=V_1=V_2.
+\]
+If $d=\sum_{i=0}^{h-1}\epsilon_i2^i$, then, losslessly in
+$\mathcal R_h$,
+\[
+ C=\prod_{\epsilon_i=1}
+ \left(x^{2^{i+1}}+x^{2^i}+x^{h2^i}\right),
+\]
+where exponents are read modulo $n$.  Thus arm $D$ is equivalent to failure
+of this three-block equality for every current prime $\ell$.
+\end{proposition}
+
+\begin{proof}
+The order of two modulo $3^{k+1}=n$ is $2h$, so
+$q=2^h\equiv-1\pmod n$.  Hence $q$-powering on $\mathcal R_h$ is
+$\iota$.  In the selected field
+$\mathbb F_2[X]/(J_h)$, where $J_h=X^{2h}+X^h+1$, the image of
+$\mathcal A$ is $A_k$, and
+\[
+ M_k^d=1
+ \quad\Longleftrightarrow\quad
+ (A_k^d)^q=A_k^d
+ \quad\Longleftrightarrow\quad
+ J_h\mid C+\iota(C).
+\]
+The first equivalence is kernel-checked abstractly as
+\texttt{exceptional\_euler\_fixed\_iff}.  Modulo $J_h$, characteristic two
+gives $X^{2h}=X^h+1$, and therefore
+\[
+ V\equiv(V_0+V_2)+X^h(V_1+V_2).
+\]
+The right side has degree less than $2h=\deg J_h$, so it vanishes exactly
+when $V_0=V_1=V_2$.  The product formula is the binary-power expansion of
+$\mathcal A^d$ in characteristic two.
 \end{proof}
 
 \begin{proposition}[effective exceptional bound]\label{prop:d-bound}
@@ -1192,13 +1299,16 @@ Proved here & The four-arm equivalence; the exact selected coordinates and
 order criteria; the primitive-support, packet, supersingular, Singer,
 corrected-norm, ray-index, boundedness, and reciprocity-saturation results
 stated above. \\
-Kernel-checked Lean & The algebraic Kummer interface, full-primary power tests,
-selected cubic and exceptional identities, cubical reductions, packet and
-Fibonacci identities, and marked-holonomy calculus. \\
+Ordinary kernel-checked Lean & Algebra without native evaluation: the
+algebraic Kummer interface, full-primary power tests, selected cubic and
+exceptional identities, cubical reductions, packet and Fibonacci identities,
+and marked-holonomy calculus.  These proofs may still use Lean's standard
+logical dependencies \texttt{propext}, \texttt{Classical.choice}, and
+\texttt{Quot.sound}. \\
 Native evaluation & Named finite arithmetic propositions proved
 with \texttt{native\_decide}.  Lean's axiom report records the generated
-native-decision axiom for these declarations, so they are exact replayable
-finite calculations, not ordinary kernel reductions. \\
+\texttt{\_native.native\_decide.ax\_1\_1} for these declarations, so they
+are exact replayable finite calculations, not ordinary kernel reductions. \\
 External evidence & Source-backed rows, Python certificates, and
 explicit countermodels to overstrong intermediate lemmas.  These establish
 only their stated finite instances. \\
