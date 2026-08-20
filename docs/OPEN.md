@@ -142,8 +142,10 @@ same-looking function has a trivial cubic Kummer class on positive-level
 Fermat torsion. Perfectness of an alternating pairing still does not force a
 prescribed pairing to be nonzero.
 
-`formal/Ogdoad/Excess.lean` kernel-checks the algebraic reduction layer and
-finite certificates used by the paper. `DPrimeTarget` and the analogous
+`formal/Ogdoad/Excess.lean` kernel-checks the algebraic reduction layer
+without native evaluation.  Its declarations proved with `native_decide` are
+exact replayable finite evidence and depend on Lean's generated native-decision
+axiom; they are not ordinary kernel reductions. `DPrimeTarget` and the analogous
 selected-order conditions encode open targets; they are not assumptions or
 proofs of the rule.
 

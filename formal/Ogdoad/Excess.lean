@@ -37,6 +37,16 @@ theorem isPthPower_of_coprime_order {G : Type*} [Group G] {p : Nat} {a : G}
     (⟨a, Subgroup.mem_zpowers a⟩ : H)
   exact ⟨x.1, congrArg Subtype.val hx⟩
 
+/-- If `p` is absent from a finite group's order, every element is a
+`p`-th power.  This is the exact primary-vacuity statement used when a strict
+lower Conway ancestor has no current `p`-torsion. -/
+theorem isPthPower_of_coprime_card
+    {G : Type*} [Group G] [Fintype G] {p : Nat}
+    (hcop : (Fintype.card G).Coprime p) (a : G) :
+    IsPthPower p a := by
+  apply isPthPower_of_coprime_order
+  exact hcop.of_dvd_left orderOf_dvd_card
+
 /-- Exact Euler-quotient criterion in a finite cyclic group.  No
 squarefreeness shorthand is hidden: `p ∣ |G|` is the full hypothesis used in
 this group-level statement. -/
@@ -75,6 +85,26 @@ theorem isPthPower_iff_pow_card_div_eq_one {G : Type*}
     have haP : a ∈ P := by rwa [heq]
     rcases haP with ⟨x, hx⟩
     exact ⟨x, hx⟩
+
+/-- Raising by an exponent coprime to `p` does not change the `p`-power
+class in a finite cyclic group whose order is divisible by `p`.  This is the
+group-theoretic bridge from the exceptional norm `A` to `M = A^(q-1)`. -/
+theorem isPthPower_pow_iff_of_coprime
+    {G : Type*} [CommGroup G] [Fintype G] [IsCyclic G]
+    {p e : Nat} (hp : p ∣ Fintype.card G)
+    (hcop : p.Coprime e) (a : G) :
+    IsPthPower p (a ^ e) ↔ IsPthPower p a := by
+  rw [isPthPower_iff_pow_card_div_eq_one hp,
+    isPthPower_iff_pow_card_div_eq_one hp]
+  rw [show (a ^ e) ^ (Fintype.card G / p) =
+      (a ^ (Fintype.card G / p)) ^ e by
+    simp only [← pow_mul, Nat.mul_comm]]
+  have hpOrder : (a ^ (Fintype.card G / p)) ^ p = 1 := by
+    rw [← pow_mul, Nat.div_mul_cancel hp]
+    exact pow_card_eq_one
+  have hiff := pow_eq_one_iff_of_coprime
+    (a := a ^ (Fintype.card G / p)) hcop.symm
+  simpa [hpOrder] using hiff
 
 /-- Order-theoretic form of the exact power criterion.  This is the useful
 interface for the four excess arms: when `p` is prime, a selected element
@@ -1484,6 +1514,42 @@ theorem cubicAffineLine_subset_traceKernel
     tr gamma hgamma hgammaSq a b
 
 end CubicSelfPolarAffineLine
+
+section CubicHalfAngleDivisibility
+
+open Polynomial
+
+/-- Lossless denominator-free polynomial form of the half-angle order test.
+For a nonzero `z`, the equality `(z + z⁻¹)^d = 1` is equivalent to the
+minimal polynomial of `z` dividing `(X² + 1)^d - X^d`.  In the cubic arm,
+`minpoly z = X^(2*h) + X^h + 1` and characteristic two turns the subtraction
+into addition, exposing the exact Lucas-parity divisibility problem.  This
+reduction does not prove the required nondivisibility, hence does not prove
+arm `C`. -/
+theorem halfAngle_pow_eq_one_iff_minpoly_dvd
+    {K F : Type*} [Field K] [Field F] [Algebra K F]
+    (z : F) (hz : z ≠ 0) (d : Nat) :
+    (z + z⁻¹) ^ d = 1 ↔
+      minpoly K z ∣ (X ^ 2 + 1) ^ d - X ^ d := by
+  rw [minpoly.dvd_iff]
+  simp only [map_sub, map_pow, aeval_X, aeval_add, aeval_one]
+  have hrewrite : z + z⁻¹ = z⁻¹ * (z ^ 2 + 1) := by
+    field_simp
+  rw [hrewrite, mul_pow]
+  constructor
+  · intro h
+    apply sub_eq_zero.mpr
+    calc
+      (z ^ 2 + 1) ^ d = 1 * (z ^ 2 + 1) ^ d := by simp
+      _ = (z ^ d * (z⁻¹) ^ d) * (z ^ 2 + 1) ^ d := by
+        rw [← mul_pow, mul_inv_cancel₀ hz, one_pow]
+      _ = z ^ d * ((z⁻¹) ^ d * (z ^ 2 + 1) ^ d) := by ring
+      _ = z ^ d := by rw [h, mul_one]
+  · intro h
+    have heq : (z ^ 2 + 1) ^ d = z ^ d := sub_eq_zero.mp h
+    rw [heq, ← mul_pow, inv_mul_cancel₀ hz, one_pow]
+
+end CubicHalfAngleDivisibility
 
 section CubicSingerIncidence
 
@@ -10757,6 +10823,46 @@ theorem not_isPthPower_iff_not_orderOf_dvd_card_sub_one_div {p : Nat} {a : F}
     (ha : a ≠ 0) (hp : p ∣ Fintype.card F - 1) :
     ¬IsPthPower p a ↔ ¬orderOf a ∣ (Fintype.card F - 1) / p := by
   exact not_congr (isPthPower_iff_orderOf_dvd_card_sub_one_div ha hp)
+
+/-- Exact finite-field norm reduction for the Kummer power test.  When `p`
+divides the base-field unit-group order, an element of a finite extension is
+a `p`-th power exactly when its norm is.  This formalizes the lossless norm
+step used in the zero and exceptional arms; it does not evaluate the selected
+norm. -/
+theorem isPthPower_iff_norm_isPthPower
+    {K L : Type*} [Field K] [Field L]
+    [Fintype K] [Fintype L] [Algebra K L]
+    (p : Nat) (x : L) (hx : x ≠ 0)
+    (hp : p ∣ Fintype.card K - 1) :
+    IsPthPower p x ↔ IsPthPower p (Algebra.norm K x) := by
+  have hKL : Fintype.card K - 1 ∣ Fintype.card L - 1 := by
+    have hu : Nat.card Kˣ ∣ Nat.card Lˣ :=
+      Subgroup.card_dvd_of_injective
+        (Units.map (algebraMap K L).toMonoidHom)
+        (Units.map_injective (algebraMap K L).injective)
+    simpa [Nat.card_units, Nat.card_eq_fintype_card] using hu
+  have hpL : p ∣ Fintype.card L - 1 := hp.trans hKL
+  have hnorm0 : Algebra.norm K x ≠ 0 :=
+    Algebra.norm_ne_zero_iff.mpr hx
+  rw [isPthPower_iff_pow_card_sub_one_div_eq_one hx hpL,
+    isPthPower_iff_pow_card_sub_one_div_eq_one hnorm0 hp]
+  have heq :
+      algebraMap K L
+          ((Algebra.norm K x) ^
+            ((Fintype.card K - 1) / p)) =
+        x ^ ((Fintype.card L - 1) / p) := by
+    rw [map_pow, FiniteField.algebraMap_norm_eq_pow,
+      Nat.card_eq_fintype_card, Nat.card_eq_fintype_card,
+      ← pow_mul]
+    congr 2
+    exact Nat.div_mul_div hKL hp
+  constructor
+  · intro hxpow
+    apply (algebraMap K L).injective
+    rw [map_one, heq, hxpow]
+  · intro hnormpow
+    have h := congrArg (algebraMap K L) hnormpow
+    rwa [map_one, heq] at h
 
 /-- The easy direction of the finite-field power criterion, with all
 divisibility explicit.  It is the direction used by a certificate: a nontrivial

@@ -4,6 +4,12 @@
 `Ogdoad.lean` is the umbrella import. The imported development contains no
 `sorry`, `admit`, or custom `axiom` declarations.
 
+Some named finite arithmetic declarations use `native_decide`.  For those
+declarations, `#print axioms` reports Lean's generated native-decision axiom:
+they are exact replayable evaluator results, but they are not ordinary kernel
+reductions.  The ordinary algebraic theorems listed below do not cross
+that evaluator boundary.
+
 ```sh
 cd formal
 lake build --wfail
@@ -107,7 +113,9 @@ selection. See `../docs/OPEN.md` and `../writeups/linking_affine.tex`.
 The module `Excess` (`Excess.lean`) proves algebraic ingredients of the
 four-arm `Z/O/C/D` reduction, including:
 
-- exact finite-cyclic-group and finite-field power/order criteria;
+- exact finite-cyclic-group and finite-field power/order criteria, including
+  norm reduction, coprime-exponent invariance, and strict-ancestor primary
+  vacuity;
 - the corrected characteristic-two sparse norm;
 - trace, norm, Frobenius, Kummer, Dickson--Lucas, Singer, and cubical-support
   identities used by the selected-order reductions;
@@ -133,8 +141,10 @@ four-arm `Z/O/C/D` reduction, including:
 - oriented Frobenius-prefix evaluation and its block cocycle, including the
   faithful unit-exponent-prefix/full-orbit-trivial dichotomy; these identities
   only re-encode a marked power-residue phase and do not evaluate it;
-- transparent finite primality, factor, modular, and order screens for the
-  rows explicitly encoded in the file.
+- executable finite primality, factor, modular, and order screens for the rows
+  explicitly encoded in the file.  The declarations proved with
+  `native_decide` are native-decided finite evidence in the sense stated
+  above, not ordinary kernel reductions.
 
 The file defines `SelectedLogUnitTarget`, `ExceptionalColumnTarget`, and
 `DPrimeTarget`. These declarations expose universal propositions; they do not

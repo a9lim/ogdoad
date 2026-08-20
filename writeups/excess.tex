@@ -46,8 +46,9 @@ shows that Frobenius, character, and affine-holonomy transforms of one marked
 Kummer phase can only erase or re-encode that phase; they cannot evaluate it
 without an independent ancestry input.
 
-The proof record distinguishes paper theorems, kernel-checked algebra, named
-finite certificates, source-backed data, and the still-open universal rule.
+The proof record distinguishes paper theorems, ordinary kernel-checked
+algebra, native-decided named finite certificates, source-backed data, and the
+still-open universal rule.
 \end{abstract}
 
 \section{Introduction}
@@ -188,13 +189,17 @@ For $h>1$, put
 Thus $\Pi_h$ is the full primary part supported at primes first occurring at
 residue degree $h$.
 
-For an odd prime $r$, let $b_r=d(\alpha_r)$ and, for $a\geq1$, put
+For an odd prime $r$, let $b_r=d(\alpha_r)$.  Put
+$x_{r,0}=\alpha_r$, and for $a\geq1$ put
 \[
- x_{r,a}=\kappa_{r^a},\quad
- F_{r,a}=\mathbb F_{2^{r^ab_r}},\quad
+ x_{r,a}=\kappa_{r^a}.
+\]
+For every $a\geq0$, define
+\[
+ F_{r,a}=\mathbb F_{2^{r^ab_r}},\qquad
  y_{r,a}=x_{r,a}+1,
 \]
-with $F_{r,0}=\mathbb F_{2^{b_r}}$.  Define
+and for $a\geq1$ define
 \[
  G_{r,a}=F_{r,a}^{\times}/F_{r,a-1}^{\times},
  \qquad
@@ -649,6 +654,33 @@ giving the order identity.  Frobenius gives the other translates, and
 Proposition~\ref{prop:power} finishes the reduction.
 \end{proof}
 
+The half-angle test also has a lossless group-algebra form that removes all
+denominators.  Put
+\[
+ J_h(X)=X^{2h}+X^h+1,
+ \qquad B_d(X)=(X^2+1)^d+X^d\in\mathbb F_2[X].
+\]
+Since $J_h$ is the minimal polynomial of $\zeta_k$ and
+$\gamma_k=\zeta_k^{-1}(\zeta_k^2+1)$, one has
+\begin{equation}
+ \gamma_k^d=1
+ \quad\Longleftrightarrow\quad
+ J_h(X)\mid B_d(X).
+\end{equation}
+Equivalently, in
+$\mathbb F_2[X,X^{-1}]/(X^{3h}-1)$ the parity vector of
+$X^d(1+X^{-2})^d$ belongs to the affine coset $1+(J_h)$, not to the ideal
+$(J_h)$ itself.  Thus arm $C$ is exactly the universal assertion that, for
+every prime $\ell\mid 2^h-1$,
+\[
+ J_h(X)\nmid B_{(2^h-1)/\ell}(X).
+\]
+Lucas's theorem makes the support of $B_d$ explicit from the binary digits of
+$d$, but it does not by itself prove these selected nondivisibilities.  The
+denominator-free equivalence above is also kernel-checked as
+\texttt{halfAngle\_pow\_eq\_one\_iff\_minpoly\_dvd}; it is a reduction of
+$C$, not a proof of $C$.
+
 Put $q_k=2^{3^{k-1}}$ and
 \[
  U_k=\ker\!\left(
@@ -807,10 +839,28 @@ valuations.  The following are equivalent:
 \end{theorem}
 
 \begin{proof}
-The element $\zeta$ has minimal polynomial $X^{2h}+X^h+1$.  Comparing the
-support of a hypothetical Frobenius relation $A_k^{2^j}=A_k$ modulo this
-trinomial forces $2^j\equiv1\pmod{3h}$, so $A_k$ has degree $2h$ and the
-resultant is its minimal polynomial.
+The element $\zeta$ has minimal polynomial $X^{2h}+X^h+1$.  To justify the
+degree of $A_k$, suppose $A_k^{2^j}=A_k$, put
+$t\equiv2^j\pmod{3h}$, and write $u=\zeta^t$.  If $j$ is even, then
+$\omega^t=\omega$ and
+\[
+ (u+\zeta)(u+\zeta+1)=0,
+\]
+so $u$ is either $\zeta$ or $\zeta+1$.  If $j$ is odd, then
+$\omega^t=\omega^2$ and
+\[
+ (u+\zeta+\omega)(u+\zeta+\omega^2)=0,
+\]
+so $u$ is either $\zeta+\omega$ or $\zeta+\omega^2$.  The three translated
+possibilities are impossible: Proposition~\ref{prop:c-half} gives each the
+same order as $\zeta+1$, namely
+$3^{k+1}\operatorname{ord}(\gamma_k)>3^{k+1}$; here
+$\operatorname{ord}(\gamma_k)>1$ because
+$\mathbb F_2(\gamma_k)=\mathbb F_{2^h}$ and $h>1$.  On the other hand, $u$ is a
+$3^{k+1}$-st root of unity.  Hence $u=\zeta$, so
+$2^j\equiv1\pmod{3h}$.  Since the order of two modulo $3h=3^{k+1}$ is
+$2h$, the Frobenius orbit of $A_k$ has size $2h$.  Thus $A_k$ has degree
+$2h$ and the displayed resultant is its minimal polynomial.
 
 The cyclotomic divisor criterion applied to
 $\Phi_{2\cdot3^k}(2)$ gives the stated prime support after removing its
@@ -1124,7 +1174,7 @@ not decide it.
 
 \section{Authority and verification}\label{sec:verification}
 
-The claims in this paper have five distinct sources.  Table~\ref{tab:status}
+The claims in this paper have six distinct sources.  Table~\ref{tab:status}
 is part of the theorem statement: in particular, a finite calculation or a
 Lean definition of a target is never used as evidence for a universal claim.
 
@@ -1142,11 +1192,14 @@ Proved here & The four-arm equivalence; the exact selected coordinates and
 order criteria; the primitive-support, packet, supersingular, Singer,
 corrected-norm, ray-index, boundedness, and reciprocity-saturation results
 stated above. \\
-Kernel-checked & The algebraic Kummer interface, full-primary power tests,
+Kernel-checked Lean & The algebraic Kummer interface, full-primary power tests,
 selected cubic and exceptional identities, cubical reductions, packet and
-Fibonacci identities, marked-holonomy calculus, and the named finite
-arithmetic certificates. \\
-Finite evidence & Source-backed rows, exact named-row certificates, and
+Fibonacci identities, and marked-holonomy calculus. \\
+Native evaluation & Named finite arithmetic propositions proved
+with \texttt{native\_decide}.  Lean's axiom report records the generated
+native-decision axiom for these declarations, so they are exact replayable
+finite calculations, not ordinary kernel reductions. \\
+External evidence & Source-backed rows, Python certificates, and
 explicit countermodels to overstrong intermediate lemmas.  These establish
 only their stated finite instances. \\
 Open & The universal assertions $Z,O,C,D$, Conjecture~\ref{conj:rule}, and
