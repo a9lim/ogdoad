@@ -131,17 +131,26 @@ boundedness reformulation, structural norm identities, primitive-support
 quotient, supersingular and Singer descriptions, the ordinary ray-class
 decomposition, and the principal-ray/circular-unit factorization in the cubic
 and exceptional arms.  In the cubic arm, a selector-retaining partition
-argument gives an unconditional order lower bound exponential in
-`sqrt(3^k)`; it remains subexponential in the field degree and does not imply
-primitivity.  At the correctly indexed Conway--Fermat endpoint, a hypothetical
+argument gives
+`log_2 ord(eta_k) >= (pi/(3 log 2) + o(1)) sqrt(3^k)`.  A complementary
+section argument proves that the first possible nonempty one-sided relation
+has weighted residue at least `2 * 3^k + 1`, sharply attained by the norm
+triple.  At every weight, such a relation is exactly simultaneous
+divisibility of the two non-killed residue sections by
+`Y^(2H) + Y^H + 1`; this selected cyclic-code condition remains unresolved.
+These bounds remain subexponential in the field degree and do not classify
+higher-weight relations or imply primitivity.  At the correctly
+indexed Conway--Fermat endpoint, a hypothetical
 odd Fibonacci zero is equivalent to two simultaneous fourth-power residuals;
 their polynomial gcd is exactly the target Fibonacci polynomial, but
 Frobenius extraction still ends at the marked inverse-exponent seam.  In the
 ordinary arm, the bottom-ancestor polynomial
 sections prove every current factor `p` with `L_(r,a)/p <= b_r r^a`, including
-the case in which `L_(r,a)/r` is prime.  It also proves several finite
-tensor-rank zero cases and shows why generic trace, norm, conductor,
-factor-shape, reciprocity, and
+the case in which `L_(r,a)/r` is prime.  A Kummer-ratio packing argument
+strengthens this: with `D=r^(a-1)(r-1)` and `s=(r-1)/2`, deficiency forces
+`L_(r,a)/p >= sum_(j=0)^s 2^j binom(D,j) binom(s,j)`.  It also proves
+several finite tensor-rank zero cases and shows why generic trace, norm,
+conductor, factor-shape, reciprocity, and
 unselected Kummer information cannot recover the marked Conway coordinate.
 For the exceptional arm, automatic vanishing on the `X^h - 1` component
 upgrades the three-equal-block failure condition to literal cyclic

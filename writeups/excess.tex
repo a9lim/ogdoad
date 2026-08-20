@@ -40,8 +40,9 @@ lossless reductions, not hypotheses, and all four universal assertions remain
 open.  The paper then isolates the arithmetic content of each coordinate.  It
 constructs the primitive-support quotient and the Conway--Fermat packet
 recursion, identifies the ordinary Artin symbol, proves the cubic Singer
-recursion and both incidence and partition selected-order bounds, proves an
-ordinary large-factor section sieve, and gives the exceptional Capelli
+recursion, a partition selected-order bound, and a sharp first-relation
+threshold, proves an ordinary section sieve and a Kummer-ratio packing sieve,
+and gives the exceptional Capelli
 criterion, a primitive-only palindromicity test, a one-third Frobenius
 compression, and a level-dependent translate bound.  The compression proves
 the exceptional arm whenever its current cyclotomic quotient is prime, while
@@ -98,11 +99,14 @@ assertions $Z,O,C,D$ stated in Theorem~\ref{thm:arms}.  Each assertion is an
 exact Euler nonpower test for one Conway-selected coordinate and retains the
 full primary valuation.  The reductions, the coordinate formulas, the
 selected Singer and partition bounds of Propositions~\ref{prop:sieve}
-and~\ref{prop:c-partition}, and the exceptional compression and translate
-bounds of
+and~\ref{prop:c-partition}, the cubic first-relation theorem
+of Proposition~\ref{prop:c-first-relation}, and the exceptional compression
+and translate bounds of
 Propositions~\ref{prop:d-one-third} and~\ref{prop:d-bound} are proved here.
 Corollary~\ref{cor:o-large-factor} settles the ordinary large-factor case,
-and the compression settles the exceptional prime-complement case.  None of
+Proposition~\ref{prop:o-ratio-packing} enlarges that range polynomially in
+$r^a$, and the compression settles the exceptional prime-complement case.
+None of
 $Z,O,C,D$ is proved universally; consequently the $0/1/4$ rule and absolute
 boundedness of the finite excess remain open.
 \end{thmA}
@@ -715,6 +719,89 @@ divisibility.  Finally, $d$ is odd, so when $d\leq bn$ one may take $j=1$.
 If $p=N/r$, then $d=r\leq br^a$.
 \end{proof}
 
+The full Kummer orbit gives a second sieve which is substantially stronger
+when the tower level is large.
+
+\begin{proposition}[Kummer-ratio packing sieve]
+\label{prop:o-ratio-packing}
+Assume $r\ne3$ and $a\geq1$, put $n=r^a$, and let the prime $p\ne r$ divide
+$N=L_{r,a}$.  Set
+\[
+ d=N/p,\qquad
+ D=r^{a-1}(r-1),\qquad s=(r-1)/2.
+\]
+If the current $p$-coordinate is deficient, then
+\[
+ d\geq
+ \mathcal R(D,s):=
+ \sum_{j=0}^{s}2^j\binom Dj\binom sj.
+\]
+Consequently arm~$O$ holds at every such factor satisfying
+\[
+ \frac{L_{r,a}}p<
+ \mathcal R\left(r^{a-1}(r-1),\frac{r-1}{2}\right).
+\]
+\end{proposition}
+
+\begin{proof}
+Put $K=F_{a-1}$ and $x=x_a$.  The nonpower radicand gives
+$r\mid2^b-1$, so LTE gives $r^a\mid2^{br^{a-1}}-1$; hence $K$ contains
+$\mu_n$.  Since $F_a=K(x)$, the element $x$ has minimal-polynomial degree
+$r$ over $K$.  Choose representatives
+$\mathcal C$ for $\mu_n/\mu_r$.  Deficiency and
+Proposition~\ref{prop:o-bottom-divisibility} give, at every root $cx$ of
+$P_r(T^n)$ and every $\zeta\in\mu_r$,
+\[
+ (1+\zeta cx)^d
+ =(1+(\zeta cx)^r)^e
+ =(1+(cx)^r)^e
+ =(1+cx)^d.
+\]
+Every numerator and denominator below is nonzero: an equality
+$1+\xi x=0$ with $\xi\in\mu_n$ would put $x$ in $K$, contradicting its
+relative degree $r>1$.
+Thus each of the
+\[
+ u_{c,\zeta}=\frac{1+\zeta cx}{1+cx},
+ \qquad c\in\mathcal C,\quad
+ \zeta\in\mu_r\setminus\{1\},
+\]
+is a $d$-th root of unity.  There are
+$|\mathcal C|(r-1)=D$ such ratios.
+
+Index these ratios by a set $I$ of size $D$.  For every vector
+$v=(v_i)_{i\in I}\in\mathbb Z^I$ with $\sum_i|v_i|\leq s$, put
+$U_v=\prod_i u_i^{v_i}$.  We claim that the $U_v$ are distinct.  If
+$U_v=U_w$, set $g_i=v_i-w_i$.  After separating positive and negative
+exponents, the resulting rational-function equality at $x$ has the form
+\[
+ A(x)=B(x),
+ \qquad \deg A,\deg B\leq\sum_i|g_i|\leq2s=r-1<r,
+\]
+where $A,B\in K[T]$ have constant coefficient one.  Since the minimal
+polynomial of $x$ over $K$ has degree $r$, one has $A=B$ as polynomials.
+This low-degree step is the ordinary Lean theorem
+\texttt{polynomial\_eq\_of\_aeval\_eq\_of\_natDegree\_lt\_minpoly}.
+
+For a fixed $c\in\mathcal C$, the ratios form the star
+\[
+ \frac{1+\zeta cT}{1+cT},\qquad
+ \zeta\in\mu_r\setminus\{1\}.
+\]
+Stars belonging to different cosets have disjoint linear factors.  Within a
+star, the valuation at the distinct factor $1+\zeta cT$ recovers the
+corresponding exponent.  Unique factorization therefore forces every
+$g_i=0$, and hence $v=w$.
+
+To count these integer vectors, choose the $j$ nonzero coordinates, their
+signs, and their positive absolute values.  There are $\binom Dj$, $2^j$,
+and $\binom sj$ choices respectively, the last count being the number of
+positive $j$-tuples with sum at most $s$.  Hence there are exactly
+$\mathcal R(D,s)$ vectors.  Their values are distinct roots of $X^d-1$,
+which has at most $d$ roots in a field.  This proves the bound and its
+contrapositive.
+\end{proof}
+
 Let $N_a=\operatorname{ord}(x_a)$, choose a primitive complex
 $N_a$-th root $\xi_{N_a}$, and let $\mathfrak P_a\mid2$ be the prime whose
 residue sends $\xi_{N_a}$ to $x_a$.  Put
@@ -983,17 +1070,60 @@ Let $n=3^{k+1}=3h$.  For an integer $m\geq1$ put
  \mathcal A_m=\{1\leq j\leq m:3\nmid j\},\qquad
  t_m=|\mathcal A_m|,\qquad s_m=\sum_{j\in\mathcal A_m}j.
 \]
-If $2s_m<h$, then
+Let
+\[
+ \mathcal U_h=\{1\leq j<n:3\nmid j\},
+\]
+choose $0\leq z_j<2h$ with $2^{z_j}\equiv j\pmod n$, and, for
+$E\subseteq\mathcal U_h$, put
+\[
+ Q_E=\sum_{j\in E}2^{z_j},\qquad s_E=\sum_{j\in E}j.
+\]
+For distinct $E,F\subseteq\mathcal U_h$, set
+\[
+ A=E\setminus F,\quad B=F\setminus E,\quad
+ W=s_A+s_B,\quad j_0=\min(A\cup B).
+\]
+Then $\eta_k^{Q_E}\ne\eta_k^{Q_F}$ if either
+\[
+ s_A\not\equiv s_B\pmod3\ \text{ and }\ W<h,
+ \qquad\text{or}\qquad
+ s_A\equiv s_B\pmod3\ \text{ and }\ W-2j_0<h.
+\]
+In particular, weighted symmetric-difference sum below $h$ rules out every
+collision.
+
+Put
+\[
+ R_h=\frac{h-1}{2},\qquad
+ \mathcal P_h=
+ \sum_{r=0}^{R_h}[X^r]
+ \prod_{\substack{j\geq1\\3\nmid j}}(1+X^j).
+\]
+Then
+\[
+ \operatorname{ord}(\eta_k)\geq\mathcal P_h,
+ \qquad
+ \log_2\mathcal P_h=
+ \left(\frac{\pi}{3\log 2}+o(1)\right)\sqrt h.
+\]
+If $s_m<h$, then also
 \[
  \operatorname{ord}(\eta_k)\geq2^{t_m}.
 \]
 Consequently
 \[
  \log_2\operatorname{ord}(\eta_k)
- \geq \sqrt{\frac{2h}{3}}-O(1).
+ \geq \left(\frac{\pi}{3\log 2}+o(1)\right)\sqrt h,
+\]
+and the elementary initial-segment subfamily alone gives
+\[
+ \log_2\operatorname{ord}(\eta_k)
+ \geq \sqrt{\frac{4h}{3}}-O(1).
 \]
 If a prime $\ell\mid N=|U_k|$ is absent from the order of $\eta_k$ at its
-full valuation, then $N/\ell$ is at least the displayed finite lower bound.
+full valuation, then $N/\ell\geq\mathcal P_h$ and, whenever $s_m<h$, also
+$N/\ell\geq2^{t_m}$.
 \end{proposition}
 
 \begin{proof}
@@ -1001,42 +1131,162 @@ Put $w=\zeta_k^2$.  The identity $W(\eta_k)=w$ gives
 \[
  \eta_k=\frac{\omega+\omega^2w}{1+w}.
 \]
-The order of two modulo $n$ is $2h$, so for every
-$j\in\mathcal A_m$ choose $z_j$ with $2^{z_j}\equiv j\pmod n$.  Then
+The order of two modulo $n$ is $2h$, so the exponents $z_j$ in the statement
+exist.  They satisfy
 \[
  \eta_k^{2^{z_j}}
  =\omega^j\frac{1+(\omega w)^j}{1+w^j}.
 \]
-For $E\subseteq\mathcal A_m$ put
-$Q_E=\sum_{j\in E}2^{z_j}$ and $s_E=\sum_{j\in E}j$.  A collision
-$\eta_k^{Q_E}=\eta_k^{Q_F}$ would, after clearing denominators, make $w$ a
-root of the difference between
+A collision $\eta_k^{Q_E}=\eta_k^{Q_F}$ first permits cancellation of all indices in
+$E\cap F$: the relevant numerator and denominator factors are nonzero at
+$w$, because both $w$ and $\omega w$ are primitive $n$-th roots.  Put
+$A=E\setminus F$, $B=F\setminus E$, and $W=s_A+s_B$ as in the statement.
+Clearing the remaining
+denominators makes $w$ a root of the difference between
 \[
- \omega^{s_E}
- \prod_{j\in E}(1+(\omega X)^j)\prod_{j\in F}(1+X^j)
+ \omega^{s_A}
+ \prod_{j\in A}(1+(\omega X)^j)\prod_{j\in B}(1+X^j)
  \quad\text{and}\quad
- \omega^{s_F}
- \prod_{j\in F}(1+(\omega X)^j)\prod_{j\in E}(1+X^j).
+ \omega^{s_B}
+ \prod_{j\in B}(1+(\omega X)^j)\prod_{j\in A}(1+X^j).
 \]
-Each polynomial has degree $s_E+s_F\leq2s_m<h$.  The element $w$ is a
+Each polynomial has degree $W$.  The element $w$ is a
 primitive $n$-th root and the order of four modulo $n$ is $h$, so its minimal
-polynomial over $\mathbb F_4$ has degree $h$.  The two polynomials would
-therefore be identical.  Their constant coefficients first force
-$s_E\equiv s_F\pmod3$.  Cancel that common scalar and the factors indexed by
-$E\cap F$, and let $j_0$ be the least index in the symmetric difference.  If,
-say, $j_0\in E\setminus F$, then the coefficients of $X^{j_0}$ on the two
+polynomial over $\mathbb F_4$ is $X^h+\omega^2$.  Thus a collision with
+$W<h$ would make the two polynomials identical.  Their constant coefficients
+first force $s_A\equiv s_B\pmod3$.  Cancel that common scalar and let $j_0$
+be the least index in $A\cup B$.  If, say, $j_0\in A$, then the coefficients
+of $X^{j_0}$ on the two
 sides are respectively $\omega^{j_0}$ and $1$.  They differ because
-$3\nmid j_0$; the other case is symmetric.  Thus $E=F$, so all $2^{t_m}$
-displayed powers are distinct and the finite bound follows.  Since
-$t_m=2m/3+O(1)$ and $s_m=m^2/3+O(m)$, taking the largest $m$ with
-$2s_m<h$ gives the asymptotic estimate.  The final assertion follows because
-a missing full $\ell$-part would force
+$3\nmid j_0$; the other case is symmetric.  More sharply, if
+$s_A\not\equiv s_B\pmod3$, the
+difference has span $W$, while if $s_A\equiv s_B\pmod3$, its constant and
+leading terms cancel but its coefficients at degrees $j_0$ and $W-j_0$ are
+nonzero, so its span is $W-2j_0$.  A nonzero multiple of $X^h+\omega^2$ has
+span at least $h$.  This proves both pairwise criteria in the statement.
+
+When $s_m<h$, necessarily $m<n$, so $\mathcal A_m\subseteq\mathcal U_h$.
+For $E,F\subseteq\mathcal A_m$, their symmetric difference has weighted sum
+at most $s_m$.  Hence all $2^{t_m}$ displayed powers are distinct.
+
+Every subset $E$ with $s_E\leq R_h$ belongs to a family whose pairwise
+weighted symmetric differences have sum at most $2R_h<h$.  The number of
+such subsets is exactly $\mathcal P_h$, proving the first finite bound.  For
+its asymptotic, put
+\[
+ G(t)=\prod_{j\geq1}(1+e^{-tj}),\qquad
+ F(e^{-t})=\prod_{3\nmid j}(1+e^{-tj})=\frac{G(t)}{G(3t)}.
+\]
+The standard $q$-Pochhammer asymptotic gives
+\[
+ G(t)\sim2^{-1/2}\exp\!\left(\frac{\pi^2}{12t}\right),
+ \qquad
+ \frac{F(e^{-t})}{1-e^{-t}}
+ \sim t^{-1}\exp\!\left(\frac{\pi^2}{18t}\right).
+\]
+The coefficients of $F(X)/(1-X)$ are the nonnegative, nondecreasing
+cumulative counts in $\mathcal P_h$.  Ingham's exponential Tauberian theorem
+\cite{ingham1941} therefore gives
+\[
+ \log\mathcal P_h
+ =2\sqrt{\frac{\pi^2R_h}{18}}+o(\sqrt h)
+ =\frac\pi3\sqrt h+o(\sqrt h).
+\]
+Finally, $t_m=2m/3+O(1)$ and $s_m=m^2/3+O(m)$; taking the largest $m$ with
+$s_m<h$ gives the elementary initial-segment estimate.  The final assertion
+follows because a missing full $\ell$-part would force
 $\operatorname{ord}(\eta_k)\mid N/\ell$.
 \end{proof}
 
-The partition bound strengthens the polynomial Singer sieve to an
-exponential-in-$\sqrt h$ exclusion for the actual norm-one coordinate.  It is
-still subexponential in $h$ and so does not force primitivity.
+There is a second, sharp consequence of the same selected formula.  It
+classifies the first possible one-sided relation rather than merely packing
+many pairwise-distinct powers.
+
+\begin{proposition}[sharp selected first-relation threshold]
+\label{prop:c-first-relation}
+Retain the notation above.  For every nonempty $E\subseteq\mathcal U_h$,
+put $S=s_E$ and decompose
+\[
+ B_E(X)=\prod_{j\in E}(1+X^j)
+ =B_0(X^3)+XB_1(X^3)+X^2B_2(X^3),
+ \qquad B_a\in\mathbb F_2[Y].
+\]
+If $a_0\equiv-S\pmod3$, then the exact all-weight criterion is
+\[
+ \eta_k^{Q_E}=1
+ \quad\Longleftrightarrow\quad
+ Y^{2H}+Y^H+1\mid B_a(Y)
+ \quad\text{for both }a\ne a_0,
+ \qquad H=h/3.
+\]
+In particular,
+\[
+ \eta_k^{Q_E}=1\quad\Longrightarrow\quad s_E\geq2h+1.
+\]
+The threshold is sharp: with $H=h/3$,
+\[
+ E_0=\{1,h-1,h+1\},\qquad
+ Q_{E_0}=1+2^H+2^{2H}=|U_k|,\qquad s_{E_0}=2h+1.
+\]
+Consequently, if a prime $\ell\mid N=|U_k|$ is absent from the selected
+order at its full valuation, write
+\[
+ \frac N\ell=\sum_{0\leq z<2H}\epsilon_z2^z,
+ \qquad j_z\equiv2^z\pmod{3h},\quad1\leq j_z<3h.
+\]
+Then necessarily
+\[
+ \sum_{\epsilon_z=1}j_z\geq2h+1.
+\]
+\end{proposition}
+
+\begin{proof}
+Put
+\[
+ P_E(X)=\omega^S B_E(\omega X)+B_E(X).
+\]
+The selected formula shows that $\eta_k^{Q_E}=1$ exactly when
+$M(X)=X^h+\omega^2$, the minimal polynomial of $w$ over $\mathbb F_4$,
+divides $P_E$.  If $[X^r]B_E=b_r\in\mathbb F_2$, then
+\[
+ [X^r]P_E=b_r(1+\omega^{S+r}).
+\]
+Thus the scalar multiplier vanishes precisely on the section
+$r\equiv-S\pmod3$.  Write
+the three sections as in the statement.
+Since $h=3H$, division by
+$M(X)=(X^3)^H+\omega^2$ respects these three sections.  Divisibility by $M$
+therefore forces each of the two surviving $B_a(Y)$ to be divisible by
+$Y^H+\omega^2$.  Because its coefficients lie in $\mathbb F_2$, conjugation
+also forces divisibility by $Y^H+\omega$, and hence by
+\[
+ (Y^H+\omega^2)(Y^H+\omega)=Y^{2H}+Y^H+1.
+\]
+The converse is immediate because the displayed polynomial contains
+$Y^H+\omega^2$ as a factor.  This proves the exact all-weight criterion.
+
+If $S<2h$, every surviving section has degree below $2H$.  If $S=2h$, the
+top term lies in the vanished residue-zero section, so the same strict bound
+holds for the two surviving sections.  Hence both are zero.  The constant
+term of $B_E$ then forces the sole supported section to be residue zero, but
+the least $j\in E$ contributes coefficient one at $X^j$, in a nonzero residue
+class.  This contradiction proves $S\geq2h+1$.
+
+The congruence $2^H\equiv h-1\pmod{3h}$ follows by induction from
+$2\equiv2\pmod9$ after cubing; squaring gives
+$2^{2H}\equiv h+1\pmod{3h}$.  Hence $E_0$ has the asserted exponent, and
+$\eta_k^N=1$ proves sharpness.  Finally, $N$ is odd and prime to three, so
+$\ell\geq5$ and $N/\ell<2^{2H}$.  Its binary indices lie below $2H$ and
+have distinct residues modulo $3h$.  A missing full $\ell$-part gives
+$\eta_k^{N/\ell}=1$, so the first assertion gives the displayed residue-weight
+bound.
+\end{proof}
+
+Together, the partition and first-relation bounds strengthen the polynomial
+Singer sieve to an exponential-in-$\sqrt h$ exclusion and a sharp
+weight-$2h$ exclusion for the actual norm-one coordinate.  They remain
+subexponential and do not classify relations above the norm triple, so they
+do not force primitivity.
 
 There is an exact number-field factorization of the remaining index.  Put
 $L=\mathbb Q(\zeta_{3^{k+1}})^+$ and
@@ -1747,8 +1997,8 @@ Capelli theory, and the cited cyclotomic, class-field, function-field, and
 order results.  These are not reproved in Lean. \\
 Proved here & The four-arm equivalence; the exact selected coordinates and
 order criteria; the primitive-support, packet, supersingular, Singer and
-selected norm-one partition bounds, corrected-norm, ordinary large-factor
-section sieve, exceptional
+selected norm-one partition and first-relation bounds, corrected-norm,
+ordinary section and Kummer-ratio packing sieves, exceptional
 palindromicity and one-third compression, prime-complement exceptional case,
 ray-index, boundedness, and
 reciprocity-saturation results stated above. \\

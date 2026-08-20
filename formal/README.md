@@ -164,6 +164,13 @@ assume or prove them. `DPrimeTarget` is the exceptional `2 * 3^k`-column
 divisibility target, not the full universal `0/1/4` theorem. Source-assisted
 factor data and Python certificates remain external evidence.
 
+For the selected-order packing bounds, Lean checks the reusable low-degree
+minimal-polynomial collision lemma. The ordinary ratio-star
+unique-factorization and lattice count, the cubic weighted-subset coefficient
+argument, the three-section first-relation theorem, and the cited Tauberian
+asymptotic remain paper-level mathematics; no Lean declaration upgrades them
+to a universal arm.
+
 For a nonzero element of a finite field, the relevant obstruction is the
 exact Euler test
 
