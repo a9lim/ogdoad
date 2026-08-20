@@ -40,7 +40,8 @@ lossless reductions, not hypotheses, and all four universal assertions remain
 open.  The paper then isolates the arithmetic content of each coordinate.  It
 constructs the primitive-support quotient and the Conway--Fermat packet
 recursion, identifies the ordinary Artin symbol, proves the cubic Singer
-recursion and a selected-order lower bound, and gives the exceptional Capelli
+recursion and both incidence and partition selected-order bounds, proves an
+ordinary large-factor section sieve, and gives the exceptional Capelli
 criterion, a primitive-only palindromicity test, a one-third Frobenius
 compression, and a level-dependent translate bound.  The compression proves
 the exceptional arm whenever its current cyclotomic quotient is prime, while
@@ -96,10 +97,12 @@ The $0/1/4$ rule is equivalent to the conjunction of four selected-order
 assertions $Z,O,C,D$ stated in Theorem~\ref{thm:arms}.  Each assertion is an
 exact Euler nonpower test for one Conway-selected coordinate and retains the
 full primary valuation.  The reductions, the coordinate formulas, the
-selected Singer bound of Proposition~\ref{prop:sieve}, and the exceptional
-compression and translate bounds of
+selected Singer and partition bounds of Propositions~\ref{prop:sieve}
+and~\ref{prop:c-partition}, and the exceptional compression and translate
+bounds of
 Propositions~\ref{prop:d-one-third} and~\ref{prop:d-bound} are proved here.
-The compression settles the exceptional prime-complement case.  None of
+Corollary~\ref{cor:o-large-factor} settles the ordinary large-factor case,
+and the compression settles the exceptional prime-complement case.  None of
 $Z,O,C,D$ is proved universally; consequently the $0/1/4$ rule and absolute
 boundedness of the finite excess remain open.
 \end{thmA}
@@ -445,6 +448,51 @@ It is not the selected-order conjecture.  The block formula remains an exact
 interface to the displayed next-level nonvanishing problem; it does not prove
 that target.
 
+At the genuine index there is nevertheless a sharper exact residual.  Let
+$d=F_{n+1}/\ell=2m+1>1$ and put $x=a_n$.  Characteristic-two doubling and
+Cassini give
+\begin{align*}
+ S_m(x)^4+x^{d-2}&=S_d(x)S_{d-2}(x),\\
+ S_{m+1}(x)^4+x^d&=S_d(x)S_{d+2}(x).
+\end{align*}
+Consequently, over a field,
+\[
+ S_d(x)=0
+ \quad\Longleftrightarrow\quad
+ S_m(x)^4=x^{d-2}
+ \qquad\text{and}\qquad
+ S_{m+1}(x)^4=x^d.
+\]
+The converse is literal: squaring
+$S_d=S_{m+1}^2+xS_m^2$ makes the two displayed powers cancel.  The pair is
+strictly sharper than either equation separately.  Indeed, in
+$\mathbb F_2[X]$ its two left-hand residual polynomials have monic gcd exactly
+$S_d$.  To see the only needed coprimality, any common divisor of
+$S_{d-2}$ and $S_{d+2}$ divides $X^{d-2}S_4=X^{d-2}$ by the continuant
+determinant identity, while the positive odd-index polynomial $S_{d-2}$ has
+constant coefficient one.  Thus $S_{d-2}$ and $S_{d+2}$ are coprime, and
+the two factorizations give the stated gcd.
+
+This exact branch selector still does not close the Conway--Fermat target.
+If $d-1=2^s g$ with $g$ odd, its lower equation is
+\[
+ S_g(x)^{2^{s+1}}=x^{d-2}.
+\]
+Writing $q=|E_n|$, choose $K$ by the exact congruence
+$2^{s+1}K\equiv d-2\pmod{q-1}$.  Since $x\ne0$, $x^{q-1}=1$, and the
+$2^{s+1}$-power Frobenius is injective, the equation becomes
+$S_g(x)=x^K$.  This is precisely the existing AE4 inverse-exponent seam.
+The upper equation removes the adjacent Fibonacci branch but, after
+$S_d(x)=0$ is imposed, follows by squaring the same endpoint relation twice
+and using the lower equation; no present ancestry identity contradicts the
+resulting monomial equality.
+The two ordinary identities and the field equivalence are kernel-checked as
+\begin{center}
+\texttt{fibPolyValue\_odd\_lower\_fourth\_factor},\par
+\texttt{fibPolyValue\_odd\_upper\_fourth\_factor},\quad\text{and}\quad
+\texttt{fibPolyValue\_odd\_eq\_zero\_iff\_fourth\_residuals}.
+\end{center}
+
 This isolates the part not settled by the existing Conway-tower literature.
 Popovych proves lower bounds and verifies the required relative full orders
 through level eleven using the known Fermat factorizations
@@ -618,6 +666,54 @@ divisibility by its minimal polynomial.
 This is a lossless selector-retaining reduction, not a proof of arm~$O$:
 the remaining assertion is that the displayed divisibility never occurs for
 the literal polynomial $P_r$ and every current factor $p$.
+
+For a polynomial $B(T)=\sum_m b_mT^m$ and $0\leq j<n$, define its
+$j$-th $n$-section by
+\[
+ \operatorname{Sec}_{n,j}(B)(U)=\sum_{k\geq0}b_{j+kn}U^k.
+\]
+
+\begin{lemma}[polynomial section criterion]
+\label{lem:o-section}
+Let $k$ be a field, let $0\ne P\in k[U]$, and let $n\geq1$.  Then
+\[
+ P(T^n)\mid B(T)
+ \quad\Longleftrightarrow\quad
+ P(U)\mid\operatorname{Sec}_{n,j}(B)(U)
+ \quad(0\leq j<n).
+\]
+\end{lemma}
+
+\begin{proof}
+Every polynomial has the unique decomposition
+$B(T)=\sum_{j<n}T^j\operatorname{Sec}_{n,j}(B)(T^n)$.
+Multiplication by $P(T^n)$ preserves each residue class of exponents modulo
+$n$.  Applying the decomposition to the quotient proves the forward
+implication, and summing the sectionwise quotients proves the converse.
+\end{proof}
+
+\begin{corollary}[Lucas-section ordinary case]
+\label{cor:o-large-factor}
+Put $n=r^a$, let $p\ne r$ divide $N=L_{r,a}$, and put $d=N/p$.
+If some $0\leq j<n$ satisfies
+\[
+ r\nmid j,\qquad \binom dj\equiv1\pmod2,
+ \qquad d-j<bn,
+\]
+then the current $p$-coordinate of $y_aF_{a-1}^{\times}$ has full primary
+order.  In particular this holds if $d\leq bn$, and hence when $N/r$ is a
+prime distinct from $r$.
+\end{corollary}
+
+\begin{proof}
+In the polynomial of Proposition~\ref{prop:o-bottom-divisibility}, the
+$j$-th section receives no term from $(1+T^r)^e$, since $r\mid n$ but
+$r\nmid j$.  Its other summand has constant coefficient one and degree at
+most $\lfloor(d-j)/n\rfloor<b$.  It is therefore a nonzero polynomial of degree
+less than $\deg P_r=b$, so Lemma~\ref{lem:o-section} rules out the required
+divisibility.  Finally, $d$ is odd, so when $d\leq bn$ one may take $j=1$.
+If $p=N/r$, then $d=r\leq br^a$.
+\end{proof}
 
 Let $N_a=\operatorname{ord}(x_a)$, choose a primitive complex
 $N_a$-th root $\xi_{N_a}$, and let $\mathfrak P_a\mid2$ be the prime whose
@@ -874,6 +970,73 @@ subgroup of order $N/\ell$, which must contain all these quotients.
 
 The sieve is polynomial in $h$, while $N$ is exponential.  It proves a
 genuine selected large-factor range but not arm $C$.
+
+The cyclotomic selector also permits a complementary partition bound.  This
+is the usual low-degree collision argument for Gaussian periods, specialized
+to the composite conductor $3^{k+1}$ and therefore retaining the literal
+selected element rather than replacing it by an arbitrary normal generator.
+
+\begin{proposition}[selected norm-one partition bound]
+\label{prop:c-partition}
+Let $n=3^{k+1}=3h$.  For an integer $m\geq1$ put
+\[
+ \mathcal A_m=\{1\leq j\leq m:3\nmid j\},\qquad
+ t_m=|\mathcal A_m|,\qquad s_m=\sum_{j\in\mathcal A_m}j.
+\]
+If $2s_m<h$, then
+\[
+ \operatorname{ord}(\eta_k)\geq2^{t_m}.
+\]
+Consequently
+\[
+ \log_2\operatorname{ord}(\eta_k)
+ \geq \sqrt{\frac{2h}{3}}-O(1).
+\]
+If a prime $\ell\mid N=|U_k|$ is absent from the order of $\eta_k$ at its
+full valuation, then $N/\ell$ is at least the displayed finite lower bound.
+\end{proposition}
+
+\begin{proof}
+Put $w=\zeta_k^2$.  The identity $W(\eta_k)=w$ gives
+\[
+ \eta_k=\frac{\omega+\omega^2w}{1+w}.
+\]
+The order of two modulo $n$ is $2h$, so for every
+$j\in\mathcal A_m$ choose $z_j$ with $2^{z_j}\equiv j\pmod n$.  Then
+\[
+ \eta_k^{2^{z_j}}
+ =\omega^j\frac{1+(\omega w)^j}{1+w^j}.
+\]
+For $E\subseteq\mathcal A_m$ put
+$Q_E=\sum_{j\in E}2^{z_j}$ and $s_E=\sum_{j\in E}j$.  A collision
+$\eta_k^{Q_E}=\eta_k^{Q_F}$ would, after clearing denominators, make $w$ a
+root of the difference between
+\[
+ \omega^{s_E}
+ \prod_{j\in E}(1+(\omega X)^j)\prod_{j\in F}(1+X^j)
+ \quad\text{and}\quad
+ \omega^{s_F}
+ \prod_{j\in F}(1+(\omega X)^j)\prod_{j\in E}(1+X^j).
+\]
+Each polynomial has degree $s_E+s_F\leq2s_m<h$.  The element $w$ is a
+primitive $n$-th root and the order of four modulo $n$ is $h$, so its minimal
+polynomial over $\mathbb F_4$ has degree $h$.  The two polynomials would
+therefore be identical.  Their constant coefficients first force
+$s_E\equiv s_F\pmod3$.  Cancel that common scalar and the factors indexed by
+$E\cap F$, and let $j_0$ be the least index in the symmetric difference.  If,
+say, $j_0\in E\setminus F$, then the coefficients of $X^{j_0}$ on the two
+sides are respectively $\omega^{j_0}$ and $1$.  They differ because
+$3\nmid j_0$; the other case is symmetric.  Thus $E=F$, so all $2^{t_m}$
+displayed powers are distinct and the finite bound follows.  Since
+$t_m=2m/3+O(1)$ and $s_m=m^2/3+O(m)$, taking the largest $m$ with
+$2s_m<h$ gives the asymptotic estimate.  The final assertion follows because
+a missing full $\ell$-part would force
+$\operatorname{ord}(\eta_k)\mid N/\ell$.
+\end{proof}
+
+The partition bound strengthens the polynomial Singer sieve to an
+exponential-in-$\sqrt h$ exclusion for the actual norm-one coordinate.  It is
+still subexponential in $h$ and so does not force primitivity.
 
 There is an exact number-field factorization of the remaining index.  Put
 $L=\mathbb Q(\zeta_{3^{k+1}})^+$ and
@@ -1141,6 +1304,29 @@ If $e=3$---equivalently, if $\Psi_k=\ell$ is prime---then the opposite
 inequality always holds.  Hence every prime-complement level satisfies
 arm~$D$; in particular this gives proof-level, non-enumerative certificates
 for $k=2$ and $k=3$.
+
+More generally, put $r=\Psi_k/\ell$ and
+\[
+ \varepsilon_k=
+ \begin{cases}
+  1,&k\text{ even},\\
+  \omega^2,&k\text{ odd}.
+ \end{cases}
+\]
+For the reciprocal ratio
+\[
+ P=\frac{\iota(\mathcal B)}{\mathcal B}
+   =M_k^{Q+1}
+\]
+one has the exact identities
+\[
+ P^{\Psi_k}=\varepsilon_k,
+ \qquad
+ M_k^d=1\quad\Longleftrightarrow\quad P^r=\varepsilon_k.
+\]
+Thus, after removing its explicitly known three-primary phase, the unresolved
+composite target has exponent $r=\Psi_k/\ell\equiv1\pmod {2h}$ rather than
+$e=3\Psi_k/\ell$.
 \end{proposition}
 
 \begin{proof}
@@ -1176,27 +1362,78 @@ then Proposition~\ref{prop:d-block} and
 Corollary~\ref{cor:d-palindromic} applied to
 $C=\widetilde{\mathcal B}^{e}$.
 
-It remains to prove the last assertion.  If $e=3$, direct multiplication in
-characteristic two gives, modulo $X^{3h}-1$,
+We next determine the three-primary phase.  Since
+$(Q+1)\Psi_k=(q+1)/3$,
 \[
- \mathcal B^3+\iota(\mathcal B)^3
- =X^{h-4}+X^{h+5}+X^{2h-5}+X^{2h+4}.
+ P^{\Psi_k}
+ =M_k^{(q+1)/3}
+ =A_k^{(q^2-1)/3}
+ =\operatorname N_{\mathbb F_{4^h}/\mathbb F_4}(A_k).
 \]
-For $h\ge9$, these terms give block supports
+The minimal polynomial of $\zeta$ over $\mathbb F_4$ is $X^h+\omega$.
+If $y^2+y+\omega=0$, its other conjugate is $y+1$, so the resultant formula
+for the norm gives
 \[
- \{h-4\},\qquad \{5,h-5\},\qquad \{4\},
+ \operatorname N(A_k)
+ =(y^h+\omega)((y+1)^h+\omega).
 \]
-respectively.  They are not three equal blocks (the possible coincidences
-at $h=9$ merely give the patterns $110$ and $011$).  Hence the primitive
-component is nonzero.  The only earlier level has $\Psi_1=1$ and no current
-prime.
+Reduction by $y^2+y+\omega=0$ gives $y^{15}=1$ and
+\[
+ \begin{array}{c|cccc}
+  h\bmod15&3&9&12&6\\ \hline
+  y^h&\omega+\omega^2y&\omega+\omega y&1+\omega^2y&\omega y.
+ \end{array}
+\]
+The residues of $3^k$ modulo $15$ run through $3,9,12,6$.  Using
+$y(y+1)=\omega$, the displayed product is therefore $\omega^2$ in the
+first and third cases and $1$ in the second and fourth.  This proves
+$P^{\Psi_k}=\varepsilon_k$.
+
+Now $e=3r$.  If $P^e=1$, then $P^r$ is a cube root of unity.  Moreover
+\[
+ (P^r)^\ell=P^{\Psi_k}=\varepsilon_k.
+\]
+Every current prime satisfies $\ell\equiv1\pmod3$, so raising a cube root
+of unity to the $\ell$-th power fixes it.  Hence $P^r=\varepsilon_k$.
+The converse follows from $\varepsilon_k^3=1$.  Finally, since every prime
+factor of $r$ is current and hence congruent to one modulo $2h$, one has
+$r\equiv1\pmod {2h}$.
+
+It remains to prove the prime-complement assertion, where $r=1$.  Put
+$z=\zeta$ and multiply numerator and denominator of $P$ by $z^2$.  Then
+\[
+ P=\frac{N}{D},\qquad
+ N=z^4+z+\omega,\qquad
+ D=1+z^3+\omega^2z^4,
+\]
+and direct factorization over $\mathbb F_4$ gives
+\[
+ N+D=\omega(z+\omega^2)(z^3+\omega^2),
+ \qquad
+ N+\omega^2D=\omega^2(z+1)(z^3+\omega).
+\]
+If $k$ is even, the first identity shows $P\ne1$; if $k$ is odd, the second
+shows $P\ne\omega^2$.  Indeed $z$ has order $3h\ge27$, so neither $z$ nor
+$z^3$ can equal the displayed cube root of unity.  Thus
+$P\ne\varepsilon_k$, as required.  The only earlier level has
+$\Psi_1=1$ and no current prime.
 \end{proof}
 
-The congruence $e\equiv3\pmod {3h}$ does not by itself settle composite
-$\Psi_k$: the factor $(\widetilde{\mathcal B}^{3h})^{(e-3)/(3h)}$ can
-still change every primitive coefficient.  Proposition~\ref{prop:d-one-third}
-is therefore an exact reduced target and a proof for the prime-complement
-case, not a proof of universal arm~$D$.
+The parity-twisted exponent reduction does not by itself settle composite
+$\Psi_k$.  After putting $U=\varepsilon_k^{-1}P$, it says exactly that
+$U^{\Psi_k}=1$ and that arm~$D$ asks for
+$U^{\Psi_k/\ell}\ne1$ for every current prime $\ell$.  Thus it isolates the
+prime-to-three current coordinate but does not prove that every one of its
+prime factors occurs in $\operatorname{ord}(U)$.  Here the normalization uses
+$\Psi_k\equiv1\pmod3$ and $r\equiv1\pmod3$, the latter already following from
+$r\equiv1\pmod {2h}$.  Logarithmic or Hasse
+derivatives do not add an intrinsic constraint in this finite etale quotient:
+$\mathbb F_2[X]/(J_h)$ has no nonzero $\mathbb F_2$-derivations, while the
+formal polynomial derivative does not descend because
+$J_h'=X^{h-1}$ is a unit modulo $J_h$.  A derivative argument would therefore
+need genuinely new lift or multiplicity information.  Proposition~
+\ref{prop:d-one-third} remains an exact reduced target and a proof for the
+prime-complement case, not a proof of universal arm~$D$.
 
 \begin{proposition}[effective exceptional bound]\label{prop:d-bound}
 Let $k\geq2$, $h=3^k$, and let $\ell\mid\Psi_k$ be prime.  If $t$ is the
@@ -1509,14 +1746,17 @@ Cited input & Conway--Lenstra tower formulas, standard finite-field and
 Capelli theory, and the cited cyclotomic, class-field, function-field, and
 order results.  These are not reproved in Lean. \\
 Proved here & The four-arm equivalence; the exact selected coordinates and
-order criteria; the primitive-support, packet, supersingular, Singer,
-corrected-norm, exceptional palindromicity and one-third compression,
-prime-complement exceptional case, ray-index, boundedness, and
+order criteria; the primitive-support, packet, supersingular, Singer and
+selected norm-one partition bounds, corrected-norm, ordinary large-factor
+section sieve, exceptional
+palindromicity and one-third compression, prime-complement exceptional case,
+ray-index, boundedness, and
 reciprocity-saturation results stated above. \\
 Ordinary kernel-checked Lean & Algebra without native evaluation: the
 algebraic Kummer interface, full-primary power tests, selected cubic and
-exceptional identities, cubical reductions, packet and Fibonacci identities,
-and marked-holonomy calculus.  These proofs may still use Lean's standard
+exceptional identities, low-degree minimal-polynomial collision, cubical
+reductions, packet and Fibonacci identities, and marked-holonomy calculus.
+These proofs may still use Lean's standard
 logical dependencies \texttt{propext}, \texttt{Classical.choice}, and
 \texttt{Quot.sound}. \\
 Native evaluation & Named finite arithmetic propositions proved

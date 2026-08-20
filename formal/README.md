@@ -117,14 +117,20 @@ four-arm `Z/O/C/D` reduction, including:
 
 - exact finite-cyclic-group and finite-field power/order criteria, including
   norm reduction, coprime-exponent invariance, and strict-ancestor primary
-  vacuity;
+  vacuity, together with the inverse-exponent and ordinary section-degree
+  algebra used by the bottom-ancestor reduction;
 - the corrected characteristic-two sparse norm;
 - the exceptional cyclic-compression algebra: a vanishing three-block sum
   upgrades equal blocks to literal zero, the one-third Frobenius product
-  collapses to a trinomial, and the complementary-exponent-three cube has
-  the characteristic-two expansion used for the prime-complement case;
-- trace, norm, Frobenius, Kummer, Dickson--Lucas, Singer, and cubical-support
-  identities used by the selected-order reductions;
+  collapses to a trinomial, and a known cubic phase converts the
+  complementary exponent `3*r` exactly to the parity-twisted exponent `r`;
+  the explicit relative-norm evaluation of that phase and the resulting
+  prime-complement nonvanishing remain paper-level calculations;
+- trace, norm, Frobenius, Kummer, Dickson--Lucas, Singer, cubical-support,
+  and low-degree minimal-polynomial collision identities used by the
+  selected-order reductions, including the exact two-binomial fourth-power
+  residual for an odd Fibonacci zero (which sharpens, but does not close,
+  the Conway--Fermat target);
 - weighted two-axis Frobenius-word normalization: all multiplicative
   reciprocity expressions in this model formed from one Kummer class remain
   rank one, regardless of Frobenius, character, and multiplicity indices;

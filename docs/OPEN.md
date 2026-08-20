@@ -130,16 +130,29 @@ The paper proves the four-arm equivalence, exact cyclic power criteria,
 boundedness reformulation, structural norm identities, primitive-support
 quotient, supersingular and Singer descriptions, the ordinary ray-class
 decomposition, and the principal-ray/circular-unit factorization in the cubic
-and exceptional arms. It also proves several finite tensor-rank zero cases and
-shows why generic trace, norm, conductor, factor-shape, reciprocity, and
+and exceptional arms.  In the cubic arm, a selector-retaining partition
+argument gives an unconditional order lower bound exponential in
+`sqrt(3^k)`; it remains subexponential in the field degree and does not imply
+primitivity.  At the correctly indexed Conway--Fermat endpoint, a hypothetical
+odd Fibonacci zero is equivalent to two simultaneous fourth-power residuals;
+their polynomial gcd is exactly the target Fibonacci polynomial, but
+Frobenius extraction still ends at the marked inverse-exponent seam.  In the
+ordinary arm, the bottom-ancestor polynomial
+sections prove every current factor `p` with `L_(r,a)/p <= b_r r^a`, including
+the case in which `L_(r,a)/r` is prime.  It also proves several finite
+tensor-rank zero cases and shows why generic trace, norm, conductor,
+factor-shape, reciprocity, and
 unselected Kummer information cannot recover the marked Conway coordinate.
 For the exceptional arm, automatic vanishing on the `X^h - 1` component
 upgrades the three-equal-block failure condition to literal cyclic
 palindromicity.  A one-third Frobenius compression reduces its primitive
 component to a trinomial with complementary exponent congruent to `3` modulo
-`3h`; this proves the entire current factor when that complementary exponent
-is exactly `3` (equivalently, when `Psi_k` itself is prime), but leaves the
-composite `Psi_k` levels open.
+`3h`.  An exact relative-norm calculation removes the remaining
+three-primary phase: for `r = Psi_k / ell`, the obstruction is the
+parity-twisted equality `P^r = 1` when `k` is even and `P^r = omega^2` when
+`k` is odd.  This proves the entire current factor when `r = 1`
+(equivalently, when `Psi_k` itself is prime), but leaves the prime-to-three
+coordinate at composite `Psi_k` levels open.
 The selected singleton-even realization lies on
 `y^2+y=x^3+x^2`; its function is supported on fixed five-torsion rather than
 the Fermat-torsion point, so for positive levels it is not an `F_n`-Weil or

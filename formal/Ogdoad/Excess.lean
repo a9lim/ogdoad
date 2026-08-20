@@ -66,6 +66,28 @@ theorem eq_pow_of_pow_eq_of_inverse_exponent {G : Type*} [Monoid G]
     _ = (c ^ p) ^ e := by rw [pow_mul]
     _ = u ^ e := by rw [hcp]
 
+/-- Degree obstruction used after extracting a nonzero polynomial section in
+arm `O`.  A section with constant coefficient one cannot contain a degree-`b`
+bottom-ancestor factor when its exponent gap `d - j` is below `b*n`. -/
+theorem ordinary_section_degree_obstruction
+    {K : Type*} [Field K] (P S : Polynomial K) (b n d j : Nat)
+    (hn : 0 < n) (hgap : d - j < b * n)
+    (hPdeg : P.natDegree = b)
+    (hSdeg : S.natDegree ≤ (d - j) / n)
+    (hSconst : S.coeff 0 = 1) :
+    ¬P ∣ S := by
+  have hS : S ≠ 0 := by
+    intro hzero
+    rw [hzero] at hSconst
+    exact zero_ne_one hSconst
+  have hdiv : (d - j) / n < b :=
+    (Nat.div_lt_iff_lt_mul hn).2 hgap
+  apply Polynomial.not_dvd_of_natDegree_lt hS
+  calc
+    S.natDegree ≤ (d - j) / n := hSdeg
+    _ < b := hdiv
+    _ = P.natDegree := hPdeg.symm
+
 /-- Exact Euler-quotient criterion in a finite cyclic group.  No
 squarefreeness shorthand is hidden: `p ∣ |G|` is the full hypothesis used in
 this group-level statement. -/
@@ -497,6 +519,35 @@ theorem exceptional_power_one_third_compression
     (hd : d = (Q + 1) * e) :
     A ^ d = (A ^ (Q + 1)) ^ e := by
   rw [hd, pow_mul]
+
+/-- Exact algebraic step in the parity-twisted exceptional compression.
+Suppose `P^(r*ell)` is the known cubic phase `ε`, `ell = 1 (mod 3)`, and
+`ε³=1`.  Then the original exponent `3*r` kills `P` exactly when the shorter
+exponent `r` reaches that phase.  The paper obtains
+`P^(r*ell)=ε` from an explicit relative-norm computation. -/
+theorem power_three_complement_eq_one_iff_twisted
+    {G : Type*} [Monoid G] (P ε : G) (r ell t : Nat)
+    (hfull : P ^ (r * ell) = ε) (hell : ell = 3 * t + 1)
+    (hε : ε ^ 3 = 1) :
+    P ^ (3 * r) = 1 ↔ P ^ r = ε := by
+  constructor
+  · intro hkill
+    have hcube : (P ^ r) ^ 3 = 1 := by
+      rw [← pow_mul]
+      simpa [Nat.mul_comm] using hkill
+    have hfix : (P ^ r) ^ ell = P ^ r := by
+      rw [hell, pow_add, pow_mul, hcube]
+      simp
+    calc
+      P ^ r = (P ^ r) ^ ell := hfix.symm
+      _ = P ^ (r * ell) := (pow_mul P r ell).symm
+      _ = ε := hfull
+  · intro hphase
+    calc
+      P ^ (3 * r) = P ^ (r * 3) := by rw [Nat.mul_comm]
+      _ = (P ^ r) ^ 3 := pow_mul P r 3
+      _ = ε ^ 3 := by rw [hphase]
+      _ = 1 := hε
 
 /-- Cubing a trinomial in characteristic two has no three-way mixed term.
 This is the algebraic expansion used by the paper to settle the compressed
@@ -1640,6 +1691,35 @@ theorem cubicAffineLine_subset_traceKernel
     tr gamma hgamma hgammaSq a b
 
 end CubicSelfPolarAffineLine
+
+section LowDegreeMinpolyCollision
+
+open Polynomial
+
+/-- Two polynomials of degree below the minimal-polynomial degree cannot
+collide at the selected algebraic point.  This is the ordinary kernel-checked
+algebraic core of the cubic partition bound's cross-product argument; the
+cyclotomic degree and combinatorial coefficient comparison remain in the
+paper. -/
+theorem polynomial_eq_of_aeval_eq_of_natDegree_lt_minpoly
+    {K L : Type*} [Field K] [Field L] [Algebra K L]
+    (x : L) (A B : K[X])
+    (hA : A.natDegree < (minpoly K x).natDegree)
+    (hB : B.natDegree < (minpoly K x).natDegree)
+    (heval : aeval x A = aeval x B) :
+    A = B := by
+  by_contra hne
+  have hsub : A - B ≠ 0 := sub_ne_zero.mpr hne
+  have hdvd : minpoly K x ∣ A - B := by
+    rw [minpoly.dvd_iff]
+    rw [map_sub, heval, sub_self]
+  have hle : (minpoly K x).natDegree ≤ (A - B).natDegree :=
+    Polynomial.natDegree_le_of_dvd hdvd hsub
+  have hlt : (A - B).natDegree < (minpoly K x).natDegree :=
+    (Polynomial.natDegree_sub_le A B).trans_lt (max_lt hA hB)
+  exact (not_lt_of_ge hle) hlt
+
+end LowDegreeMinpolyCollision
 
 section CubicHalfAngleDivisibility
 
@@ -7890,6 +7970,114 @@ theorem fibPolyValue_cassini
                 simp [h2, h3]
         _ = a * a ^ d := by rw [ih]
         _ = a ^ (d + 1) := by rw [pow_succ]; ring
+
+section FermatOddFourthPowerResidual
+
+/-- The lower fourth-power residual at an odd index factors through the
+selected Fibonacci value.  With `d = 2*m+1`, this is the ordinary
+characteristic-two polynomial identity
+
+`S_m(a)^4 + a^(d-2) = S_d(a) * S_(d-2)(a)`.
+
+The positivity hypothesis only keeps the natural-number expression `d-2`
+away from truncated subtraction. -/
+theorem fibPolyValue_odd_lower_fourth_factor
+    {R : Type*} [CommRing R] [CharP R 2]
+    (a : R) (m : Nat) (hm : 0 < m) :
+    (fibPolyValue a m) ^ 4 + a ^ (2 * m - 1) =
+      fibPolyValue a (2 * m + 1) * fibPolyValue a (2 * m - 1) := by
+  have hc := fibPolyValue_cassini a (2 * m - 1)
+  have hprev : 2 * m - 1 + 1 = 2 * m := by omega
+  have hnext : 2 * m - 1 + 2 = 2 * m + 1 := by omega
+  rw [hprev, hnext] at hc
+  have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  calc
+    (fibPolyValue a m) ^ 4 + a ^ (2 * m - 1) =
+        ((fibPolyValue a m) ^ 2) ^ 2 + a ^ (2 * m - 1) := by ring
+    _ = (fibPolyValue a (2 * m)) ^ 2 + a ^ (2 * m - 1) := by
+      rw [(fibPolyValue_double a m).1]
+    _ = (fibPolyValue a (2 * m)) ^ 2 +
+        ((fibPolyValue a (2 * m)) ^ 2 +
+          fibPolyValue a (2 * m - 1) * fibPolyValue a (2 * m + 1)) := by
+      rw [hc]
+    _ = fibPolyValue a (2 * m + 1) *
+        fibPolyValue a (2 * m - 1) := by
+      ring_nf
+      simp [htwo]
+
+/-- The companion upper fourth-power residual at the same odd index:
+
+`S_(m+1)(a)^4 + a^d = S_d(a) * S_(d+2)(a)` for `d = 2*m+1`. -/
+theorem fibPolyValue_odd_upper_fourth_factor
+    {R : Type*} [CommRing R] [CharP R 2]
+    (a : R) (m : Nat) :
+    (fibPolyValue a (m + 1)) ^ 4 + a ^ (2 * m + 1) =
+      fibPolyValue a (2 * m + 1) * fibPolyValue a (2 * m + 3) := by
+  have hc := fibPolyValue_cassini a (2 * m + 1)
+  have hdouble : 2 * m + 1 + 1 = 2 * (m + 1) := by omega
+  have hnext : 2 * m + 1 + 2 = 2 * m + 3 := by omega
+  rw [hdouble, hnext] at hc
+  have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  calc
+    (fibPolyValue a (m + 1)) ^ 4 + a ^ (2 * m + 1) =
+        ((fibPolyValue a (m + 1)) ^ 2) ^ 2 + a ^ (2 * m + 1) := by ring
+    _ = (fibPolyValue a (2 * (m + 1))) ^ 2 + a ^ (2 * m + 1) := by
+      rw [(fibPolyValue_double a (m + 1)).1]
+    _ = (fibPolyValue a (2 * (m + 1))) ^ 2 +
+        ((fibPolyValue a (2 * (m + 1))) ^ 2 +
+          fibPolyValue a (2 * m + 1) * fibPolyValue a (2 * m + 3)) := by
+      rw [hc]
+    _ = fibPolyValue a (2 * m + 1) * fibPolyValue a (2 * m + 3) := by
+      ring_nf
+      simp [htwo]
+
+/-- Exact two-binomial residual for a hypothetical odd Fibonacci zero.
+Over a characteristic-two field, `S_(2*m+1)(a)` vanishes exactly when both
+adjacent half-index values have the forced fourth powers.  One equation
+alone also contains an adjacent Fibonacci branch; their conjunction removes
+that extraneous branch.  This sharpens the residual but does not decide the
+Conway-selected nonvanishing target: after Frobenius-root extraction its
+lower equation is the existing AE4 inverse-exponent seam. -/
+theorem fibPolyValue_odd_eq_zero_iff_fourth_residuals
+    {K : Type*} [Field K] [CharP K 2]
+    (a : K) (m : Nat) (hm : 0 < m) :
+    fibPolyValue a (2 * m + 1) = 0 ↔
+      (fibPolyValue a m) ^ 4 = a ^ (2 * m - 1) ∧
+        (fibPolyValue a (m + 1)) ^ 4 = a ^ (2 * m + 1) := by
+  have htwo : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  constructor
+  · intro hz
+    constructor
+    · have hfactor := fibPolyValue_odd_lower_fourth_factor a m hm
+      rw [hz, zero_mul] at hfactor
+      exact (eq_neg_of_add_eq_zero_left hfactor).trans
+        (CharTwo.neg_eq (a ^ (2 * m - 1)))
+    · have hfactor := fibPolyValue_odd_upper_fourth_factor a m
+      rw [hz, zero_mul] at hfactor
+      exact (eq_neg_of_add_eq_zero_left hfactor).trans
+        (CharTwo.neg_eq (a ^ (2 * m + 1)))
+  · rintro ⟨hlower, hupper⟩
+    have hodd := (fibPolyValue_double a m).2
+    have hsq : (fibPolyValue a (2 * m + 1)) ^ 2 = 0 := by
+      calc
+        (fibPolyValue a (2 * m + 1)) ^ 2 =
+            ((fibPolyValue a (m + 1)) ^ 2 +
+              a * (fibPolyValue a m) ^ 2) ^ 2 := by rw [hodd]
+        _ = (fibPolyValue a (m + 1)) ^ 4 +
+            a ^ 2 * (fibPolyValue a m) ^ 4 := by
+              ring_nf
+              simp [htwo]
+        _ = a ^ (2 * m + 1) + a ^ 2 * a ^ (2 * m - 1) := by
+              rw [hupper, hlower]
+        _ = 0 := by
+              rw [← pow_add]
+              have hexp : 2 + (2 * m - 1) = 2 * m + 1 := by omega
+              rw [hexp]
+              ring_nf
+              simp [htwo]
+    exact mul_self_eq_zero.mp (by simpa [pow_two] using hsq)
+
+end FermatOddFourthPowerResidual
 
 /-- Cassini at a Fibonacci zero: the square of the block scalar is the
 corresponding power of the recurrence parameter. -/
