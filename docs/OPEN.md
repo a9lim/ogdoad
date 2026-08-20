@@ -184,7 +184,12 @@ exponential in the field degree.
 The selected singleton-even realization lies on
 `y^2+y=x^3+x^2`; its function is supported on fixed five-torsion rather than
 the Fermat-torsion point, so for positive levels it is not an `F_n`-Weil or
-reduced-Tate pairing function attached to that point. The tempting curve
+reduced-Tate pairing function attached to that point.  The full recursive
+Artin--Schreier curve through depth `r` is geometrically connected, ramifies
+only at its unique point above infinity, and has genus
+`(3^(r+1)-2^(r+2)+1)/2`; hence every finite torsion packet has the same
+trivial inertia, and the marked decomposition class remains unevaluated.
+The tempting curve
 `y^2+y=x^3` is not isomorphic to the selected curve over `F_2`, and its
 same-looking function has a trivial cubic Kummer class on positive-level
 Fermat torsion. Perfectness of an alternating pairing still does not force a

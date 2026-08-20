@@ -160,7 +160,8 @@ four-arm `Z/O/C/D` reduction, including:
   positive-level Fermat torsion has trivial cubic Kummer class, a perfect
   alternating pairing may vanish on a prescribed line, and coprime adjacent
   annihilators kill a proposed ancestry homomorphism; the selected elliptic
-  curve, divisor, and Miller-function interpretation remain paper-level;
+  curve, divisor, Miller-function interpretation, and all-iterate
+  Artin--Schreier ramification and genus calculation remain paper-level;
 - oriented Frobenius-prefix evaluation and its block cocycle, including the
   faithful unit-exponent-prefix/full-orbit-trivial dichotomy; these identities
   only re-encode a marked power-residue phase and do not evaluate it;

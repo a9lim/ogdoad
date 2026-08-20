@@ -101,6 +101,8 @@ assertions $Z,O,C,D$ stated in Theorem~\ref{thm:arms}.  Each assertion is an
 exact Euler nonpower test for one Conway-selected coordinate and retains the
 full primary valuation.  The reductions, the coordinate formulas, the
 packet-universal Fermat residual of Proposition~\ref{prop:z-packet-universal},
+the all-iterate ramification boundary of
+Proposition~\ref{prop:z-iterate-ramification},
 selected Singer and partition bounds of Propositions~\ref{prop:sieve}
 and~\ref{prop:c-partition}, the cubic first-relation theorem
 and marked-projective obstruction of
@@ -651,8 +653,95 @@ $\mu_{F_n}$, whereas $g(P_n)$ has order dividing $F_{n+1}$.  Pairwise
 coprimality of the Fermat numbers and $\delta_{n+1}>1$ exclude equality.
 \end{proof}
 
-The proposition supplies exact CM annihilator control but not generator
-status.  For $n\geq3$, no elliptic endomorphism can carry $P_n$ to
+The elliptic curve is only the first stage of a recursive
+Artin--Schreier tower.  Its ramification remains completely rigid at every
+depth, but that rigidity occurs away from every finite torsion packet.
+
+\begin{proposition}[all-iterate ramification boundary]
+\label{prop:z-iterate-ramification}
+Let $\mathcal X_r$ be the smooth projective normalization of the affine
+curve over $\mathbb F_2$ with coordinates $c_0,\ldots,c_r$ and equations
+\[
+ c_{j+1}^2+c_{j+1}=c_j^3+c_j^2
+ \qquad(0\leq j<r).
+\]
+Then $\mathcal X_r$ is geometrically connected, the projection
+$\mathcal X_r\to\mathbb P^1_{c_0}$ has degree $2^r$, and it is unramified
+over the finite $c_0$-line.  There is a unique point $\infty_r$ above
+$c_0=\infty$, and
+\[
+ \operatorname{ord}_{\infty_r}(c_j)
+ =-2^{r-j}3^j\qquad(0\leq j\leq r).
+\]
+Moreover,
+\[
+ g(\mathcal X_r)=\frac{3^{r+1}-2^{r+2}+1}{2}.
+\]
+Consequently no invariant determined only by the branch locus, ramification
+indices, different, or inertia filtration of the iterated correspondence can
+distinguish the literal Conway specialization from a deficient finite
+torsion packet.
+\end{proposition}
+
+\begin{proof}
+Write $K_j=\overline{\mathbb F}_2(\mathcal X_j)$.  On
+$\mathcal X_0=\mathbb P^1$, the function $c_0$ has one pole, of order one.
+Suppose inductively that $c_j$ has a unique pole $\infty_j$, of order
+$3^j$.  The Artin--Schreier driver
+\[
+ f_j=c_j^3+c_j^2
+\]
+then has the same unique pole, of odd order $m_j=3^{j+1}$; the cubic term
+has strictly larger pole order than the quadratic term.  It cannot equal
+$w^2+w$ in $K_j$: if $w$ has a pole, the leading pole order of $w^2+w$ is
+even, and if $w$ has no pole, neither does $w^2+w$.  Thus
+$Z^2+Z=f_j$ is irreducible even after extending the constants, proving
+geometric connectedness and degree two at the next stage.
+
+The reduced Artin--Schreier ramification criterion gives a unique point
+$\infty_{j+1}$ above $\infty_j$, with ramification index two and different
+exponent
+\[
+ m_j+1=3^{j+1}+1.
+\]
+At every other place $f_j$ is integral, and the derivative of
+$Z^2+Z-f_j$ is one, so the extension is unramified there.  With the
+normalized valuation upstairs one has
+$\operatorname{ord}_{\infty_{j+1}}(f_j)=-2m_j$.  The defining equation
+therefore forces
+\[
+ \operatorname{ord}_{\infty_{j+1}}(c_{j+1})=-m_j=-3^{j+1}.
+\]
+Every later quadratic stage doubles the valuation of an earlier coordinate,
+which proves
+$\operatorname{ord}_{\infty_r}(c_j)=-2^{r-j}3^j$.
+
+Put $h_j=2g(\mathcal X_j)-2$.  Riemann--Hurwitz gives
+\[
+ h_0=-2,
+ \qquad
+ h_{j+1}=2h_j+3^{j+1}+1.
+\]
+Hence
+\begin{align*}
+ h_r
+ &= -2^{r+1}
+    +\sum_{j=0}^{r-1}2^{r-1-j}\bigl(3^{j+1}+1\bigr)\\
+ &=3^{r+1}-2^{r+2}-1,
+\end{align*}
+which is the asserted genus formula.
+
+Finally, every nontrivial torsion coordinate $u$ has
+$c=(u+1)^{-1}$ finite.  The literal place $c_0^2+c_0+1=0$ and every finite
+packet specialization therefore meet the same etale locus.  The literal
+place is totally inert through the Conway tower, but that is decomposition
+data at one marked place, not a consequence of the ramification just
+computed.  The proposition consequently supplies no generator or
+nonvanishing assertion.
+\end{proof}
+
+Proposition~\ref{prop:z-elliptic} supplies exact CM annihilator control but
+not generator status.  For $n\geq3$, no elliptic endomorphism can carry $P_n$ to
 $P_{n-1}$: the image order would divide both coprime numbers $F_n$ and
 $F_{n-1}$, although $P_{n-1}\ne O$.  For $n=2$, the same conclusion follows
 from $\operatorname{ord}(P_1)=3$ and $\operatorname{ord}(P_2)\mid17$.
