@@ -1,4 +1,5 @@
 use super::algebra::{ExpansionTracker, WeylError, WeylExpansionBudget};
+use super::product::embed_nat;
 use crate::scalar::Scalar;
 use std::collections::BTreeMap;
 use std::fmt;
@@ -89,6 +90,16 @@ impl<S: Scalar> SparsePolynomial<S> {
         }
     }
 
+    /// One polynomial variable `t_index` in a fixed dimension.
+    pub fn try_variable(dim: usize, index: usize) -> Result<Self, WeylError> {
+        if index >= dim {
+            return Err(WeylError::GeneratorOutOfRange { index, dim });
+        }
+        let mut exponents = vec![0; dim];
+        exponents[index] = 1;
+        Ok(Self::monomial(&exponents, S::one()))
+    }
+
     /// The number of polynomial variables.
     pub fn dim(&self) -> usize {
         self.dim
@@ -177,6 +188,34 @@ impl<S: Scalar> SparsePolynomial<S> {
                 )?;
             }
         }
+        Ok(Self {
+            dim: self.dim,
+            terms,
+        })
+    }
+
+    /// Formal partial derivative with respect to `t_index`.
+    pub fn partial_derivative(&self, index: usize) -> Result<Self, WeylError> {
+        if index >= self.dim {
+            return Err(WeylError::GeneratorOutOfRange {
+                index,
+                dim: self.dim,
+            });
+        }
+        let terms = self
+            .terms
+            .iter()
+            .filter_map(|(monomial, coefficient)| {
+                let power = monomial.exponents[index];
+                if power == 0 {
+                    return None;
+                }
+                let mut exponents = monomial.exponents.to_vec();
+                exponents[index] -= 1;
+                let derivative = coefficient.mul(&embed_nat::<S>(power));
+                (!derivative.is_zero()).then(|| (SparseMonomial::new(exponents), derivative))
+            })
+            .collect();
         Ok(Self {
             dim: self.dim,
             terms,

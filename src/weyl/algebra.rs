@@ -10,6 +10,8 @@ use std::fmt;
 pub enum WeylError {
     /// Doubling the requested standard rank exceeded the host dimension type.
     StandardDimensionOverflow,
+    /// Adding two generator dimensions exceeded the host dimension type.
+    DirectSumDimensionOverflow,
     /// A commutator matrix row does not have the matrix dimension.
     NonSquareCommutator {
         /// The offending row.
@@ -72,6 +74,104 @@ pub enum WeylError {
     /// A combinatorial expansion index cannot be represented by the host
     /// collection dimension type.
     ExpansionIndexOverflow,
+    /// An affine-linear map has the wrong number of target-coordinate rows.
+    LinearMapRowMismatch {
+        /// Required number of target-coordinate rows.
+        expected: usize,
+        /// Supplied number of rows.
+        actual: usize,
+    },
+    /// A row of an affine-linear map has the wrong source dimension.
+    LinearMapColumnMismatch {
+        /// Offending target-coordinate row.
+        row: usize,
+        /// Required source dimension.
+        expected: usize,
+        /// Supplied row length.
+        actual: usize,
+    },
+    /// An affine translation vector has the wrong source dimension.
+    TranslationDimensionMismatch {
+        /// Required source dimension.
+        expected: usize,
+        /// Supplied translation length.
+        actual: usize,
+    },
+    /// Images of a source generator pair do not preserve its commutator.
+    CommutatorNotPreserved {
+        /// First source generator.
+        left: usize,
+        /// Second source generator.
+        right: usize,
+    },
+    /// Images of a generator pair do not reverse its commutator as required by
+    /// an anti-homomorphism.
+    CommutatorNotReversed {
+        /// First source generator.
+        left: usize,
+        /// Second source generator.
+        right: usize,
+    },
+    /// Two maps cannot compose because the intermediate Weyl contexts differ.
+    MapContextMismatch,
+    /// An automorphism candidate does not have a square invertible linear part.
+    NonInvertibleLinearPart,
+    /// An automorphism candidate has different source and target algebras.
+    NotEndomorphism,
+    /// A coordinate embedding names an unavailable target generator.
+    EmbeddingIndexOutOfRange {
+        /// Requested target generator.
+        index: usize,
+        /// Target generator dimension.
+        dim: usize,
+    },
+    /// A coordinate embedding repeats a target generator.
+    DuplicateEmbeddingIndex {
+        /// Repeated target generator.
+        index: usize,
+    },
+    /// A coordinate embedding supplies the wrong number of target indices.
+    EmbeddingDimensionMismatch {
+        /// Required number of source-coordinate images.
+        expected: usize,
+        /// Supplied number of indices.
+        actual: usize,
+    },
+    /// A standard scaling supplies the wrong number of unit parameters.
+    ScaleDimensionMismatch {
+        /// Required standard rank.
+        expected: usize,
+        /// Supplied number of scales.
+        actual: usize,
+    },
+    /// A standard scaling parameter is not a represented unit.
+    NonUnitScale {
+        /// Standard pair whose scale is not invertible.
+        index: usize,
+    },
+    /// A standard shear matrix has the wrong number of rows.
+    ShearRowCountMismatch {
+        /// Required standard rank.
+        expected: usize,
+        /// Supplied number of rows.
+        actual: usize,
+    },
+    /// A standard shear matrix has a row of the wrong length.
+    ShearDimensionMismatch {
+        /// Offending row.
+        row: usize,
+        /// Required standard rank.
+        expected: usize,
+        /// Supplied row length.
+        actual: usize,
+    },
+    /// A standard shear matrix is not symmetric.
+    ShearNotSymmetric {
+        /// First matrix coordinate.
+        left: usize,
+        /// Second matrix coordinate.
+        right: usize,
+    },
     /// A polynomial action was requested outside the standard rank-one algebra.
     RequiresStandardRankOne,
     /// A PBW `x` exponent cannot be represented as a host polynomial degree.
@@ -83,6 +183,9 @@ impl fmt::Display for WeylError {
         match self {
             Self::StandardDimensionOverflow => {
                 formatter.write_str("standard Weyl generator dimension exceeds usize")
+            }
+            Self::DirectSumDimensionOverflow => {
+                formatter.write_str("direct-sum Weyl generator dimension exceeds usize")
             }
             Self::NonSquareCommutator {
                 row,
@@ -129,6 +232,73 @@ impl fmt::Display for WeylError {
             Self::ExpansionIndexOverflow => {
                 formatter.write_str("Weyl expansion index exceeds usize")
             }
+            Self::LinearMapRowMismatch { expected, actual } => write!(
+                formatter,
+                "Weyl linear map has {actual} target rows, expected {expected}"
+            ),
+            Self::LinearMapColumnMismatch {
+                row,
+                expected,
+                actual,
+            } => write!(
+                formatter,
+                "Weyl linear-map row {row} has length {actual}, expected {expected}"
+            ),
+            Self::TranslationDimensionMismatch { expected, actual } => write!(
+                formatter,
+                "Weyl translation has length {actual}, expected {expected}"
+            ),
+            Self::CommutatorNotPreserved { left, right } => write!(
+                formatter,
+                "Weyl map does not preserve the commutator of generators {left} and {right}"
+            ),
+            Self::CommutatorNotReversed { left, right } => write!(
+                formatter,
+                "Weyl anti-map does not reverse the commutator of generators {left} and {right}"
+            ),
+            Self::MapContextMismatch => {
+                formatter.write_str("Weyl maps have different intermediate contexts")
+            }
+            Self::NonInvertibleLinearPart => {
+                formatter.write_str("Weyl affine map has no invertible linear part")
+            }
+            Self::NotEndomorphism => {
+                formatter.write_str("Weyl automorphism requires equal source and target algebras")
+            }
+            Self::EmbeddingIndexOutOfRange { index, dim } => write!(
+                formatter,
+                "Weyl embedding index {index} is outside target dimension {dim}"
+            ),
+            Self::DuplicateEmbeddingIndex { index } => {
+                write!(formatter, "Weyl embedding repeats target index {index}")
+            }
+            Self::EmbeddingDimensionMismatch { expected, actual } => write!(
+                formatter,
+                "Weyl embedding supplies {actual} indices, expected {expected}"
+            ),
+            Self::ScaleDimensionMismatch { expected, actual } => write!(
+                formatter,
+                "Weyl scaling supplies {actual} parameters, expected {expected}"
+            ),
+            Self::NonUnitScale { index } => {
+                write!(formatter, "Weyl scaling parameter {index} is not a unit")
+            }
+            Self::ShearRowCountMismatch { expected, actual } => write!(
+                formatter,
+                "Weyl shear has {actual} rows, expected {expected}"
+            ),
+            Self::ShearDimensionMismatch {
+                row,
+                expected,
+                actual,
+            } => write!(
+                formatter,
+                "Weyl shear row {row} has size {actual}, expected {expected}"
+            ),
+            Self::ShearNotSymmetric { left, right } => write!(
+                formatter,
+                "Weyl shear entries ({left},{right}) and ({right},{left}) differ"
+            ),
             Self::RequiresStandardRankOne => {
                 formatter.write_str("polynomial action requires the standard rank-one Weyl algebra")
             }
@@ -416,6 +586,42 @@ impl<S: Scalar> WeylAlgebra<S> {
         }
     }
 
+    /// Orthogonal direct sum of commutator presentations.
+    ///
+    /// The generator order is all generators of `self`, followed by all
+    /// generators of `other`. Even when both inputs use the optimized standard
+    /// layout, this concatenated order is represented as a general alternating
+    /// presentation because it is `x,d,x,d`, not the standard `x,x,d,d` order.
+    pub fn try_direct_sum(&self, other: &Self) -> Result<Self, WeylError> {
+        let left_dim = self.dim();
+        let right_dim = other.dim();
+        let dim = left_dim
+            .checked_add(right_dim)
+            .ok_or(WeylError::DirectSumDimensionOverflow)?;
+        let mut commutator = vec![vec![S::zero(); dim]; dim];
+        for (row, source_row) in self.commutator.iter().enumerate() {
+            for (column, coefficient) in source_row.iter().enumerate() {
+                commutator[row][column] = coefficient.clone();
+            }
+        }
+        for (row, source_row) in other.commutator.iter().enumerate() {
+            for (column, coefficient) in source_row.iter().enumerate() {
+                commutator[left_dim + row][left_dim + column] = coefficient.clone();
+            }
+        }
+        Ok(Self {
+            commutator,
+            standard_pairs: None,
+        })
+    }
+
+    /// Orthogonal direct sum, panicking only when the host dimension overflows.
+    /// Use [`Self::try_direct_sum`] for untrusted dimensions.
+    pub fn direct_sum(&self, other: &Self) -> Self {
+        self.try_direct_sum(other)
+            .expect("direct-sum Weyl generator dimension exceeds usize")
+    }
+
     pub(crate) fn validate_element(&self, element: &WeylElement<S>) -> Result<(), WeylError> {
         if element.dim != self.dim() {
             return Err(WeylError::DimensionMismatch {
@@ -516,15 +722,24 @@ impl<S: Scalar> WeylAlgebra<S> {
     ) -> Result<WeylElement<S>, WeylError> {
         self.validate_element(value)?;
         let mut tracker = ExpansionTracker::new(budget);
+        self.pow_with_tracker(value, &mut exponent, &mut tracker)
+    }
+
+    pub(crate) fn pow_with_tracker(
+        &self,
+        value: &WeylElement<S>,
+        exponent: &mut u128,
+        tracker: &mut ExpansionTracker,
+    ) -> Result<WeylElement<S>, WeylError> {
         let mut accumulator = self.one();
         let mut base = value.clone();
-        while exponent > 0 {
-            if exponent & 1 == 1 {
-                accumulator = super::product::multiply(self, &accumulator, &base, &mut tracker)?;
+        while *exponent > 0 {
+            if *exponent & 1 == 1 {
+                accumulator = super::product::multiply(self, &accumulator, &base, tracker)?;
             }
-            exponent >>= 1;
-            if exponent > 0 {
-                base = super::product::multiply(self, &base, &base, &mut tracker)?;
+            *exponent >>= 1;
+            if *exponent > 0 {
+                base = super::product::multiply(self, &base, &base, tracker)?;
             }
         }
         Ok(accumulator)

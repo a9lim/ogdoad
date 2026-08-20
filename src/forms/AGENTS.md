@@ -19,7 +19,7 @@ that axis. Read `docs/OPEN.md` before changing a claim used by a live paper.
 | `springer/` | valued-field residue decompositions, including characteristic two |
 | `local_global/` | rational, adelic, and function-field reciprocity/isotropy |
 | `trace_form.rs` | trace, twisted trace, Gold-form, and Scharlau-transfer bridges |
-| `symplectic.rs`, `hermitian.rs` | form-plus-involution siblings |
+| `symplectic.rs`, `hermitian.rs` | alternating Darboux certificates and form-plus-involution siblings |
 | `field_invariants.rs` | level, Pythagoras-number, and regular u-invariant reports for supported finite fields |
 | `quadric_fit.rs` | research instrument fitting Boolean P-sets to quadrics |
 | `integral/` | lattice wing; see `integral/AGENTS.md` |
@@ -93,6 +93,6 @@ complement-dependent characteristic-two data.
 
 ## Verification
 
-Run tests for the affected characteristic and bridge, then the workspace gate.
+Run tests for the affected characteristic and bridge, then the core gate.
 For claim-bearing changes, also build Lean and all affected papers. Preserve
 the public `u128`/`i128` payload convention.

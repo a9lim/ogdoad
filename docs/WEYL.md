@@ -17,7 +17,7 @@ computations that can expand without a practical bound receive explicit traits,
 errors, or caller-supplied budgets. Finite PBW support never turns the
 infinite-dimensional algebra into a finite regular representation.
 
-## Wave 1: robust operator kernel
+## Wave 1: robust operator kernel (implemented)
 
 The first wave makes the existing PBW engine safe as a foundation for every
 later layer.
@@ -52,25 +52,30 @@ Wave 1 is complete when:
    backends; and
 5. the root Rust formatting, test, clippy, and rustdoc gates pass.
 
-## Wave 2: transformations and symbols
+## Wave 2: transformations and symbols (implemented)
 
-- Extend alternating-form reduction to return a certified Darboux basis,
-  inverse change of basis, and radical basis on supported exact fields.
-- Materialize the decomposition
-  `A(V, omega) ~= A_r(S) tensor S[c_1,...,c_s]` and transport elements through
+- Alternating-form reduction returns a certified Darboux basis, inverse change
+  of basis, and radical basis under the `ExactFieldScalar` capability.
+- The Weyl layer materializes the decomposition
+  `A(V, omega) ~= A_r(S) tensor S[c_1,...,c_s]` and transports elements through
   it.
-- Add checked affine-linear Weyl homomorphisms and their composition, inverse,
-  direct-sum, and embedding operations.
-- Provide standard Fourier, scaling, shear, translation, parity, and formal
-  adjoint maps with explicit automorphism versus anti-automorphism types.
-- Add Bernstein and differential-order filtrations, principal symbols, and the
-  constant Poisson bracket.
-- Add an `hbar` deformation with checked specializations at `hbar = 0` and
-  `hbar = 1`.
+- Checked affine-linear Weyl homomorphisms provide composition, inverse,
+  direct-sum, and coordinate-embedding operations under expansion budgets.
+- Standard Fourier, scaling, symmetric momentum shear, translation, and parity
+  maps return `WeylAutomorphism`; formal adjoint returns the distinct
+  `WeylAntiAutomorphism` type and reverses products during substitution.
+- Bernstein and differential-order filtrations return principal symbols in the
+  sparse commutative polynomial type. The constant Poisson bracket uses the
+  convention `{z_i,z_j} = omega[i][j]` and has an explicit expansion budget.
+- The polynomial `hbar` deformation has checked element specializations at
+  `hbar = 0` and `hbar = 1`.
 
-This wave is complete when transformations preserve multiplication and
-round-trip through their inverses, while principal symbols satisfy the product
-law and the leading commutator agrees with the Poisson bracket.
+Wave 2's verification contract is that transformations preserve multiplication
+and round-trip through their inverses, anti-automorphisms reverse products,
+principal symbols satisfy the product law, the leading commutator agrees with
+the Poisson bracket, and Darboux coordinates reconstruct both the source form
+and its radical. These are exercised over exact characteristic-zero and
+characteristic-two backends, with randomized low-dimensional laws.
 
 ## Wave 3: modular representations and pillar joins
 

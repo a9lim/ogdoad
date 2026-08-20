@@ -20,16 +20,31 @@
 //! original convenience surface; finite budgets are the authoritative path for
 //! untrusted exponents and support sizes.
 //!
+//! On [`crate::scalar::ExactFieldScalar`] backends, certified Darboux reduction
+//! exposes a standard Weyl factor and a central radical-polynomial factor.
+//! [`WeylHomomorphism`], [`WeylAutomorphism`], and
+//! [`WeylAntiAutomorphism`] keep ordinary and product-reversing maps distinct.
+//! Bernstein/differential-order principal symbols, the constant Poisson bracket,
+//! and [`HbarWeylAlgebra`] stay finite-support and budget-aware.
+//!
 //! This is a separate public pillar from [`crate::clifford`]. It shares the
 //! commutative [`crate::scalar::Scalar`] coefficient discipline, but a Weyl
 //! monomial needs an exponent vector rather than a finite blade mask.
 
 mod algebra;
+mod deformation;
 mod differential;
 mod element;
+mod normal_form;
 mod polynomial;
 mod product;
+mod symbol;
+mod transform;
 
 pub use algebra::*;
+pub use deformation::*;
 pub use element::*;
+pub use normal_form::*;
 pub use polynomial::*;
+pub use symbol::*;
+pub use transform::*;

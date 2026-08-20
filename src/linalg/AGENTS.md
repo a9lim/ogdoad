@@ -23,4 +23,4 @@ Rules:
 - `usize` is appropriate for dimensions and indices; mathematical integer
   entries and public invariants follow the repository's `u128`/`i128` rule.
 - Add a small independent matrix oracle or reconstruction test for every new
-  elimination path, then run the workspace test and Clippy gates.
+  elimination path, then run the core test and Clippy gates.

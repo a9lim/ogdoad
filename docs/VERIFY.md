@@ -71,7 +71,7 @@ are regenerated artifacts and must also receive page-level visual review.
 | `Surreal` | exact finite-support expressions only |
 | `Nimber` | exact `F_(2^128)` arithmetic |
 | `Ordinal` | exact inside the checked Kummer window; checked multiplication, inversion, and square roots refuse escape |
-| Weyl algebras | finite sparse PBW support with checked `u128` exponents and explicit term/work budgets; arbitrary alternating commutator forms are accepted, radical directions stay central, and the rank-`n` sparse polynomial action is not claimed faithful in positive characteristic |
+| Weyl algebras | finite sparse PBW support with checked `u128` exponents and explicit term/work budgets; exact-field Darboux reduction certifies basis/inverse/radical witnesses; affine maps check commutators; symbols and the polynomial `hbar` family remain finite-support; the rank-`n` polynomial action is not claimed faithful in positive characteristic |
 | Hermitian restriction | `q(v)=h(v,v)` over the represented involution-fixed field, with trace used only for the polar form; dimension doubles and refuses past 128 |
 | mod-two Milnor symbols | degrees `0..=2` over `Q`, supported odd finite fields, and `F_q(t)`; strict `e_n` maps require membership in `I^n`; characteristic-two Kato and wild local symbols are outside the surface |
 | Clifford centers | for nonsingular forms, materialized full/even central generators with Kummer or characteristic-two Artin--Schreier relation; split class and parity are independently compared with Brauer--Wall coordinates; degenerate centers are refused |
@@ -85,6 +85,13 @@ reducer, then checks rank-`n` polynomial action multiplicativity across exact
 characteristic-zero, prime-characteristic, characteristic-two, and composite-
 characteristic backends. New generic operations should add a focused test before
 broad suite verification.
+
+`tests/weyl_wave2.rs` checks Darboux reconstruction and tensor transport,
+automorphism product preservation/inverses, anti-multiplicativity, direct sums
+and embeddings, both principal-symbol product laws, Poisson Leibniz/Jacobi and
+leading-commutator laws, and `hbar = 0/1` specialization. Its randomized form
+and Fourier families are independent of the constructors' internal
+certificates.
 
 ## Lean boundary
 

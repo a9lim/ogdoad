@@ -50,7 +50,7 @@ Representation limits are part of the API:
 | --- | --- |
 | `src/scalar/` | coefficient traits and exact, finite, valued, global, surreal, and ordinal backends |
 | `src/clifford/` | metrics, blades, multivectors, products, versors, spinors, and geometric-algebra constructions |
-| `src/weyl/` | alternating commutator forms, budgeted sparse PBW products, checked `u128` multidegrees, and rank-`n` sparse polynomial actions |
+| `src/weyl/` | alternating commutator forms, budgeted sparse PBW products, Darboux tensor coordinates, typed canonical transformations, symbols/Poisson brackets, and rank-`n` polynomial actions |
 | `src/forms/` | quadratic-form classification, Clifford centers, Witt/Brauer and low Milnor-symbol theory, Springer and local--global arithmetic |
 | `src/forms/integral/` | lattices, discriminant forms, codes, theta series, genera, neighbors, and Weyl bridges |
 | `src/games/` | impartial, partizan, misere, loopy, thermographic, Witt--FIFO/Brown, octal-certificate, Hackenbush, and game-exterior constructions |
@@ -74,6 +74,11 @@ ordinary polynomial differential action is therefore not claimed faithful.
 Materialized products and actions accept explicit term/work budgets, and the
 general normalizer groups contractions so its work follows the available
 contraction degree rather than a potentially enormous appended exponent.
+Over exact fields, certified Darboux coordinates expose the standard Weyl
+factor and central radical polynomial factor. Affine homomorphisms, standard
+automorphisms, formal adjoint, Bernstein/differential-order symbols, the
+constant Poisson bracket, and the polynomial `hbar` deformation preserve their
+homomorphism, characteristic, and finite-support boundaries explicitly.
 
 ## Use
 

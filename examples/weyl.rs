@@ -2,7 +2,7 @@
 //!   cargo run --example weyl
 
 use ogdoad::scalar::{Poly, Rational, Scalar};
-use ogdoad::weyl::{SparsePolynomial, WeylAlgebra, WeylExpansionBudget};
+use ogdoad::weyl::{SparsePolynomial, WeylAlgebra, WeylExpansionBudget, WeylFiltration};
 
 fn r(value: i128) -> Rational {
     Rational::from_int(value)
@@ -24,6 +24,23 @@ fn main() {
     println!(
         "(d x) ⋅ ({polynomial}) = {}",
         algebra.act_on_poly(&operator, &polynomial).unwrap()
+    );
+    let fourier = algebra.fourier_automorphism().unwrap();
+    println!("Fourier(x) = {}", fourier.apply(&x).unwrap());
+    println!(
+        "sigma_B(d x) = {}",
+        algebra
+            .principal_symbol(&operator, WeylFiltration::Bernstein)
+            .unwrap()
+    );
+    let hbar_family = algebra.hbar_deformation();
+    let hbar_x = hbar_family.lift_element(&x).unwrap();
+    let hbar_d = hbar_family.lift_element(&d).unwrap();
+    println!(
+        "[d,x]_hbar = {}",
+        hbar_family
+            .deformation_algebra()
+            .commutator(&hbar_d, &hbar_x)
     );
 
     let plane = WeylAlgebra::<Rational>::standard(2);
