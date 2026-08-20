@@ -41,7 +41,8 @@ open.  The paper then isolates the arithmetic content of each coordinate.  It
 constructs the primitive-support quotient and the Conway--Fermat packet
 recursion, identifies the ordinary Artin symbol, proves the cubic Singer
 recursion, a partition selected-order bound, and a sharp first-relation
-threshold, proves an ordinary section sieve and a Kummer-ratio packing sieve,
+threshold, classifies the selected top-orbit elliptic $S$-unit lattice,
+proves an ordinary section sieve and a Kummer-ratio packing sieve,
 and gives the exceptional Capelli
 criterion, a primitive-only palindromicity test, a one-third Frobenius
 compression, an intermediate-field packing sieve, and a level-dependent
@@ -103,7 +104,9 @@ full primary valuation.  The reductions, the coordinate formulas, the
 packet-universal Fermat residual of Proposition~\ref{prop:z-packet-universal},
 the all-iterate ramification boundary of
 Proposition~\ref{prop:z-iterate-ramification}, the generalized-Prym
-saturation boundary of Proposition~\ref{prop:z-prym-boundary},
+saturation boundary of Proposition~\ref{prop:z-prym-boundary}, the selected
+top-orbit $S$-unit reduction of
+Proposition~\ref{prop:z-top-orbit-units},
 selected Singer and partition bounds of Propositions~\ref{prop:sieve}
 and~\ref{prop:c-partition}, the cubic first-relation theorem
 and marked-projective obstruction of
@@ -929,6 +932,178 @@ $h\circ[-1]/h=g$.  Therefore
 $h(P_n)^{q-1}=g(P_n)$, and $[h(P_n)]_\ell$ spans the same line.  This proves
 the reverse inclusion.
 \end{proof}
+
+The fixed support can be enlarged to the complete top Frobenius orbit without
+losing the literal selector.  The resulting divisor lattice has two explicit
+function generators after evaluation, but the value quotient still has only
+one Kummer direction.
+
+\begin{proposition}[selected top-orbit $S$-unit reduction]
+\label{prop:z-top-orbit-units}
+Let $n\geq2$ and put
+\[
+ H=2^{n+1},\qquad A=2^{H/2}=2^{2^n},\qquad
+ q=2^H=A^2,\qquad d=2H,\qquad L=\mathbb F_{q^2}.
+\]
+Let $P=(x_P,y_P)\in\mathcal E(L)$ satisfy
+\[
+ P^q=-P,\qquad [\mathbb F_2(x_P):\mathbb F_2]=H,
+ \qquad x_P^A=x_P+1.
+\]
+These are the top-orbit and half-Frobenius properties of $P_n$.  Let
+$M\in\mathbb F_2[X]$ be the minimal polynomial of $x_P$, and define the
+pointwise translated divisors
+\[
+ D_0=\sum_{0\leq i<d}[P^{2^i}],\qquad
+ D_\pm=\sum_{0\leq i<d}[P^{2^i}\pm T],\qquad
+ C_0=D_+-D_-.
+\]
+Put
+\[
+ S'=\mathcal E(\mathbb F_2)\cup\operatorname{supp}(D_+)
+       \cup\operatorname{supp}(D_-),
+ \qquad f(Q)=M(x(Q+T)),
+ \qquad U=\frac{f\circ[-1]}f,
+\]
+and
+\[
+ \Theta_P=U(P)
+ =\frac{M(x(P-T))}{M(x(P+T))}
+ =M(x(P+T))^{q-1}.
+\]
+Then
+\[
+ \operatorname{div}(U)=C_0+dA_0,
+ \qquad A_0=[-T]-[T],\quad B_0=[-2T]-[2T].
+\]
+The $\mathbb F_2$-rational, inversion-anti-invariant, degree-zero divisors
+supported on $S'$ are exactly
+\[
+ aA_0+bB_0+kC_0\qquad(a,b,k\in\mathbb Z).
+\]
+Such a divisor is principal if and only if
+\[
+ 3a+b+2dk\equiv0\pmod5.
+\]
+In the coordinates $(A_0,B_0,C_0)$, the principal lattice has the basis
+\[
+ \operatorname{div}(g)=(2,-1,0),\qquad
+ \operatorname{div}(s)=(5,0,0),\qquad
+ \operatorname{div}(U)=(d,0,1),
+\]
+where $s$ is the fixed-support function in the proof of
+Corollary~\ref{cor:z-fixed-s-rank-one}.
+
+More precisely, if $F\in\mathbb F_2(\mathcal E)^\times$ has divisor supported
+on $S'$, there are $m,k,r\in\mathbb Z$ and
+$\epsilon\in\{1,-1\}$, with $P^A=\epsilon\iota P$, such that
+\[
+ F(P)^{q-1}=g(P)^{\,m+k(2-\epsilon A)}\Theta_P^r.
+\]
+Consequently, for every odd prime $\ell\mid q+1$,
+\[
+ \operatorname{span}_{\mathbb F_\ell}
+ \bigl\{[F(P)]_\ell:
+       F\in\mathbb F_2(\mathcal E)^\times,
+       \operatorname{supp}\operatorname{div}(F)\subseteq S'\bigr\}
+ =\operatorname{span}_{\mathbb F_\ell}
+   \{[g(P)]_\ell,[\Theta_P]_\ell\}.
+\]
+This names two function/divisor generators, not two independent value
+directions: the cyclic quotient $L^\times/L^{\times\ell}$ has
+$\mathbb F_\ell$-dimension one.
+\end{proposition}
+
+\begin{proof}
+The point $P$ has Frobenius orbit of length $d$: its $x$-coordinate has orbit
+length $H$, while $P^q=-P\ne P$.  The divisors $D_+$ and $D_-$ are single
+$\mathbb F_2$-orbits.  They are disjoint from each other and from
+$\mathcal E(\mathbb F_2)$.  Indeed, any collision would give a nonzero
+translation of one orbit point by rational five-torsion.  Iterating the
+corresponding Frobenius shift five times would fix that point; since
+$\gcd(d,5)=1$, the original shift would already be trivial, a contradiction.
+
+The roots of $M$ are the $x$-coordinates of
+$P,P^2,\ldots,P^{2^{H-1}}$.  The two points over each root are interchanged by
+inversion and together give $D_0$.  Since $x$ has a double pole at $O$,
+\[
+ \operatorname{div}(f)=D_--d[-T],\qquad
+ \operatorname{div}(f\circ[-1])=D_+-d[T].
+\]
+Their difference proves the formula for $\operatorname{div}(U)$.  Moreover,
+$P^q=-P$ and rationality of $M,T$ give
+\[
+ M(x(P+T))^q=M(x(-P+T))=M(x(P-T)),
+\]
+which proves the formula for $\Theta_P$.
+
+Inversion swaps $T$ with $-T$, $2T$ with $-2T$, and the two rational orbits
+$D_+$ and $D_-$.  It fixes $O$, whose coefficient in an anti-invariant
+integral divisor must therefore vanish.  Frobenius invariance makes the
+coefficient constant on each of $D_+$ and $D_-$, proving the asserted
+rank-three description.  Under
+$\operatorname{Pic}^0(\mathcal E)\simeq\mathcal E$ one has
+\[
+ A_0\longmapsto3T,\qquad B_0\longmapsto T,
+ \qquad C_0\longmapsto2dT.
+\]
+This proves the congruence criterion.  The three displayed divisor vectors
+belong to its kernel and have determinant five.  Since the congruence kernel
+itself has index five in $\mathbb Z^3$, they form a basis.
+
+For an $S'$-unit $F$, set $R=(F\circ[-1])/F$.  Its divisor belongs to the
+principal anti-invariant lattice, so
+\[
+ R=g^m s^k U^r
+\]
+for some integers $m,k,r$; no scalar remains because
+$\mathbb F_2^\times=\{1\}$.  The selected half-Frobenius equation gives
+$x(P^A)=x(\iota P)$, hence $P^A=\epsilon\iota P$ for some
+$\epsilon\in\{1,-1\}$.  Using
+\[
+ s=\frac{g^2}{g\circ\iota},\qquad g(-Q)=g(Q)^{-1},
+\]
+one obtains $s(P)=g(P)^{2-\epsilon A}$.  Finally,
+\[
+ F(P)^{q-1}=\frac{F(P^q)}{F(P)}
+ =\frac{F(-P)}{F(P)}=R(P),
+\]
+which proves the explicit evaluation.  Since
+$\gcd(\ell,q-1)=1$, exponentiation by $q-1$ is invertible on
+$L^\times/L^{\times\ell}$.  This gives one inclusion in the span equality;
+the reverse follows because $g$ and $U$ are themselves $S'$-units and
+$U(P)=\Theta_P$.
+\end{proof}
+
+The half-Frobenius selector in this proposition is essential.  The exact
+finite certificate in the \texttt{experiments} directory is
+\[
+ \texttt{fermat\_top\_orbit\_countermodel.py}.
+\]
+It constructs a generic
+$H=32$ point with $P^{2^{32}}=-P$ and $x_P$ of exact degree $32$ in
+\[
+ \mathbb F_2[X]/(\mathtt{1c019c923}),\qquad
+ x_P=\mathtt{2bf5b2fb},\qquad
+ M=\mathtt{1b3e069a5}.
+\]
+For $\ell=641$ and $2^{32}+1=641\cdot6700417$, it verifies
+\[
+ \operatorname{ord}(g(P))=6700417,
+ \qquad \operatorname{ord}(\Theta_P)=2^{32}+1.
+\]
+Thus $[g(P)]_{641}=0$ while $[\Theta_P]_{641}\ne0$.  The same certificate
+finds that the fixed-support value $s(P)$ has full order $2^{32}+1$, so even
+the elimination of $s$ fails without the selector.  Crucially,
+\[
+ x_P^{2^{16}}=\mathtt{5e024149}\ne
+ \mathtt{2bf5b2fa}=x_P+1.
+\]
+This is an exact countermodel to any deduction from unmarked top-orbit
+geometry, not a Conway specialization and not evidence against arm $Z$.
+The nonzero classes of $s(P)$ and $\Theta_P$ are the same sole
+$641$-direction in the cyclic value quotient; they are not independent
+Kummer coordinates.
 
 Proposition~\ref{prop:z-elliptic} supplies exact CM annihilator control but
 not generator status.  For $n\geq3$, no elliptic endomorphism can carry $P_n$ to

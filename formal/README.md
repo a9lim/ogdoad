@@ -168,13 +168,23 @@ four-arm `Z/O/C/D` reduction, including:
   annihilators kill a proposed ancestry homomorphism; the selected elliptic
   curve, divisor, Miller-function interpretation, and all-iterate
   Artin--Schreier ramification, genus, and reduced-modulus generalized-Prym
-  saturation and fixed-five-torsion Kummer rank-one calculations remain
-  paper-level function-field synthesis;
+  saturation, fixed-five-torsion Kummer rank-one calculation, and selected
+  top-orbit rational anti-invariant divisor-lattice reduction remain
+  paper-level function-field synthesis.  In particular, Lean does not check
+  the top-orbit principal-lattice basis or the reduction of its evaluations
+  to the two named function generators `g` and `Theta`; the finite-field
+  Kummer value quotient is cyclic, so those names do not assert a
+  two-dimensional value space;
 - oriented Frobenius-prefix evaluation and its block cocycle, including the
   faithful unit-exponent-prefix/full-orbit-trivial dichotomy; these identities
   only re-encode a marked power-residue phase and do not evaluate it;
 - executable finite primality, factor, modular, and order screens for the rows
-  explicitly encoded in the file.  The declarations proved with
+  explicitly encoded in the file.  The external
+  `experiments/fermat_top_orbit_countermodel.py` exactly replays a generic
+  degree-32 point for which `g` misses the `641` coordinate while `Theta`
+  retains it, but the point violates the literal half-Frobenius Conway
+  selector; this is finite evidence against an unmarked inference, not arm
+  `Z`.  The declarations proved with
   `native_decide` are native-decided finite evidence in the sense stated
   above, not ordinary kernel reductions.
 

@@ -214,6 +214,19 @@ divisor classes, but this does not evaluate the literal totally inert place.
 More strongly, every `F_2`-rational elliptic-curve `S`-unit supported on those
 five rational torsion points evaluates into the same one-dimensional
 odd-primary Kummer line as the target, so none is an independent detector.
+After enlarging the support by the two translates of the complete selected
+top Frobenius orbit, the `F_2`-rational anti-invariant principal-divisor
+lattice has an exact three-vector basis.  The literal half-Frobenius selector
+reduces all of its odd-primary evaluations to the two named function values
+`g(P_n)` and
+`Theta_n = M_n(x(P_n-T))/M_n(x(P_n+T))`.  These are two function generators,
+not two independent value directions: the finite-field Kummer quotient is
+cyclic and hence one-dimensional.  The order of the selected `Theta_n`
+remains unevaluated.  A replayable generic `H = 32` certificate has
+`[g(P)]_641 = 0` but nonzero `[Theta(P)]_641` (and a nonzero second
+fixed-support-unit class); it violates the load-bearing selector
+`x(P)^(2^16) = x(P)+1`, so it disproves an unmarked top-orbit inference but
+is neither a Conway specialization nor evidence against arm `Z`.
 The tempting curve
 `y^2+y=x^3` is not isomorphic to the selected curve over `F_2`, and its
 same-looking function has a trivial cubic Kummer class on positive-level
