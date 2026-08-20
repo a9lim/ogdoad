@@ -88,6 +88,32 @@ theorem ordinary_section_degree_obstruction
     _ < b := hdiv
     _ = P.natDegree := hPdeg.symm
 
+/-- Two coprime polynomial divisors of one nonzero polynomial consume the
+sum of their degrees.  This is the generic algebraic core used when an
+ordinary section is divisible by two distinct reciprocal minimal
+polynomials; it does not prove that the selected finite-field polynomials
+are reciprocal or distinct. -/
+theorem polynomial_natDegree_add_le_of_isCoprime_dvd
+    {K : Type*} [Field K] (P Q S : Polynomial K)
+    (hcop : IsCoprime P Q) (hPS : P ∣ S) (hQS : Q ∣ S)
+    (hS : S ≠ 0) :
+    P.natDegree + Q.natDegree ≤ S.natDegree := by
+  have hP : P ≠ 0 := by
+    intro hP
+    obtain ⟨R, hR⟩ := hPS
+    apply hS
+    rw [hR, hP, zero_mul]
+  have hQ : Q ≠ 0 := by
+    intro hQ
+    obtain ⟨R, hR⟩ := hQS
+    apply hS
+    rw [hR, hQ, zero_mul]
+  have hmul : P * Q ∣ S := hcop.mul_dvd hPS hQS
+  calc
+    P.natDegree + Q.natDegree = (P * Q).natDegree :=
+      (Polynomial.natDegree_mul hP hQ).symm
+    _ ≤ S.natDegree := Polynomial.natDegree_le_of_dvd hmul hS
+
 /-- Exact Euler-quotient criterion in a finite cyclic group.  No
 squarefreeness shorthand is hidden: `p ∣ |G|` is the full hypothesis used in
 this group-level statement. -/

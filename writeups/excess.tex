@@ -112,6 +112,8 @@ and packing and translate bounds of
 Propositions~\ref{prop:d-one-third}, \ref{prop:d-packing},
 and~\ref{prop:d-bound} are proved here.
 Corollary~\ref{cor:o-large-factor} settles the ordinary large-factor case,
+Proposition~\ref{prop:o-reciprocal} doubles its degree range whenever the
+literal bottom polynomial is not self-reciprocal, and
 Proposition~\ref{prop:o-ratio-packing} enlarges that range polynomially in
 $r^a$; the compression settles the exceptional prime-complement case, and
 the intermediate-field sieve settles an exponential-in-$\sqrt{3^k}$
@@ -1067,6 +1069,100 @@ most $\lfloor(d-j)/n\rfloor<b$.  It is therefore a nonzero polynomial of degree
 less than $\deg P_r=b$, so Lemma~\ref{lem:o-section} rules out the required
 divisibility.  Finally, $d$ is odd, so when $d\leq bn$ one may take $j=1$.
 If $p=N/r$, then $d=r\leq br^a$.
+\end{proof}
+
+There is a selector-sensitive strengthening obtained by retaining the two
+opposite nonzero sections at the top Kummer step.  For a monic polynomial
+$H$ with constant coefficient one, write
+\[
+ H^*(U)=U^{\deg H}H(U^{-1})
+\]
+for its reciprocal.
+
+\begin{proposition}[reciprocal doubling in the ordinary arm]
+\label{prop:o-reciprocal}
+Put $n=r^a$, let $p\ne r$ divide $N=L_{r,a}$, and put $d=N/p$.
+For $0\leq j<r$ define the top $r$-sections
+\[
+ A_j(W)=\operatorname{Sec}_{r,j}((1+T)^d)(W)
+       =\sum_{k\geq0}\binom d{j+kr}W^k.
+\]
+Set $s=r^{a-1}$ and
+\[
+ M(W)=P_r(W^s),\qquad M^*(W)=P_r^*(W^s).
+\]
+Then $r\mid d$, and, writing $h=d/r$, one has the exact section reciprocity
+\[
+ A_{r-1}(W)=W^{h-1}A_1(W^{-1}).
+\]
+If the current $p$-coordinate is deficient, then both $M$ and $M^*$ divide
+$A_1$.  Consequently, if $P_r\ne P_r^*$, deficiency forces
+\[
+ d\geq 2br^a+r.
+\]
+Equivalently, when $P_r\ne P_r^*$, every current factor satisfying
+$d\leq2br^a$ has full primary order.
+
+This non-self-reciprocity condition is independent of the tower level.  More
+explicitly, if $f=\operatorname{ord}_r(2)$, then $f\mid b$, and it holds
+automatically whenever $f$ is odd or $b/f$ is even.
+\end{proposition}
+
+\begin{proof}
+The relative Kummer construction has $x_a^r=x_{a-1}$ and degree $r$; as
+above, its nonpower radicand gives $r\mid2^b-1$.  Therefore
+\[
+ N=\sum_{i=0}^{r-1}(2^b)^{ir^{a-1}}
+   \equiv r\equiv0\pmod r.
+\]
+As $p\ne r$, this gives $r\mid d$.
+
+Put $K=F_{a-1}$, $z=x_a$, and $w=z^r=x_{a-1}$.  The polynomial $M$ is the
+minimal polynomial of $w$ over $\mathbb F_2$.  If the coordinate is
+deficient, then $(1+z)^d\in K$.  Expanding in the $K$-basis
+$1,z,\ldots,z^{r-1}$ shows that
+\[
+ A_j(w)=0\qquad(1\leq j<r),
+\]
+so $M$ divides every nonzero top section.  Since $r\mid d$, also
+$z^d=w^{d/r}\in K$, and therefore
+\[
+ (1+z^{-1})^d=z^{-d}(1+z)^d\in K.
+\]
+Expansion in the inverse basis gives $A_j(w^{-1})=0$ for $1\leq j<r$.
+The minimal polynomial of $w^{-1}$ is $M^*$, so $M^*$ divides $A_1$.
+
+The displayed section reciprocity follows directly from
+$\binom d\ell=\binom d{d-\ell}$ and $d=rh$: the coefficient indexed by
+$1+kr$ is paired with the one indexed by
+$(r-1)+(h-k-1)r$.  The polynomial $P_r$ has constant coefficient one
+because $x_0\ne0$, and hence $M$ and $M^*$ are monic irreducibles.  If
+$P_r\ne P_r^*$, then
+\[
+ M^*(W)=P_r^*(W^s)\ne P_r(W^s)=M(W),
+\]
+so they are coprime.  Thus $MM^*\mid A_1$ under deficiency.  But $A_1$ is
+nonzero, since its constant coefficient is $\binom d1=1$, and
+\[
+ \deg A_1\leq h-1=\frac dr-1,
+ \qquad \deg(MM^*)=2bs.
+\]
+It follows that $d/r-1\geq2br^{a-1}$, which is the claimed lower bound.
+Because $r\mid d$, its contrapositive is equivalently $d\leq2br^a$.
+
+It remains to prove the arithmetic sufficient condition.  The first Kummer
+step shows that $x_0$ is not an $r$-th power in
+$F_0^\times$: otherwise, since $\mu_r\subset F_0$, the chosen $r$-th root
+$x_1$ would already lie in $F_0$.  Hence $r\mid\operatorname{ord}(x_0)$.
+If $P_r=P_r^*$, then $x_0^{-1}=x_0^{2^j}$ for some $0<j<b$.  Since the
+Frobenius orbit has length $b$, this forces $b$ even, $j=b/2$, and
+\[
+ 2^{b/2}\equiv-1\pmod {\operatorname{ord}(x_0)},
+ \quad\text{hence}\quad
+ 2^{b/2}\equiv-1\pmod r.
+\]
+Writing $f=\operatorname{ord}_r(2)$, the last congruence requires $f$ even
+and $b/f$ odd.  The stated alternatives are the contrapositive.
 \end{proof}
 
 The full Kummer orbit gives a second sieve which is substantially stronger
@@ -2716,8 +2812,8 @@ order results.  These are not reproved in Lean. \\
 Proved here & The four-arm equivalence; the exact selected coordinates and
 order criteria; the primitive-support, packet, supersingular, Singer and
 selected norm-one partition and first-relation bounds, corrected-norm,
-ordinary section and Kummer-ratio packing sieves, exceptional
-palindromicity, one-third compression, intermediate-field packing,
+ordinary section, reciprocal-doubling, and Kummer-ratio packing sieves,
+exceptional palindromicity, one-third compression, intermediate-field packing,
 prime-complement exceptional case, ray-index, boundedness, and
 reciprocity-saturation results stated above. \\
 Ordinary kernel-checked Lean & Algebra without native evaluation: the

@@ -154,7 +154,15 @@ Conway parent is selected.  Thus Frobenius extraction still ends at the
 marked inverse-exponent seam.  In the
 ordinary arm, the bottom-ancestor polynomial
 sections prove every current factor `p` with `L_(r,a)/p <= b_r r^a`, including
-the case in which `L_(r,a)/r` is prime.  A Kummer-ratio packing argument
+the case in which `L_(r,a)/r` is prime.  Retaining the opposite top
+`r`-sections doubles this degree range whenever the literal bottom polynomial
+`P_r` is not self-reciprocal: deficiency then forces
+`L_(r,a)/p >= 2 b_r r^a + r`, so every cofactor at most `2 b_r r^a` is
+settled.  The test is level-independent because the reciprocal of
+`P_r(W^(r^(a-1)))` is `P_r^*(W^(r^(a-1)))`; it is automatic when
+`ord_r(2)` is odd or `b_r/ord_r(2)` is even.  This leaves the
+self-reciprocal bottom polynomials and all larger cofactors unresolved.  A
+Kummer-ratio packing argument
 strengthens this: with `D=r^(a-1)(r-1)` and `s=(r-1)/2`, deficiency forces
 `L_(r,a)/p >= R(D,s)+ceil((R(D,s+1)-R(D,s))/r)`, where
 `R(D,t)=sum_(j=0)^t 2^j binom(D,j) binom(t,j)`.  The second summand retains

@@ -119,6 +119,11 @@ four-arm `Z/O/C/D` reduction, including:
   norm reduction, coprime-exponent invariance, and strict-ancestor primary
   vacuity, together with the inverse-exponent and ordinary section-degree
   algebra used by the bottom-ancestor reduction;
+- the generic coprime-factor degree-sum lemma underlying ordinary reciprocal
+  doubling is kernel-checked, while the opposite top-section reciprocity,
+  reciprocal-minimal-polynomial step, and level-independent
+  non-self-reciprocity criterion remain a paper-level finite-field/index
+  synthesis rather than a formalized end-to-end sieve;
 - the corrected characteristic-two sparse norm;
 - the exceptional cyclic-compression algebra: a vanishing three-block sum
   upgrades equal blocks to literal zero, the one-third Frobenius product
