@@ -29,6 +29,24 @@ print("  e1 e0        =", e1 * e0)
 print("  {e0,e1}      =", e0 * e1 + e1 * e0, "  (the anticommutator)")
 print("  e0²          =", e0 ** 2, "  (a nimber square, not ±1)")
 
+section("Weyl — characteristic centre, bounded fibres, and Clifford join")
+W = pl.NimberWeylAlgebra(1)
+x, d = W.x(0), W.d(0)
+print("  [d,x]        =", W.commutator(d, x))
+print("  centre gens  =", W.center_generators())
+assert W.commutator(d, x) == W.one()
+assert W.central_reduce(x ** 3, [pl.Nimber(2), pl.Nimber(3)], 4) == x.scale(pl.Nimber(2))
+assert W.clifford_fiber_products_agree(
+    d * x, x + d, [pl.Nimber(2), pl.Nimber(3)], 4,
+    max_terms=32, max_steps=1_000,
+)
+roots = [pl.Nimber(pl.nim_sqrt(2)), pl.Nimber(pl.nim_sqrt(3))]
+module_generators = W.central_character_generator_matrices(
+    [pl.Nimber(2), pl.Nimber(3)], roots,
+    max_basis_dimension=2, max_matrix_entries=8, max_steps=10_000,
+)
+print("  split module =", len(module_generators[0]), "x", len(module_generators[0]))
+
 section("Grassmann — fully null metric, nilpotent generators")
 G = pl.SurrealAlgebra(q=[0, 0, 0])
 g0, g1 = G.gen(0), G.gen(1)

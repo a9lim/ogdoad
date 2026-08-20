@@ -1,8 +1,10 @@
 //! Sparse PBW Weyl algebra and its rank-one polynomial action. Run with:
 //!   cargo run --example weyl
 
-use ogdoad::scalar::{Poly, Rational, Scalar};
-use ogdoad::weyl::{SparsePolynomial, WeylAlgebra, WeylExpansionBudget, WeylFiltration};
+use ogdoad::scalar::{Nimber, Poly, Rational, Scalar};
+use ogdoad::weyl::{
+    SparsePolynomial, WeylAlgebra, WeylExpansionBudget, WeylFiltration, WeylRepresentationBudget,
+};
 
 fn r(value: i128) -> Rational {
     Rational::from_int(value)
@@ -54,6 +56,29 @@ fn main() {
                 &operator,
                 &polynomial,
                 WeylExpansionBudget::new(32, 1_000),
+            )
+            .unwrap()
+    );
+
+    let modular = WeylAlgebra::<Nimber>::standard(1);
+    let modular_center = modular.positive_characteristic_center().unwrap();
+    println!(
+        "char-2 centre generators = {}, rank over centre = {:?}",
+        modular_center.generators().len(),
+        modular_center.basis_over_center().rank_over_center(),
+    );
+    let bridge = modular
+        .clifford_central_fiber(
+            vec![Nimber(2), Nimber(3)],
+            WeylRepresentationBudget::new(4, 0, 0),
+        )
+        .unwrap();
+    println!(
+        "char-2 Clifford fibre agrees = {}",
+        bridge
+            .products_agree(
+                &modular.mul(&modular.d(0), &modular.x(0)),
+                &(modular.x(0) + modular.d(0)),
             )
             .unwrap()
     );

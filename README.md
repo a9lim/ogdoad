@@ -78,7 +78,12 @@ Over exact fields, certified Darboux coordinates expose the standard Weyl
 factor and central radical polynomial factor. Affine homomorphisms, standard
 automorphisms, formal adjoint, Bernstein/differential-order symbols, the
 constant Poisson bracket, and the polynomial `hbar` deformation preserve their
-homomorphism, characteristic, and finite-support boundaries explicitly.
+homomorphism, characteristic, and finite-support boundaries explicitly. In
+positive characteristic, certified centre generators, lazy PBW bases over the
+centre, bounded central-character quotients, and exact split-module matrices
+make the enlarged centre operational. Characteristic-two fibres have a checked
+two-way Clifford identification; supported split odd-characteristic fibres
+receive an exact full-matrix-algebra rank certificate.
 
 ## Use
 
@@ -103,6 +108,15 @@ import ogdoad as og
 # q and b are independent in characteristic two.
 A = og.NimberAlgebra(q=[og.Nimber(2), og.Nimber(3)], b={(0, 1): 1})
 e0, e1 = A.gen(0), A.gen(1)
+
+# Weyl backends remain monomorphic too; budgets stay explicit.
+W = og.NimberWeylAlgebra(1)
+x, d = W.x(0), W.d(0)
+assert W.commutator(d, x) == W.one()
+assert W.clifford_fiber_products_agree(
+    d * x, x + d, [og.Nimber(2), og.Nimber(3)], 4,
+    max_terms=32, max_steps=1_000,
+)
 assert e0 * e1 + e1 * e0 == A.scalar(og.Nimber(1))
 
 # Exact finite-support surreal monomials.

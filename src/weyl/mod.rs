@@ -26,15 +26,22 @@
 //! [`WeylAntiAutomorphism`] keep ordinary and product-reversing maps distinct.
 //! Bernstein/differential-order principal symbols, the constant Poisson bracket,
 //! and [`HbarWeylAlgebra`] stay finite-support and budget-aware.
+//! In positive characteristic, [`WeylCenterDescription`] certifies the enlarged
+//! centre, [`WeylCentralFiber`] and [`WeylCentralCharacterModule`] keep finite
+//! quotient dimensions explicit, and characteristic-two fibres have a checked
+//! [`WeylCliffordFiber`] product oracle.
 //!
 //! This is a separate public pillar from [`crate::clifford`]. It shares the
 //! commutative [`crate::scalar::Scalar`] coefficient discipline, but a Weyl
 //! monomial needs an exponent vector rather than a finite blade mask.
 
 mod algebra;
+mod center;
+mod clifford_fiber;
 mod deformation;
 mod differential;
 mod element;
+mod fiber;
 mod normal_form;
 mod polynomial;
 mod product;
@@ -42,8 +49,11 @@ mod symbol;
 mod transform;
 
 pub use algebra::*;
+pub use center::*;
+pub use clifford_fiber::*;
 pub use deformation::*;
 pub use element::*;
+pub use fiber::*;
 pub use normal_form::*;
 pub use polynomial::*;
 pub use symbol::*;

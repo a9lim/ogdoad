@@ -187,6 +187,47 @@ MEMBER_OVERRIDES: dict[str, str] = {
     "GuySmithCertificate.is_p_position": "(self, heaps: Sequence[builtins.int]) -> builtins.bool",
 }
 
+# Selected monomorphic Weyl classes share one Rust macro surface while keeping
+# their scalar and element types separate in Python.
+for _weyl_world, _weyl_scalar in (("Rational", "Rational"), ("Nimber", "Nimber")):
+    _weyl_alg = f"{_weyl_world}WeylAlgebra"
+    _weyl_element = f"{_weyl_world}WeylElement"
+    MEMBER_OVERRIDES.update(
+        {
+            f"{_weyl_alg}.__init__": "(self, pairs: builtins.int) -> None",
+            f"{_weyl_alg}.from_commutator": f"@staticmethod (rows: Sequence[Sequence[Any]]) -> {_weyl_alg}",
+            f"{_weyl_alg}.dim": "(self) -> builtins.int",
+            f"{_weyl_alg}.standard_pairs": "(self) -> builtins.int | None",
+            f"{_weyl_alg}.commutator_form": f"(self) -> list[list[{_weyl_scalar}]]",
+            f"{_weyl_alg}.zero": f"(self) -> {_weyl_element}",
+            f"{_weyl_alg}.one": f"(self) -> {_weyl_element}",
+            f"{_weyl_alg}.scalar": f"(self, value: Any) -> {_weyl_element}",
+            f"{_weyl_alg}.generator": f"(self, index: builtins.int) -> {_weyl_element}",
+            f"{_weyl_alg}.x": f"(self, index: builtins.int) -> {_weyl_element}",
+            f"{_weyl_alg}.d": f"(self, index: builtins.int) -> {_weyl_element}",
+            f"{_weyl_alg}.monomial": f"(self, exponents: Sequence[builtins.int], coefficient: Any) -> {_weyl_element}",
+            f"{_weyl_alg}.mul": f"(self, left: {_weyl_element}, right: {_weyl_element}, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+            f"{_weyl_alg}.pow": f"(self, value: {_weyl_element}, exponent: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+            f"{_weyl_alg}.commutator": f"(self, left: {_weyl_element}, right: {_weyl_element}, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+            f"{_weyl_alg}.is_central": f"(self, value: {_weyl_element}, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> builtins.bool",
+            f"{_weyl_alg}.radical_generators": f"(self, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[{_weyl_element}]",
+            f"{_weyl_alg}.center_generators": f"(self, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[{_weyl_element}]",
+            f"{_weyl_alg}.fourier": f"(self, value: {_weyl_element}, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+            f"{_weyl_alg}.formal_adjoint": f"(self, value: {_weyl_element}, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+            f"{_weyl_alg}.central_reduce": f"(self, value: {_weyl_element}, central_values: Sequence[Any], max_basis_dimension: builtins.int) -> {_weyl_element}",
+            f"{_weyl_alg}.clifford_fiber_products_agree": f"(self, left: {_weyl_element}, right: {_weyl_element}, central_values: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> builtins.bool",
+            f"{_weyl_alg}.central_character_generator_matrices": f"(self, central_values: Sequence[Any], splitting_roots: Sequence[Any], max_basis_dimension: builtins.int, max_matrix_entries: builtins.int, max_steps: builtins.int) -> list[list[list[{_weyl_scalar}]]]",
+            f"{_weyl_element}.dim": "(self) -> builtins.int",
+            f"{_weyl_element}.term_count": "(self) -> builtins.int",
+            f"{_weyl_element}.is_zero": "(self) -> builtins.bool",
+            f"{_weyl_element}.terms": f"(self) -> list[tuple[list[builtins.int], {_weyl_scalar}]]",
+            f"{_weyl_element}.algebra": f"(self) -> {_weyl_alg}",
+            f"{_weyl_element}.scale": f"(self, scalar: Any) -> {_weyl_element}",
+            f"{_weyl_element}.mul": f"(self, other: {_weyl_element}, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+            f"{_weyl_element}.pow": f"(self, exponent: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+        }
+    )
+
 # --------------------------------------------------------------------------- #
 # Operator / protocol dunders: kept (with canonical signatures), everything    #
 # else dunder-shaped is dropped from the stub as noise.                        #

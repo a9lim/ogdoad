@@ -13,6 +13,7 @@ monomorphizations of the pure-Rust core behind the optional `python` feature.
 | `engine.rs` | Clifford, multivector, divided-power, and CGA wrappers |
 | `forms.rs` | classifiers, local--global reports, integral forms |
 | `games.rs` | game values, evaluators, thermography, lexicodes |
+| `weyl.rs` | Rational/Nimber Weyl algebras, elements, centres, and bounded fibres |
 
 ## Binding policy
 

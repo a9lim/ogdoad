@@ -19,6 +19,9 @@ subsets, while Weyl PBW monomials carry arbitrary natural-number exponents.
 | `transform.rs` | checked affine homomorphisms, automorphisms, and anti-automorphisms |
 | `symbol.rs` | Bernstein/order filtrations, principal symbols, and Poisson bracket |
 | `deformation.rs` | polynomial `hbar` commutator family and specialization |
+| `center.rs` | certified radical/characteristic-`p` centre data and lazy PBW basis |
+| `fiber.rs` | bounded central quotients, split modules, and odd matrix certificates |
+| `clifford_fiber.rs` | characteristic-two central-fibre isomorphism to Clifford algebras |
 
 ## Algebra contract
 
@@ -41,6 +44,13 @@ backend representation and never divide by a factorial in generic code.
 - Positive characteristic is first-class. In characteristic `p`, standard
   `x_i^p` and `d_i^p` are central, and the ordinary polynomial action is not
   faithful.
+- Finite central fibres are materialized only under explicit basis, matrix-entry,
+  and work budgets. A split module requires checked characteristic roots; do not
+  claim a matrix algebra over a nonsplit character without the exact rank
+  certificate.
+- In characteristic two, the central-fibre Clifford bridge keeps generator
+  squares in `Metric::q` and the Weyl pairing in `Metric::b`; neither determines
+  the other.
 - Degenerate alternating forms are valid; radical generators are central.
 - Darboux witnesses are field-gated through `ExactFieldScalar`. Generic ring
   backends may still use the PBW algebra, maps whose relations check, and the
@@ -65,4 +75,6 @@ associativity over exact characteristic-zero and positive-characteristic
 backends, budget-boundary tests, and the rank-`n` polynomial-action oracle.
 Transformation work additionally requires multiplication and inverse
 round-trips; symbol work requires product, Poisson, and leading-commutator
-oracles. Then run the root Rust gate.
+oracles. Central-fibre work requires independent centrality checks, quotient
+homomorphism tests, exact module relations, and the Clifford or full-matrix
+oracle appropriate to the characteristic. Then run the root Rust gate.

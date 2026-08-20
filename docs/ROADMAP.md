@@ -31,7 +31,7 @@ here unless they produce a sharp unresolved statement for `OPEN.md`.
 | work | completion criterion |
 | --- | --- |
 | arbitrary-width nim multiplication | implement the proved affine transforms and primitive Artin--Schreier tower from `writeups/nim_fast_multiplication.tex`; exhaustively agree with the mex/direct oracle on small fields, differentially agree with the `u128` backend on every supported width, and measure the crossover while retaining the current path below it |
-| Weyl pillar | carry out the modular-representation and certified D-module waves in [`WEYL.md`](WEYL.md), preserving finite-support, characteristic, and budget boundaries at every layer |
+| Weyl pillar | carry out the certified computational D-module wave in [`WEYL.md`](WEYL.md), preserving finite-support, characteristic, and budget boundaries at every layer |
 
 New Python bindings must preserve per-backend type separation and update the
 generated stub in the same commit.

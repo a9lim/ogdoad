@@ -10,6 +10,7 @@
 //!   - [`engine`] — algebra/MV pairs, linear maps, divided powers, and CGA.
 //!   - [`forms`] — quadratic, bilinear, Hermitian, symplectic, and integral forms.
 //!   - [`games`] — short/transfinite games, graph kernels, and game invariants.
+//!   - [`weyl`] — selected Rational and Nimber finite-support Weyl algebras.
 //!
 //! Each submodule registers its own classes and functions through a
 //! `pub(crate) fn register`, which the `#[pymodule]` entry point chains
@@ -23,6 +24,7 @@ mod engine;
 mod forms;
 mod games;
 mod scalars;
+mod weyl;
 
 #[pyfunction]
 fn version() -> &'static str {
@@ -35,6 +37,7 @@ fn ogdoad(m: &Bound<'_, PyModule>) -> PyResult<()> {
     engine::register(m)?;
     forms::register(m)?;
     games::register(m)?;
+    weyl::register(m)?;
     m.add_function(wrap_pyfunction!(version, m)?)?;
     Ok(())
 }

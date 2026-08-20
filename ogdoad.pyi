@@ -19726,6 +19726,107 @@ class NimberRationalFunctionMV:
     def __truediv__(self, other: Any) -> Any: ...
     def __xor__(self, other: Any) -> Any: ...
 
+class NimberWeylAlgebra:
+    def __init__(self, pairs: builtins.int) -> None: ...
+    def center_generators(self, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[NimberWeylElement]:
+        """Certified characteristic-p centre generators in source
+        coordinates. Characteristic-zero backends raise ValueError.
+        """
+    def central_character_generator_matrices(self, central_values: Sequence[Any], splitting_roots: Sequence[Any], max_basis_dimension: builtins.int, max_matrix_entries: builtins.int, max_steps: builtins.int) -> list[list[list[Nimber]]]:
+        """Exact generator matrices for a bounded split central-character
+        module. Roots must satisfy `root[i]^p = central_values[i]`.
+        """
+    def central_reduce(self, value: NimberWeylElement, central_values: Sequence[Any], max_basis_dimension: builtins.int) -> NimberWeylElement:
+        """Reduce an element modulo `z_i^p = central_values[i]` and return
+        its canonical PBW representative.
+        """
+    def clifford_fiber_products_agree(self, left: NimberWeylElement, right: NimberWeylElement, central_values: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> builtins.bool:
+        """Compare the characteristic-two central reduction with the
+        independent Clifford product oracle.
+        """
+    def commutator(self, left: NimberWeylElement, right: NimberWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> NimberWeylElement:
+        """Lie commutator under optional sparse-term and charged-work
+        limits.
+        """
+    def commutator_form(self) -> list[list[Nimber]]:
+        """Alternating commutator matrix in generator order."""
+    def d(self, index: builtins.int) -> NimberWeylElement:
+        """Return a standard differential generator."""
+    def dim(self) -> builtins.int:
+        """Number of ordered PBW generators."""
+    def formal_adjoint(self, value: NimberWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> NimberWeylElement:
+        """Apply the formal-adjoint anti-automorphism."""
+    def fourier(self, value: NimberWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> NimberWeylElement:
+        """Apply the standard Fourier automorphism."""
+    @staticmethod
+    def from_commutator(rows: Sequence[Sequence[Any]]) -> NimberWeylAlgebra:
+        """Construct from an alternating commutator matrix."""
+    def generator(self, index: builtins.int) -> NimberWeylElement:
+        """Return one ordered generator."""
+    def is_central(self, value: NimberWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> builtins.bool:
+        """Check commutation with every generator under optional expansion
+        limits.
+        """
+    def monomial(self, exponents: Sequence[builtins.int], coefficient: Any) -> NimberWeylElement:
+        """Construct one checked PBW monomial."""
+    def mul(self, left: NimberWeylElement, right: NimberWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> NimberWeylElement:
+        """Multiply under optional sparse-term and charged-work limits."""
+    def one(self) -> NimberWeylElement:
+        """Multiplicative identity."""
+    def pow(self, value: NimberWeylElement, exponent: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> NimberWeylElement:
+        """Compute a power under optional sparse-term and charged-work
+        limits.
+        """
+    def radical_generators(self, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[NimberWeylElement]:
+        """Certified linear radical generators in source coordinates."""
+    def scalar(self, value: Any) -> NimberWeylElement:
+        """Embed a scalar constant."""
+    def standard_pairs(self) -> builtins.int | None:
+        """Standard Weyl rank, or None for a general alternating
+        presentation.
+        """
+    def x(self, index: builtins.int) -> NimberWeylElement:
+        """Return a standard position generator."""
+    def zero(self) -> NimberWeylElement:
+        """Additive identity."""
+    def __repr__(self) -> builtins.str: ...
+
+class NimberWeylElement:
+    def algebra(self) -> NimberWeylAlgebra:
+        """Owning monomorphic Weyl context."""
+    def dim(self) -> builtins.int:
+        """Number of ordered PBW generators."""
+    def is_zero(self) -> builtins.bool:
+        """Whether this is the additive identity."""
+    def mul(self, other: NimberWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> NimberWeylElement:
+        """Budgeted multiplication convenience on the element itself."""
+    def pow(self, exponent: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> NimberWeylElement:
+        """Budgeted PBW power."""
+    def scale(self, scalar: Any) -> NimberWeylElement:
+        """Scalar multiplication without changing the Weyl context."""
+    def term_count(self) -> builtins.int:
+        """Number of nonzero PBW terms."""
+    def terms(self) -> list[tuple[list[builtins.int], Nimber]]:
+        """Canonical sparse terms as `(exponents, coefficient)` pairs."""
+    def __add__(self, other: Any) -> Any: ...
+    def __eq__(self, other: builtins.object) -> builtins.bool: ...
+    def __ge__(self, other: Any) -> builtins.bool: ...
+    def __gt__(self, other: Any) -> builtins.bool: ...
+    def __hash__(self) -> builtins.int: ...
+    def __le__(self, other: Any) -> builtins.bool: ...
+    def __lt__(self, other: Any) -> builtins.bool: ...
+    def __mul__(self, other: Any) -> Any: ...
+    def __ne__(self, other: builtins.object) -> builtins.bool: ...
+    def __neg__(self) -> Any: ...
+    def __pow__(self, other: Any) -> Any: ...
+    def __radd__(self, other: Any) -> Any: ...
+    def __repr__(self) -> builtins.str: ...
+    def __rmul__(self, other: Any) -> Any: ...
+    def __rpow__(self, other: Any) -> Any: ...
+    def __rsub__(self, other: Any) -> Any: ...
+    def __str__(self) -> builtins.str: ...
+    def __sub__(self, other: Any) -> Any: ...
+
 class NumberGame:
     """A transfinite number-valued game carried by its surreal value, including its
     represented birthday and sign expansion.
@@ -31782,6 +31883,107 @@ class RationalPlaceInvariant:
     @property
     def place(self) -> Any: ...
     def __repr__(self) -> builtins.str: ...
+
+class RationalWeylAlgebra:
+    def __init__(self, pairs: builtins.int) -> None: ...
+    def center_generators(self, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[RationalWeylElement]:
+        """Certified characteristic-p centre generators in source
+        coordinates. Characteristic-zero backends raise ValueError.
+        """
+    def central_character_generator_matrices(self, central_values: Sequence[Any], splitting_roots: Sequence[Any], max_basis_dimension: builtins.int, max_matrix_entries: builtins.int, max_steps: builtins.int) -> list[list[list[Rational]]]:
+        """Exact generator matrices for a bounded split central-character
+        module. Roots must satisfy `root[i]^p = central_values[i]`.
+        """
+    def central_reduce(self, value: RationalWeylElement, central_values: Sequence[Any], max_basis_dimension: builtins.int) -> RationalWeylElement:
+        """Reduce an element modulo `z_i^p = central_values[i]` and return
+        its canonical PBW representative.
+        """
+    def clifford_fiber_products_agree(self, left: RationalWeylElement, right: RationalWeylElement, central_values: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> builtins.bool:
+        """Compare the characteristic-two central reduction with the
+        independent Clifford product oracle.
+        """
+    def commutator(self, left: RationalWeylElement, right: RationalWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> RationalWeylElement:
+        """Lie commutator under optional sparse-term and charged-work
+        limits.
+        """
+    def commutator_form(self) -> list[list[Rational]]:
+        """Alternating commutator matrix in generator order."""
+    def d(self, index: builtins.int) -> RationalWeylElement:
+        """Return a standard differential generator."""
+    def dim(self) -> builtins.int:
+        """Number of ordered PBW generators."""
+    def formal_adjoint(self, value: RationalWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> RationalWeylElement:
+        """Apply the formal-adjoint anti-automorphism."""
+    def fourier(self, value: RationalWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> RationalWeylElement:
+        """Apply the standard Fourier automorphism."""
+    @staticmethod
+    def from_commutator(rows: Sequence[Sequence[Any]]) -> RationalWeylAlgebra:
+        """Construct from an alternating commutator matrix."""
+    def generator(self, index: builtins.int) -> RationalWeylElement:
+        """Return one ordered generator."""
+    def is_central(self, value: RationalWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> builtins.bool:
+        """Check commutation with every generator under optional expansion
+        limits.
+        """
+    def monomial(self, exponents: Sequence[builtins.int], coefficient: Any) -> RationalWeylElement:
+        """Construct one checked PBW monomial."""
+    def mul(self, left: RationalWeylElement, right: RationalWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> RationalWeylElement:
+        """Multiply under optional sparse-term and charged-work limits."""
+    def one(self) -> RationalWeylElement:
+        """Multiplicative identity."""
+    def pow(self, value: RationalWeylElement, exponent: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> RationalWeylElement:
+        """Compute a power under optional sparse-term and charged-work
+        limits.
+        """
+    def radical_generators(self, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[RationalWeylElement]:
+        """Certified linear radical generators in source coordinates."""
+    def scalar(self, value: Any) -> RationalWeylElement:
+        """Embed a scalar constant."""
+    def standard_pairs(self) -> builtins.int | None:
+        """Standard Weyl rank, or None for a general alternating
+        presentation.
+        """
+    def x(self, index: builtins.int) -> RationalWeylElement:
+        """Return a standard position generator."""
+    def zero(self) -> RationalWeylElement:
+        """Additive identity."""
+    def __repr__(self) -> builtins.str: ...
+
+class RationalWeylElement:
+    def algebra(self) -> RationalWeylAlgebra:
+        """Owning monomorphic Weyl context."""
+    def dim(self) -> builtins.int:
+        """Number of ordered PBW generators."""
+    def is_zero(self) -> builtins.bool:
+        """Whether this is the additive identity."""
+    def mul(self, other: RationalWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> RationalWeylElement:
+        """Budgeted multiplication convenience on the element itself."""
+    def pow(self, exponent: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> RationalWeylElement:
+        """Budgeted PBW power."""
+    def scale(self, scalar: Any) -> RationalWeylElement:
+        """Scalar multiplication without changing the Weyl context."""
+    def term_count(self) -> builtins.int:
+        """Number of nonzero PBW terms."""
+    def terms(self) -> list[tuple[list[builtins.int], Rational]]:
+        """Canonical sparse terms as `(exponents, coefficient)` pairs."""
+    def __add__(self, other: Any) -> Any: ...
+    def __eq__(self, other: builtins.object) -> builtins.bool: ...
+    def __ge__(self, other: Any) -> builtins.bool: ...
+    def __gt__(self, other: Any) -> builtins.bool: ...
+    def __hash__(self) -> builtins.int: ...
+    def __le__(self, other: Any) -> builtins.bool: ...
+    def __lt__(self, other: Any) -> builtins.bool: ...
+    def __mul__(self, other: Any) -> Any: ...
+    def __ne__(self, other: builtins.object) -> builtins.bool: ...
+    def __neg__(self) -> Any: ...
+    def __pow__(self, other: Any) -> Any: ...
+    def __radd__(self, other: Any) -> Any: ...
+    def __repr__(self) -> builtins.str: ...
+    def __rmul__(self, other: Any) -> Any: ...
+    def __rpow__(self, other: Any) -> Any: ...
+    def __rsub__(self, other: Any) -> Any: ...
+    def __str__(self) -> builtins.str: ...
+    def __sub__(self, other: Any) -> Any: ...
 
 class RealWittDecomp:
     @property
