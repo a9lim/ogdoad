@@ -114,6 +114,17 @@ theorem polynomial_natDegree_add_le_of_isCoprime_dvd
       (Polynomial.natDegree_mul hP hQ).symm
     _ ≤ S.natDegree := Polynomial.natDegree_le_of_dvd hmul hS
 
+/-- Characteristic-two Frobenius expansion used before separating
+coefficients in the affine odd-power-basis argument.  The paper rewrites the
+first and last products as powers with exponent `2^k + 1`. -/
+theorem affine_frobenius_product_expansion
+    {K : Type*} [CommRing K] [CharP K 2] (t u : K) (k : Nat) :
+    (t + u) ^ (2 ^ k + 1) =
+      t ^ (2 ^ k) * t + u * t ^ (2 ^ k) +
+        u ^ (2 ^ k) * t + u ^ (2 ^ k) * u := by
+  rw [pow_add, pow_one, add_pow_char_pow]
+  ring
+
 /-- Exact Euler-quotient criterion in a finite cyclic group.  No
 squarefreeness shorthand is hidden: `p ∣ |G|` is the full hypothesis used in
 this group-level statement. -/

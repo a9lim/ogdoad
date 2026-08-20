@@ -160,8 +160,16 @@ the case in which `L_(r,a)/r` is prime.  Retaining the opposite top
 `L_(r,a)/p >= 2 b_r r^a + r`, so every cofactor at most `2 b_r r^a` is
 settled.  The test is level-independent because the reciprocal of
 `P_r(W^(r^(a-1)))` is `P_r^*(W^(r^(a-1)))`; it is automatic when
-`ord_r(2)` is odd or `b_r/ord_r(2)` is even.  This leaves the
-self-reciprocal bottom polynomials and all larger cofactors unresolved.  A
+`ord_r(2)` is odd or `b_r/ord_r(2)` is even.  An affine odd-Kummer
+power-basis lemma shows more: if the `0/1/4` row at `r != 3` is already
+correct, then its literal `P_r` cannot be self-reciprocal.  Since every
+arm-`O` row prime `p` has `r < p`, a least-prime counterexample therefore
+has `P_r != P_r^*`, and its cofactor must be at least
+`2 b_r r^a + r`.  The literal exception `P_3=X^2+X+1` is
+self-reciprocal but belongs to the separate cubic/exceptional arms.  Thus a
+self-reciprocal bottom at `r != 3` would already be an earlier failure of
+the global rule, rather than an independent ordinary-arm obstruction.  This
+still leaves all larger cofactors unresolved.  A
 Kummer-ratio packing argument
 strengthens this: with `D=r^(a-1)(r-1)` and `s=(r-1)/2`, deficiency forces
 `L_(r,a)/p >= R(D,s)+ceil((R(D,s+1)-R(D,s))/r)`, where
