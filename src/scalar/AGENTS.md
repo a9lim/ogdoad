@@ -83,8 +83,8 @@ which consumer currently uses it. `mod.rs` re-exports the public surface.
 Run focused backend tests, then:
 
 ```sh
-cargo test --workspace
-cargo clippy --workspace --all-targets -- -D warnings
+cargo test -p ogdoad
+cargo clippy -p ogdoad --all-targets -- -D warnings
 ```
 
 Changes to `Scalar`, rendering, or a bound backend also require the Python

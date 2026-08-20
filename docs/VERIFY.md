@@ -12,13 +12,28 @@
 Finite censuses, bounded searches, external tables, and Lean definitions of
 propositions do not prove universal claims.
 
-## Repository gates
+## Core repository gate
 
 ```sh
-cargo fmt --all --check
-cargo test --workspace
-cargo clippy --workspace --all-targets -- -D warnings
-RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --workspace
+cargo fmt -p ogdoad --check
+cargo test -p ogdoad
+cargo clippy -p ogdoad --all-targets -- -D warnings
+RUSTDOCFLAGS="-D warnings" cargo doc --no-deps -p ogdoad
+```
+
+Bare Cargo commands at the repository root select the same core package through
+the workspace's `default-members`. The unpublished `grundy/` language and the
+standalone Lean project are not part of the core gate or mandatory CI.
+
+## Optional sidecar gates
+
+For changes to the `grundy/` expression language:
+
+```sh
+cargo fmt -p grundy --check
+cargo test -p grundy
+cargo clippy -p grundy --all-targets -- -D warnings
+RUSTDOCFLAGS="-D warnings" cargo doc --no-deps -p grundy
 ```
 
 For changes to `src/py/` or a core API used by Python:

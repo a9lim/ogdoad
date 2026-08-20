@@ -72,7 +72,7 @@ ring element.
 
 ## Verification
 
-Run focused game-law/golden tests and `cargo test --workspace`. For changes to a
+Run focused game-law/golden tests and `cargo test -p ogdoad`. For changes to a
 paper theorem, also build the relevant Lean module and paper. New bounded search
 code must expose its budget and distinguish exhaustion from a mathematical
 negative result.

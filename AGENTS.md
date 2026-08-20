@@ -121,16 +121,25 @@ measurement are engineering work in `docs/ROADMAP.md`.
 
 ## Verification
 
-Minimum Rust gate:
+Minimum core Rust gate:
 
 ```sh
-cargo fmt --all --check
-cargo test --workspace
-cargo clippy --workspace --all-targets -- -D warnings
-RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --workspace
+cargo fmt -p ogdoad --check
+cargo test -p ogdoad
+cargo clippy -p ogdoad --all-targets -- -D warnings
+RUSTDOCFLAGS="-D warnings" cargo doc --no-deps -p ogdoad
 ```
 
 Additional gates:
+
+- after changing the optional `grundy/` expression language:
+
+  ```sh
+  cargo fmt -p grundy --check
+  cargo test -p grundy
+  cargo clippy -p grundy --all-targets -- -D warnings
+  RUSTDOCFLAGS="-D warnings" cargo doc --no-deps -p grundy
+  ```
 
 - after changing `src/py/` or a core API it calls:
 

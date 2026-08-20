@@ -1,5 +1,9 @@
 [workspace]
 members = ["grundy"]
+# The unpublished expression language is an opt-in sidecar. Commands run from
+# the repository root target the published Ogdoad package unless a caller asks
+# for `-p grundy` or `--workspace` explicitly.
+default-members = ["."]
 
 [package]
 name = "ogdoad"

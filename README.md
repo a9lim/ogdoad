@@ -159,19 +159,19 @@ bridges and the open propositions remain outside that boundary. See
 
 ## Verification
 
+The default gate covers the published Ogdoad core:
+
 ```sh
-cargo fmt --all --check
-cargo test --workspace
-cargo clippy --workspace --all-targets -- -D warnings
-RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --workspace
-(cd formal && lake build --wfail)
-npm ci
-python scripts/check_writeups.py
+cargo fmt -p ogdoad --check
+cargo test -p ogdoad
+cargo clippy -p ogdoad --all-targets -- -D warnings
+RUSTDOCFLAGS="-D warnings" cargo doc --no-deps -p ogdoad
 ```
 
-[`docs/VERIFY.md`](docs/VERIFY.md) records the optional Python-binding gates,
-exactness contracts, certificate boundary, and claim classes. Contributions
-should identify mathematical claims as standard/cited, implemented and tested,
-proved here, or open; see [`CONTRIBUTING.md`](CONTRIBUTING.md).
+The unpublished `grundy/` language, standalone `formal/` Lean development,
+Python bindings, and papers have explicit opt-in gates in
+[`docs/VERIFY.md`](docs/VERIFY.md). Contributions should identify mathematical
+claims as standard/cited, implemented and tested, proved here, or open; see
+[`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 Ogdoad is licensed under AGPL-3.0-or-later.

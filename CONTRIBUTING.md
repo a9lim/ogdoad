@@ -34,15 +34,28 @@ These are the invariants the whole thing rests on (full list in
 
 ## Test plan
 
+The normal gate is the published Ogdoad core:
+
 ```sh
-cargo test --workspace                      # the math core + grundy — source of truth, no Python
-cargo clippy --workspace --all-targets -- -D warnings
-cargo fmt --all --check
-RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --workspace
-(cd formal && lake build --wfail)
-npm ci
-python scripts/check_writeups.py
+cargo fmt -p ogdoad --check
+cargo test -p ogdoad
+cargo clippy -p ogdoad --all-targets -- -D warnings
+RUSTDOCFLAGS="-D warnings" cargo doc --no-deps -p ogdoad
 ```
+
+The `grundy/` expression language and `formal/` Lean development are optional
+sidecars. Run their explicit gates only when changing them:
+
+```sh
+cargo fmt -p grundy --check
+cargo test -p grundy
+cargo clippy -p grundy --all-targets -- -D warnings
+RUSTDOCFLAGS="-D warnings" cargo doc --no-deps -p grundy
+(cd formal && lake build --wfail)
+```
+
+Paper or bibliography changes additionally require `npm ci` and
+`python scripts/check_writeups.py`.
 
 `cargo test` does **not** compile the `python` feature. After touching `src/py/` or
 any core API the bindings call:

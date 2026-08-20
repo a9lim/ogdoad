@@ -92,7 +92,7 @@ Corpus vectors with hints assert the hint field explicitly.
 ## Verification
 
 ```sh
-cargo fmt --all --check
+cargo fmt -p grundy --check
 cargo test -p grundy
 cargo clippy -p grundy --all-targets -- -D warnings
 RUSTDOCFLAGS="-D warnings" cargo doc --no-deps -p grundy

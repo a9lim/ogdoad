@@ -59,5 +59,5 @@ documented tolerances.
 ## Verification
 
 Use focused determinant, parity, theta, mass, and Weil-relation tests for the
-changed object, then `cargo test --workspace` and Clippy. New catalogue rows
+changed object, then `cargo test -p ogdoad` and core Clippy. New catalogue rows
 need a cited source and a test of every consumed field.

@@ -70,8 +70,8 @@ oracles:
 ```sh
 cargo test associativity_
 cargo test general_product_reproduces_reduce_word_when_a_empty
-cargo test --workspace
-cargo clippy --workspace --all-targets -- -D warnings
+cargo test -p ogdoad
+cargo clippy -p ogdoad --all-targets -- -D warnings
 ```
 
 If a public operation or rendering changes, also build the Python feature,
