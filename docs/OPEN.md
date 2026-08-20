@@ -148,7 +148,10 @@ ordinary arm, the bottom-ancestor polynomial
 sections prove every current factor `p` with `L_(r,a)/p <= b_r r^a`, including
 the case in which `L_(r,a)/r` is prime.  A Kummer-ratio packing argument
 strengthens this: with `D=r^(a-1)(r-1)` and `s=(r-1)/2`, deficiency forces
-`L_(r,a)/p >= sum_(j=0)^s 2^j binom(D,j) binom(s,j)`.  It also proves
+`L_(r,a)/p >= R(D,s)+ceil((R(D,s+1)-R(D,s))/r)`, where
+`R(D,t)=sum_(j=0)^t 2^j binom(D,j) binom(t,j)`.  The second summand retains
+the largest leading-`mu_r` phase fibre of the next signed shell while keeping
+the entire inner ball.  It also proves
 several finite tensor-rank zero cases and shows why generic trace, norm,
 conductor, factor-shape, reciprocity, and
 unselected Kummer information cannot recover the marked Conway coordinate.
@@ -162,6 +165,14 @@ parity-twisted equality `P^r = 1` when `k` is even and `P^r = omega^2` when
 `k` is odd.  This proves the entire current factor when `r = 1`
 (equivalently, when `Psi_k` itself is prime), but leaves the prime-to-three
 coordinate at composite `Psi_k` levels open.
+An intermediate-field exceptional ratio-packing sieve now proves `D` whenever
+`Psi_k/ell < S_k`, where, for `m_j=3^j` and
+`s_j=floor((3^(k-j)-1)/8)`,
+`S_k=max_(0<=j<k) sum_(t=0)^min(2m_j,s_j) 2^t binom(2m_j,t) binom(s_j,t)`.
+It satisfies `log_2 S_k >= c_0 sqrt(3^k)-O(k)` with `c_0>1.2306`.  This is a
+selected composite large-factor range, not a universal proof: the bound is
+exponential in the square root of the field degree, while `Psi_k` is
+exponential in the field degree.
 The selected singleton-even realization lies on
 `y^2+y=x^3+x^2`; its function is supported on fixed five-torsion rather than
 the Fermat-torsion point, so for positive levels it is not an `F_n`-Weil or

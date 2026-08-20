@@ -44,9 +44,11 @@ recursion, a partition selected-order bound, and a sharp first-relation
 threshold, proves an ordinary section sieve and a Kummer-ratio packing sieve,
 and gives the exceptional Capelli
 criterion, a primitive-only palindromicity test, a one-third Frobenius
-compression, and a level-dependent translate bound.  The compression proves
-the exceptional arm whenever its current cyclotomic quotient is prime, while
-the composite levels remain open.  A final reciprocity theorem
+compression, an intermediate-field packing sieve, and a level-dependent
+translate bound.  The compression proves the exceptional arm whenever its
+current cyclotomic quotient is prime, and the packing sieve proves a selected
+composite large-factor range, while the remaining composite levels stay open.
+A final reciprocity theorem
 shows that Frobenius, character, and affine-holonomy transforms of one marked
 Kummer phase can only erase or re-encode that phase; they cannot evaluate it
 without an independent ancestry input.
@@ -101,11 +103,14 @@ full primary valuation.  The reductions, the coordinate formulas, the
 selected Singer and partition bounds of Propositions~\ref{prop:sieve}
 and~\ref{prop:c-partition}, the cubic first-relation theorem
 of Proposition~\ref{prop:c-first-relation}, and the exceptional compression
-and translate bounds of
-Propositions~\ref{prop:d-one-third} and~\ref{prop:d-bound} are proved here.
+and packing and translate bounds of
+Propositions~\ref{prop:d-one-third}, \ref{prop:d-packing},
+and~\ref{prop:d-bound} are proved here.
 Corollary~\ref{cor:o-large-factor} settles the ordinary large-factor case,
 Proposition~\ref{prop:o-ratio-packing} enlarges that range polynomially in
-$r^a$, and the compression settles the exceptional prime-complement case.
+$r^a$; the compression settles the exceptional prime-complement case, and
+the intermediate-field sieve settles an exponential-in-$\sqrt{3^k}$
+composite large-factor range.
 None of
 $Z,O,C,D$ is proved universally; consequently the $0/1/4$ rule and absolute
 boundedness of the finite excess remain open.
@@ -733,13 +738,23 @@ $N=L_{r,a}$.  Set
 If the current $p$-coordinate is deficient, then
 \[
  d\geq
- \mathcal R(D,s):=
- \sum_{j=0}^{s}2^j\binom Dj\binom sj.
+ \mathcal R(D,s)+
+ \left\lceil
+ \frac{\mathcal R(D,s+1)-\mathcal R(D,s)}r
+ \right\rceil,
+ \qquad
+ \mathcal R(D,t):=
+ \sum_{j=0}^{t}2^j\binom Dj\binom tj.
 \]
 Consequently arm~$O$ holds at every such factor satisfying
 \[
  \frac{L_{r,a}}p<
- \mathcal R\left(r^{a-1}(r-1),\frac{r-1}{2}\right).
+ \mathcal R\left(r^{a-1}(r-1),\frac{r-1}{2}\right)
+ +
+ \left\lceil\frac1r\left[
+ \mathcal R\left(r^{a-1}(r-1),\frac{r+1}{2}\right)
+ -\mathcal R\left(r^{a-1}(r-1),\frac{r-1}{2}\right)
+ \right]\right\rceil.
 \]
 \end{proposition}
 
@@ -798,8 +813,48 @@ signs, and their positive absolute values.  There are $\binom Dj$, $2^j$,
 and $\binom sj$ choices respectively, the last count being the number of
 positive $j$-tuples with sum at most $s$.  Hence there are exactly
 $\mathcal R(D,s)$ vectors.  Their values are distinct roots of $X^d-1$,
-which has at most $d$ roots in a field.  This proves the bound and its
-contrapositive.
+which has at most $d$ roots in a field.  This proves the inner-ball
+contribution.
+
+Part of the next signed shell can be retained after separating the ratios by
+their leading phase.  For $i=(c,\zeta)$ put $\chi_i=\zeta$ and, for
+$v\in\mathbb Z^I$, put
+\[
+ \chi(v)=\prod_i\chi_i^{v_i}\in\mu_r.
+\]
+The outer shell of vectors of signed $\ell^1$-weight exactly $s+1$ has
+$\mathcal R(D,s+1)-\mathcal R(D,s)$ elements.  Some fibre $H$ of $\chi$ in
+that shell therefore has at least
+\[
+ \left\lceil
+ \frac{\mathcal R(D,s+1)-\mathcal R(D,s)}r
+ \right\rceil
+\]
+elements.  We claim that the $U_v$ for the entire inner ball together with
+$H$ are distinct.
+
+Indeed, suppose that $U_v=U_w$ for two vectors in this union and set
+$g=v-w$.  Form the same cross-products $A,B\in K[T]$, without cancelling
+common factors.  Both have constant coefficient one and exact degree
+\[
+ t=\sum_i|g_i|.
+\]
+If at least one vector is in the inner ball, then $t\leq s+(s+1)=r$.
+If both lie in $H$, then $t\leq2(s+1)=r+1$, while the quotient of the
+leading coefficients is
+$\prod_i\chi_i^{g_i}=\chi(v)/\chi(w)=1$; their leading terms cancel.  Thus
+in either case $A-B=0$ or $\deg(A-B)\leq r$.  The minimal polynomial $m_x$
+divides $A-B$.  If the difference were nonzero, this degree bound and
+$\deg m_x=r$ would give $A-B=\lambda m_x$ for some $\lambda\in K^\times$.
+But $A-B$ has constant coefficient zero, whereas the relative Kummer
+minimal polynomial $m_x$ has nonzero constant coefficient, a contradiction.
+This boundary step is the ordinary Lean theorem
+\texttt{polynomial\_eq\_of\_aeval\_eq\_of\_natDegree\_le\_minpoly\_of\_coeff\_zero}.
+Thus $A=B$, and the same disjoint-star valuations force $g=0$.
+
+The union therefore injects into the roots of $X^d-1$.  Its cardinality is
+at least the displayed inner-ball-plus-shell expression, proving the bound
+and its contrapositive.
 \end{proof}
 
 Let $N_a=\operatorname{ord}(x_a)$, choose a primitive complex
@@ -1676,14 +1731,187 @@ $U^{\Psi_k/\ell}\ne1$ for every current prime $\ell$.  Thus it isolates the
 prime-to-three current coordinate but does not prove that every one of its
 prime factors occurs in $\operatorname{ord}(U)$.  Here the normalization uses
 $\Psi_k\equiv1\pmod3$ and $r\equiv1\pmod3$, the latter already following from
-$r\equiv1\pmod {2h}$.  Logarithmic or Hasse
+$r\equiv1\pmod {2h}$.
+
+The ordinary-arm ratio packing has an exceptional analogue, provided the
+multiplier roots of unity and the degree of the marked root are balanced by
+an intermediate constant field.
+
+\begin{proposition}[intermediate-field exceptional packing sieve]
+\label{prop:d-packing}
+Assume $k\geq2$, put $h=3^k$, and let the prime $\ell$ divide $\Psi_k$.
+For $0\leq j<k$, set
+\[
+ m_j=3^j,\qquad R_j=3^{k-j},\qquad
+ s_j=\left\lfloor\frac{R_j-1}{8}\right\rfloor
+\]
+and define
+\[
+ \mathcal S_k=
+ \max_{0\leq j<k}
+ \sum_{t=0}^{\min(2m_j,s_j)}
+ 2^t\binom{2m_j}{t}\binom{s_j}{t}.
+\]
+If the current $\ell$-coordinate is deficient, then
+\[
+ \frac{\Psi_k}{\ell}\geq\mathcal S_k.
+\]
+Consequently arm~$D$ holds at every current factor satisfying
+\[
+ \frac{\Psi_k}{\ell}<\mathcal S_k.
+\]
+Moreover, if $H_2(x)=-x\log_2x-(1-x)\log_2(1-x)$ is binary entropy, then
+\[
+ \log_2\mathcal S_k
+ \geq c_0\sqrt h-O(\log h),
+ \qquad
+ c_0=\frac14+\frac23H_2\!\left(\frac38\right)
+              +\frac38H_2\!\left(\frac23\right)
+ >1.2306.
+\]
+Thus this sieve proves an exponential-in-$\sqrt h$ large-factor range at
+every exceptional level, while remaining subexponential in $h$.
+\end{proposition}
+
+\begin{proof}
+Write $z=\zeta$, $d=\Psi_k/\ell$, and regard the normalized phase as the
+rational function
+\[
+ U(T)=\varepsilon_k^{-1}\frac{\mathcal N(T)}{\mathcal D(T)},
+ \qquad
+ \mathcal N(T)=T^4+T+\omega,
+ \qquad
+ \mathcal D(T)=1+T^3+\omega^2T^4.
+\]
+The polynomial $T^h+\omega$ is the minimal polynomial of $z$ over
+$\mathbb F_4$.  The order of four modulo $3h$ is $h$, and the map
+\[
+ t\longmapsto z^{4^t-1},\qquad 0\leq t<h,
+\]
+is a bijection from the Frobenius orbit indices to $\mu_h$: every value is
+in $\mu_h$, and injectivity follows from the orbit size.  Hence the roots of
+$T^h+\omega$ are exactly $cz$, $c\in\mu_h$.  Since $U$ is defined over
+$\mathbb F_4$, deficiency $U(z)^d=1$ implies
+\[
+ U(cz)^d=1\qquad(c\in\mu_h).
+\]
+
+Fix $j$, abbreviate $m=m_j$, $R=R_j$, $s=s_j$, and put
+$E=\mathbb F_{4^m}$.  LTE gives
+\[
+ v_3(4^m-1)=1+v_3(m)=j+1,
+\]
+so $\mu_{3m}\subset E$.  Since $E\subset\mathbb F_{4^h}$,
+$[E(z):E]=h/m=R$.  Also $z^R$ has order $3m$ and lies in $E$, so the
+minimal polynomial of $z$ over $E$ is the binomial $T^R+z^R$.
+
+Over $\mathbb F_4$ introduce the six monic quadratics
+\[
+\begin{array}{lll}
+ f_1=T^2+\omega T+1,
+ &f_2=T^2+\omega T+\omega,
+ &f_3=T^2+\omega^2T+1,\\
+ f_4=T^2+T+\omega,
+ &f_5=T^2+T+\omega^2,
+ &f_6=T^2+\omega^2T+\omega^2.
+\end{array}
+\]
+They are distinct and irreducible by direct inspection in $\mathbb F_4$.
+Up to nonzero scalar factors,
+\[
+ \mathcal N(T)=f_1(T)f_2(T),\qquad
+ \mathcal D(T)\doteq f_3(T)f_4(T),
+\]
+and
+\[
+ \mathcal N(\omega T)\doteq f_4(T)f_5(T),\qquad
+ \mathcal D(\omega T)=f_2(T)f_6(T),
+\]
+where $\doteq$ denotes equality up to a nonzero scalar.  Since $m$ is odd,
+$E\cap\mathbb F_{16}=\mathbb F_4$, so all six quadratics remain irreducible
+over $E$.
+
+Choose representatives $\mathcal C$ for $\mu_{3m}/\mu_3$.  Scaled factors
+belonging to different representatives are disjoint.  Indeed, a common root
+of $f_a(cT)$ and $f_b(c'T)$ would give
+$c'/c\in\mathbb F_{16}^{\times}\cap\mu_{3m}=\mu_3$, hence $c=c'$ by the
+choice of representatives, and then $a=b$ because the six factors are
+distinct.  In particular, for each $c\in\mathcal C$ the two elements
+\[
+ u_{c,0}=U(cz),\qquad u_{c,1}=U(\omega cz)
+\]
+have, up to scalars, the factor patterns
+\[
+ u_{c,0}\doteq\frac{f_1(cz)f_2(cz)}{f_3(cz)f_4(cz)},
+ \qquad
+ u_{c,1}\doteq\frac{f_4(cz)f_5(cz)}{f_2(cz)f_6(cz)}.
+\]
+Their denominators are nonzero: otherwise a conjugate of $z$ would be a
+root over $\mathbb F_4$ of the degree-four polynomial $\mathcal D$, whereas
+$z$ and all its conjugates have degree $h\geq9$.  All $2m$ displayed
+elements are $d$-th roots of unity.
+
+Index them by a set $I$ of size $2m$.  For
+$v\in\mathbb Z^I$ with $\sum_i|v_i|\leq s$, put
+$V_v=\prod_i u_i^{v_i}$.  Suppose $V_v=V_w$ and set $g=v-w$.  Separating
+positive and negative exponents and cross-multiplying gives an equality at
+$z$ between two polynomials in $E[T]$, each of degree at most
+\[
+ 4\sum_i|g_i|\leq8s<R.
+\]
+The degree-$R$ minimal polynomial therefore forces equality of the two
+polynomials.  Unique factorization now recovers every exponent: for a fixed
+$c$, the valuation at $f_1(cT)$ gives $g_{c,0}=0$, and the valuation at
+$f_5(cT)$ gives $g_{c,1}=0$.  Cross-star disjointness handles all
+$c\in\mathcal C$.  Thus the $V_v$ are distinct.
+
+The signed $\ell^1$ ball in $\mathbb Z^{2m}$ has exactly
+\[
+ \sum_{t=0}^{\min(2m,s)}
+ 2^t\binom{2m}{t}\binom{s}{t}
+\]
+points.  Since their images are distinct roots of $X^d-1$, this number is
+at most $d$.  Taking the maximum over $j$ proves the exact bound.
+
+For the asymptotic statement, first let $k$ be even and take
+$j=k/2-1$.  Then, with $x=\sqrt h$,
+\[
+ 2m=\frac23x,\qquad s=\frac38x+O(1).
+\]
+The summand with $t=\lfloor x/4\rfloor$ and Stirling's formula give
+\[
+ \log_2\mathcal S_k\geq
+ \left[\frac14+\frac23H_2\!\left(\frac38\right)
+                  +\frac38H_2\!\left(\frac23\right)\right]x
+ -O(\log h).
+\]
+If $k$ is odd, take $j=(k-3)/2$.  Then
+\[
+ 2m=\frac{2}{3\sqrt3}x,
+ \qquad s=\frac{3\sqrt3}{8}x+O(1),
+\]
+and the same choice $t=\lfloor x/4\rfloor$ gives coefficient
+\[
+ \frac14+\frac{2}{3\sqrt3}H_2\!\left(\frac{3\sqrt3}{8}\right)
+ +\frac{3\sqrt3}{8}H_2\!\left(\frac{2}{3\sqrt3}\right)
+ >1.2341>c_0.
+\]
+The $O(\log h)$ errors are the standard logarithmic errors in the two
+binomial-coefficient estimates.  This proves the uniform claim for all
+sufficiently large $k$; enlarging the implicit constant absorbs the finitely
+many smaller levels.
+\end{proof}
+
+This packing theorem is a genuine composite-$\Psi_k$ range, not a universal
+proof: its lower bound is exponential in $\sqrt h$, whereas $\Psi_k$ is
+exponential in $h$.  Logarithmic or Hasse
 derivatives do not add an intrinsic constraint in this finite etale quotient:
 $\mathbb F_2[X]/(J_h)$ has no nonzero $\mathbb F_2$-derivations, while the
 formal polynomial derivative does not descend because
 $J_h'=X^{h-1}$ is a unit modulo $J_h$.  A derivative argument would therefore
 need genuinely new lift or multiplicity information.  Proposition~
-\ref{prop:d-one-third} remains an exact reduced target and a proof for the
-prime-complement case, not a proof of universal arm~$D$.
+\ref{prop:d-one-third} and Proposition~\ref{prop:d-packing} therefore prove
+the prime-complement case and a large-factor range, not universal arm~$D$.
 
 \begin{proposition}[effective exceptional bound]\label{prop:d-bound}
 Let $k\geq2$, $h=3^k$, and let $\ell\mid\Psi_k$ be prime.  If $t$ is the
@@ -1999,8 +2227,8 @@ Proved here & The four-arm equivalence; the exact selected coordinates and
 order criteria; the primitive-support, packet, supersingular, Singer and
 selected norm-one partition and first-relation bounds, corrected-norm,
 ordinary section and Kummer-ratio packing sieves, exceptional
-palindromicity and one-third compression, prime-complement exceptional case,
-ray-index, boundedness, and
+palindromicity, one-third compression, intermediate-field packing,
+prime-complement exceptional case, ray-index, boundedness, and
 reciprocity-saturation results stated above. \\
 Ordinary kernel-checked Lean & Algebra without native evaluation: the
 algebraic Kummer interface, full-primary power tests, selected cubic and

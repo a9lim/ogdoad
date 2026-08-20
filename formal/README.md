@@ -126,11 +126,16 @@ four-arm `Z/O/C/D` reduction, including:
   complementary exponent `3*r` exactly to the parity-twisted exponent `r`;
   the explicit relative-norm evaluation of that phase and the resulting
   prime-complement nonvanishing remain paper-level calculations;
+- the intermediate-field exceptional ratio-packing sieve is a paper-level
+  finite-field/UFD/entropy synthesis: its explicit `F_4` factorization,
+  persistence of quadratic irreducibility over the chosen intermediate
+  fields, and exponential-in-square-root asymptotic estimate are not
+  formalized in Lean;
 - trace, norm, Frobenius, Kummer, Dickson--Lucas, Singer, cubical-support,
-  and low-degree minimal-polynomial collision identities used by the
-  selected-order reductions, including the exact two-binomial fourth-power
-  residual for an odd Fibonacci zero (which sharpens, but does not close,
-  the Conway--Fermat target);
+  and low-degree/phase-boundary minimal-polynomial collision identities used
+  by the selected-order reductions, including the exact two-binomial
+  fourth-power residual for an odd Fibonacci zero (which sharpens, but does
+  not close, the Conway--Fermat target);
 - weighted two-axis Frobenius-word normalization: all multiplicative
   reciprocity expressions in this model formed from one Kummer class remain
   rank one, regardless of Frobenius, character, and multiplicity indices;

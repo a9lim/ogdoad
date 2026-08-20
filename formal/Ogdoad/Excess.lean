@@ -1719,6 +1719,37 @@ theorem polynomial_eq_of_aeval_eq_of_natDegree_lt_minpoly
     (Polynomial.natDegree_sub_le A B).trans_lt (max_lt hA hB)
   exact (not_lt_of_ge hle) hlt
 
+/-- A phase cancellation can permit the cross-product difference to have
+degree equal to the minimal-polynomial degree.  In that boundary case it is
+a scalar multiple of the minimal polynomial; a zero constant coefficient
+still rules it out when the minimal polynomial has nonzero constant
+coefficient.  This is the ordinary algebraic core of the phase-refined
+Kummer-ratio packing bound in the paper. -/
+theorem polynomial_eq_of_aeval_eq_of_natDegree_le_minpoly_of_coeff_zero
+    {K L : Type*} [Field K] [Field L] [Algebra K L]
+    (x : L) (A B : K[X])
+    (hx : IsIntegral K x)
+    (hdegree : (A - B).natDegree ≤ (minpoly K x).natDegree)
+    (hcoeff : (A - B).coeff 0 = 0)
+    (hmincoeff : (minpoly K x).coeff 0 ≠ 0)
+    (heval : aeval x A = aeval x B) :
+    A = B := by
+  have hdvd : minpoly K x ∣ A - B := by
+    rw [minpoly.dvd_iff]
+    rw [map_sub, heval, sub_self]
+  have hmultiple :
+      A - B = minpoly K x * C (A - B).leadingCoeff :=
+    Polynomial.eq_mul_leadingCoeff_of_monic_of_dvd_of_natDegree_le
+      (minpoly.monic hx) hdvd hdegree
+  have hlead : (A - B).leadingCoeff = 0 := by
+    have hzero :
+        (minpoly K x).coeff 0 * (A - B).leadingCoeff = 0 := by
+      have hconstant := congrArg (fun P : K[X] ↦ P.coeff 0) hmultiple
+      simpa [hcoeff] using hconstant.symm
+    exact (mul_eq_zero.mp hzero).resolve_left hmincoeff
+  rw [hlead, map_zero, mul_zero] at hmultiple
+  exact sub_eq_zero.mp hmultiple
+
 end LowDegreeMinpolyCollision
 
 section CubicHalfAngleDivisibility
