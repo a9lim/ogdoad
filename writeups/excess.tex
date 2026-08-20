@@ -41,7 +41,10 @@ open.  The paper then isolates the arithmetic content of each coordinate.  It
 constructs the primitive-support quotient and the Conway--Fermat packet
 recursion, identifies the ordinary Artin symbol, proves the cubic Singer
 recursion and a selected-order lower bound, and gives the exceptional Capelli
-criterion and a level-dependent translate bound.  A final reciprocity theorem
+criterion, a primitive-only palindromicity test, a one-third Frobenius
+compression, and a level-dependent translate bound.  The compression proves
+the exceptional arm whenever its current cyclotomic quotient is prime, while
+the composite levels remain open.  A final reciprocity theorem
 shows that Frobenius, character, and affine-holonomy transforms of one marked
 Kummer phase can only erase or re-encode that phase; they cannot evaluate it
 without an independent ancestry input.
@@ -94,7 +97,9 @@ assertions $Z,O,C,D$ stated in Theorem~\ref{thm:arms}.  Each assertion is an
 exact Euler nonpower test for one Conway-selected coordinate and retains the
 full primary valuation.  The reductions, the coordinate formulas, the
 selected Singer bound of Proposition~\ref{prop:sieve}, and the exceptional
-translate bound of Proposition~\ref{prop:d-bound} are proved here.  None of
+compression and translate bounds of
+Propositions~\ref{prop:d-one-third} and~\ref{prop:d-bound} are proved here.
+The compression settles the exceptional prime-complement case.  None of
 $Z,O,C,D$ is proved universally; consequently the $0/1/4$ rule and absolute
 boundedness of the finite excess remain open.
 \end{thmA}
@@ -408,15 +413,37 @@ This identity is kernel-checked.  The Lean declaration is
 \texttt{fermat\_selected\_product\_}\\
 \texttt{mul\_pair}.
 \end{center}
-If $S_r$ denotes the characteristic-two Fibonacci polynomial and
-$M_{a_{n-1}}$ the selected
-multiplication operator, the remaining primary target is precisely
+If $S_r$ denotes the characteristic-two Fibonacci polynomial, the genuine
+level-$n$ target is
 \[
- S_{F_n/\ell}(M_{a_{n-1}})\ne0
- \qquad(\ell\mid F_n\text{ prime}).
+ S_{F_n/\ell}(a_{n-1})\ne0\qquad(\ell\mid F_n\text{ prime}).
 \]
-The block formula is an exact interface to this nonvanishing problem; it
-does not prove the displayed target.
+Equivalently, one applies the same polynomial to multiplication by
+$a_{n-1}$ on $E_{n-1}$.  Write $M_n$ for the displayed two-block operator.
+It represents multiplication by $a_n=a_{n-1}c_n$, so it is the recursive
+interface to the \emph{next}-level target
+\[
+ S_{F_{n+1}/\ell}(M_n)\ne0
+ \qquad(\ell\mid F_{n+1}\text{ prime}).
+\]
+At the lower index one instead has the automatic exclusion
+\[
+ S_{F_n/\ell}(a_n)\ne0,
+ \quad\text{equivalently}\quad
+ S_{F_n/\ell}(M_n)\ne0
+ \qquad(\ell\mid F_n),
+\]
+because a zero would put $a_n$ in $E_{n-1}$: zero-block propagation reaches
+$S_{F_n}$, and the telescoping partial-trace identity then forces
+$a_n^{|E_{n-1}|}=a_n$, whereas its Frobenius displacement is
+$a_{n-1}\ne0$.  This wrong-index exclusion is kernel-checked as
+\begin{center}
+\texttt{fibPolyValue\_quadratic\_birth\_}\par
+\texttt{lower\_period\_ne\_zero}.
+\end{center}
+It is not the selected-order conjecture.  The block formula remains an exact
+interface to the displayed next-level nonvanishing problem; it does not prove
+that target.
 
 This isolates the part not settled by the existing Conway-tower literature.
 Popovych proves lower bounds and verifies the required relative full orders
@@ -551,6 +578,46 @@ $L_{r,a}$, and Lenstra's component theorem identifies precisely the
 singleton rows.  The lower unit group has no $p$-part, so
 Proposition~\ref{prop:power} gives the last equivalence.
 \end{proof}
+
+The full recursive ancestry can also be retained in one binary polynomial.
+Let $P_r\in\mathbb F_2[T]$ be the minimal polynomial of
+$x_0=\alpha_r$.
+
+\begin{proposition}[bottom-ancestor divisibility]
+\label{prop:o-bottom-divisibility}
+Put $q=|F_{a-1}|$, $N=L_{r,a}$, and let $p\ne r$ divide $N$.
+Then $\gcd(p,q-1)=1$.  Write $d=N/p$, and choose $e,t\geq0$ such that
+\[
+ pe=1+t(q-1).
+\]
+Then the current $p$-coordinate of $y_aF_{a-1}^{\times}$ is deficient if
+and only if
+\[
+ P_r(T^{r^a})\mid
+ (1+T)^d+(1+T^r)^e
+ \qquad\text{in }\mathbb F_2[T].
+\]
+\end{proposition}
+
+\begin{proof}
+Indeed, $N\equiv r\pmod {q-1}$, so
+$\gcd(N,q-1)=r$.
+The polynomial $P_r(T^{r^a})$ is the minimal polynomial of $x_a$.
+The coordinate is deficient exactly when $c=(1+x_a)^d$ lies in
+$F_{a-1}^{\times}$.  In that case the norm identity gives
+\[
+ c^p=(1+x_a)^N=1+x_a^r.
+\]
+Since $c^{q-1}=1$ and $pe=1+t(q-1)$,
+$c=(c^p)^e=(1+x_a^r)^e$.  Conversely this equality puts $c$ in
+$F_{a-1}$.  In characteristic two the equality is precisely the vanishing
+at $x_a$ of the displayed binary polynomial, which is equivalent to
+divisibility by its minimal polynomial.
+\end{proof}
+
+This is a lossless selector-retaining reduction, not a proof of arm~$O$:
+the remaining assertion is that the displayed divisibility never occurs for
+the literal polynomial $P_r$ and every current factor $p$.
 
 Let $N_a=\operatorname{ord}(x_a)$, choose a primitive complex
 $N_a$-th root $\xi_{N_a}$, and let $\mathfrak P_a\mid2$ be the prime whose
@@ -985,6 +1052,152 @@ when $V_0=V_1=V_2$.  The product formula is the binary-power expansion of
 $\mathcal A^d$ in characteristic two.
 \end{proof}
 
+\begin{corollary}[primitive-only palindromicity]
+\label{cor:d-palindromic}
+In the notation of Proposition~\ref{prop:d-block}, one always has
+\[
+ V_0+V_1+V_2=0.
+\]
+Consequently the following conditions are equivalent:
+\[
+ M_k^d=1,
+ \qquad V_0=V_1=V_2,
+ \qquad V_0=V_1=V_2=0,
+ \qquad C=\iota(C)\text{ in }\mathcal R_h.
+\]
+In particular, every proper cyclic fold through
+$\mathbb F_2[X]/(X^h-1)$ vanishes identically on $V$; no Fourier test on a
+proper $3$-power quotient can detect arm~$D$.
+\end{corollary}
+
+\begin{proof}
+By lifting the exponent of three,
+\[
+ v_3(2^h+1)=k+1,
+\]
+so $n=3^{k+1}$ divides $q+1$.  Since $\ell\ne3$, it follows from
+$q+1=\ell d$ that $n\mid d$.  Modulo $X^h-1$ one has
+\[
+ \mathcal A=X^2+X+1,
+ \qquad \iota(\mathcal A)=X^{-2}\mathcal A.
+\]
+Hence
+\[
+ \iota(C)=X^{-2d}C=C
+       \pmod {X^h-1}.
+\]
+The image of $V_0+X^hV_1+X^{2h}V_2$ in this quotient is
+$V_0+V_1+V_2$, proving the first assertion.  If the three blocks are equal
+to $W$, their sum is $3W=W$ in characteristic two, so $W=0$.  The converse
+is immediate, and every quotient $X^m-1$ with $m\mid h$ factors through
+$X^h-1$.
+\end{proof}
+
+There is a second, complementary compression which shortens the binary
+product by one third before testing this palindromicity.
+
+\begin{proposition}[one-third Frobenius compression]
+\label{prop:d-one-third}
+Put
+\[
+ H=3^{k-1},\qquad h=3H,\qquad Q=2^H,
+ \qquad S=Q^2-Q+1=3\Psi_k,
+\]
+and, for a prime $\ell\mid\Psi_k$, put $e=S/\ell$.  Then
+\[
+ Q\equiv h-1\pmod {3h},\qquad
+ S\equiv3\pmod {3h},\qquad
+ e\equiv3\pmod {3h},
+\]
+and
+\[
+ d=(Q+1)e.
+\]
+In $\mathcal R_h$, define
+\[
+ \widetilde{\mathcal B}=\mathcal A^{Q+1}.
+\]
+It has the lossless seven-term representative
+\[
+ \widetilde{\mathcal B}
+ =1+x^{-2}+x^h+x^{h+1}+x^{2h}+x^{2h+1}+x^{2h+2},
+\]
+and $C=\widetilde{\mathcal B}^{e}$.  In the primitive component
+$\mathbb F_2[X]/(J_h)$ this reduces further to the trinomial
+\[
+ \mathcal B=x^{-2}+x+x^{2h+2}.
+\]
+Thus
+\[
+ M_k^d=1
+ \quad\Longleftrightarrow\quad
+ \mathcal B^e=\iota(\mathcal B)^e
+       \text{ in }\mathbb F_2[X]/(J_h),
+\]
+while arm~$D$ asks for the opposite inequality.  The exponent now has at
+most $2H+1=2h/3+1$ binary places, rather than $h+1$.
+
+If $e=3$---equivalently, if $\Psi_k=\ell$ is prime---then the opposite
+inequality always holds.  Hence every prime-complement level satisfies
+arm~$D$; in particular this gives proof-level, non-enumerative certificates
+for $k=2$ and $k=3$.
+\end{proposition}
+
+\begin{proof}
+The congruence for $Q$ follows by induction.  The base case is
+$2\equiv3-1\pmod9$.  If
+$Q+1=h(1+3t)$, write $h=3s$ and cube.  Then
+\[
+ Q^3+1
+ =3h\left(1+3\left[
+ t-s(1+3t)^2+s^2(1+3t)^3
+ \right]\right),
+\]
+which is the required congruence at the next level.  Substitution gives
+\[
+ S\equiv(h-1)^2-(h-1)+1\equiv3\pmod {3h}.
+\]
+Since $S=3\Psi_k$ and $\ell\mid\Psi_k$, the integer $e$ is divisible by
+three.  Moreover $\operatorname{ord}_\ell(2)=2h$ implies
+$h\mid\ell-1$.  Therefore $3h\mid(\ell-1)e$, and from $\ell e=S$ one gets
+$e\equiv S\equiv3\pmod {3h}$.
+
+The factorization $Q^3+1=(Q+1)S$ gives $d=(Q+1)e$.  Frobenius and the first
+congruence give
+\[
+ \mathcal A^Q
+ =x^{2h-2}+x^{h-1}+x^{2h}.
+\]
+Multiplication by $\mathcal A=x^2+x+x^h$ cancels the two copies of
+$x^{2h-1}$ and gives the displayed seven terms.  Modulo $J_h$, the three
+terms $1+x^h+x^{2h}$ vanish and
+$x^{h+1}+x^{2h+1}=x$, leaving $\mathcal B$.  The fixed-field equivalence is
+then Proposition~\ref{prop:d-block} and
+Corollary~\ref{cor:d-palindromic} applied to
+$C=\widetilde{\mathcal B}^{e}$.
+
+It remains to prove the last assertion.  If $e=3$, direct multiplication in
+characteristic two gives, modulo $X^{3h}-1$,
+\[
+ \mathcal B^3+\iota(\mathcal B)^3
+ =X^{h-4}+X^{h+5}+X^{2h-5}+X^{2h+4}.
+\]
+For $h\ge9$, these terms give block supports
+\[
+ \{h-4\},\qquad \{5,h-5\},\qquad \{4\},
+\]
+respectively.  They are not three equal blocks (the possible coincidences
+at $h=9$ merely give the patterns $110$ and $011$).  Hence the primitive
+component is nonzero.  The only earlier level has $\Psi_1=1$ and no current
+prime.
+\end{proof}
+
+The congruence $e\equiv3\pmod {3h}$ does not by itself settle composite
+$\Psi_k$: the factor $(\widetilde{\mathcal B}^{3h})^{(e-3)/(3h)}$ can
+still change every primitive coefficient.  Proposition~\ref{prop:d-one-third}
+is therefore an exact reduced target and a proof for the prime-complement
+case, not a proof of universal arm~$D$.
+
 \begin{proposition}[effective exceptional bound]\label{prop:d-bound}
 Let $k\geq2$, $h=3^k$, and let $\ell\mid\Psi_k$ be prime.  If $t$ is the
 least power of two satisfying
@@ -1297,8 +1510,9 @@ Capelli theory, and the cited cyclotomic, class-field, function-field, and
 order results.  These are not reproved in Lean. \\
 Proved here & The four-arm equivalence; the exact selected coordinates and
 order criteria; the primitive-support, packet, supersingular, Singer,
-corrected-norm, ray-index, boundedness, and reciprocity-saturation results
-stated above. \\
+corrected-norm, exceptional palindromicity and one-third compression,
+prime-complement exceptional case, ray-index, boundedness, and
+reciprocity-saturation results stated above. \\
 Ordinary kernel-checked Lean & Algebra without native evaluation: the
 algebraic Kummer interface, full-primary power tests, selected cubic and
 exceptional identities, cubical reductions, packet and Fibonacci identities,

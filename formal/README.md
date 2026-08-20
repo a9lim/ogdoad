@@ -119,6 +119,10 @@ four-arm `Z/O/C/D` reduction, including:
   norm reduction, coprime-exponent invariance, and strict-ancestor primary
   vacuity;
 - the corrected characteristic-two sparse norm;
+- the exceptional cyclic-compression algebra: a vanishing three-block sum
+  upgrades equal blocks to literal zero, the one-third Frobenius product
+  collapses to a trinomial, and the complementary-exponent-three cube has
+  the characteristic-two expansion used for the prime-complement case;
 - trace, norm, Frobenius, Kummer, Dickson--Lucas, Singer, and cubical-support
   identities used by the selected-order reductions;
 - weighted two-axis Frobenius-word normalization: all multiplicative

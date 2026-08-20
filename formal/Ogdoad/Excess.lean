@@ -47,6 +47,25 @@ theorem isPthPower_of_coprime_card
   apply isPthPower_of_coprime_order
   exact hcop.of_dvd_left orderOf_dvd_card
 
+/-- Recovering an element from a power by an inverse exponent.  In the
+ordinary Kummer arm, `m = q - 1`, `c^p = 1 + x^r`, and `e` is the inverse
+of `p` modulo `q - 1`; the conclusion is the scalar equality used by the
+bottom-ancestor polynomial-divisibility reduction. -/
+theorem eq_pow_of_pow_eq_of_inverse_exponent {G : Type*} [Monoid G]
+    (c u : G) (p e m t : Nat) (hcp : c ^ p = u)
+    (hpe : p * e = 1 + t * m) (hperiod : c ^ m = 1) :
+    c = u ^ e := by
+  have hpe' : p * e = 1 + m * t := by
+    calc
+      p * e = 1 + t * m := hpe
+      _ = 1 + m * t := by rw [Nat.mul_comm t m]
+  calc
+    c = c ^ (p * e) := by
+      rw [hpe', pow_add, pow_mul, hperiod]
+      simp
+    _ = (c ^ p) ^ e := by rw [pow_mul]
+    _ = u ^ e := by rw [hcp]
+
 /-- Exact Euler-quotient criterion in a finite cyclic group.  No
 squarefreeness shorthand is hidden: `p ∣ |G|` is the full hypothesis used in
 this group-level statement. -/
@@ -410,6 +429,90 @@ theorem exceptional_euler_fixed_iff
   · intro h
     apply mul_right_cancel (b := A ^ d)
     rw [hbalance, h, one_mul]
+
+section ExceptionalCyclicCompression
+
+/-- In characteristic two, three equal blocks whose block sum vanishes are
+all zero.  In the exceptional cyclic model the vanishing block sum comes
+from the automatic reciprocal symmetry on the `X^h - 1` component; this
+lemma is the abstract last step upgrading the paper's three-block equality
+to literal vanishing of the cyclic representative. -/
+theorem three_equal_blocks_eq_zero
+    {R : Type*} [CommRing R] [CharP R 2]
+    (v₀ v₁ v₂ : R) (hsum : v₀ + v₁ + v₂ = 0)
+    (h₀₁ : v₀ = v₁) (h₁₂ : v₁ = v₂) :
+    v₀ = 0 ∧ v₁ = 0 ∧ v₂ = 0 := by
+  subst v₁
+  subst v₂
+  have hv₀ : v₀ = 0 := by
+    simpa [CharTwo.add_self_eq_zero] using hsum
+  exact ⟨hv₀, hv₀, hv₀⟩
+
+/-- A multiplicative twist whose full exponent is one disappears from the
+powered value.  The exceptional old-component specialization takes the twist
+to be `x⁻²`; divisibility of the Euler exponent by the cyclic length makes
+its `d`-th power one. -/
+theorem mul_twist_pow_eq_of_pow_eq_one
+    {R : Type*} [CommMonoid R] (u a : R) (d : Nat)
+    (hu : u ^ d = 1) :
+    (u * a) ^ d = a ^ d := by
+  rw [mul_pow, hu, one_mul]
+
+/-- Algebraic core of the one-third Frobenius compression in arm `D`.
+If `w²+w+1=0`, multiplication of the exceptional trinomial by its
+one-third-Frobenius conjugate collapses from nine terms to three.  The paper
+supplies `z^Q = w*z⁻¹` from the exact congruence
+`Q ≡ h-1 (mod 3h)`. -/
+theorem exceptional_one_third_sparse_product
+    {F : Type*} [Field F] [CharP F 2]
+    (z w : F) (hz : z ≠ 0) (hw : w ^ 2 + w + 1 = 0) :
+    (z ^ 2 + z + w) *
+        (w ^ 2 * (z⁻¹) ^ 2 + w * z⁻¹ + w ^ 2) =
+      (z⁻¹) ^ 2 + z + w ^ 2 * z ^ 2 := by
+  have hw' : w ^ 2 + (w + 1) = 0 := by
+    simpa [add_assoc] using hw
+  have hwinv : w ^ 2 = w + 1 := by
+    have hneg : -(w + 1) = w + 1 := CharTwo.neg_eq (w + 1)
+    calc
+      w ^ 2 = -(w + 1) := eq_neg_of_add_eq_zero_left hw'
+      _ = w + 1 := hneg
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hfour : (4 : F) = 0 := by
+    calc
+      (4 : F) = 2 + 2 := by norm_num
+      _ = 0 := by rw [htwo]; simp
+  rw [hwinv]
+  field_simp [hz]
+  ring_nf
+  rw [hwinv]
+  ring_nf
+  simp [htwo]
+  exact Or.inr hfour
+
+/-- Factoring an Euler exponent through the one-third Frobenius block
+commutes with powering.  In arm `D`, `d=(Q+1)e` and `B=A^(Q+1)`, so the
+original selected word `A^d` is exactly the compressed word `B^e`. -/
+theorem exceptional_power_one_third_compression
+    {R : Type*} [Monoid R] (A : R) (Q e d : Nat)
+    (hd : d = (Q + 1) * e) :
+    A ^ d = (A ^ (Q + 1)) ^ e := by
+  rw [hd, pow_mul]
+
+/-- Cubing a trinomial in characteristic two has no three-way mixed term.
+This is the algebraic expansion used by the paper to settle the compressed
+exceptional target when the complementary exponent is exactly three. -/
+theorem charTwo_trinomial_cube
+    {R : Type*} [CommRing R] [CharP R 2] (a b c : R) :
+    (a + b + c) ^ 3 =
+      (a ^ 2 + b ^ 2 + c ^ 2) * (a + b + c) := by
+  have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  calc
+    (a + b + c) ^ 3 = (a + b + c) ^ 2 * (a + b + c) := by ring
+    _ = (a ^ 2 + b ^ 2 + c ^ 2) * (a + b + c) := by
+      rw [add_sq, add_sq]
+      simp [htwo]
+
+end ExceptionalCyclicCompression
 
 /-- If a primary factor `r` divides `a` but is coprime to a divisor `b`, then
 the whole factor survives in the quotient `a / b`.  Applied to
@@ -5848,6 +5951,158 @@ theorem fermat_selected_product_mul_pair
 
 end FermatSelectedMultiplicationBlocks
 
+section FermatSelectedSymmetricBlocks
+
+variable {R : Type*} [CommSemiring R]
+
+/-- Scaling the lower coordinate at a selected Conway--Fermat edge by a
+square root `b` of the parent `a` makes multiplication by `a*c` symmetric.
+In the basis represented by `b*x + c*y`, both off-diagonal coefficients are
+`a*b`.  No division is used, so the identity remains valid before imposing
+that the coordinates form a basis. -/
+theorem fermat_selected_product_symmetric_pair
+    (a b c x y : R) (hb : b ^ 2 = a) (hc : c ^ 2 = c + a) :
+    (a * c) * (b * x + c * y) =
+      b * (a * b * y) + c * (a * b * x + a * y) := by
+  calc
+    (a * c) * (b * x + c * y) =
+        a * b * c * x + a * c ^ 2 * y := by ring
+    _ = a * b * c * x + a * (c + a) * y := by rw [hc]
+    _ = b * (a * b * y) + c * (a * b * x + a * y) := by
+      rw [← hb]
+      ring
+
+/-- Full symmetric two-block reduction.  If a reduced field value is
+`u + (a*c)*v`, then in the square-root-scaled coordinates `b*x + c*y` its
+multiplication blocks are
+
+`[[u, a*b*v], [a*b*v, u+a*v]]`.
+
+Thus every polynomial in the literal selected multiplication operator has a
+selector-retaining symmetric realization. -/
+theorem fermat_selected_remainder_symmetric_pair
+    (a b c u v x y : R) (hb : b ^ 2 = a) (hc : c ^ 2 = c + a) :
+    (u + a * c * v) * (b * x + c * y) =
+      b * (u * x + a * b * v * y) +
+        c * (a * b * v * x + (u + a * v) * y) := by
+  calc
+    (u + a * c * v) * (b * x + c * y) =
+        u * b * x + u * c * y + a * b * c * v * x +
+          a * c ^ 2 * v * y := by ring
+    _ = u * b * x + u * c * y + a * b * c * v * x +
+          a * (c + a) * v * y := by rw [hc]
+    _ = b * (u * x + a * b * v * y) +
+        c * (a * b * v * x + (u + a * v) * y) := by
+      rw [← hb]
+      ring
+
+/-- Fast squaring directly on the two diagonal endpoint coordinates of the
+symmetric block.  Writing a quadratic value as `L + c*(L+R)`, its square has
+diagonal endpoints
+
+`(L² + a*(L+R)², R² + a*(L+R)²)`.
+
+The common correction is the square of the relative-trace coordinate. -/
+theorem fermat_symmetric_diagonal_square
+    {S : Type*} [CommRing S] [CharP S 2]
+    (a c L R₁ : S) (hc : c ^ 2 = c + a) :
+    (L + c * (L + R₁)) ^ 2 =
+      (L ^ 2 + a * (L + R₁) ^ 2) +
+        c * ((L ^ 2 + a * (L + R₁) ^ 2) +
+          (R₁ ^ 2 + a * (L + R₁) ^ 2)) := by
+  have hsquare (x y : S) : (x + y) ^ 2 = x ^ 2 + y ^ 2 := by
+    simpa using (add_pow_expChar_pow x y 2 1)
+  rw [hsquare, mul_pow, hc, hsquare]
+  have htwo : (2 : S) = 0 := CharP.cast_eq_zero S 2
+  ring_nf
+  simp [htwo]
+
+/-- Odd fast doubling on the same diagonal coordinates.  If `(L,R)` are
+the endpoints for `S_m` and `(P,Q)` those for `S_(m+1)`, then the endpoints
+for `S_(2m+1) = S_(m+1)² + (a*c)S_m²` are the displayed pair.  This is
+the scalar residual recurrence obtained from the literal symmetric block;
+it retains the complete selected parent `a`. -/
+theorem fermat_symmetric_diagonal_odd
+    {S : Type*} [CommRing S] [CharP S 2]
+    (a c L R₁ P Q : S) (hc : c ^ 2 = c + a) :
+    (P + c * (P + Q)) ^ 2 +
+        (a * c) * (L + c * (L + R₁)) ^ 2 =
+      (P ^ 2 + a * (P + Q) ^ 2 + a ^ 2 * (L + R₁) ^ 2) +
+        c * ((P ^ 2 + a * (P + Q) ^ 2 +
+            a ^ 2 * (L + R₁) ^ 2) +
+          (Q ^ 2 + a * (P + Q) ^ 2 + a * R₁ ^ 2)) := by
+  have hsquare (x y : S) : (x + y) ^ 2 = x ^ 2 + y ^ 2 := by
+    simpa using (add_pow_expChar_pow x y 2 1)
+  rw [hsquare, mul_pow, hsquare, hsquare, mul_pow, hc, hsquare]
+  have htwo : (2 : S) = 0 := CharP.cast_eq_zero S 2
+  ring_nf
+  rw [hc]
+  ring_nf
+  simp [htwo]
+
+/-- The selected square root of the upper multiplier `a*c` is still linear
+in the literal quadratic coordinate: if `b²=a`, then
+`sqrt(a*c) = a + b*c`. -/
+theorem fermat_selected_product_square_root [CharP R 2]
+    (a b c : R) (hb : b ^ 2 = a) (hc : c ^ 2 = c + a) :
+    (a + b * c) ^ 2 = a * c := by
+  rw [add_sq, mul_pow, hb, hc]
+  have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  ring_nf
+  simp [htwo]
+
+/-- Exact residual equation for a hypothetical odd Fibonacci zero.  The
+fast-doubling identity `S_(2m+1)=S_(m+1)²+(a*c)S_m²` vanishes precisely
+when the two adjacent values differ by the literal selected square root
+`a+b*c`. -/
+theorem fermat_selected_odd_square_zero_iff
+    {F : Type*} [Field F] [CharP F 2]
+    (a b c z y : F) (hb : b ^ 2 = a) (hc : c ^ 2 = c + a) :
+    z ^ 2 + (a * c) * y ^ 2 = 0 ↔ z = (a + b * c) * y := by
+  let s := a + b * c
+  have hs : s ^ 2 = a * c := by
+    exact fermat_selected_product_square_root a b c hb hc
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  constructor
+  · intro h
+    have hsq : (z + s * y) ^ 2 = 0 := by
+      rw [show (z + s * y) ^ 2 = z ^ 2 + (s * y) ^ 2 by
+        simpa using (add_pow_expChar_pow z (s * y) 2 1)]
+      rw [mul_pow, hs]
+      exact h
+    have hzero : z + s * y = 0 := by
+      exact mul_self_eq_zero.mp (by simpa [pow_two] using hsq)
+    exact (eq_neg_of_add_eq_zero_left hzero).trans (CharTwo.neg_eq (s * y))
+  · intro h
+    rw [h, mul_pow, hs]
+    ring_nf
+    simp [htwo]
+
+/-- Endpoint-coordinate form of multiplication by the selected square root.
+If `(L,R)` are the two symmetric diagonal endpoints of a value, then the
+endpoints after multiplication by `a+b*c` are obtained by the displayed
+symmetric two-by-two matrix. -/
+theorem fermat_selected_square_root_diagonal_pair
+    {S : Type*} [CommRing S] [CharP S 2]
+    (a b c L R₁ : S) (hb : b ^ 2 = a) (hc : c ^ 2 = c + a) :
+    (a + b * c) * (L + c * (L + R₁)) =
+      (a * (1 + b) * L + a * b * R₁) +
+        c * ((a * (1 + b) * L + a * b * R₁) +
+          (a * b * L + (a * b + a + b) * R₁)) := by
+  have htwo : (2 : S) = 0 := CharP.cast_eq_zero S 2
+  calc
+    (a + b * c) * (L + c * (L + R₁)) =
+        a * L + a * c * (L + R₁) + b * c * L +
+          b * c ^ 2 * (L + R₁) := by ring
+    _ = (a * (1 + b) * L + a * b * R₁) +
+        c * ((a * (1 + b) * L + a * b * R₁) +
+          (a * b * L + (a * b + a + b) * R₁)) := by
+      rw [hc, ← hb]
+      ring_nf
+      simp [htwo]
+
+end FermatSelectedSymmetricBlocks
+
 section FermatFibonacciCompression
 
 variable {R : Type*} [CommRing R]
@@ -6173,6 +6428,41 @@ theorem fermat_complement_indices_not_dvd
     omega
 
 end FermatFibonacciCompression
+
+section FermatSelectedBlockIndexBoundary
+
+variable {K : Type*} [Field K] [CharP K 2]
+
+/-- The partial Frobenius trace telescopes to its two endpoints.  This is the
+additive-polynomial identity
+
+`T_m(x)^2 + T_m(x) = x^(2^m) + x`.
+
+It is useful here because a Fibonacci zero whose index divides `2^m+1`
+forces `T_m(x)=1`, and hence forces `x` into the `2^m`-fixed subfield. -/
+theorem partialFrobeniusTrace_square_add_self (x : K) (m : Nat) :
+    (partialFrobeniusTrace x m) ^ 2 + partialFrobeniusTrace x m =
+      x ^ (2 ^ m) + x := by
+  have hsucc := partialFrobeniusTrace_succ x m
+  have hsplit := partialFrobeniusTrace_add_index x m 1
+  rw [show partialFrobeniusTrace x 1 = x by
+    simp [partialFrobeniusTrace]] at hsplit
+  have htwo : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  calc
+    (partialFrobeniusTrace x m) ^ 2 + partialFrobeniusTrace x m =
+        ((partialFrobeniusTrace x m) ^ 2 + x) +
+          (partialFrobeniusTrace x m + x) := by
+            ring_nf
+            simp [htwo]
+    _ = partialFrobeniusTrace x (m + 1) +
+          (partialFrobeniusTrace x m + x) := by rw [hsucc]
+    _ = (partialFrobeniusTrace x m + x ^ (2 ^ m)) +
+          (partialFrobeniusTrace x m + x) := by rw [hsplit]
+    _ = x ^ (2 ^ m) + x := by
+      ring_nf
+      simp [htwo]
+
+end FermatSelectedBlockIndexBoundary
 
 section FermatAdditiveEdgeArithmetic
 
@@ -7661,6 +7951,59 @@ theorem fibPolyValue_zero_block_scalar_root
     _ = a := by rw [hzeroTop, hpow, zero_add, mul_one]
 
 end FermatShiftBlockCore
+
+section FermatSelectedBlockWrongIndexExclusion
+
+variable {K : Type*} [Field K] [CharP K 2]
+
+/-- **Wrong-index exclusion, not the Conway--Fermat conjecture.**
+
+Suppose `a` is fixed by `2^m`-Frobenius while `c` is on the nontrivial side
+of a quadratic edge, so `c^(2^m)=c+1`.  Then `a*c` cannot be a Fibonacci
+zero at any index `r` dividing the *lower* period `2^m+1`.
+
+Indeed such a zero propagates to index `2^m+1`; the closed form there forces
+the partial trace to be one, and the telescoping identity
+`partialFrobeniusTrace_square_add_self` would put `a*c` in the fixed subfield.
+Its actual Frobenius displacement is the nonzero element `a`.
+
+For the literal block `M=[[0,A^2],[A,A]]` at the edge `c_n`, the represented
+element is `a_n=a_(n-1)c_n`.  Taking `2^m=|E_(n-1)|` proves automatic
+nonvanishing only for divisors of `F_n=2^m+1`.  The genuine next-level target
+for this block has index dividing `F_(n+1)=(2^m)^2+1`, so this theorem must
+not be read as a proof of the selected-order conjecture. -/
+theorem fibPolyValue_quadratic_birth_lower_period_ne_zero
+    (a c : K) (m ell r : Nat)
+    (ha : a ≠ 0)
+    (haFixed : a ^ (2 ^ m) = a)
+    (hcConj : c ^ (2 ^ m) = c + 1)
+    (hindex : ell * r = 2 ^ m + 1) :
+    fibPolyValue (a * c) r ≠ 0 := by
+  intro hr
+  have htop : fibPolyValue (a * c) (2 ^ m + 1) = 0 := by
+    have hblock := fibPolyValue_mul_add_zero_block (a * c) r ell 0 hr
+    simpa [hindex, fibPolyValue] using hblock
+  have hformula := fibPolyValue_trailing_zero_compression (a * c) m 1
+  simp only [fibPolyValue, mul_zero, add_zero, mul_one, one_pow] at hformula
+  have htraceZero : 1 + partialFrobeniusTrace (a * c) m = 0 := by
+    rw [← hformula]
+    exact htop
+  have htrace : partialFrobeniusTrace (a * c) m = 1 := by
+    exact (eq_neg_of_add_eq_zero_right htraceZero).trans
+      (CharTwo.neg_eq (1 : K))
+  have hfixed : (a * c) ^ (2 ^ m) + a * c = 0 := by
+    rw [← partialFrobeniusTrace_square_add_self (a * c) m, htrace]
+    simpa using (CharTwo.add_self_eq_zero (1 : K))
+  have hdisplacement : (a * c) ^ (2 ^ m) + a * c = a := by
+    rw [mul_pow, haFixed, hcConj]
+    have htwo : (2 : K) = 0 := CharP.cast_eq_zero K 2
+    ring_nf
+    simp [htwo]
+  apply ha
+  rw [← hdisplacement]
+  exact hfixed
+
+end FermatSelectedBlockWrongIndexExclusion
 
 section FermatSemiconjugacySaturation
 

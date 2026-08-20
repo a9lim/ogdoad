@@ -133,6 +133,13 @@ decomposition, and the principal-ray/circular-unit factorization in the cubic
 and exceptional arms. It also proves several finite tensor-rank zero cases and
 shows why generic trace, norm, conductor, factor-shape, reciprocity, and
 unselected Kummer information cannot recover the marked Conway coordinate.
+For the exceptional arm, automatic vanishing on the `X^h - 1` component
+upgrades the three-equal-block failure condition to literal cyclic
+palindromicity.  A one-third Frobenius compression reduces its primitive
+component to a trinomial with complementary exponent congruent to `3` modulo
+`3h`; this proves the entire current factor when that complementary exponent
+is exactly `3` (equivalently, when `Psi_k` itself is prime), but leaves the
+composite `Psi_k` levels open.
 The selected singleton-even realization lies on
 `y^2+y=x^3+x^2`; its function is supported on fixed five-torsion rather than
 the Fermat-torsion point, so for positive levels it is not an `F_n`-Weil or
