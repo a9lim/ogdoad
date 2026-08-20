@@ -6225,6 +6225,36 @@ def fibPolyValue (a : R) : Nat → R
   | 1 => 1
   | n + 2 => fibPolyValue a (n + 1) + a * fibPolyValue a n
 
+/-- Binet parametrization of the characteristic-two Fibonacci polynomials by
+the inversion quotient `u / (u + 1)^2`.  This is the exact packet identity
+used to show that the fourth-power residuals hold for every torsion packet,
+not only for the Conway-selected branch. -/
+theorem fibPolyValue_torus_binet
+    {F : Type*} [Field F] [CharP F 2]
+    (u : F) (hu1 : u + 1 ≠ 0) (n : Nat) :
+    fibPolyValue (u / (u + 1) ^ 2) n =
+      (u ^ n + 1) / (u + 1) ^ n := by
+  induction n using Nat.twoStepInduction with
+  | zero =>
+      have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+      simp only [fibPolyValue, pow_zero, div_one]
+      have hone : (1 : F) + 1 = 0 := by
+        simpa only [one_add_one_eq_two] using htwo
+      exact hone.symm
+  | one =>
+      simp [fibPolyValue, hu1]
+  | more n hn hn1 =>
+      have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+      rw [fibPolyValue, hn, hn1]
+      field_simp [hu1]
+      ring_nf
+      have hthree : (3 : F) = 1 := by linear_combination htwo
+      have hfive : (5 : F) = 1 := by linear_combination 2 * htwo
+      have hseven : (7 : F) = 1 := by linear_combination 3 * htwo
+      have hnine : (9 : F) = 1 := by linear_combination 4 * htwo
+      rw [hthree, hfive, hseven, hnine]
+      simp only [htwo, mul_zero, add_zero, zero_add, mul_one]
+
 /-- Evaluation at `a` of the formal derivative of `Sᵣ`.  Differentiating
 `Sᵣ₊₂ = Sᵣ₊₁ + X Sᵣ` gives the displayed recursive definition. -/
 def fibPolyDerivativeValue (a : R) : Nat → R
@@ -10716,6 +10746,27 @@ theorem affine_cocycle_value_surjective
   refine ⟨u / (1 - (q : F)), ?_⟩
   have hden : (1 : F) - (q : F) ≠ 0 := sub_ne_zero.mpr (Ne.symm hq)
   field_simp [hden]
+
+/-- Algebraic core of the cubic arm's Hilbert--90 blindness.  If a
+degree-three cyclic action has scalar `Q`, with vanishing norm scalar
+`1 + Q + Q^2` and nontrivial `Q`, then every additive torsion coordinate is
+a coboundary while every such coordinate has zero norm.  The paper applies
+this in `ZMod ell`; the statement deliberately does not assert that the
+marked projective class itself is trivial. -/
+theorem cyclicThree_coboundary_surjective_and_norm_zero
+    {F : Type*} [Field F] (Q : F)
+    (hQ : 1 + Q + Q ^ 2 = 0) (hne : Q ≠ 1) :
+    (∀ u : F, ∃ a : F, u = (Q - 1) * a) ∧
+      ∀ u : F, u + Q * u + Q ^ 2 * u = 0 := by
+  constructor
+  · intro u
+    have hden : Q - 1 ≠ 0 := sub_ne_zero.mpr hne
+    refine ⟨u / (Q - 1), ?_⟩
+    field_simp [hden]
+  · intro u
+    calc
+      u + Q * u + Q ^ 2 * u = (1 + Q + Q ^ 2) * u := by ring
+      _ = 0 := by rw [hQ, zero_mul]
 
 /-- Translation accumulated by the first `n` arrows
 `x ↦ q*x + t_j` in a labeled affine groupoid. -/

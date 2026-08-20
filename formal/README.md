@@ -135,10 +135,16 @@ four-arm `Z/O/C/D` reduction, including:
   and low-degree/phase-boundary minimal-polynomial collision identities used
   by the selected-order reductions, including the exact two-binomial
   fourth-power residual for an odd Fibonacci zero (which sharpens, but does
-  not close, the Conway--Fermat target);
+  not close, the Conway--Fermat target), and the characteristic-two Binet
+  parametrization showing that the resulting inverse-Frobenius coordinate is
+  packet-universal rather than selector-sensitive;
 - weighted two-axis Frobenius-word normalization: all multiplicative
   reciprocity expressions in this model formed from one Kummer class remain
   rank one, regardless of Frobenius, character, and multiplicity indices;
+- the cubic degree-three torsion action has zero norm operator and surjective
+  coboundary operator whenever its multiplier is nontrivial, checking the
+  algebraic core of the paper's marked-projective Hilbert--90 no-go; it does
+  not decide whether the literal marked class is trivial;
 - affine-Frobenius conjugacy and marked Jacobi-sum scaling: class functions on
   one split fixed-multiplier affine coset erase its translation coordinate, while
   additive convolution retains only the summed weight of the same Kummer

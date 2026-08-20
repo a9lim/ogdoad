@@ -34,7 +34,7 @@ $f(p)=\operatorname{ord}_p(2)$, but no universal proof is known.
 
 We give an exact status theorem.  The rule is equivalent to four
 full-primary-order assertions for elements selected by the literal Conway
-tower: a synchronized structural norm, a marked cyclotomic unit, a Gaussian
+tower: a synchronized structural norm, a marked cyclotomic value, a Gaussian
 period in a norm-one torus, and a corrected conductor-five norm.  These are
 lossless reductions, not hypotheses, and all four universal assertions remain
 open.  The paper then isolates the arithmetic content of each coordinate.  It
@@ -100,9 +100,11 @@ The $0/1/4$ rule is equivalent to the conjunction of four selected-order
 assertions $Z,O,C,D$ stated in Theorem~\ref{thm:arms}.  Each assertion is an
 exact Euler nonpower test for one Conway-selected coordinate and retains the
 full primary valuation.  The reductions, the coordinate formulas, the
+packet-universal Fermat residual of Proposition~\ref{prop:z-packet-universal},
 selected Singer and partition bounds of Propositions~\ref{prop:sieve}
 and~\ref{prop:c-partition}, the cubic first-relation theorem
-of Proposition~\ref{prop:c-first-relation}, and the exceptional compression
+and marked-projective obstruction of
+Propositions~\ref{prop:c-first-relation} and~\ref{prop:c-projective}, and the exceptional compression
 and packing and translate bounds of
 Propositions~\ref{prop:d-one-third}, \ref{prop:d-packing},
 and~\ref{prop:d-bound} are proved here.
@@ -502,6 +504,72 @@ The two ordinary identities and the field equivalence are kernel-checked as
 \texttt{fibPolyValue\_odd\_eq\_zero\_iff\_fourth\_residuals}.
 \end{center}
 
+In fact the inverse-exponent seam is not merely compatible with deficient
+packets: it is a universal identity on every such packet.
+
+\begin{proposition}[packet-universal Fermat residual]
+\label{prop:z-packet-universal}
+Let $s,g\geq1$, let $d=Rg+1$ with $R=2^s$, and let $u\ne0,1$ satisfy
+$u^d=1$ in a field of characteristic two.  Put
+\[
+ \phi(u)=\frac{u}{(u+1)^2},\qquad x=\phi(u),\qquad
+ f=S_g(x),\qquad h=S_{g+1}(x),\qquad
+ B=\frac{x^g}{f^2}.
+\]
+Then $f\ne0$ and
+\[
+ B=\phi(u^g),\qquad B^R=x,
+ \qquad \frac hf=T_s(B),
+\]
+where $T_s(z)=z+z^2+\cdots+z^{2^{s-1}}$.
+Consequently both fourth-power residual coordinates produced by a zero of
+$S_d$ are identities for every nontrivial $d$-th root---equivalently, on
+every packet $C_e$ with $1<e\mid d$---before the Conway parent is selected.
+\end{proposition}
+
+\begin{proof}
+The characteristic-two Binet identity is
+\[
+ S_j(\phi(u))=\frac{u^j+1}{(u+1)^j}.
+\]
+It first gives $S_d(x)=0$.  Since $\gcd(g,d)=1$ and $u\ne1$, it also gives
+$f\ne0$, and direct substitution gives
+\[
+ \frac{x^g}{f^2}=\frac{u^g}{(u^g+1)^2}=\phi(u^g).
+\]
+The map $\phi$ commutes with every binary Frobenius power and satisfies
+$\phi(v^{-1})=\phi(v)$.  Since $u^{Rg}=u^{d-1}=u^{-1}$,
+this proves $B^R=x$.
+
+Put $t=(u^g+1)^{-1}$.  Then $B=t+t^2$, so the partial Frobenius trace
+telescopes:
+\[
+ T_s(B)=t+t^R
+ =\frac1{u^g+1}+\frac{u}{u+1}.
+\]
+The last equality uses
+$(u^g+1)^R=u^{Rg}+1=u^{-1}+1$.  A second application of the Binet identity
+gives
+\[
+ \frac hf
+ =\frac{u^{g+1}+1}{(u+1)(u^g+1)}
+ =\frac1{u^g+1}+\frac{u}{u+1},
+\]
+proving the assertion.  Thus these residual coordinates characterize the
+ambient torsion packet but do not distinguish its recursively selected
+member.
+\end{proof}
+
+The Binet identity in this proof is kernel-checked as
+\texttt{fibPolyValue\_torus\_binet}.  The proposition sharpens the failure
+boundary: any successful induction must use the deterministic parent label
+in
+\[
+ u_{n+1}(u_n+1)^3=u_n(u_{n+1}+1)^2,
+\]
+not only the fourth-power residual, inverse Frobenius, trace, or norm of the
+child packet.
+
 This isolates the part not settled by the existing Conway-tower literature.
 Popovych proves lower bounds and verifies the required relative full orders
 through level eleven using the known Fermat factorizations
@@ -604,7 +672,7 @@ statement is still exclusion of every proper-conductor packet along the
 complete resultant chain.  Trace, relative norm, irreducibility, and the
 etale Jacobian hold for proper packets as well as the full packet.
 
-\section{The ordinary arm: a marked cyclotomic unit}\label{sec:o}
+\section{The ordinary arm: a marked cyclotomic value}\label{sec:o}
 
 Fix an odd prime $r$, write $b=b_r$, and abbreviate
 $x_a=x_{r,a}$, $y_a=x_a+1$, and $F_a=F_{r,a}$.
@@ -857,12 +925,27 @@ at least the displayed inner-ball-plus-shell expression, proving the bound
 and its contrapositive.
 \end{proof}
 
-Let $N_a=\operatorname{ord}(x_a)$, choose a primitive complex
-$N_a$-th root $\xi_{N_a}$, and let $\mathfrak P_a\mid2$ be the prime whose
-residue sends $\xi_{N_a}$ to $x_a$.  Put
+Let $N_a=\operatorname{ord}(x_a)$.  The Kummer relation
+$x_a^r=x_{a-1}$ and the relative degree $r$ give
+$N_a=rN_{a-1}$.  Choose the roots and primes recursively:
+$\xi_{N_a}$ is a primitive complex $N_a$-th root satisfying
+\[
+ \xi_{N_a}^r=\xi_{N_{a-1}},
+\]
+and $\mathfrak P_a\mid2$ is the prime whose residue sends
+$\xi_{N_a}$ to $x_a$.  Since $x_a^r=x_{a-1}$, this makes
+$\mathfrak P_a$ restrict to $\mathfrak P_{a-1}$.  Put
 $\varepsilon_a=1-\xi_{N_a}$.
+For a row prime $p$, use the intrinsic residue-field notation
+\[
+ \left(\frac{\varepsilon_a}{\mathfrak P_a}\right)_p
+ :=\overline{\varepsilon_a}^{\,(|F_a|-1)/p}\in\mu_p(F_a).
+\]
+This is an Euler symbol in the selected residue field.  It agrees with the
+usual local power-residue/Artin symbol after adjoining $\mu_p$ and choosing
+the prime above $\mathfrak P_a$.
 
-\begin{theorem}[selected cyclotomic-unit form]\label{thm:o-symbol}
+\begin{theorem}[selected cyclotomic-value form]\label{thm:o-symbol}
 For $p\ne r$ dividing $L_{r,a}$, arm $O$ at $(r,a,p)$ is equivalent to
 \[
   \left(\frac{\varepsilon_a}{\mathfrak P_a}\right)_p\ne1.
@@ -899,6 +982,14 @@ field has trivial $p$-Kummer quotient.  Its norm receives no information
 about the new selected class.
 \end{proof}
 
+The word \emph{value} in the theorem is deliberate.  The element
+$1-\xi_{N_a}$ is a cyclotomic number and is an $S$-unit for the primes
+dividing $N_a$; it is a global unit exactly when $N_a$ is not a prime power.
+For example, in the $r=7$ chain one has $N_a=7^{a+1}$ and its absolute norm
+is $7$.  This distinction does not alter reduction modulo the selected prime
+over two or the relative norm identity, but any global Kummer formulation
+must retain the conductor primes in $S$ (or in the ray modulus).
+
 The selected symbol has an exact Jacobi--Fourier expansion.  Let
 $Q=|F_a|$, let $H=\langle x_a\rangle\subset F_a^\times$ have order $N_a$,
 put $M=(Q-1)/N_a$, and let $\chi$ be a complex-valued order-$p$ power
@@ -930,12 +1021,14 @@ the ideal and $p$-adic unit conditions is also visible in Uehara's
 cyclotomic-unit criterion \cite{uehara1985}; it supplies an exact test, not a
 uniform nonvanishing theorem for the Conway-selected entry.
 
-This residue-symbol condition is a marked Artin-symbol assertion, not a
-statement about decomposition or conductor.  Its ray character splits into
-a ramified local logarithm and an unramified ideal-class character evaluated
-at $[\mathfrak P_a]$.  Stickelberger annihilation reduces the latter to an
-explicit decomposition-invariant quotient, but does not make it vanish
-uniformly.  This is a genuine boundary: at the actual Conway conductor
+After adjoining $\mu_p$ and retaining the conductor primes in the $S$-ray
+modulus, this residue-field condition becomes a marked Artin-symbol
+assertion, not merely a statement about decomposition or conductor.  Its
+ray character splits into a ramified local logarithm and an unramified
+ideal-class character evaluated at $[\mathfrak P_a]$.  Stickelberger
+annihilation reduces the latter to an explicit decomposition-invariant
+quotient, but does not make it vanish uniformly.  This is a genuine boundary:
+at the actual Conway conductor
 $r=11$, $a=1$, $p=23$, one contributing Stickelberger scalar vanishes with
 exact $23$-adic valuation one.  The corresponding unramified degree-$23$
 class line is nontrivial, and every prime over two has nontrivial Artin symbol
@@ -1337,6 +1430,108 @@ $\eta_k^{N/\ell}=1$, so the first assertion gives the displayed residue-weight
 bound.
 \end{proof}
 
+The all-weight criterion has an equivalent projective-torsion form which
+pinpoints why Hilbert--90 does not close it.  This retains the marked root,
+rather than replacing it by a generic norm-one element.
+
+\begin{proposition}[marked projective obstruction and cohomological blindness]
+\label{prop:c-projective}
+Put $H=h/3$, $q=2^H$, $N=q^2+q+1$, and let
+$\ell\mid N$ be prime, with $d=N/\ell$.  In
+\[
+ L=\mathbb F_{2^{2h}},\qquad K=\mathbb F_{q^2},
+\]
+write $w=\zeta_k^2$ and
+\[
+ Z=\frac{(1+w)^d}{w^2}.
+\]
+Then
+\[
+ \eta_k^d=1\quad\Longleftrightarrow\quad Z\in K.
+\]
+Moreover, with $\alpha=w^3$,
+\[
+ Z^\ell
+ =\omega^2(1+\alpha)\alpha^{-(2\ell+1)/3}\in K.
+\]
+Thus $[Z]\in L^\times/K^\times$ is an explicitly marked
+$\ell$-torsion class, and arm~$C$ asks that this class be nontrivial for
+every current $\ell$.
+
+Let $\sigma(x)=x^{q^2}$ generate $\operatorname{Gal}(L/K)$.  On
+$\mu_\ell$ one has
+\[
+ 1+\sigma+\sigma^2=0,
+ \qquad \sigma-1\text{ is bijective},
+ \qquad H^1(\langle\sigma\rangle,\mu_\ell)=0.
+\]
+Consequently the norm and Hilbert--90 conditions on the displayed torsion
+class are automatic; they do not distinguish $[Z]=1$ from a nontrivial
+marked class.
+\end{proposition}
+
+\begin{proof}
+The congruences
+\[
+ 2^H\equiv h-1,\qquad 2^{2H}\equiv h+1\pmod{3h}
+\]
+give
+\[
+ w^q=\omega^2w^{-1},\qquad w^{q^2}=\omega^2w.
+\]
+The selected formula in the proof of
+Proposition~\ref{prop:c-partition} gives
+\[
+ \frac{1+\omega^2w}{1+w}=\omega\eta_k^{q+1}.
+\]
+Since every prime divisor $\ell$ of $N$ satisfies
+$\ell\equiv1\pmod3$, also $d\equiv1\pmod3$.  Therefore
+\[
+ Z^{q^2-1}
+ =\omega^2\left(\frac{1+\omega^2w}{1+w}\right)^d
+ =\eta_k^{d(q+1)}.
+\]
+As $\gcd(q+1,N)=1$, this is one exactly when $\eta_k^d=1$,
+which proves the fixed-field equivalence.
+
+The three conjugates under $q$-powering satisfy
+\[
+ (1+w)^N
+ =(1+w)(1+\omega^2w^{-1})(1+\omega^2w)
+ =\frac{\omega^2(1+w^3)}w.
+\]
+Hence
+\[
+ Z^\ell=\frac{(1+w)^N}{w^{2\ell}}
+ =\omega^2(1+\alpha)\alpha^{-(2\ell+1)/3};
+\]
+the exponent is integral because $\ell\equiv1\pmod3$.  The left side is
+fixed by $q^2$-powering (equivalently, this also follows by direct use of
+$\alpha^{q^2}=\alpha$), so it lies in $K$.
+
+Finally put $Q=q^2$.  Modulo $\ell$,
+\[
+ 1+Q+Q^2=1+q^2+q^4\equiv1+q^2+q=0,
+\]
+because $q^3\equiv1$.  On the other hand
+$\gcd(Q-1,\ell)=1$: any common divisor of $q^2-1$ and
+$q^2+q+1$ divides three, whereas $\ell\ne3$.  Thus the norm operator is
+zero on $\mu_\ell$ and the coboundary operator $\sigma-1$ is an
+automorphism.  The standard cyclic formula
+\[
+ H^1=\ker(1+\sigma+\sigma^2)/(\sigma-1)\mu_\ell
+\]
+is therefore zero.  This proves the claimed blindness, not the desired
+pointwise nontriviality of $[Z]$.
+
+More explicitly, $c=\sigma(Z)/Z$ lies in $\mu_\ell$ because $Z^\ell\in K$.
+There is a unique $\rho\in\mu_\ell$ with
+$c=\sigma(\rho)/\rho$, and then $Z/\rho\in K$, so $[Z]=[\rho]$ in
+$L^\times/K^\times$.  Every possible marked projective class is therefore
+represented by a coboundary; the zero cohomology class does not say whether
+its representing root $\rho$ equals one.
+\end{proof}
+
 Together, the partition and first-relation bounds strengthen the polynomial
 Singer sieve to an exponential-in-$\sqrt h$ exclusion and a sharp
 weight-$2h$ exclusion for the actual norm-one coordinate.  They remain
@@ -1394,11 +1589,29 @@ In $\mathbb F_{2^{4h}}/\mathbb F_{2^{2h}}$,
  = (\zeta+4)(\zeta+5)
  = \zeta^2+\zeta+\omega=A_k.
 \]
+Moreover,
+\[
+ \mathbb F_2(\zeta+4)=\mathbb F_{2^{4h}}.
+\]
 \end{proposition}
 
 \begin{proof}
 One has $4+5=1$ and $4\cdot5=\omega$.  Expanding the product gives the
 formula.
+
+Put $v=\zeta+4$ and suppose $v^{2^j}=v$.  Then
+\[
+ c:=\zeta^{2^j}+\zeta=4^{2^j}+4
+\]
+belongs both to $\mathbb F_{2^{2h}}$ and to $\mathbb F_{16}$.  Since $h$ is
+odd, their intersection is $\mathbb F_4$, so
+$c\in\{0,1,\omega,\omega^2\}$.  If $c\ne0$, the Frobenius conjugate
+$\zeta^{2^j}=\zeta+c$ would have order
+$3^{k+1}\operatorname{ord}(\gamma_k)>3^{k+1}$ by
+Proposition~\ref{prop:c-half}, whereas every Frobenius conjugate of $\zeta$
+has order exactly $3^{k+1}$.  Hence $c=0$.  It follows simultaneously that
+$2h\mid j$ and $4\mid j$.  Their least common multiple is $4h$, so the
+Frobenius orbit of $v$ has size $4h$, proving the generation assertion.
 \end{proof}
 
 Define
@@ -1450,7 +1663,7 @@ $2h$ and the displayed resultant is its minimal polynomial.
 The cyclotomic divisor criterion applied to
 $\Phi_{2\cdot3^k}(2)$ gives the stated prime support after removing its
 single factor of three.  Proposition~\ref{prop:d-lower} and the corrected
-norm give
+norm, now taken from the actual defining field of $\zeta+4$, give
 \[
  m_\ell=4
  \quad\Longleftrightarrow\quad
@@ -2198,7 +2411,7 @@ Theorem~\ref{thm:arms}:
 \begin{enumerate}
 \item full primary order for the synchronized structural norm, including
       every Conway--Fermat equality $\delta_n=F_n$;
-\item full primary projective order for the marked ordinary cyclotomic unit;
+\item full primary projective order for the marked ordinary cyclotomic value;
 \item primitivity of every selected Gaussian period $\gamma_k$, equivalently
       generation by every $\eta_k$;
 \item $\Psi_k\mid\operatorname{ord}(M_k)$ at every exceptional level.

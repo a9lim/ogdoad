@@ -109,7 +109,7 @@ The paper reduces the rule to four recursively selected order assertions.
 | arm | case | unresolved selected assertion |
 | --- | --- | --- |
 | `Z` | nonsingleton support, including the singleton-even Conway--Fermat chain | the structural norm has full primary order in the canonical primitive-support quotient; equivalently, the marked supersingular function has full next-Fermat order at the Conway-selected point |
-| `O` | singleton odd prime power away from `3` | a marked cyclotomic unit has full primary order at the unique prime over `2` selected by Conway ancestry |
+| `O` | singleton odd prime power away from `3` | a marked cyclotomic value has full primary order at the unique prime over `2` selected by Conway ancestry; globally it is a cyclotomic `S`-unit when the conductor is a prime power |
 | `C` | the `3^k` chain | the selected Singer-trace orbit has full norm-one order, or equivalently the associated principal-ray and reduced circular-unit defects both vanish |
 | `D` | the `2 * 3^k` chain | the marked conductor-five unit has trivial selected principal-ray/reduced-unit index |
 
@@ -138,12 +138,20 @@ has weighted residue at least `2 * 3^k + 1`, sharply attained by the norm
 triple.  At every weight, such a relation is exactly simultaneous
 divisibility of the two non-killed residue sections by
 `Y^(2H) + Y^H + 1`; this selected cyclic-code condition remains unresolved.
+Equivalently, failure at a current prime `ell` is triviality of the explicit
+marked `ell`-torsion class `[(1+w)^(N/ell)/w^2]` in
+`F_(2^(2h))^times/F_(2^(2h/3))^times`.  Its cyclic `H^1` vanishes because
+the coboundary operator is already bijective, so Hilbert--90 is provably
+blind to that pointwise triviality question.
 These bounds remain subexponential in the field degree and do not classify
 higher-weight relations or imply primitivity.  At the correctly
 indexed Conway--Fermat endpoint, a hypothetical
 odd Fibonacci zero is equivalent to two simultaneous fourth-power residuals;
 their polynomial gcd is exactly the target Fibonacci polynomial, but
-Frobenius extraction still ends at the marked inverse-exponent seam.  In the
+the Binet parametrization shows that the inverse-Frobenius and partial-trace
+residuals hold on every deficient torsion packet before the deterministic
+Conway parent is selected.  Thus Frobenius extraction still ends at the
+marked inverse-exponent seam.  In the
 ordinary arm, the bottom-ancestor polynomial
 sections prove every current factor `p` with `L_(r,a)/p <= b_r r^a`, including
 the case in which `L_(r,a)/r` is prime.  A Kummer-ratio packing argument
