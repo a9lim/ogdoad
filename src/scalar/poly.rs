@@ -35,6 +35,9 @@ struct PreparedDivisor<'a, S: Scalar> {
     divisor: &'a Poly<S>,
     degree: usize,
     lead_inv: Option<S>,
+    /// Nonzero terms below the leading coefficient when the divisor is sparse
+    /// enough for indirect traversal to beat a dense coefficient scan.
+    sparse_lower_indices: Option<Vec<usize>>,
 }
 
 impl<'a, S: Scalar> PreparedDivisor<'a, S> {
@@ -54,10 +57,26 @@ impl<'a, S: Scalar> PreparedDivisor<'a, S> {
                     .expect("a field's nonzero leading coefficient inverts"),
             )
         };
+        let sparse_lower_indices = if S::REASSOCIATION_IS_EXACT {
+            let nonzero = divisor.coeffs[..degree]
+                .iter()
+                .filter(|coefficient| !coefficient.is_zero())
+                .count();
+            (nonzero.saturating_mul(4) <= degree).then(|| {
+                divisor.coeffs[..degree]
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(index, coefficient)| (!coefficient.is_zero()).then_some(index))
+                    .collect()
+            })
+        } else {
+            None
+        };
         Self {
             divisor,
             degree,
             lead_inv,
+            sparse_lower_indices,
         }
     }
 
@@ -65,6 +84,22 @@ impl<'a, S: Scalar> PreparedDivisor<'a, S> {
         match &self.lead_inv {
             Some(inverse) => leading.mul(inverse),
             None => leading.clone(),
+        }
+    }
+
+    fn subtract_shifted_divisor(&self, rem: &mut Vec<S>, shift: usize, factor: &S) {
+        if let Some(indices) = &self.sparse_lower_indices {
+            // The exact quotient factor cancels the leading term identically.
+            // Remove it directly and touch only the stored nonzero lower terms.
+            rem.pop();
+            for &index in indices {
+                let coefficient = &self.divisor.coeffs[index];
+                rem[shift + index] = rem[shift + index].sub(&factor.mul(coefficient));
+            }
+            return;
+        }
+        for (index, coefficient) in self.divisor.coeffs.iter().enumerate() {
+            rem[shift + index] = rem[shift + index].sub(&factor.mul(coefficient));
         }
     }
 
@@ -79,9 +114,7 @@ impl<'a, S: Scalar> PreparedDivisor<'a, S> {
             let shift = rdeg - self.degree;
             let factor = self.quotient_factor(&rem[rdeg]);
             quot[shift] = factor.clone();
-            for (index, coefficient) in self.divisor.coeffs.iter().enumerate() {
-                rem[shift + index] = rem[shift + index].sub(&factor.mul(coefficient));
-            }
+            self.subtract_shifted_divisor(&mut rem, shift, &factor);
         }
         (Poly::new(quot), Poly::new(rem))
     }
@@ -95,9 +128,7 @@ impl<'a, S: Scalar> PreparedDivisor<'a, S> {
             };
             let shift = rdeg - self.degree;
             let factor = self.quotient_factor(&rem[rdeg]);
-            for (index, coefficient) in self.divisor.coeffs.iter().enumerate() {
-                rem[shift + index] = rem[shift + index].sub(&factor.mul(coefficient));
-            }
+            self.subtract_shifted_divisor(&mut rem, shift, &factor);
         }
         Poly::new(rem)
     }
@@ -661,6 +692,27 @@ mod tests {
         // a remainder that is genuinely nonzero
         let (_, r2) = p(&[1, 0, 1]).divrem(&xm1); // x² + 1 at x=1 → 2
         assert_eq!(r2, p(&[2]));
+    }
+
+    #[test]
+    fn sparse_nonmonic_divisor_reconstructs_dividend_exactly() {
+        let mut divisor_coefficients = vec![Fp::<5>::zero(); 33];
+        divisor_coefficients[0] = Fp::<5>::from_int(2);
+        divisor_coefficients[7] = Fp::<5>::one();
+        divisor_coefficients[32] = Fp::<5>::from_int(3);
+        let divisor = P5::new(divisor_coefficients);
+        let quotient = p(&[1, 4, 2, 3]);
+        let remainder = p(&[3, 0, 1, 4, 0, 2]);
+        let dividend = quotient.mul(&divisor).add(&remainder);
+
+        let (actual_quotient, actual_remainder) = dividend.divrem(&divisor);
+        assert_eq!(actual_quotient, quotient);
+        assert_eq!(actual_remainder, remainder);
+        assert_eq!(dividend.rem(&divisor), remainder);
+        assert_eq!(
+            actual_quotient.mul(&divisor).add(&actual_remainder),
+            dividend
+        );
     }
 
     #[test]

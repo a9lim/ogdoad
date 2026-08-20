@@ -1,4 +1,4 @@
-//! Focused before/after benchmarks for the third adversarial optimization pass.
+//! Focused before/after benchmarks for the major adversarial optimization passes.
 //!
 //! Run with `cargo bench --bench major_speedups`. Matrix and Grundy workloads
 //! are deliberately absent; they have separate optimization sessions.
@@ -108,6 +108,82 @@ fn pow_mod_reference<const P: u128>(
     accumulator
 }
 
+fn pow_mod_char_two_dense_reduction_reference(
+    value: &Poly<Fp<2>>,
+    mut exponent: u128,
+    modulus: &Poly<Fp<2>>,
+) -> Poly<Fp<2>> {
+    let mut accumulator = rem_reference(Poly::one().coeffs().to_vec(), modulus);
+    let mut base = rem_reference(value.coeffs().to_vec(), modulus);
+    while exponent > 0 {
+        if exponent & 1 == 1 {
+            accumulator = mul_mod_reference(&accumulator, &base, modulus);
+        }
+        exponent >>= 1;
+        if exponent > 0 {
+            let mut squared = vec![Fp::<2>::zero(); 2 * base.coeffs().len() - 1];
+            for (index, coefficient) in base.coeffs().iter().enumerate() {
+                if !coefficient.is_zero() {
+                    squared[2 * index] = coefficient.mul(coefficient);
+                }
+            }
+            base = rem_reference(squared, modulus);
+        }
+    }
+    accumulator
+}
+
+fn function_add_reference<const P: u128>(
+    left: &RationalFunction<Fp<P>>,
+    right: &RationalFunction<Fp<P>>,
+) -> RationalFunction<Fp<P>> {
+    let numerator = left
+        .num()
+        .mul(right.den())
+        .add(&right.num().mul(left.den()));
+    let denominator = left.den().mul(right.den());
+    RationalFunction::new(numerator.coeffs().to_vec(), denominator.coeffs().to_vec())
+}
+
+fn function_mul_reference<const P: u128>(
+    left: &RationalFunction<Fp<P>>,
+    right: &RationalFunction<Fp<P>>,
+) -> RationalFunction<Fp<P>> {
+    let numerator = left.num().mul(right.num());
+    let denominator = left.den().mul(right.den());
+    RationalFunction::new(numerator.coeffs().to_vec(), denominator.coeffs().to_vec())
+}
+
+fn polynomial_power<const P: u128>(mut base: Poly<Fp<P>>, mut exponent: usize) -> Poly<Fp<P>> {
+    let mut out = Poly::one();
+    while exponent > 0 {
+        if exponent & 1 == 1 {
+            out = out.mul(&base);
+        }
+        exponent >>= 1;
+        if exponent > 0 {
+            base = base.mul(&base);
+        }
+    }
+    out
+}
+
+fn linear_factor<const P: u128>(root: i128) -> Poly<Fp<P>> {
+    Poly::new(vec![Fp::<P>::from_int(-root), Fp::<P>::one()])
+}
+
+fn checksum_function<const P: u128>(function: &RationalFunction<Fp<P>>) -> usize {
+    function
+        .num()
+        .coeffs()
+        .iter()
+        .chain(function.den().coeffs())
+        .enumerate()
+        .fold(0usize, |checksum, (index, coefficient)| {
+            checksum ^ index.wrapping_mul(131) ^ coefficient.value() as usize
+        })
+}
+
 fn brute_short_vector_count(form: &IntegralForm, bound: i128, radius: i128) -> usize {
     fn visit(
         form: &IntegralForm,
@@ -164,6 +240,102 @@ fn brute_diagonal_theta(form: &IntegralForm, terms: usize, radius: i128) -> Vec<
         terms,
         radius,
         0,
+        &mut vec![0; form.dim()],
+        &mut coefficients,
+    );
+    coefficients
+}
+
+fn fp_theta_recompute_leaf_norm(form: &IntegralForm, terms: usize) -> Vec<i128> {
+    fn ldl(gram: &[Vec<i128>]) -> (Vec<f64>, Vec<Vec<f64>>) {
+        let n = gram.len();
+        let mut d = vec![0.0f64; n];
+        let mut lower = vec![vec![0.0f64; n]; n];
+        for j in 0..n {
+            let mut pivot = gram[j][j] as f64;
+            for k in 0..j {
+                pivot -= lower[j][k] * lower[j][k] * d[k];
+            }
+            d[j] = pivot;
+            lower[j][j] = 1.0;
+            for i in j + 1..n {
+                let mut value = gram[i][j] as f64;
+                for k in 0..j {
+                    value -= lower[i][k] * lower[j][k] * d[k];
+                }
+                lower[i][j] = value / pivot;
+            }
+        }
+        let mut upper = vec![vec![0.0f64; n]; n];
+        for i in 0..n {
+            for j in i + 1..n {
+                upper[i][j] = lower[j][i];
+            }
+        }
+        (d, upper)
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn search(
+        form: &IntegralForm,
+        i: usize,
+        bound: i128,
+        d: &[f64],
+        upper: &[Vec<f64>],
+        epsilon: f64,
+        tail: f64,
+        coordinates: &mut [i128],
+        coefficients: &mut [i128],
+    ) {
+        if i == 0 {
+            let norm = form.norm(coordinates);
+            if norm > 0 && norm <= bound && norm % 2 == 0 {
+                coefficients[usize::try_from(norm / 2).unwrap()] += 1;
+            }
+            return;
+        }
+        let index = i - 1;
+        let center = (i..d.len())
+            .map(|j| upper[index][j] * coordinates[j] as f64)
+            .sum::<f64>();
+        let remaining = bound as f64 - tail;
+        if remaining < -epsilon {
+            return;
+        }
+        let radius = (remaining.max(0.0) / d[index]).sqrt() + epsilon;
+        let low = (-center - radius).ceil() as i128;
+        let high = (-center + radius).floor() as i128;
+        for coordinate in low..=high {
+            coordinates[index] = coordinate;
+            let shifted = coordinate as f64 + center;
+            search(
+                form,
+                index,
+                bound,
+                d,
+                upper,
+                epsilon,
+                tail + d[index] * shifted * shifted,
+                coordinates,
+                coefficients,
+            );
+        }
+        coordinates[index] = 0;
+    }
+
+    let bound = i128::try_from(2 * terms.saturating_sub(1)).unwrap();
+    let (d, upper) = ldl(form.gram());
+    let epsilon = 1e-9 * (bound as f64).max(1.0) + 1e-9;
+    let mut coefficients = vec![0i128; terms];
+    coefficients[0] = 1;
+    search(
+        form,
+        form.dim(),
+        bound,
+        &d,
+        &upper,
+        epsilon,
+        0.0,
         &mut vec![0; form.dim()],
         &mut coefficients,
     );
@@ -354,6 +526,31 @@ fn main() {
         },
         || odd_value.pow_mod(257, &odd_modulus).coeffs().len(),
     );
+    let dense_odd_modulus = Poly::<Fp<5>>::new(
+        (0..=64)
+            .map(|index| {
+                if index == 64 {
+                    Fp::<5>::one()
+                } else {
+                    Fp::<5>::from_u128((index % 4 + 1) as u128)
+                }
+            })
+            .collect(),
+    );
+    assert_eq!(
+        pow_mod_reference(&odd_value, 257, &dense_odd_modulus),
+        odd_value.pow_mod(257, &dense_odd_modulus)
+    );
+    compare(
+        "dense polynomial modulus guard",
+        10,
+        || {
+            pow_mod_reference(&odd_value, 257, &dense_odd_modulus)
+                .coeffs()
+                .len()
+        },
+        || odd_value.pow_mod(257, &dense_odd_modulus).coeffs().len(),
+    );
 
     let binary_value = Poly::<Fp<2>>::new(
         (0..128)
@@ -366,19 +563,110 @@ fn main() {
             .collect(),
     );
     assert_eq!(
-        pow_mod_reference(&binary_value, 256, &binary_modulus),
+        pow_mod_char_two_dense_reduction_reference(&binary_value, 256, &binary_modulus),
         binary_value.pow_mod(256, &binary_modulus)
     );
     compare(
-        "characteristic-two Frobenius square",
-        5,
+        "sparse characteristic-two modulus",
+        10,
         || {
-            pow_mod_reference(&binary_value, 256, &binary_modulus)
+            pow_mod_char_two_dense_reduction_reference(&binary_value, 256, &binary_modulus)
                 .coeffs()
                 .len()
         },
         || binary_value.pow_mod(256, &binary_modulus).coeffs().len(),
     );
+
+    type LargeFunction = RationalFunction<Fp<65_537>>;
+    let factor = |root| polynomial_power(linear_factor::<65_537>(root), 64);
+    let large_left = LargeFunction::new(
+        factor(1).mul(&factor(3)).coeffs().to_vec(),
+        factor(2).mul(&factor(4)).coeffs().to_vec(),
+    );
+    let cancellable_right = LargeFunction::new(
+        factor(2).mul(&factor(5)).coeffs().to_vec(),
+        factor(1).mul(&factor(6)).coeffs().to_vec(),
+    );
+    assert_eq!(
+        function_mul_reference(&large_left, &cancellable_right),
+        large_left.mul(&cancellable_right)
+    );
+    compare(
+        "rational-function cross cancellation",
+        25,
+        || checksum_function(&function_mul_reference(&large_left, &cancellable_right)),
+        || checksum_function(&large_left.mul(&cancellable_right)),
+    );
+    let coprime_right = LargeFunction::new(
+        factor(5).mul(&factor(7)).coeffs().to_vec(),
+        factor(6).mul(&factor(8)).coeffs().to_vec(),
+    );
+    assert_eq!(
+        function_mul_reference(&large_left, &coprime_right),
+        large_left.mul(&coprime_right)
+    );
+    compare(
+        "rational-function no-cancel guard",
+        25,
+        || checksum_function(&function_mul_reference(&large_left, &coprime_right)),
+        || checksum_function(&large_left.mul(&coprime_right)),
+    );
+    let shared_denominator_right = LargeFunction::new(
+        factor(7).mul(&factor(8)).coeffs().to_vec(),
+        factor(2).mul(&factor(6)).coeffs().to_vec(),
+    );
+    assert_eq!(
+        function_add_reference(&large_left, &shared_denominator_right),
+        large_left.add(&shared_denominator_right)
+    );
+    compare(
+        "rational-function gcd-first addition",
+        25,
+        || {
+            checksum_function(&function_add_reference(
+                &large_left,
+                &shared_denominator_right,
+            ))
+        },
+        || checksum_function(&large_left.add(&shared_denominator_right)),
+    );
+    let small_left = LargeFunction::new(
+        linear_factor::<65_537>(1).coeffs().to_vec(),
+        linear_factor::<65_537>(2).coeffs().to_vec(),
+    );
+    let small_right = LargeFunction::new(
+        linear_factor::<65_537>(3).coeffs().to_vec(),
+        linear_factor::<65_537>(4).coeffs().to_vec(),
+    );
+    compare(
+        "small rational-function mul guard",
+        10_000,
+        || checksum_function(&function_mul_reference(&small_left, &small_right)),
+        || checksum_function(&small_left.mul(&small_right)),
+    );
+    compare(
+        "small rational-function add guard",
+        10_000,
+        || checksum_function(&function_add_reference(&small_left, &small_right)),
+        || checksum_function(&small_left.add(&small_right)),
+    );
+    for degree in [2usize, 4, 8, 16, 32] {
+        let factor = |root| polynomial_power(linear_factor::<65_537>(root), degree);
+        let left = LargeFunction::new(
+            factor(1).mul(&factor(3)).coeffs().to_vec(),
+            factor(2).mul(&factor(4)).coeffs().to_vec(),
+        );
+        let right = LargeFunction::new(
+            factor(2).mul(&factor(5)).coeffs().to_vec(),
+            factor(1).mul(&factor(6)).coeffs().to_vec(),
+        );
+        compare(
+            &format!("rational-function mul degree {}", 2 * degree),
+            500,
+            || checksum_function(&function_mul_reference(&left, &right)),
+            || checksum_function(&left.mul(&right)),
+        );
+    }
 
     let exact_rank4 = IntegralForm::diagonal(&[2; 4]);
     assert_eq!(
@@ -402,6 +690,26 @@ fn main() {
         5,
         || brute_short_vector_count(&pruned_rank8, 4, 2),
         || pruned_rank8.short_vectors(4).unwrap().len(),
+    );
+
+    let mut a12_gram = vec![vec![0i128; 12]; 12];
+    for index in 0..12 {
+        a12_gram[index][index] = 2;
+        if index + 1 < 12 {
+            a12_gram[index][index + 1] = -1;
+            a12_gram[index + 1][index] = -1;
+        }
+    }
+    let a12 = IntegralForm::new(a12_gram).unwrap();
+    assert_eq!(
+        fp_theta_recompute_leaf_norm(&a12, 7),
+        a12.theta_series(7).unwrap()
+    );
+    compare(
+        "incremental Fincke-Pohst exact norm",
+        1,
+        || fp_theta_recompute_leaf_norm(&a12, 7).iter().sum::<i128>() as usize,
+        || a12.theta_series(7).unwrap().iter().sum::<i128>() as usize,
     );
 
     let theta_reference = brute_diagonal_theta(&pruned_rank8, 4, 2);

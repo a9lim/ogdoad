@@ -17,6 +17,9 @@ pub(super) const SHORT_VECTOR_EXACT_ENUM_LIMIT: u128 = 2_000_000;
 /// Above this rank, computing an exact rational inverse merely to discover a
 /// large unpruned box costs more than the size-reduced Fincke–Pohst search.
 const SHORT_VECTOR_EXACT_MAX_DIM: usize = 4;
+/// Below this rank, recomputing the exact norm at the relatively few leaves is
+/// cheaper than carrying checked exact cross-terms through every search node.
+const FP_INCREMENTAL_NORM_MIN_DIM: usize = 10;
 
 // ── small combinatorial helpers ──
 
@@ -515,7 +518,8 @@ impl IntegralForm {
         // are handled above by exact rational bounds; this path is for larger
         // enumerations where the float bound is the practical cutoff.
         let eps = 1e-9 * (bound as f64).max(1.0) + 1e-9;
-        self.fp_search(n, bound, &d, &u, eps, 0.0, &mut x, visit);
+        let exact_tail = (n >= FP_INCREMENTAL_NORM_MIN_DIM).then_some(0);
+        self.fp_search(n, bound, &d, &u, eps, 0.0, exact_tail, &mut x, visit);
         Some(())
     }
 
@@ -528,15 +532,16 @@ impl IntegralForm {
         u: &[Vec<f64>],
         eps: f64,
         tail: f64,
+        exact_tail: Option<i128>,
         x: &mut [i128],
         visit: &mut F,
     ) where
         F: FnMut(&[i128], i128),
     {
         if i == 0 {
-            let q = self.norm(x);
-            if q > 0 && q <= bound {
-                visit(x, q);
+            let norm = exact_tail.unwrap_or_else(|| self.norm(x));
+            if norm > 0 && norm <= bound {
+                visit(x, norm);
             }
             return;
         }
@@ -545,6 +550,19 @@ impl IntegralForm {
         for j in i..d.len() {
             center += u[idx][j] * x[j] as f64;
         }
+        let exact_cross = exact_tail.map(|_| {
+            let mut cross = 0i128;
+            for (j, &xj) in x.iter().enumerate().skip(i) {
+                cross = cross
+                    .checked_add(
+                        self.gram[idx][j]
+                            .checked_mul(xj)
+                            .expect("lattice norm exceeds i128"),
+                    )
+                    .expect("lattice norm exceeds i128");
+            }
+            cross
+        });
         let remaining = bound as f64 - tail;
         if remaining < -eps {
             return;
@@ -555,6 +573,21 @@ impl IntegralForm {
         for xi in lo..=hi {
             x[idx] = xi;
             let coord = xi as f64 + center;
+            let next_exact_tail = exact_tail.map(|tail_norm| {
+                let diagonal = self.gram[idx][idx]
+                    .checked_mul(xi)
+                    .and_then(|value| value.checked_mul(xi))
+                    .expect("lattice norm exceeds i128");
+                let mixed = exact_cross
+                    .expect("incremental norm has an exact cross-term")
+                    .checked_mul(xi)
+                    .and_then(|value| value.checked_mul(2))
+                    .expect("lattice norm exceeds i128");
+                tail_norm
+                    .checked_add(diagonal)
+                    .and_then(|value| value.checked_add(mixed))
+                    .expect("lattice norm exceeds i128")
+            });
             self.fp_search(
                 idx,
                 bound,
@@ -562,6 +595,7 @@ impl IntegralForm {
                 u,
                 eps,
                 tail + d[idx] * coord * coord,
+                next_exact_tail,
                 x,
                 visit,
             );
@@ -864,5 +898,32 @@ impl IntegralForm {
             }
         }
         true
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn fincke_pohst_incremental_norm_matches_the_public_form() {
+        let rank = FP_INCREMENTAL_NORM_MIN_DIM;
+        let mut gram = vec![vec![0i128; rank]; rank];
+        for index in 0..rank {
+            gram[index][index] = 2;
+            if index + 1 < rank {
+                gram[index][index + 1] = -1;
+                gram[index + 1][index] = -1;
+            }
+        }
+        let form = IntegralForm::new(gram).expect("A-type Cartan matrix is symmetric");
+        let mut visited = 0usize;
+        form.visit_short_vectors_raw(8, &mut |vector, norm| {
+            assert_eq!(norm, form.norm(vector));
+            assert!(norm > 0 && norm <= 8);
+            visited += 1;
+        })
+        .expect("positive-definite LDL decomposition succeeds");
+        assert!(visited > 0);
     }
 }
