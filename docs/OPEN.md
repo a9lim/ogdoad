@@ -141,7 +141,14 @@ divisibility of the two non-killed residue sections by
 sections are padded reciprocals, so they give only one condition; equivalently
 failure is `Y^(2H) + Y^H + 1 | T_(N/ell)` for the explicit cubic power-sum
 recurrence `T_m=T_(m-1)+T_(m-2)+(1+Y)T_(m-3)`.  This one-polynomial selected
-condition remains unresolved.
+condition remains unresolved.  The full symmetric power state has an exact
+composition law.  At exponents congruent to one modulo three its two trace
+coordinates vanish together, and that zero state is preserved by every
+current `ell`-power.  Hence the forced zero at `N=(N/ell)ell` has an exact
+`ell`-element fibre in the specialized projective power map.  This fibre is
+not itself the symmetric zero-state: it proves only that the recurrence and
+projective raising equation do not select the literal `N/ell` preimage.
+Any successful refinement must add selector-sensitive ancestry data.
 Equivalently, failure at a current prime `ell` is triviality of the explicit
 marked `ell`-torsion class `[(1+w)^(N/ell)/w^2]` in
 `F_(2^(2h))^times/F_(2^(2h/3))^times`.  Its cyclic `H^1` vanishes because
@@ -158,7 +165,18 @@ Conway parent is selected.  Thus Frobenius extraction still ends at the
 marked inverse-exponent seam.  The packet degree does force
 `phi(delta_n) >= 2^(n+1)`; consequently a missing prime `p | F_n` must
 satisfy `p <= 1 + 2^(2^n-n-1)`.  This is ancestry-sensitive, but it still
-permits a single large missing prime in the asymptotic range.  In the
+permits a single large missing prime in the asymptotic range.  More sharply,
+at a globally least failing prime, every prime factor of `F_n/delta_n` is at least
+`p`; if `phi(F_n) < 2^(n+1)(p-1)^2`, then necessarily
+`F_n/delta_n = p`.  Thus the surviving Fermat obstruction in that range is
+one missing valuation, not a compound conductor defect.  Cohen's
+specified-order trace theorem also gives, in arbitrarily large
+power-of-two degrees, normal full-degree elements with any fixed common
+finite tuple of absolute power traces but respective orders `2^d-1` and
+`(2^d-1)/3`.  Hence normality and finitely many absolute traces cannot by
+themselves remove even a single-prime order defect; this is a generic no-go,
+not a counterexample on the selected Conway ancestry.  The exact one-edge
+power-sum transport is kernel-checked as `conwayChild_powerSum`.  In the
 ordinary arm, the bottom-ancestor polynomial
 sections prove every current factor `p` with `L_(r,a)/p <= b_r r^a`, including
 the case in which `L_(r,a)/r` is prime.  Retaining the opposite top
@@ -183,8 +201,13 @@ argument strengthens this unconditionally: with `D=r^(a-1)(r-1)`,
 `o >= R(D,s)+ceil((R(D,s+1)-R(D,s))/r)`, where
 `R(D,t)=sum_(j=0)^t 2^j binom(D,j) binom(t,j)`.  The second summand retains
 the largest leading-`mu_r` phase fibre of the next signed shell while keeping
-the entire inner ball.  Deficiency then forces the same lower bound on
-`L_(r,a)/p`.  It also proves
+the entire inner ball.  At a globally least failing prime, if this lower
+bound is `B`, `L_(r,a) < B p^2` forces the prime-to-`r` order defect to equal
+exactly `p`.  Deficiency otherwise forces the same lower bound on
+`L_(r,a)/p`.  The final `p`-rough arithmetic implication is kernel-checked
+as `rough_defect_eq_prime`; the finite-field packing and minimality inputs
+remain paper-level.  The packing argument
+also proves
 several finite tensor-rank zero cases and shows why generic trace, norm,
 conductor, factor-shape, reciprocity, and
 unselected Kummer information cannot recover the marked Conway coordinate.

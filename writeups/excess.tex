@@ -40,8 +40,10 @@ lossless reductions, not hypotheses, and all four universal assertions remain
 open.  The paper then isolates the arithmetic content of each coordinate.  It
 constructs the primitive-support quotient and the Conway--Fermat packet
 recursion and a packet-degree defect bound, identifies the ordinary Artin
-symbol, proves the cubic Singer recursion, a partition selected-order bound,
-and a sharp first-relation threshold with a single reciprocal section,
+symbol, proves least-counterexample one-primary regimes in the Fermat and
+ordinary arms, the cubic Singer recursion, a partition selected-order bound,
+and a sharp first-relation threshold with a single reciprocal section and an
+exact power-state composition saturation theorem,
 classifies the selected top-orbit elliptic $S$-unit lattice,
 proves an ordinary section sieve and an unconditional Kummer-ratio
 selected-order bound,
@@ -105,6 +107,8 @@ exact Euler nonpower test for one Conway-selected coordinate and retains the
 full primary valuation.  The reductions, the coordinate formulas, the
 packet-universal Fermat residual of Proposition~\ref{prop:z-packet-universal},
 the packet-degree bound of Proposition~\ref{prop:z-packet-degree},
+the least-counterexample packet sharpening of
+Corollary~\ref{cor:z-one-packet},
 the all-iterate ramification boundary of
 Proposition~\ref{prop:z-iterate-ramification}, the generalized-Prym
 saturation boundary of Proposition~\ref{prop:z-prym-boundary}, the selected
@@ -112,8 +116,9 @@ top-orbit $S$-unit reduction of
 Proposition~\ref{prop:z-top-orbit-units},
 selected Singer and partition bounds of Propositions~\ref{prop:sieve}
 and~\ref{prop:c-partition}, the cubic first-relation theorem
-and marked-projective obstruction of
-Propositions~\ref{prop:c-first-relation} and~\ref{prop:c-projective}, and the exceptional compression
+and power-state and marked-projective obstructions of
+Propositions~\ref{prop:c-first-relation}, \ref{prop:c-composition}, and
+\ref{prop:c-projective}, and the exceptional compression
 and packing and translate bounds of
 Propositions~\ref{prop:d-one-third}, \ref{prop:d-packing},
 and~\ref{prop:d-bound} are proved here.
@@ -121,7 +126,9 @@ Corollary~\ref{cor:o-large-factor} settles the ordinary large-factor case,
 Proposition~\ref{prop:o-reciprocal} doubles its degree range whenever the
 literal bottom polynomial is not self-reciprocal, and
 Proposition~\ref{prop:o-ratio-packing} enlarges that range polynomially in
-$r^a$; the compression settles the exceptional prime-complement case, and
+$r^a$, while Corollary~\ref{cor:o-one-primary} isolates a one-primary
+least-counterexample range; the compression settles the exceptional
+prime-complement case, and
 the intermediate-field sieve settles an exponential-in-$\sqrt{3^k}$
 composite large-factor range.
 None of
@@ -461,6 +468,45 @@ at least $p-1$.  Hence
 which is the asserted bound.
 \end{proof}
 
+There is a useful least-counterexample sharpening of this bound.  It does
+not identify the missing packet, but it shows that two simultaneous losses
+are impossible in a substantial range.
+
+\begin{corollary}[minimal-counterexample one-packet regime]
+\label{cor:z-one-packet}
+Suppose that $p$ is the least odd prime at which the $0/1/4$ rule fails and
+that its putative failure lies in the Conway--Fermat part of arm~$Z$ at
+level $n$.  Put $D=F_n/\delta_n$.  Every prime divisor of $D$ is at least
+$p$, and
+\[
+ \varphi(F_n)<2^{n+1}(p-1)^2
+ \quad\Longrightarrow\quad
+ D=p.
+\]
+Thus in this range a least failure can lose exactly one copy of its own
+$p$-coordinate and no other conductor coordinate.
+\end{corollary}
+
+\begin{proof}
+Every prime $q\mid D$ is a missing coordinate at the same residue degree.
+If $q<p$, the row at $q$ would already violate the rule, contrary to
+minimality.  Hence $D$ is $p$-rough and $p\mid D$.
+
+Put $t=\varphi(F_n)/\varphi(\delta_n)$.  If $D\ne p$, the prime-by-prime
+factorization of the totient quotient has at least two missing prime
+factors counted with multiplicity.  Two distinct missing primes contribute
+local factors at least $p-1$ each.  If instead at least two copies of $p$
+are missing, its local factor is at least $p(p-1)$ when $p$ remains in
+$\delta_n$, and at least $p^{a-1}(p-1)$ with $a\ge2$ when it does not.
+In every case
+\[
+ t\ge(p-1)^2.
+\]
+Proposition~\ref{prop:z-packet-degree} gives
+$\varphi(\delta_n)\ge2^{n+1}$, so $D\ne p$ would force
+$\varphi(F_n)\ge2^{n+1}(p-1)^2$, the contrapositive of the assertion.
+\end{proof}
+
 The literal multiplication operator retains that selector in a compact
 two-block form.  At the edge $c_n^2=c_n+a_{n-1}$, let $A$ denote
 multiplication by $a_{n-1}$ on $E_{n-1}$.  Multiplication by
@@ -625,6 +671,67 @@ basis theorem for the associated tower elements
 \cite{caglierohermanszechtman2025}.  Neither result forces every relative
 factor $\delta_n$ to equal $F_n$; that all-level equality is precisely the
 remaining selected assertion here.
+
+The limitation of normality and finitely many absolute traces can be made
+unconditional, independently of the selected tower.
+
+\begin{proposition}[finite-trace order separation]
+\label{prop:z-trace-separation}
+For every finite set $S\subset\mathbb Z_{>0}$, there are arbitrarily large
+powers $d=2^s$ and normal full-degree elements
+$\alpha,\beta\in\mathbb F_{2^d}$ such that
+\[
+ \operatorname{Tr}(\alpha^j)=\operatorname{Tr}(\beta^j)
+ \quad(j\in S),
+ \qquad
+ \operatorname{ord}(\alpha)=2^d-1,
+ \quad
+ \operatorname{ord}(\beta)=\frac{2^d-1}{3}.
+\]
+Consequently no fixed finite tuple of absolute power traces, even together
+with degree and normality, distinguishes full multiplicative order from a
+missing factor three in characteristic two.
+\end{proposition}
+
+\begin{proof}
+Absolute trace is invariant under squaring, so replace every $j\in S$ by its
+odd core, remove repetitions, and adjoin the exponent one.  The resulting
+odd monomials $X^{u_1},\ldots,X^{u_r}$ are strongly linearly independent in
+the sense of Cohen: a nonconstant Artin--Schreier polynomial $H^2-H+b$ has
+even leading degree, whereas every nonzero binary linear combination of the
+chosen monomials has odd leading degree.  A rational $H$ cannot evade this
+argument, since any finite pole would survive in $H^2-H$.
+
+Apply Cohen's specified-order, specified-functional-trace theorem
+\cite[Theorem~1.1]{cohen2005specified} twice with $q=2$, first with defect
+$l=1$ and then with defect $l=3$, prescribing the same trace values and
+prescribing one for the coordinate $X$.  Its explicit degree bound holds for
+all sufficiently large $d=2^s$, and $3\mid2^d-1$ for even $d$.  This gives
+the displayed exact orders and trace equalities.
+
+For an extension of degree a power of the characteristic, an element is
+normal exactly when its absolute trace is nonzero.  By the normal-basis
+theorem the Frobenius module is free of rank one over the local algebra
+$\mathbb F_2[T]/((T-1)^d)$, and trace is $(T-1)^{d-1}$.
+Thus both elements are normal.  The primitive element has full degree.  For
+$d\ge4$, so does the element of order $(2^d-1)/3$, since this order exceeds
+$2^{d/2}-1$, the largest possible multiplicative order in a proper subfield.
+\end{proof}
+
+This proposition is not a counterexample to the Conway--Fermat assertion:
+it controls generic field elements, whereas $\delta_n$ is the order of the
+torus coordinate attached to the literal recursively selected ancestry.
+It proves, however, that a successful all-level argument must use more than
+any fixed finite absolute-trace tuple or the normal-basis theorem.  Across a
+single Conway quadratic edge the entire power-sum recursion is nevertheless
+explicit: if $y^2+xy+x^3=0$, then
+\[
+ y^m+(y+x)^m=D_m(x,x^3),
+\]
+where $D_m(S,B)$ is the signed Dickson--Lucas recurrence with initial values
+$2,S$ and step $D_{m+2}=S D_{m+1}-B D_m$.  This identity is kernel-checked as
+\texttt{conwayChild\_powerSum}; it transports trace data but does not recover
+the missing conductor coordinate.
 
 There is an exact supersingular realization of the selected ancestry.
 
@@ -1652,6 +1759,45 @@ order dividing $d=N/p$, so $o\mid d$; this proves the stated deficient bound
 and its contrapositive.
 \end{proof}
 
+\begin{corollary}[minimal-counterexample one-primary regime]
+\label{cor:o-one-primary}
+Suppose that $p$ is the least odd prime at which the $0/1/4$ rule fails and
+that its putative failure lies in arm~$O$ at $(r,a,p)$, so $r\ne3$.
+Let $N=L_{r,a}$,
+let $o$ be the selected projective order, write $N=o\Delta$, and let
+$\Delta^{(r')}$ be the prime-to-$r$ part of $\Delta$.  Put
+\[
+ B_{r,a}=\mathcal R\left(r^{a-1}(r-1),\frac{r-1}{2}\right)
+ +\left\lceil\frac1r\left[
+ \mathcal R\left(r^{a-1}(r-1),\frac{r+1}{2}\right)
+ -\mathcal R\left(r^{a-1}(r-1),\frac{r-1}{2}\right)
+ \right]\right\rceil.
+\]
+Then every prime divisor of $\Delta^{(r')}$ is at least $p$, and
+\[
+ N<B_{r,a}p^2
+ \quad\Longrightarrow\quad
+ \Delta^{(r')}=p.
+\]
+In particular, in this range the only non-source defect is the loss of one
+$p$-adic order factor.
+\end{corollary}
+
+\begin{proof}
+The deficient $p$-coordinate gives $p\mid\Delta^{(r')}$.  If a prime
+$q<p$, $q\ne r$, divided $\Delta$, then $q\mid L_{r,a}$ would be another
+eligible arm-$O$ row with deficient $q$-valuation, contradicting the
+minimality of $p$.  Thus $\Delta^{(r')}$ is $p$-rough.  The unconditional
+part of Proposition~\ref{prop:o-ratio-packing} gives $B_{r,a}\le o$, and
+hence
+\[
+ B_{r,a}\Delta^{(r')}\le B_{r,a}\Delta\le o\Delta=N.
+\]
+If $\Delta^{(r')}\ne p$, its quotient by $p$ has a prime divisor at least
+$p$, so $\Delta^{(r')}\ge p^2$, contradicting the displayed strict
+inequality.
+\end{proof}
+
 Let $N_a=\operatorname{ord}(x_a)$.  The Kummer relation
 $x_a^r=x_{a-1}$ and the relative degree $r$ give
 $N_a=rN_{a-1}$.  Choose the roots and primes recursively:
@@ -2213,6 +2359,104 @@ $\mathcal T_d(y)=B_0(y)$.  Since $y$ has order $h=3^k$ and
 $\operatorname{ord}_h(2)=2H$, its minimal polynomial is $G$; the last
 divisibility criterion follows.
 \end{proof}
+
+The recurrence also admits a full symmetric composition law.  This explains
+why the forced norm-triple relation at exponent $N$ cannot simply be
+descended through $N=d\ell$.
+
+\begin{proposition}[cubic power-state composition saturation]
+\label{prop:c-composition}
+Let $K$ be a characteristic-two field containing
+$\omega^2+\omega+1=0$.  Let $L/K$ be a cyclic extension of degree three
+with generator $\sigma$, and let $w\in L^\times$ satisfy
+$\sigma(w)=\omega w$.  Put $y=w^3\in K$ and
+\[
+ a=1+w,\qquad c=1+y,\qquad b=\frac ca=1+w+w^2,
+\]
+and
+\[
+ A_m=\operatorname{Tr}_{L/K}(a^m),\qquad
+ B_m=\operatorname{Tr}_{L/K}(b^m),\qquad C_m=c^m.
+\]
+For universal variables define the sequence
+\[
+ D_0=1,\quad D_1=A,\quad D_2=A^2,\qquad
+ D_n=AD_{n-1}+BD_{n-2}+CD_{n-3}\quad(n\geq3).
+\]
+Then, for all $m,n\geq0$,
+\[
+ \begin{aligned}
+ A_{mn}&=D_n(A_m,B_m,C_m),\\
+ B_{mn}&=D_n(B_m,A_mC_m,C_m^2),\\
+ C_{mn}&=C_m^n.
+ \end{aligned}
+\]
+If $m\equiv1\pmod3$ and, for some positive integer
+$H$, the minimal polynomial of $y$ over $\mathbb F_2$ is the
+self-reciprocal polynomial $G(Y)=Y^{2H}+Y^H+1$, then
+\[
+ A_m=0\quad\Longleftrightarrow\quad B_m=0.
+\]
+Consequently, for every $n\equiv1\pmod3$,
+\[
+ (A_m,B_m)=(0,0)\quad\Longrightarrow\quad
+ (A_{mn},B_{mn})=(0,0).
+\]
+The converse cannot hold uniformly: already at $H=1$ one has
+$G\mid\mathcal T_7$ but $G\nmid\mathcal T_1$.
+\end{proposition}
+
+\begin{proof}
+The eigenvalue relation makes $w\notin K$, so $K(w)=L$.  It also gives
+$a\ne0$; and $c=0$ would make $w$ a cube root of unity already contained in
+$K$, so $c\ne0$.  Thus all displayed quotients are defined.
+The three conjugates of $a^m$ have elementary invariants
+$(A_m,B_m,C_m)$.  Newton's identities in characteristic two give the
+displayed recurrence for their power sums.  The pairwise products have
+elementary invariants $(B_m,A_mC_m,C_m^2)$, which proves the second
+composition formula; the third is immediate.
+
+Write $m=3t+1$ and decompose
+\[
+ (1+X)^m=P_0(X^3)+XP_1(X^3)+X^2P_2(X^3).
+\]
+Self-reciprocity gives $P_1(Y)=Y^tP_0(Y^{-1})$.  Since $G$ is
+self-reciprocal, $A_m=P_0(y)=0$ also gives $P_1(y)=0$; hence
+$a^m\in w^2K$.  Therefore $b^m=c^m/a^m\in wK$ and $B_m=0$.
+Conversely, decompose
+\[
+ (1+X+X^2)^m=Q_0(X^3)+XQ_1(X^3)+X^2Q_2(X^3).
+\]
+This polynomial is self-reciprocal of degree $6t+2$, so
+$Q_2(Y)=Y^{2t}Q_0(Y^{-1})$.  The equality $B_m=Q_0(y)=0$ therefore puts
+$b^m$ in $wK$, and $a^m=c^m/b^m$ lies in $w^2K$, giving $A_m=0$.
+
+When $A=B=0$, the recurrence $D_n=CD_{n-3}$ has zero values in residue
+classes one and two modulo three.  This proves the saturation statement.
+Finally, for $H=1$ the recurrence gives
+$\mathcal T_1=1$ and $\mathcal T_7=Y^2+Y+1=G$.
+\end{proof}
+
+Thus every current $\ell\equiv1\pmod3$ carries a hypothetical deficient
+$d$-state to the forced $N=d\ell$ state.  In the finite-field specialization
+used below, $K=\mathbb F_{q^2}$ and $L=\mathbb F_{q^6}$.  The relevant cyclic
+projective quotient has order
+\[
+ |L^\times/K^\times|=q^4+q^2+1
+ =(q^2+q+1)(q^2-q+1),
+\]
+and the two displayed factors are coprime.  Hence for
+$\ell\mid q^2+q+1$ its $\ell$-power map has kernel exactly $\ell$.
+The forced projective equation
+\[
+ X^\ell=[w^{2\ell}]
+\]
+therefore has exactly $\ell$ solutions, one of which is the deficient target
+$[w^2]$.  This exact fibre belongs to the projective power map, not to the
+symmetric pair $(A_d,B_d)$ itself.  It proves that the symmetric recurrence
+and projective raising equation alone do not select the literal preimage;
+any resolvent or determinant refinement must supply an additional
+selector-sensitive ancestry input.
 
 The all-weight criterion has an equivalent projective-torsion form which
 pinpoints why Hilbert--90 does not close it.  This retains the marked root,

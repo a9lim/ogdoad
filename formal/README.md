@@ -130,6 +130,9 @@ four-arm `Z/O/C/D` reduction, including:
 - the corrected characteristic-two sparse norm;
 - the exact finite-cyclic order-defect criterion: an `m`-th-power failure is
   precisely an `m`-factor in the quotient of ambient order by selected order;
+  the division-free `rough_defect_eq_prime` lemma also checks that a positive
+  `p`-rough defect below the packing threshold `p^2` is exactly `p`, the
+  arithmetic core of the ordinary least-counterexample one-primary regime;
 - the exceptional cyclic-compression algebra: a vanishing three-block sum
   upgrades equal blocks to literal zero, the one-third Frobenius product
   collapses to a trinomial, and a known cubic phase converts the
@@ -143,7 +146,9 @@ four-arm `Z/O/C/D` reduction, including:
   formalized in Lean;
 - trace, norm, Frobenius, Kummer, Dickson--Lucas, Singer, cubical-support,
   and low-degree/phase-boundary minimal-polynomial collision identities used
-  by the selected-order reductions, including the exact two-binomial
+  by the paper, including the exact `conwayChild_powerSum` transport of every
+  power sum across one selected quadratic edge, and those used by the
+  selected-order reductions, including the exact two-binomial
   fourth-power residual for an odd Fibonacci zero (which sharpens, but does
   not close, the Conway--Fermat target), and the characteristic-two Binet
   parametrization showing that the resulting inverse-Frobenius coordinate is
@@ -203,9 +208,12 @@ factor data and Python certificates remain external evidence.
 For the selected-order packing bounds, Lean checks the reusable low-degree
 minimal-polynomial collision lemma. The ordinary ratio-star
 unique-factorization and lattice count, the cubic weighted-subset coefficient
-argument, the three-section first-relation theorem, and the cited Tauberian
-asymptotic remain paper-level mathematics; no Lean declaration upgrades them
-to a universal arm.
+argument, the three-section first-relation theorem, the full symmetric cubic
+power-state composition law and its specialized projective-fibre consequence,
+and the cited Tauberian asymptotic remain paper-level mathematics.  Lean
+checks the algebraic cubic recurrence, its first nontrivial value and two zero
+residue classes, and the pairwise-root invariants used by that composition
+law; no declaration upgrades them to a universal arm.
 
 For a nonzero element of a finite field, the relevant obstruction is the
 exact Euler test

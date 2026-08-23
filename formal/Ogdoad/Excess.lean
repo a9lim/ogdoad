@@ -1859,6 +1859,61 @@ theorem polynomial_eq_of_aeval_eq_of_natDegree_le_minpoly_of_coeff_zero
 
 end LowDegreeMinpolyCollision
 
+section CubicPowerState
+
+variable {R : Type*} [CommRing R]
+
+/-- Algebraic recurrence used for power sums of the roots of a monic cubic
+in characteristic two.  It is defined over any commutative ring, but the
+initial values `1`, `A`, and `A²` have the asserted three-root power-sum
+interpretation after characteristic-two specialization. -/
+def cubicPowerSum (A B C : R) : ℕ → R
+  | 0 => 1
+  | 1 => A
+  | 2 => A ^ 2
+  | n + 3 =>
+      A * cubicPowerSum A B C (n + 2) +
+      B * cubicPowerSum A B C (n + 1) +
+      C * cubicPowerSum A B C n
+
+/-- The tripled power sum is `A³ + A*B + C`, the first nontrivial instance
+of the cubic power-state composition law. -/
+theorem cubicPowerSum_three (A B C : R) :
+    cubicPowerSum A B C 3 = A ^ 3 + A * B + C := by
+  simp [cubicPowerSum]
+  ring
+
+/-- Once both trace coordinates vanish, the universal cubic power state
+continues to vanish in residue class one modulo three. -/
+theorem cubicPowerSum_zero_zero_mod_one (C : R) (t : ℕ) :
+    cubicPowerSum 0 0 C (3 * t + 1) = 0 := by
+  induction t with
+  | zero => simp [cubicPowerSum]
+  | succ t ih =>
+      rw [show 3 * (t + 1) + 1 = (3 * t + 1) + 3 by omega]
+      simp [cubicPowerSum, ih]
+
+/-- The same zero state vanishes in residue class two modulo three. -/
+theorem cubicPowerSum_zero_zero_mod_two (C : R) (t : ℕ) :
+    cubicPowerSum 0 0 C (3 * t + 2) = 0 := by
+  induction t with
+  | zero => simp [cubicPowerSum]
+  | succ t ih =>
+      rw [show 3 * (t + 1) + 2 = (3 * t + 2) + 3 by omega]
+      simp [cubicPowerSum, ih]
+
+/-- The pairwise products of three roots have elementary invariants
+`(B, A*C, C²)`, the algebraic input for the second power-state composition
+formula. -/
+theorem cubicPairwiseProduct_invariants (x y z : R) :
+    (x * y) * (x * z) + (x * y) * (y * z) + (x * z) * (y * z) =
+      (x + y + z) * (x * y * z) ∧
+    (x * y) * (x * z) * (y * z) = (x * y * z) ^ 2 := by
+  constructor
+  <;> ring
+
+end CubicPowerState
+
 section CubicHalfAngleDivisibility
 
 open Polynomial
@@ -3869,6 +3924,24 @@ theorem signedDicksonLucas_eq_add_powers (T U : R) (n : Nat) :
       rw [signedDicksonLucas_add_two, hn, hn1]
       ring
 
+/-- Exact power-sum recursion across one Conway quadratic edge.  If `y` and
+`y+x` are the two roots of `Y² + xY + x³`, their `m`-th power sum is the
+signed Dickson--Lucas word with lower invariants `(x, x³)`. -/
+theorem conwayChild_powerSum [CharP R 2]
+    (x y : R) (h : y ^ 2 + x * y + x ^ 3 = 0) (m : Nat) :
+    signedDicksonLucas x (x ^ 3) m = y ^ m + (y + x) ^ m := by
+  have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  have hsum : y + (y + x) = x := by
+    linear_combination htwo * y
+  have hprod : y * (y + x) = x ^ 3 := by
+    have hxy : y ^ 2 + x * y = -x ^ 3 := eq_neg_of_add_eq_zero_left h
+    calc
+      y * (y + x) = y ^ 2 + x * y := by ring
+      _ = -x ^ 3 := hxy
+      _ = x ^ 3 := CharTwo.neg_eq (x ^ 3)
+  simpa only [hsum, hprod] using
+    signedDicksonLucas_eq_add_powers y (y + x) m
+
 /-- Factorization behind the exact tangency of an odd Dickson trace word to
 the identity.  In characteristic two, taking `u = 1 + T` and
 `X = u + u⁻¹` turns the two factors on the right into the two independent
@@ -4181,6 +4254,37 @@ theorem csdu_closes_below_totient_square
     csdu_failure_forces_totient_square
       G t phiN phiDelta hpacket hfactor hphi
   omega
+
+/-- A positive `p`-rough defect below `p²` is exactly `p`.  The multiplicative
+factor `B` is kept explicit so the theorem applies directly to a selected
+order lower bound `B ≤ o`, an ambient factorization `N = o * Δ`, and the
+prime-to-source part of `Δ`. -/
+theorem rough_defect_eq_prime
+    (B N D p : ℕ)
+    (hDpos : 0 < D)
+    (hpD : p ∣ D)
+    (hrough : ∀ q, q.Prime → q ∣ D → p ≤ q)
+    (hBD : B * D ≤ N)
+    (hsmall : N < B * p ^ 2) :
+    D = p := by
+  obtain ⟨k, rfl⟩ := hpD
+  have hkpos : 0 < k := by
+    by_contra hk
+    have hkzero : k = 0 := Nat.eq_zero_of_not_pos hk
+    subst k
+    simp at hDpos
+  have hkone : k = 1 := by
+    by_contra hk
+    obtain ⟨q, hqprime, hqk⟩ := Nat.exists_prime_and_dvd hk
+    have hqD : q ∣ p * k := dvd_mul_of_dvd_right hqk p
+    have hpq : p ≤ q := hrough q hqprime hqD
+    have hqk_le : q ≤ k := Nat.le_of_dvd hkpos hqk
+    have hpk : p ≤ k := hpq.trans hqk_le
+    have hsq : B * p ^ 2 ≤ B * (p * k) := by
+      apply Nat.mul_le_mul_left
+      simpa [pow_two] using Nat.mul_le_mul_left p hpk
+    exact (not_lt_of_ge (hsq.trans hBD)) hsmall
+  simp [hkone]
 
 end FermatPacketGapCore
 
