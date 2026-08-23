@@ -125,6 +125,18 @@ theorem affine_frobenius_product_expansion
   rw [pow_add, pow_one, add_pow_char_pow]
   ring
 
+/-- Frobenius factorization behind the cubic Singer norm-triple word.  In the
+cyclic polynomial quotient, reducing the two large exponents turns the right
+side into the sharp three-factor relation; consequently taking the current
+prime power of a quotient-bit word recovers that known norm relation rather
+than evaluating the missing Euler phase. -/
+theorem singer_normTriple_power_factorization
+    {K : Type*} [CommRing K] [CharP K 2] (x : K) (H : Nat) :
+    (1 + x) ^ (2 ^ (2 * H) + 2 ^ H + 1) =
+      (1 + x) * (1 + x ^ (2 ^ H)) * (1 + x ^ (2 ^ (2 * H))) := by
+  rw [pow_add, pow_add, pow_one, add_pow_char_pow, add_pow_char_pow]
+  ring
+
 /-- Exact Euler-quotient criterion in a finite cyclic group.  No
 squarefreeness shorthand is hidden: `p ∣ |G|` is the full hypothesis used in
 this group-level statement. -/
@@ -195,6 +207,39 @@ theorem isPthPower_iff_orderOf_dvd_card_div {G : Type*}
     IsPthPower p a ↔ orderOf a ∣ Fintype.card G / p := by
   rw [isPthPower_iff_pow_card_div_eq_one hp]
   exact orderOf_dvd_iff_pow_eq_one.symm
+
+/-- An index divides the order defect exactly when the selected order divides
+the corresponding ambient quotient.  Combined with
+`isPthPower_iff_orderOf_dvd_card_div`, this says that a failed power test is
+precisely a prime factor of the defect, with no squarefreeness assumption. -/
+theorem orderOf_dvd_card_div_iff_dvd_orderDefect
+    {G : Type*} [Group G] [Fintype G] {m : Nat}
+    (hm : m ∣ Fintype.card G) (a : G) :
+    orderOf a ∣ Fintype.card G / m ↔
+      m ∣ Fintype.card G / orderOf a := by
+  constructor
+  · intro h
+    have hmul : m * orderOf a ∣ Fintype.card G :=
+      (Nat.dvd_div_iff_mul_dvd hm).1 h
+    apply (Nat.dvd_div_iff_mul_dvd
+      (orderOf_dvd_card : orderOf a ∣ Fintype.card G)).2
+    simpa [Nat.mul_comm] using hmul
+  · intro h
+    have hmul : orderOf a * m ∣ Fintype.card G :=
+      (Nat.dvd_div_iff_mul_dvd
+        (orderOf_dvd_card : orderOf a ∣ Fintype.card G)).1 h
+    apply (Nat.dvd_div_iff_mul_dvd hm).2
+    simpa [Nat.mul_comm] using hmul
+
+/-- In a finite cyclic group, membership in the image of the `m`-th-power
+map is exactly divisibility of the order defect by `m`. -/
+theorem isPthPower_iff_dvd_orderDefect
+    {G : Type*} [CommGroup G] [Fintype G] [IsCyclic G]
+    {m : Nat} (hm : m ∣ Fintype.card G) (a : G) :
+    IsPthPower m a ↔
+      m ∣ Fintype.card G / orderOf a := by
+  exact (isPthPower_iff_orderOf_dvd_card_div hm a).trans
+    (orderOf_dvd_card_div_iff_dvd_orderDefect hm a)
 
 /-- Exact factorization of an element's order into its order in a quotient and
 the residual order after raising by that quotient order.  This is the abstract
@@ -9513,6 +9558,41 @@ end Z36SymbolicLevel
 section NormalizedSingerAlgebra
 
 variable {F : Type*} [Field F]
+
+/-- Dividing the oriented cyclic resolvent by the product of the three
+coordinates turns it into the trace of their successive ratios.  In the
+selected cubic tower the ratios are the three Frobenius conjugates of
+`eta_k`, so this identity identifies the old terminal orientation parameter
+with the preceding Singer coefficient. -/
+theorem orientedCyclicResolvent_div_eq_ratioTrace
+    (r₀ r₁ r₂ a : F)
+    (hr₀ : r₀ ≠ 0) (hr₁ : r₁ ≠ 0) (hr₂ : r₂ ≠ 0)
+    (ha : a = r₀ * r₁ * r₂) :
+    (r₀ ^ 2 * r₁ + r₁ ^ 2 * r₂ + r₂ ^ 2 * r₀) / a =
+      r₀ / r₂ + r₁ / r₀ + r₂ / r₁ := by
+  rw [ha]
+  field_simp
+
+/-- After the resolvent orientation is identified with the preceding Singer
+coordinate `e`, its two nonconstant coefficients have a denominator-free
+normal form.  This is the algebraic substitution used in the selected
+exceptional terminal cubic; it does not assert any multiplicative-order
+transfer between the two coprime tori. -/
+theorem exceptionalTerminal_coefficients_of_singer [CharP F 2]
+    (a e : F) (hSinger : a ^ 2 * (e ^ 2 + e + 1) = 1) :
+    a ^ 2 * e + a ^ 2 + 1 = a ^ 2 * e ^ 2 ∧
+      a ^ 2 * (a + 1) * e + a ^ 3 + a + 1 =
+        (a + 1) * (a ^ 2 * e ^ 2) + a ^ 2 := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hquadratic : a ^ 2 * e + a ^ 2 + 1 = a ^ 2 * e ^ 2 := by
+    calc
+      a ^ 2 * e + a ^ 2 + 1 =
+          a ^ 2 * e + a ^ 2 + a ^ 2 * (e ^ 2 + e + 1) := by rw [hSinger]
+      _ = a ^ 2 * e ^ 2 := by ring_nf; simp [htwo]
+  refine ⟨hquadratic, ?_⟩
+  rw [← hquadratic]
+  ring_nf
+  simp [htwo]
 
 /-- The rational trace coordinate on the cubic Singer locus.  For
 `x^(q+1) + x + 1 = 0`, this is the relative trace of `x` over the preceding

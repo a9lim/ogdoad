@@ -126,6 +126,8 @@ four-arm `Z/O/C/D` reduction, including:
   separation, and the Conway component-field induction remain a paper-level
   finite-field/index synthesis rather than a formalized end-to-end sieve;
 - the corrected characteristic-two sparse norm;
+- the exact finite-cyclic order-defect criterion: an `m`-th-power failure is
+  precisely an `m`-factor in the quotient of ambient order by selected order;
 - the exceptional cyclic-compression algebra: a vanishing three-block sum
   upgrades equal blocks to literal zero, the one-third Frobenius product
   collapses to a trinomial, and a known cubic phase converts the
@@ -143,7 +145,9 @@ four-arm `Z/O/C/D` reduction, including:
   fourth-power residual for an odd Fibonacci zero (which sharpens, but does
   not close, the Conway--Fermat target), and the characteristic-two Binet
   parametrization showing that the resulting inverse-Frobenius coordinate is
-  packet-universal rather than selector-sensitive;
+  packet-universal rather than selector-sensitive; this also includes the
+  Singer norm-triple power factorization and the identification of the old
+  exceptional cyclic orientation with the lower Singer trace coordinate;
 - weighted two-axis Frobenius-word normalization: all multiplicative
   reciprocity expressions in this model formed from one Kummer class remain
   rank one, regardless of Frobenius, character, and multiplicity indices;
