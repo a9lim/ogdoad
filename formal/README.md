@@ -127,18 +127,34 @@ four-arm `Z/O/C/D` reduction, including:
   reciprocity, reciprocal-minimal-polynomial step, power-basis coefficient
   separation, and the Conway component-field induction remain a paper-level
   finite-field/index synthesis rather than a formalized end-to-end sieve;
+- the selected cubic power-state recurrence and its zero-state residue-class
+  saturation are kernel-checked.  The exact conditional first-jet quotient,
+  the second-Hasse cancellation for `k >= 2`, and the automatic base-`q`
+  digit-gap boundary for `d > 1` are paper-level calculations in
+  `writeups/excess.tex`;
 - the corrected characteristic-two sparse norm;
 - the exact finite-cyclic order-defect criterion: an `m`-th-power failure is
   precisely an `m`-factor in the quotient of ambient order by selected order;
   the division-free `rough_defect_eq_prime` lemma also checks that a positive
-  `p`-rough defect below the packing threshold `p^2` is exactly `p`, the
-  arithmetic core of the ordinary least-counterexample one-primary regime;
+  `p`-rough defect below the packing threshold `p^2` is exactly `p`;
+  `rough_congruent_defect_eq_prime_or_square_dvd` strengthens this when all
+  prime divisors lie in one residue class, leaving below `p(p+M)` only the
+  exact defect `p` or a repeated factor `p^2`. These are the arithmetic cores
+  of the ordinary and Fermat least-counterexample congruence regimes;
 - the exceptional cyclic-compression algebra: a vanishing three-block sum
   upgrades equal blocks to literal zero, the one-third Frobenius product
   collapses to a trinomial, and a known cubic phase converts the
   complementary exponent `3*r` exactly to the parity-twisted exponent `r`;
   the explicit relative-norm evaluation of that phase and the resulting
   prime-complement nonvanishing remain paper-level calculations;
+- the exceptional Cayley coordinate is kernel-checked as the Möbius transform
+  of the selected real cubic coordinate; the polynomial cross-product behind
+  its scalar-corrected cubic coboundary, its numerator and denominator
+  three-factor products, and the conditional cyclic power-class invariances
+  are checked by the `ExceptionalCayleyCoboundary` declarations.  The
+  nonvanishing needed to divide those identities, the finite-field
+  specialization `Norm(V_k)=V_(k-1)^(-1)` for `k >= 2`, and the norm-fibre
+  Kummer-surjectivity no-go remain paper-level group/field synthesis;
 - the intermediate-field exceptional ratio-packing sieve is a paper-level
   finite-field/UFD/entropy synthesis: its explicit `F_4` factorization,
   persistence of quadratic irreducibility over the chosen intermediate

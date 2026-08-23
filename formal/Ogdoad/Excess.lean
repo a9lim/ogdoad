@@ -4286,6 +4286,82 @@ theorem rough_defect_eq_prime
     exact (not_lt_of_ge (hsq.trans hBD)) hsmall
   simp [hkone]
 
+/-- Distinct natural numbers in the same residue class are separated by at
+least the modulus.  This is the additive step behind the refined
+least-counterexample conductor sieve. -/
+theorem add_modulus_le_of_modEq_one_of_lt
+    (p q M : ℕ)
+    (hpM : p ≡ 1 [MOD M])
+    (hqM : q ≡ 1 [MOD M])
+    (hpq : p < q) :
+    p + M ≤ q := by
+  have hpqM : p ≡ q [MOD M] := hpM.trans hqM.symm
+  have hdiv : M ∣ q - p :=
+    (Nat.modEq_iff_dvd' hpq.le).mp hpqM
+  have hMle : M ≤ q - p :=
+    Nat.le_of_dvd (Nat.sub_pos_of_lt hpq) hdiv
+  omega
+
+/-- A positive defect containing `p`, whose other prime factors are either
+another copy of `p` or at least `p+M`, is exactly `p` below the latter
+threshold unless it contains `p²`.  This division-free form applies to both
+the Fermat and odd-cyclotomic least-counterexample sieves. -/
+theorem rough_gap_defect_eq_prime_or_square_dvd
+    (B N D p M : ℕ)
+    (hDpos : 0 < D)
+    (hpD : p ∣ D)
+    (hgap : ∀ q, q.Prime → q ∣ D → q ≠ p → p + M ≤ q)
+    (hBD : B * D ≤ N)
+    (hsmall : N < B * (p * (p + M))) :
+    D = p ∨ p ^ 2 ∣ D := by
+  by_cases hsq : p ^ 2 ∣ D
+  · exact Or.inr hsq
+  · left
+    obtain ⟨k, rfl⟩ := hpD
+    have hkpos : 0 < k := by
+      by_contra hk
+      have hkzero : k = 0 := Nat.eq_zero_of_not_pos hk
+      subst k
+      simp at hDpos
+    have hkone : k = 1 := by
+      by_contra hk
+      obtain ⟨q, hqprime, hqk⟩ := Nat.exists_prime_and_dvd hk
+      have hqD : q ∣ p * k := dvd_mul_of_dvd_right hqk p
+      have hqne : q ≠ p := by
+        intro hqp
+        subst q
+        apply hsq
+        rw [pow_two]
+        exact Nat.mul_dvd_mul_left p hqk
+      have hpMq : p + M ≤ q := hgap q hqprime hqD hqne
+      have hqk_le : q ≤ k := Nat.le_of_dvd hkpos hqk
+      have hpk : p + M ≤ k := hpMq.trans hqk_le
+      have hlarge : B * (p * (p + M)) ≤ B * (p * k) := by
+        exact Nat.mul_le_mul_left B (Nat.mul_le_mul_left p hpk)
+      exact (not_lt_of_ge (hlarge.trans hBD)) hsmall
+    simp [hkone]
+
+/-- Congruence form of `rough_gap_defect_eq_prime_or_square_dvd`: if every
+prime divisor of the defect is at least `p` and congruent to `1` modulo `M`,
+then a distinct second divisor is automatically at least `p+M`. -/
+theorem rough_congruent_defect_eq_prime_or_square_dvd
+    (B N D p M : ℕ)
+    (hDpos : 0 < D)
+    (hp : p.Prime)
+    (hpD : p ∣ D)
+    (hrough : ∀ q, q.Prime → q ∣ D → p ≤ q)
+    (hcongr : ∀ q, q.Prime → q ∣ D → q ≡ 1 [MOD M])
+    (hBD : B * D ≤ N)
+    (hsmall : N < B * (p * (p + M))) :
+    D = p ∨ p ^ 2 ∣ D := by
+  apply rough_gap_defect_eq_prime_or_square_dvd
+      B N D p M hDpos hpD _ hBD hsmall
+  intro q hqprime hqD hqne
+  have hpq : p ≤ q := hrough q hqprime hqD
+  have hpqlt : p < q := lt_of_le_of_ne hpq (Ne.symm hqne)
+  exact add_modulus_le_of_modEq_one_of_lt p q M
+    (hcongr p hp hpD) (hcongr q hqprime hqD) hpqlt
+
 end FermatPacketGapCore
 
 section FermatPacketTotientSaturation
@@ -10543,6 +10619,205 @@ theorem exceptional_quartic_norm (x a : R) (hx : x ^ 3 = a) :
       simp [h3]
 
 end DQuarticCoset
+
+section ExceptionalCayleyCoboundary
+
+variable {K : Type*} [Field K] [CharP K 2]
+
+/-- Numerator of the exceptional Cayley coordinate. -/
+def exceptionalCayleyNum (z omega : K) : K :=
+  z ^ 2 + omega ^ 2 * z + 1
+
+/-- Denominator of the exceptional Cayley coordinate. -/
+def exceptionalCayleyDen (z omega : K) : K :=
+  z ^ 2 + omega * z + 1
+
+/-- The Möbius companion of the selected real cubic coordinate. -/
+def exceptionalCayley (z omega : K) : K :=
+  exceptionalCayleyNum z omega / exceptionalCayleyDen z omega
+
+omit [CharP K 2] in
+/-- Dividing the quadratic Cayley coordinate by `z` identifies it with the
+Möbius transform of the real trace `z + z⁻¹`. -/
+theorem exceptionalCayley_eq_traceMobius
+    (z omega : K)
+    (hz : z ≠ 0) :
+    exceptionalCayley z omega =
+      (z + z⁻¹ + omega ^ 2) / (z + z⁻¹ + omega) := by
+  simp only [exceptionalCayley, exceptionalCayleyNum,
+    exceptionalCayleyDen]
+  have hnum : z ^ 2 + omega ^ 2 * z + 1 =
+      z * (z + z⁻¹ + omega ^ 2) := by
+    field_simp [hz]
+    ring
+  have hden : z ^ 2 + omega * z + 1 =
+      z * (z + z⁻¹ + omega) := by
+    field_simp [hz]
+    ring
+  rw [hnum, hden]
+  exact mul_div_mul_left _ _ hz
+
+/-- Polynomial cross-product behind the exceptional cubic coboundary.  If
+`sigma(z)=omega*z`, division by the four nonzero denominator factors gives
+`sigma(V)/V=omega^2*P`, where `V` is `exceptionalCayley` and `P` is the
+normalized quartic ratio used in arm D. -/
+theorem exceptional_cayley_coboundary_cross
+    (z omega : K)
+    (homega : omega ^ 2 + omega + 1 = 0) :
+    exceptionalCayleyNum (omega * z) omega *
+        exceptionalCayleyDen z omega *
+        (1 + z ^ 3 + omega ^ 2 * z ^ 4) =
+      omega ^ 2 * exceptionalCayleyDen (omega * z) omega *
+        exceptionalCayleyNum z omega *
+        (z ^ 4 + z + omega) := by
+  have htwo : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  have hthree : (3 : K) = 1 := by
+    calc
+      (3 : K) = 2 + 1 := by norm_num
+      _ = 1 := by rw [htwo]; simp
+  have hfour : (4 : K) = 0 := by
+    calc
+      (4 : K) = 2 + 2 := by norm_num
+      _ = 0 := by rw [htwo]; simp
+  have homega2 : omega ^ 2 = omega + 1 := by
+    linear_combination homega - (omega + 1) * htwo
+  have homega3 : omega ^ 3 = 1 := by
+    calc
+      omega ^ 3 = omega * omega ^ 2 := by ring
+      _ = omega * (omega + 1) := by rw [homega2]
+      _ = 1 := by linear_combination homega - htwo
+  have homega4 : omega ^ 4 = omega := by
+    rw [show omega ^ 4 = omega * omega ^ 3 by ring, homega3, mul_one]
+  have homega5 : omega ^ 5 = omega ^ 2 := by
+    rw [show omega ^ 5 = omega ^ 2 * omega ^ 3 by ring, homega3, mul_one]
+  have homega6 : omega ^ 6 = 1 := by rw [show omega ^ 6 = (omega ^ 3) ^ 2 by ring, homega3, one_pow]
+  have homega7 : omega ^ 7 = omega := by
+    rw [show omega ^ 7 = omega * omega ^ 6 by ring, homega6, mul_one]
+  simp only [exceptionalCayleyNum, exceptionalCayleyDen]
+  ring_nf
+  simp [htwo, homega2, homega3, homega4, homega5, homega6, homega7]
+  ring_nf
+  simp [htwo, hthree, hfour]
+
+/-- The numerator of the Cayley coordinate has the displayed cubic relative
+norm under `z ↦ omega*z`. -/
+theorem exceptionalCayleyNum_cubic_product
+    (z omega : K)
+    (homega : omega ^ 2 + omega + 1 = 0) :
+    exceptionalCayleyNum z omega *
+        exceptionalCayleyNum (omega * z) omega *
+        exceptionalCayleyNum (omega ^ 2 * z) omega =
+      z ^ 6 + omega * z ^ 3 + 1 := by
+  have htwo : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  have hfour : (4 : K) = 0 := by
+    calc
+      (4 : K) = 2 + 2 := by norm_num
+      _ = 0 := by rw [htwo]; simp
+  have homega2 : omega ^ 2 = omega + 1 := by
+    linear_combination homega - (omega + 1) * htwo
+  have homega3 : omega ^ 3 = 1 := by
+    calc
+      omega ^ 3 = omega * omega ^ 2 := by ring
+      _ = omega * (omega + 1) := by rw [homega2]
+      _ = 1 := by linear_combination homega - htwo
+  have homega4 : omega ^ 4 = omega := by
+    rw [show omega ^ 4 = omega * omega ^ 3 by ring, homega3, mul_one]
+  have homega5 : omega ^ 5 = omega ^ 2 := by
+    rw [show omega ^ 5 = omega ^ 2 * omega ^ 3 by ring, homega3, mul_one]
+  have homega6 : omega ^ 6 = 1 := by
+    rw [show omega ^ 6 = (omega ^ 3) ^ 2 by ring, homega3, one_pow]
+  have homega7 : omega ^ 7 = omega := by
+    rw [show omega ^ 7 = omega * omega ^ 6 by ring, homega6, mul_one]
+  have homega8 : omega ^ 8 = omega ^ 2 := by
+    rw [show omega ^ 8 = omega ^ 2 * omega ^ 6 by ring, homega6, mul_one]
+  have homega9 : omega ^ 9 = 1 := by
+    rw [show omega ^ 9 = (omega ^ 3) ^ 3 by ring, homega3, one_pow]
+  simp only [exceptionalCayleyNum]
+  ring_nf
+  simp [htwo, homega2, homega3, homega4, homega5, homega6,
+    homega7, homega8, homega9]
+  ring_nf
+  simp [htwo, hfour]
+
+/-- The denominator has the conjugate cubic relative norm. -/
+theorem exceptionalCayleyDen_cubic_product
+    (z omega : K)
+    (homega : omega ^ 2 + omega + 1 = 0) :
+    exceptionalCayleyDen z omega *
+        exceptionalCayleyDen (omega * z) omega *
+        exceptionalCayleyDen (omega ^ 2 * z) omega =
+      z ^ 6 + omega ^ 2 * z ^ 3 + 1 := by
+  have htwo : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  have hfour : (4 : K) = 0 := by
+    calc
+      (4 : K) = 2 + 2 := by norm_num
+      _ = 0 := by rw [htwo]; simp
+  have homega2 : omega ^ 2 = omega + 1 := by
+    linear_combination homega - (omega + 1) * htwo
+  have homega3 : omega ^ 3 = 1 := by
+    calc
+      omega ^ 3 = omega * omega ^ 2 := by ring
+      _ = omega * (omega + 1) := by rw [homega2]
+      _ = 1 := by linear_combination homega - htwo
+  have homega4 : omega ^ 4 = omega := by
+    rw [show omega ^ 4 = omega * omega ^ 3 by ring, homega3, mul_one]
+  have homega5 : omega ^ 5 = omega ^ 2 := by
+    rw [show omega ^ 5 = omega ^ 2 * omega ^ 3 by ring, homega3, mul_one]
+  have homega6 : omega ^ 6 = 1 := by
+    rw [show omega ^ 6 = (omega ^ 3) ^ 2 by ring, homega3, one_pow]
+  have homega7 : omega ^ 7 = omega := by
+    rw [show omega ^ 7 = omega * omega ^ 6 by ring, homega6, mul_one]
+  simp only [exceptionalCayleyDen]
+  ring_nf
+  simp [htwo, homega2, homega3, homega4, homega5, homega6, homega7]
+  ring_nf
+  simp [htwo, hfour]
+
+/-- Group-theoretic Kummer consequence of the coboundary identity.  If the
+relative Frobenius acts as the `A`-th power and `ell` is coprime to `A-1`,
+then its coboundary has the same `ell`-power class as the original Cayley
+coordinate. -/
+theorem exceptional_coboundary_isPthPower_iff
+    {G : Type*} [CommGroup G] [Fintype G] [IsCyclic G]
+    (V P : G) (ell A : ℕ)
+    (hell : ell ∣ Fintype.card G)
+    (hcop : ell.Coprime (A - 1))
+    (hP : P = V ^ (A - 1)) :
+    IsPthPower ell P ↔ IsPthPower ell V := by
+  rw [hP]
+  exact isPthPower_pow_iff_of_coprime hell hcop V
+
+/-- Multiplication by a known `ell`-th power does not change an
+`ell`-power class. -/
+theorem isPthPower_mul_iff_of_isPthPower
+    {G : Type*} [CommGroup G]
+    (ell : ℕ) (c a : G)
+    (hc : IsPthPower ell c) :
+    IsPthPower ell (c * a) ↔ IsPthPower ell a := by
+  obtain ⟨x, rfl⟩ := hc
+  constructor
+  · rintro ⟨y, hy⟩
+    refine ⟨x⁻¹ * y, ?_⟩
+    rw [mul_pow, inv_pow, hy]
+    simp
+  · rintro ⟨y, rfl⟩
+    exact ⟨x * y, mul_pow x y ell⟩
+
+/-- Scalar-corrected form used by the exceptional arm: if
+`P = c*V^(A-1)` and the fixed scalar `c` is already an `ell`-th power, then
+`P` and `V` have the same `ell`-power status. -/
+theorem exceptional_scaled_coboundary_isPthPower_iff
+    {G : Type*} [CommGroup G] [Fintype G] [IsCyclic G]
+    (V P c : G) (ell A : ℕ)
+    (hell : ell ∣ Fintype.card G)
+    (hcop : ell.Coprime (A - 1))
+    (hc : IsPthPower ell c)
+    (hP : P = c * V ^ (A - 1)) :
+    IsPthPower ell P ↔ IsPthPower ell V := by
+  rw [hP, isPthPower_mul_iff_of_isPthPower ell c _ hc]
+  exact isPthPower_pow_iff_of_coprime hell hcop V
+
+end ExceptionalCayleyCoboundary
 
 section AdjacentHilbert
 

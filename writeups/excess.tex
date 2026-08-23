@@ -43,14 +43,15 @@ recursion and a packet-degree defect bound, identifies the ordinary Artin
 symbol, proves least-counterexample one-primary regimes in the Fermat and
 ordinary arms, the cubic Singer recursion, a partition selected-order bound,
 and a sharp first-relation threshold with a single reciprocal section and an
-exact power-state composition saturation theorem,
+exact power-state composition saturation theorem and transverse first-jet
+boundary,
 classifies the selected top-orbit elliptic $S$-unit lattice,
 proves an ordinary section sieve and an unconditional Kummer-ratio
 selected-order bound,
 and gives the exceptional Capelli
 criterion, a primitive-only palindromicity test, a one-third Frobenius
-compression, an intermediate-field packing sieve, and a level-dependent
-translate bound.  The compression proves the exceptional arm whenever its
+compression, a Cayley-coordinate norm boundary, an intermediate-field packing
+sieve, and a level-dependent translate bound.  The compression proves the exceptional arm whenever its
 current cyclotomic quotient is prime, and the packing sieve proves a selected
 composite large-factor range, while the remaining composite levels stay open.
 A final reciprocity theorem
@@ -115,12 +116,12 @@ saturation boundary of Proposition~\ref{prop:z-prym-boundary}, the selected
 top-orbit $S$-unit reduction of
 Proposition~\ref{prop:z-top-orbit-units},
 selected Singer and partition bounds of Propositions~\ref{prop:sieve}
-and~\ref{prop:c-partition}, the cubic first-relation theorem
-and power-state and marked-projective obstructions of
-Propositions~\ref{prop:c-first-relation}, \ref{prop:c-composition}, and
-\ref{prop:c-projective}, and the exceptional compression
-and packing and translate bounds of
-Propositions~\ref{prop:d-one-third}, \ref{prop:d-packing},
+and~\ref{prop:c-partition}, the cubic first-relation, power-state composition,
+first-jet, and marked-projective obstructions of
+Propositions~\ref{prop:c-first-relation}, \ref{prop:c-composition},
+\ref{prop:c-first-jet}, and~\ref{prop:c-projective}, and the exceptional
+compression, packing, and translate bounds of
+Propositions~\ref{prop:d-one-third}, \ref{prop:d-cayley}, \ref{prop:d-packing},
 and~\ref{prop:d-bound} are proved here.
 Corollary~\ref{cor:o-large-factor} settles the ordinary large-factor case,
 Proposition~\ref{prop:o-reciprocal} doubles its degree range whenever the
@@ -442,17 +443,37 @@ For every $n\geq0$ one has
 \[
  \varphi(\delta_n)\geq2^{n+1}.
 \]
+For $n\geq2$ the sharper bound is
+\[
+ \varphi(\delta_n)\geq2^{n+2}.
+\]
 If a prime $p\mid F_n$ is absent from the selected order at its full
 valuation, then
 \[
  p\leq1+2^{2^n-n-1}.
+\]
+For $n\geq2$ this improves to
+\[
+ p\leq1+2^{2^n-n-2}.
 \]
 \end{proposition}
 
 \begin{proof}
 The packet $C_{\delta_n}$ has degree $\varphi(\delta_n)/2$, while it
 contains the selected minimal polynomial of $a_{n-1}$, of degree $2^n$.
-This proves the first inequality.  Write
+This proves the first inequality.  Put $H=2^{n+1}$.  If $n\geq2$, choose a
+prime $q\mid\delta_n$; such a prime exists because the first inequality
+makes $\delta_n>1$.  Since $q\mid F_n$, the order of $2$ modulo $q$ is
+exactly $H$.  Thus $q-1=kH$ for some $k$.  Moreover $q\equiv1\pmod8$, so
+the supplementary law for $2$ and Euler's criterion give
+\[
+ 1=2^{(q-1)/2}=\bigl(2^{H/2}\bigr)^k=(-1)^k\pmod q.
+\]
+Consequently $k$ is even, every prime divisor of $F_n$ is congruent to
+$1$ modulo $2H=2^{n+2}$, and
+$\varphi(\delta_n)\geq\varphi(q)=q-1\geq2^{n+2}$.
+
+Write
 $a=v_p(F_n)$ and $b=v_p(\delta_n)<a$.  Since $\delta_n\mid F_n$, the ratio
 \[
  \frac{\varphi(F_n)}{\varphi(\delta_n)}
@@ -466,25 +487,40 @@ at least $p-1$.  Hence
  \leq F_n-1=2^{2^n},
 \]
 which is the asserted bound.
+Replacing $2^{n+1}$ by the sharper lower bound $2^{n+2}$ gives the final
+claim when $n\geq2$.
 \end{proof}
 
-There is a useful least-counterexample sharpening of this bound.  It does
-not identify the missing packet, but it shows that two simultaneous losses
-are impossible in a substantial range.
+There is a useful least-counterexample sharpening of this bound.  Congruence
+spacing separates a repeated missing coordinate from every genuinely
+compound defect.
 
-\begin{corollary}[minimal-counterexample one-packet regime]
+\begin{corollary}[minimal-counterexample Fermat congruence regimes]
 \label{cor:z-one-packet}
 Suppose that $p$ is the least odd prime at which the $0/1/4$ rule fails and
 that its putative failure lies in the Conway--Fermat part of arm~$Z$ at
-level $n$.  Put $D=F_n/\delta_n$.  Every prime divisor of $D$ is at least
-$p$, and
+level $n\geq2$.  Put
 \[
- \varphi(F_n)<2^{n+1}(p-1)^2
+ M=2^{n+2},\qquad D=F_n/\delta_n,
+ \qquad
+ A_{<p}=\prod_{\substack{q<p\\q\mid F_n}}q^{v_q(F_n)},
+ \qquad G=\max\{M,\varphi(A_{<p})\}.
+\]
+Every prime divisor of $D$ is at least $p$ and is congruent to $1$ modulo
+$M$.  Moreover
+\[
+ \varphi(F_n)<G p(p-1)
  \quad\Longrightarrow\quad
  D=p.
 \]
-Thus in this range a least failure can lose exactly one copy of its own
-$p$-coordinate and no other conductor coordinate.
+In the larger range
+\[
+ \varphi(F_n)<G(p-1)(p+M-1)
+ \quad\Longrightarrow\quad
+ D=p\quad\hbox{or}\quad p^2\mid D.
+\]
+If $v_p(F_n)=1$, the second alternative is impossible and the conclusion
+in the larger range is again $D=p$.
 \end{corollary}
 
 \begin{proof}
@@ -492,19 +528,30 @@ Every prime $q\mid D$ is a missing coordinate at the same residue degree.
 If $q<p$, the row at $q$ would already violate the rule, contrary to
 minimality.  Hence $D$ is $p$-rough and $p\mid D$.
 
-Put $t=\varphi(F_n)/\varphi(\delta_n)$.  If $D\ne p$, the prime-by-prime
-factorization of the totient quotient has at least two missing prime
-factors counted with multiplicity.  Two distinct missing primes contribute
-local factors at least $p-1$ each.  If instead at least two copies of $p$
-are missing, its local factor is at least $p(p-1)$ when $p$ remains in
-$\delta_n$, and at least $p^{a-1}(p-1)$ with $a\ge2$ when it does not.
-In every case
+The proof of Proposition~\ref{prop:z-packet-degree} shows that every prime
+divisor of $F_n$ is $1$ modulo $M$.  Least-prime minimality also forces the
+full $q$-primary part of $F_n$ into $\delta_n$ for every $q<p$.  Hence
+$A_{<p}\mid\delta_n$, so
 \[
- t\ge(p-1)^2.
+ G\leq\varphi(\delta_n).
 \]
-Proposition~\ref{prop:z-packet-degree} gives
-$\varphi(\delta_n)\ge2^{n+1}$, so $D\ne p$ would force
-$\varphi(F_n)\ge2^{n+1}(p-1)^2$, the contrapositive of the assertion.
+
+Put $t=\varphi(F_n)/\varphi(\delta_n)$.  If $D\ne p$, the prime-by-prime
+factorization of the totient quotient has either a repeated missing
+$p$-factor or a distinct missing prime $q>p$.  In the repeated case its
+local factor is at least $p(p-1)$.  In the distinct case congruence spacing
+gives $q\geq p+M$, and the two local factors give
+\[
+ t\geq(p-1)(q-1)\geq(p-1)(p+M-1)\geq p(p-1).
+\]
+Multiplication by $\varphi(\delta_n)\geq G$ proves the first implication.
+The larger strict bound excludes the distinct-prime case and leaves only
+$D=p$ or $p^2\mid D$.  The valuation-one assertion is immediate.
+
+The square survivor is a precise classical boundary: $p^2\mid F_n$ implies
+$2^{p-1}\equiv1\pmod {p^2}$, so $p$ is a base-$2$ Wieferich prime.  Thus
+the congruence sieve isolates, rather than silently assumes, the unresolved
+repeated-factor obstruction.
 \end{proof}
 
 The literal multiplication operator retains that selector in a compact
@@ -1759,7 +1806,7 @@ order dividing $d=N/p$, so $o\mid d$; this proves the stated deficient bound
 and its contrapositive.
 \end{proof}
 
-\begin{corollary}[minimal-counterexample one-primary regime]
+\begin{corollary}[minimal-counterexample congruence-gap regime]
 \label{cor:o-one-primary}
 Suppose that $p$ is the least odd prime at which the $0/1/4$ rule fails and
 that its putative failure lies in arm~$O$ at $(r,a,p)$, so $r\ne3$.
@@ -1773,29 +1820,51 @@ $\Delta^{(r')}$ be the prime-to-$r$ part of $\Delta$.  Put
  -\mathcal R\left(r^{a-1}(r-1),\frac{r-1}{2}\right)
  \right]\right\rceil.
 \]
-Then every prime divisor of $\Delta^{(r')}$ is at least $p$, and
+Put
 \[
- N<B_{r,a}p^2
+ M=2r^a,\qquad
+ A_{<p}=\prod_{\substack{q<p,\ q\ne r\\q\mid N}}q^{v_q(N)},
+ \qquad B_*=\max\{B_{r,a},A_{<p}\}.
+\]
+Then every prime divisor of $\Delta^{(r')}$ is at least $p$ and is
+congruent to $1$ modulo $M$, and
+\[
+ N<B_*p^2
  \quad\Longrightarrow\quad
  \Delta^{(r')}=p.
 \]
-In particular, in this range the only non-source defect is the loss of one
-$p$-adic order factor.
+In the larger range
+\[
+ N<B_*p(p+M)
+ \quad\Longrightarrow\quad
+ \Delta^{(r')}=p\quad\hbox{or}\quad p^2\mid\Delta^{(r')}.
+\]
+If $v_p(N)=1$, the second alternative is impossible.
 \end{corollary}
 
 \begin{proof}
 The deficient $p$-coordinate gives $p\mid\Delta^{(r')}$.  If a prime
 $q<p$, $q\ne r$, divided $\Delta$, then $q\mid L_{r,a}$ would be another
 eligible arm-$O$ row with deficient $q$-valuation, contradicting the
-minimality of $p$.  Thus $\Delta^{(r')}$ is $p$-rough.  The unconditional
-part of Proposition~\ref{prop:o-ratio-packing} gives $B_{r,a}\le o$, and
-hence
+minimality of $p$.  Thus $\Delta^{(r')}$ is $p$-rough.  For every such
+prime $q\ne r$, the cyclotomic divisor theorem gives
+$\operatorname{ord}_q(2^{b_r})=r^a$.  Since $q$ is odd and $r^a$ is odd,
+this implies $q\equiv1\pmod {2r^a}$.
+
+The unconditional part of Proposition~\ref{prop:o-ratio-packing} gives
+$B_{r,a}\le o$.  Minimality also forces the full $q$-primary part of $N$
+into $o$ for every $q<p$, $q\ne r$, so $A_{<p}\mid o$ and therefore
+$B_*\le o$.  Hence
 \[
- B_{r,a}\Delta^{(r')}\le B_{r,a}\Delta\le o\Delta=N.
+ B_*\Delta^{(r')}\le B_*\Delta\le o\Delta=N.
 \]
 If $\Delta^{(r')}\ne p$, its quotient by $p$ has a prime divisor at least
-$p$, so $\Delta^{(r')}\ge p^2$, contradicting the displayed strict
-inequality.
+$p$, proving the first implication.  If $p^2\nmid\Delta^{(r')}$, that prime
+is distinct from $p$ and congruence spacing makes it at least $p+M$; hence
+$\Delta^{(r')}\ge p(p+M)$.  This proves the second implication and the
+valuation-one conclusion.  A surviving square factor similarly makes $p$
+a base-$2^{b_r}$ Wieferich prime, since $r^a\mid p-1$ and
+$(2^{b_r})^{r^a}\equiv1\pmod {p^2}$.
 \end{proof}
 
 Let $N_a=\operatorname{ord}(x_a)$.  The Kummer relation
@@ -2437,6 +2506,133 @@ Finally, for $H=1$ the recurrence gives
 $\mathcal T_1=1$ and $\mathcal T_7=Y^2+Y+1=G$.
 \end{proof}
 
+The first infinitesimal neighborhood of the selected factor is also exact.
+It does not contradict failure; instead it shows that any failure is
+transverse and recovers the unique Kummer preimage already forced by the
+projective equation.
+
+\begin{proposition}[selected cubic first-jet transversality]
+\label{prop:c-first-jet}
+Use the notation of Proposition~\ref{prop:c-composition}.  Specialize to
+$k\geq1$, $h=3^k$, and $H=3^{k-1}$, let $y$ be the selected primitive
+$h$-th root whose minimal polynomial over $\mathbb F_2$ is
+$G(Y)=Y^{2H}+Y^H+1$, and put
+\[
+ q=2^H,\qquad N=q^2+q+1,\qquad e=\frac{q+1}{3},
+\]
+and let $\ell\mid N$ be prime, with
+$d=N/\ell$ and $s=(\ell-1)/3$.  Choose $w^3=y$, and put
+$a=1+w$ and $c=1+y$.  Then
+\[
+ \mathcal T_N(Y)=1+Y^e+Y^{qe},
+ \qquad \mathcal T_N'(y)=y^{e-1}\ne0.
+\]
+
+Suppose hypothetically that $G\mid\mathcal T_d$, and write
+$\mathcal T_d=GQ_d$.  There is a unique $\lambda$ with
+$a^d=w^2\lambda$, necessarily with $\lambda\in K^\times$, and it is
+forced to be
+\[
+ \lambda=\frac{y^{e-1}}{c^{ds-1}}.
+\]
+Moreover,
+\[
+ \mathcal T_d'(y)=\frac{y^{e-1}}{c^{ds}}\ne0,
+ \qquad Q_d(y)=c^{-ds}.
+\]
+In particular $G^2\nmid\mathcal T_d$.  Equivalently, in the quotient by
+$G^2$ one has the exact first-order lift
+\[
+ \mathcal T_d(Y)\equiv
+ G(Y)(1+Y)^{-ds}\pmod {G(Y)^2},
+\]
+where the negative power denotes the inverse of the unit $1+Y$ in that
+quotient.
+\end{proposition}
+
+\begin{proof}
+Lucas projection of
+\[
+ (1+X)^N=(1+X)(1+X^q)(1+X^{q^2})
+\]
+onto exponents divisible by three gives the displayed formula for
+$\mathcal T_N$.  The integer $e$ is odd and $qe$ is even, so its derivative
+at $y$ is $y^{e-1}$.
+
+Under the hypothetical zero state, the reciprocal-section argument in
+Proposition~\ref{prop:c-composition} puts $a^d$ in $w^2K$, giving the unique
+$\lambda$.  In the generic cubic algebra $w^3=Y$, formal differentiation
+gives $dw/dY=w^{-2}$.  Hence
+\[
+ \mathcal T_d'(y)
+ =\operatorname{Tr}_{L/K}(a^{d-1}w^{-2})
+ =\lambda\operatorname{Tr}_{L/K}(a^{-1})
+ =\frac{\lambda}{c}.
+\]
+
+Since $\ell=3s+1$ and $\ell$ is odd, $s$ is even.  The universal cubic
+power sum has linearization
+\[
+ D_\ell(A,B,C)=AC^s+O((A,B)^2).
+\]
+Differentiate the composition identity
+$\mathcal T_N=D_\ell(A_d,B_d,c^d)$ at the zero state.  This gives
+\[
+ y^{e-1}=c^{ds}\mathcal T_d'(y),
+\]
+which proves both formulas for $\lambda$ and $\mathcal T_d'(y)$.  Since
+$G'(y)=y^{H-1}$ and $e\equiv H\pmod h$, differentiating
+$\mathcal T_d=GQ_d$ at $y$ gives $Q_d(y)=c^{-ds}$.  The nonvanishing and
+the congruence modulo $G^2$ follow.
+\end{proof}
+
+For $k\geq2$, the next Hasse jet also saturates.  If
+$\epsilon_m=\binom m2\bmod2$, direct differentiation under the same
+hypothetical failure gives
+\[
+ \mathcal T_d^{[2]}(y)=\frac{\lambda}{yc}
+       +\epsilon_d\frac{\lambda}{c^2},
+ \qquad B_d'(y)=\frac{y\lambda^2}{c},
+\]
+while
+\[
+ D_\ell(A,B,C)=AC^s+\epsilon_\ell B^2C^{s-1}
+                 +O((A,B)^3).
+\]
+Because $N\equiv1\pmod4$ and $d\ell=N$, one has
+$d\equiv\ell\pmod4$ and hence
+$\epsilon_d=\epsilon_\ell$.  The two quadratic terms cancel using
+$\lambda^3=c^d/y^2$, leaving exactly
+$\mathcal T_N^{[2]}(y)=y^{e-2}$.  Thus neither the ordinary derivative nor
+the second Hasse derivative supplies a character contradiction.
+
+The two-base-$q$-digit degree route is arithmetically vacuous as well.  Write
+$d=Aq+B$ with $0\leq B<q$.  Every current quotient satisfies
+\[
+ B>A,\qquad B-A\equiv1\pmod h,
+ \qquad d>1\Longrightarrow B-A\geq h+1\text{ and }B\geq h+2.
+\]
+Indeed every prime factor of $d$ is $1$ modulo $2h$, while
+$q\equiv h-1\pmod {2h}$; hence $d\equiv1\pmod {2h}$ and
+$B-A\equiv1\pmod h$.  Also $d\mid N$ gives
+$d\mid A+q(A-B)$.  Here $d<q^2$ gives $A<q$, while oddness of $d$ gives
+odd $B\geq1$.  If $A\geq B$, then
+$0<A+q(A-B)<Aq+B=d$, a contradiction.  Thus $B>A$.  If $d>1$ and
+$B-A=1$, then $A\geq1$, and the same divisibility gives $d\mid q-A$ with
+$0<q-A<d$, again a contradiction.  Meanwhile the failure
+equation gives the nonzero polynomial
+\[
+ \mathcal Q(X)=(X+1)^B+
+  \omega^{B+1}(X+\omega)^A(X+\omega^2)^{B-A},
+ \qquad \mathcal Q(w)=0.
+\]
+Its exponent span is $B$ unless $A\equiv1\pmod3$, when it is $B-2$.
+Divisibility by the degree-$h$ selected factor therefore requires only
+$B\geq h$ or $B\geq h+2$, respectively.  The digit span excludes the
+already-settled $d=1$ prime-complement case directly; for every nontrivial
+current quotient $d>1$, the quotient arithmetic already gives the stronger
+bound in both cases.
+
 Thus every current $\ell\equiv1\pmod3$ carries a hypothetical deficient
 $d$-state to the forced $N=d\ell$ state.  In the finite-field specialization
 used below, $K=\mathbb F_{q^2}$ and $L=\mathbb F_{q^6}$.  The relevant cyclic
@@ -2963,6 +3159,120 @@ shows $P\ne\omega^2$.  Indeed $z$ has order $3h\ge27$, so neither $z$ nor
 $z^3$ can equal the displayed cube root of unity.  Thus
 $P\ne\varepsilon_k$, as required.  The only earlier level has
 $\Psi_1=1$ and no current prime.
+\end{proof}
+
+The normalized phase has a substantially simpler Kummer representative.  It
+also has an exact cubic ancestry law, although that law is provably blind to
+the newly born primary coordinate.
+
+\begin{proposition}[exceptional Cayley coboundary and norm boundary]
+\label{prop:d-cayley}
+Assume $k\geq2$, retain the notation of
+Proposition~\ref{prop:d-one-third}, and put
+\[
+ V_k=\frac{z^2+\omega^2z+1}{z^2+\omega z+1}
+     =\frac{\gamma_k+\omega^2}{\gamma_k+\omega}.
+\]
+Put also $U=\varepsilon_k^{-1}P$.
+For every prime $\ell\mid\Psi_k$, the elements $M_k$, $P$, $U$, and $V_k$
+have the same $\ell$-power/nonpower status.  Equivalently, arm~$D$ is the
+assertion that $V_k$ retains the full current $\Psi_k$-primary order.
+
+Under the relative cubic norm
+\[
+ \operatorname N_k:\mathbb F_4(z)^\times
+       \longrightarrow\mathbb F_4(z^3)^\times
+\]
+one has
+\[
+ \operatorname N_k(V_k)=V_{k-1}^{-1}.
+\]
+Thus the elements
+\[
+ E_k=\begin{cases}V_k,&k\text{ even},\\V_k^{-1},&k\text{ odd}
+ \end{cases}
+\]
+are norm coherent.  Nevertheless, at the birth level of every current
+$\ell$, every fibre of $\operatorname N_k$ contains both $\ell$-th powers
+and non-$\ell$-th powers.  Hence this complete norm ancestry does not
+determine the selected $\ell$-symbol.
+\end{proposition}
+
+\begin{proof}
+Put $H=3^{k-1}$ and $Q=2^H$.  The relative Frobenius
+$\sigma:x\mapsto x^{Q^2}$ fixes $\mathbb F_4(z^3)$ and satisfies
+$\sigma(z)=\omega z$, because $Q^2\equiv h+1\pmod {3h}$.  All divisions
+below are legitimate.  The roots of either quadratic defining $V_k$ lie in
+$\mathbb F_{16}^{\times}$ and therefore have order dividing $15$, whereas
+each of $z$, $\omega z$, and $\omega^2z$ has order $3h\geq27$; the ratio
+defining $P$ is a ratio of the nonzero elements $\iota(\mathcal B)$ and
+$\mathcal B$.  Direct factorization gives
+\[
+ \frac{\sigma(V_k)}{V_k}=\omega^2P,
+ \qquad\text{or equivalently}\qquad
+ P=\omega V_k^{Q^2-1}.
+\]
+The scalar is essential in this literal equality.  For a current $\ell$,
+$\operatorname{ord}_\ell(Q^2)=3$, so
+$\gcd(\ell,Q^2-1)=1$.  Also $\ell\equiv1\pmod3$, and hence
+$\omega=\omega^\ell$ is itself an $\ell$-th power.  Raising by
+$Q^2-1$ acts invertibly on the $\ell$-Kummer quotient, so it preserves
+power/nonpower status and the generated $\ell$-primary subgroup.  Finally
+$P=M_k^{Q+1}$, and $Q$ has order six modulo $\ell$, so
+$\gcd(\ell,Q+1)=1$.  Also
+$U=\varepsilon_k^{-1}P$ with
+$\varepsilon_k\in\{1,\omega^2\}$, and
+$\varepsilon_k=\varepsilon_k^\ell$ is an $\ell$-th power.  This proves all
+four power/nonpower equivalences.  The equality with
+the Möbius transform of $\gamma_k=z+z^{-1}$ follows after dividing the
+quadratics by $z$.
+
+For the norm recurrence, direct multiplication in
+$\mathbb F_2[\omega]/(\omega^2+\omega+1)$ gives
+\[
+ \prod_{i=0}^2\left((\omega^iz)^2+
+        \omega^2(\omega^iz)+1\right)=z^6+\omega z^3+1,
+\]
+and
+\[
+ \prod_{i=0}^2\left((\omega^iz)^2+
+        \omega(\omega^iz)+1\right)=z^6+\omega^2 z^3+1.
+\]
+Their quotient is $V_{k-1}(z^3)^{-1}$, proving both the norm formula and
+the alternating normalization.  The polynomial cross-product, the two
+three-factor products, the Möbius identity, and the scalar-corrected Kummer
+step are kernel-checked as
+\begin{center}
+\texttt{exceptional\_cayley\_coboundary\_cross},\\
+\texttt{exceptionalCayleyNum\_cubic\_product},\\
+\texttt{exceptionalCayleyDen\_cubic\_product},\\
+\texttt{exceptionalCayley\_eq\_traceMobius},\\
+\texttt{exceptional\_scaled\_coboundary\_}\par
+\texttt{isPthPower\_iff}.
+\end{center}
+
+It remains to prove the claimed blindness.  Put $B=4^H$.  Then
+$\operatorname{ord}_\ell(B)=3$, so
+\[
+ \ell\nmid B-1,
+ \qquad \ell\mid B^2+B+1.
+\]
+The kernel of
+$\mathbb F_{B^3}^\times\to\mathbb F_B^\times$ is cyclic of order
+$B^2+B+1$.  If $g$ generates the top group, the kernel is generated by
+$g^{B-1}$.  Because $\ell\nmid B-1$, this generator maps nontrivially, and
+hence surjectively, to the order-$\ell$ quotient
+\[
+ \mathbb F_{B^3}^\times/
+       (\mathbb F_{B^3}^\times)^\ell.
+\]
+Multiplying any point of a fixed norm fibre by the norm kernel therefore
+realizes every $\ell$-Kummer class in that same fibre.  Strict ancestors
+have trivial $\ell$-Kummer quotient, while later cubic norm maps are
+isomorphisms on that quotient because $\ell\ne3$.  Thus either birth class
+extends to a fully norm-coherent tail.  This is an exact alternative-parent
+countermodel to norm-only induction, not a counterexample on the literal
+Conway-selected ancestry.
 \end{proof}
 
 The parity-twisted exponent reduction does not by itself settle composite

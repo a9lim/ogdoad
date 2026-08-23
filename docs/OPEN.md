@@ -149,6 +149,16 @@ current `ell`-power.  Hence the forced zero at `N=(N/ell)ell` has an exact
 not itself the symmetric zero-state: it proves only that the recurrence and
 projective raising equation do not select the literal `N/ell` preimage.
 Any successful refinement must add selector-sensitive ancestry data.
+The first two selected jets are now exact and give the same boundary.  Under
+hypothetical failure, the divisor `G=Y^(2H)+Y^H+1` occurs only simply in
+`T_(N/ell)`, and its quotient evaluates at a selected root `y` to
+`(1+y)^(-(N/ell)(ell-1)/3)`.  The ordinary derivative therefore recovers
+the unique Kummer preimage already forced by the projective fibre, while the
+second Hasse derivative cancels for `k >= 2` by
+`N/ell ≡ ell (mod 4)`.  The two-base-`q` digit span bound is also automatic:
+for `d=N/ell > 1`, actual quotients already have digit gap at least `h+1`.
+Thus symmetric composition, its first two jets, and those two digits contain
+no further obstruction.
 Equivalently, failure at a current prime `ell` is triviality of the explicit
 marked `ell`-torsion class `[(1+w)^(N/ell)/w^2]` in
 `F_(2^(2h))^times/F_(2^(2h/3))^times`.  Its cyclic `H^1` vanishes because
@@ -162,14 +172,20 @@ their polynomial gcd is exactly the target Fibonacci polynomial, but
 the Binet parametrization shows that the inverse-Frobenius and partial-trace
 residuals hold on every deficient torsion packet before the deterministic
 Conway parent is selected.  Thus Frobenius extraction still ends at the
-marked inverse-exponent seam.  The packet degree does force
-`phi(delta_n) >= 2^(n+1)`; consequently a missing prime `p | F_n` must
-satisfy `p <= 1 + 2^(2^n-n-1)`.  This is ancestry-sensitive, but it still
-permits a single large missing prime in the asymptotic range.  More sharply,
-at a globally least failing prime, every prime factor of `F_n/delta_n` is at least
-`p`; if `phi(F_n) < 2^(n+1)(p-1)^2`, then necessarily
-`F_n/delta_n = p`.  Thus the surviving Fermat obstruction in that range is
-one missing valuation, not a compound conductor defect.  Cohen's
+marked inverse-exponent seam.  The packet degree forces
+`phi(delta_n) >= 2^(n+1)`, and the Fermat-divisor congruence improves this
+for `n >= 2` to `phi(delta_n) >= 2^(n+2)`; consequently a missing prime
+`p | F_n` must then satisfy `p <= 1 + 2^(2^n-n-2)`.  This is
+ancestry-sensitive, but it still permits a single large missing prime in the
+asymptotic range.  More sharply, at a globally least failing prime, every
+prime factor of `F_n/delta_n` is at least `p` and congruent to
+`1 mod 2^(n+2)`.  With `G` the maximum of `2^(n+2)` and the totient of the
+fully selected lower-prime part, `phi(F_n) < G p(p-1)` forces
+`F_n/delta_n = p`; if
+`phi(F_n) < G(p-1)(p+2^(n+2)-1)`, the only alternative is
+`p^2 | F_n/delta_n`.  The latter is an explicit base-2
+Wieferich/repeated-Fermat-factor boundary, not a compound distinct-prime
+defect.  Cohen's
 specified-order trace theorem also gives, in arbitrarily large
 power-of-two degrees, normal full-degree elements with any fixed common
 finite tuple of absolute power traces but respective orders `2^d-1` and
@@ -201,12 +217,15 @@ argument strengthens this unconditionally: with `D=r^(a-1)(r-1)`,
 `o >= R(D,s)+ceil((R(D,s+1)-R(D,s))/r)`, where
 `R(D,t)=sum_(j=0)^t 2^j binom(D,j) binom(t,j)`.  The second summand retains
 the largest leading-`mu_r` phase fibre of the next signed shell while keeping
-the entire inner ball.  At a globally least failing prime, if this lower
-bound is `B`, `L_(r,a) < B p^2` forces the prime-to-`r` order defect to equal
-exactly `p`.  Deficiency otherwise forces the same lower bound on
-`L_(r,a)/p`.  The final `p`-rough arithmetic implication is kernel-checked
-as `rough_defect_eq_prime`; the finite-field packing and minimality inputs
-remain paper-level.  The packing argument
+the entire inner ball.  At a globally least failing prime, enlarge this lower
+bound `B` by the fully selected lower-prime part.  Then
+`L_(r,a) < B p^2` forces the prime-to-`r` order defect to equal exactly `p`,
+while below `B p(p+2r^a)` the only other possibility is a repeated
+base-`2^b_r` Wieferich factor `p^2`.  Deficiency otherwise forces the same
+lower bound on `L_(r,a)/p`.  The final `p`-rough arithmetic implication is
+kernel-checked as `rough_defect_eq_prime`; the congruence-gap refinement is
+kernel-checked as `rough_congruent_defect_eq_prime_or_square_dvd`.  The
+finite-field packing and minimality inputs remain paper-level.  The packing argument
 also proves
 several finite tensor-rank zero cases and shows why generic trace, norm,
 conductor, factor-shape, reciprocity, and
@@ -221,6 +240,18 @@ parity-twisted equality `P^r = 1` when `k` is even and `P^r = omega^2` when
 `k` is odd.  This proves the entire current factor when `r = 1`
 (equivalently, when `Psi_k` itself is prime), but leaves the prime-to-three
 coordinate at composite `Psi_k` levels open.
+The same current Kummer class has the sharper Cayley representative
+`V_k=(gamma_k+omega^2)/(gamma_k+omega)`.  With `Q=2^(3^(k-1))`, its
+relative cubic Frobenius satisfies the scalar-corrected identity
+`P=omega V_k^(Q^2-1)`, and the exponent and scalar are invertible/trivial on
+every current `ell`-Kummer line.  Thus `M_k`, `P`,
+`U=epsilon_k^(-1)P`, and `V_k` have the same current power obstruction.  The
+exact ancestry law `Norm(V_k)=V_(k-1)^(-1)` for `k >= 2` makes an alternating
+normalization norm coherent,
+but cyclic-group arithmetic proves that every fixed birth-level norm fibre
+contains every `ell`-Kummer class.  Hence even the complete literal norm
+recurrence cannot evaluate the newly born selected symbol; the missing datum
+is still the principal-ray Artin image at the chosen prime over two.
 An intermediate-field exceptional ratio-packing sieve now proves `D` whenever
 `Psi_k/ell < S_k`, where, for `m_j=3^j` and
 `s_j=floor((3^(k-j)-1)/8)`,
