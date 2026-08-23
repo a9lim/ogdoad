@@ -137,7 +137,11 @@ section argument proves that the first possible nonempty one-sided relation
 has weighted residue at least `2 * 3^k + 1`, sharply attained by the norm
 triple.  At every weight, such a relation is exactly simultaneous
 divisibility of the two non-killed residue sections by
-`Y^(2H) + Y^H + 1`; this selected cyclic-code condition remains unresolved.
+`Y^(2H) + Y^H + 1`.  For a missing-current-prime quotient word those two
+sections are padded reciprocals, so they give only one condition; equivalently
+failure is `Y^(2H) + Y^H + 1 | T_(N/ell)` for the explicit cubic power-sum
+recurrence `T_m=T_(m-1)+T_(m-2)+(1+Y)T_(m-3)`.  This one-polynomial selected
+condition remains unresolved.
 Equivalently, failure at a current prime `ell` is triviality of the explicit
 marked `ell`-torsion class `[(1+w)^(N/ell)/w^2]` in
 `F_(2^(2h))^times/F_(2^(2h/3))^times`.  Its cyclic `H^1` vanishes because
@@ -151,7 +155,10 @@ their polynomial gcd is exactly the target Fibonacci polynomial, but
 the Binet parametrization shows that the inverse-Frobenius and partial-trace
 residuals hold on every deficient torsion packet before the deterministic
 Conway parent is selected.  Thus Frobenius extraction still ends at the
-marked inverse-exponent seam.  In the
+marked inverse-exponent seam.  The packet degree does force
+`phi(delta_n) >= 2^(n+1)`; consequently a missing prime `p | F_n` must
+satisfy `p <= 1 + 2^(2^n-n-1)`.  This is ancestry-sensitive, but it still
+permits a single large missing prime in the asymptotic range.  In the
 ordinary arm, the bottom-ancestor polynomial
 sections prove every current factor `p` with `L_(r,a)/p <= b_r r^a`, including
 the case in which `L_(r,a)/r` is prime.  Retaining the opposite top
@@ -169,13 +176,15 @@ has `P_r != P_r^*`, and its cofactor must be at least
 self-reciprocal but belongs to the separate cubic/exceptional arms.  Thus a
 self-reciprocal bottom at `r != 3` would already be an earlier failure of
 the global rule, rather than an independent ordinary-arm obstruction.  This
-still leaves all larger cofactors unresolved.  A
-Kummer-ratio packing argument
-strengthens this: with `D=r^(a-1)(r-1)` and `s=(r-1)/2`, deficiency forces
-`L_(r,a)/p >= R(D,s)+ceil((R(D,s+1)-R(D,s))/r)`, where
+still leaves all larger cofactors unresolved.  A Kummer-ratio packing
+argument strengthens this unconditionally: with `D=r^(a-1)(r-1)`,
+`s=(r-1)/2`, and `o` the order of the selected class in
+`F_(r,a)^times/F_(r,a-1)^times`, one has
+`o >= R(D,s)+ceil((R(D,s+1)-R(D,s))/r)`, where
 `R(D,t)=sum_(j=0)^t 2^j binom(D,j) binom(t,j)`.  The second summand retains
 the largest leading-`mu_r` phase fibre of the next signed shell while keeping
-the entire inner ball.  It also proves
+the entire inner ball.  Deficiency then forces the same lower bound on
+`L_(r,a)/p`.  It also proves
 several finite tensor-rank zero cases and shows why generic trace, norm,
 conductor, factor-shape, reciprocity, and
 unselected Kummer information cannot recover the marked Conway coordinate.

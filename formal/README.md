@@ -121,7 +121,9 @@ four-arm `Z/O/C/D` reduction, including:
   algebra used by the bottom-ancestor reduction;
 - the generic coprime-factor degree-sum lemma underlying ordinary reciprocal
   doubling and the characteristic-two Frobenius expansion used by the affine
-  Kummer argument are kernel-checked, while the opposite top-section
+  Kummer argument are kernel-checked; divisibility by a self-mirror polynomial
+  is also invariant under the padded reversal that collapses the cubic arm's
+  two surviving residue sections to one, while the opposite top-section
   reciprocity, reciprocal-minimal-polynomial step, power-basis coefficient
   separation, and the Conway component-field induction remain a paper-level
   finite-field/index synthesis rather than a formalized end-to-end sieve;

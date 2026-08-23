@@ -39,10 +39,12 @@ period in a norm-one torus, and a corrected conductor-five norm.  These are
 lossless reductions, not hypotheses, and all four universal assertions remain
 open.  The paper then isolates the arithmetic content of each coordinate.  It
 constructs the primitive-support quotient and the Conway--Fermat packet
-recursion, identifies the ordinary Artin symbol, proves the cubic Singer
-recursion, a partition selected-order bound, and a sharp first-relation
-threshold, classifies the selected top-orbit elliptic $S$-unit lattice,
-proves an ordinary section sieve and a Kummer-ratio packing sieve,
+recursion and a packet-degree defect bound, identifies the ordinary Artin
+symbol, proves the cubic Singer recursion, a partition selected-order bound,
+and a sharp first-relation threshold with a single reciprocal section,
+classifies the selected top-orbit elliptic $S$-unit lattice,
+proves an ordinary section sieve and an unconditional Kummer-ratio
+selected-order bound,
 and gives the exceptional Capelli
 criterion, a primitive-only palindromicity test, a one-third Frobenius
 compression, an intermediate-field packing sieve, and a level-dependent
@@ -102,6 +104,7 @@ assertions $Z,O,C,D$ stated in Theorem~\ref{thm:arms}.  Each assertion is an
 exact Euler nonpower test for one Conway-selected coordinate and retains the
 full primary valuation.  The reductions, the coordinate formulas, the
 packet-universal Fermat residual of Proposition~\ref{prop:z-packet-universal},
+the packet-degree bound of Proposition~\ref{prop:z-packet-degree},
 the all-iterate ramification boundary of
 Proposition~\ref{prop:z-iterate-ramification}, the generalized-Prym
 saturation boundary of Proposition~\ref{prop:z-prym-boundary}, the selected
@@ -422,6 +425,41 @@ Full parent conductor does not imply full child conductor: exact degree-$16$
 packet examples have identical full parent order but deterministic children
 of different conductor.  Consequently any induction must use the complete
 marked orbit, not only the integer conductor.
+
+The packet degree nevertheless gives an unconditional restriction on every
+possible loss of conductor.
+
+\begin{proposition}[packet-degree defect bound]
+\label{prop:z-packet-degree}
+For every $n\geq0$ one has
+\[
+ \varphi(\delta_n)\geq2^{n+1}.
+\]
+If a prime $p\mid F_n$ is absent from the selected order at its full
+valuation, then
+\[
+ p\leq1+2^{2^n-n-1}.
+\]
+\end{proposition}
+
+\begin{proof}
+The packet $C_{\delta_n}$ has degree $\varphi(\delta_n)/2$, while it
+contains the selected minimal polynomial of $a_{n-1}$, of degree $2^n$.
+This proves the first inequality.  Write
+$a=v_p(F_n)$ and $b=v_p(\delta_n)<a$.  Since $\delta_n\mid F_n$, the ratio
+\[
+ \frac{\varphi(F_n)}{\varphi(\delta_n)}
+\]
+is an integer.  The factor in its prime-by-prime product indexed by $p$ is
+$p^{a-1}(p-1)$ if $b=0$, and $p^{a-b}$ if $b>0$; in either case the ratio is
+at least $p-1$.  Hence
+\[
+ (p-1)2^{n+1}
+ \leq\varphi(F_n)
+ \leq F_n-1=2^{2^n},
+\]
+which is the asserted bound.
+\end{proof}
 
 The literal multiplication operator retains that selector in a compact
 two-block form.  At the edge $c_n^2=c_n+a_{n-1}$, let $A$ denote
@@ -1460,9 +1498,10 @@ $N=L_{r,a}$.  Set
  d=N/p,\qquad
  D=r^{a-1}(r-1),\qquad s=(r-1)/2.
 \]
-If the current $p$-coordinate is deficient, then
+Let $K=F_{a-1}$, $L=F_a$, $y=1+x_a$, and let $o$ be the order of
+$yK^\times$ in $L^\times/K^\times$.  Then, unconditionally,
 \[
- d\geq
+ o\geq
  \mathcal R(D,s)+
  \left\lceil
  \frac{\mathcal R(D,s+1)-\mathcal R(D,s)}r
@@ -1470,6 +1509,14 @@ If the current $p$-coordinate is deficient, then
  \qquad
  \mathcal R(D,t):=
  \sum_{j=0}^{t}2^j\binom Dj\binom tj.
+\]
+If the current $p$-coordinate is deficient, then
+\[
+ d\geq
+ \mathcal R(D,s)+
+ \left\lceil
+ \frac{\mathcal R(D,s+1)-\mathcal R(D,s)}r
+ \right\rceil.
 \]
 Consequently arm~$O$ holds at every such factor satisfying
 \[
@@ -1484,10 +1531,22 @@ Consequently arm~$O$ holds at every such factor satisfying
 \end{proposition}
 
 \begin{proof}
-Put $K=F_{a-1}$ and $x=x_a$.  The nonpower radicand gives
+Put $K=F_{a-1}$, $L=F_a$, $x=x_a$, and $y=1+x$.  The nonpower radicand gives
 $r\mid2^b-1$, so LTE gives $r^a\mid2^{br^{a-1}}-1$; hence $K$ contains
 $\mu_n$.  Since $F_a=K(x)$, the element $x$ has minimal-polynomial degree
-$r$ over $K$.  Choose representatives
+$r$ over $K$.
+
+Let $\sigma$ generate $\operatorname{Gal}(L/K)$, with
+$\sigma(x)=\zeta x$, and put $u=\sigma(y)/y$.  Hilbert--90 gives an
+isomorphism
+\[
+ L^\times/K^\times\longrightarrow\ker\operatorname N_{L/K},
+ \qquad zK^\times\longmapsto\frac{\sigma(z)}z.
+\]
+Indeed its kernel is $K^\times$, and both groups have order $N$.
+Consequently $\operatorname{ord}(u)=o$.
+
+Choose representatives
 $\mathcal C$ for $\mu_n/\mu_r$.  Deficiency and
 Proposition~\ref{prop:o-bottom-divisibility} give, at every root $cx$ of
 $P_r(T^n)$ and every $\zeta\in\mu_r$,
@@ -1508,6 +1567,15 @@ Thus each of the
 \]
 is a $d$-th root of unity.  There are
 $|\mathcal C|(r-1)=D$ such ratios.
+
+More is true without deficiency: all these ratios lie in $\langle u\rangle$.
+For each $c$, the root $cx$ is an absolute-Frobenius conjugate $x^{2^j}$.
+Writing $\eta=\zeta^k$ and $q=|K|$, commutativity of the Frobenius maps gives
+\[
+ u_{c,\eta}
+ =\frac{\sigma^k(y^{2^j})}{y^{2^j}}
+ =u^{2^j(1+q+\cdots+q^{k-1})}.
+\]
 
 Index these ratios by a set $I$ of size $D$.  For every vector
 $v=(v_i)_{i\in I}\in\mathbb Z^I$ with $\sum_i|v_i|\leq s$, put
@@ -1537,9 +1605,9 @@ To count these integer vectors, choose the $j$ nonzero coordinates, their
 signs, and their positive absolute values.  There are $\binom Dj$, $2^j$,
 and $\binom sj$ choices respectively, the last count being the number of
 positive $j$-tuples with sum at most $s$.  Hence there are exactly
-$\mathcal R(D,s)$ vectors.  Their values are distinct roots of $X^d-1$,
-which has at most $d$ roots in a field.  This proves the inner-ball
-contribution.
+$\mathcal R(D,s)$ vectors.  Their values are distinct elements of
+$\langle u\rangle$, already giving the inner-ball contribution to the
+unconditional order bound.
 
 Part of the next signed shell can be retained after separating the ratios by
 their leading phase.  For $i=(c,\zeta)$ put $\chi_i=\zeta$ and, for
@@ -1577,8 +1645,10 @@ This boundary step is the ordinary Lean theorem
 \texttt{polynomial\_eq\_of\_aeval\_eq\_of\_natDegree\_le\_minpoly\_of\_coeff\_zero}.
 Thus $A=B$, and the same disjoint-star valuations force $g=0$.
 
-The union therefore injects into the roots of $X^d-1$.  Its cardinality is
-at least the displayed inner-ball-plus-shell expression, proving the bound
+The union therefore injects into $\langle u\rangle$.  Its cardinality is at
+least the displayed inner-ball-plus-shell expression, proving the
+unconditional bound on $o$.  Under deficiency the class $yK^\times$ has
+order dividing $d=N/p$, so $o\mid d$; this proves the stated deficient bound
 and its contrapositive.
 \end{proof}
 
@@ -2043,6 +2113,32 @@ Then necessarily
 \[
  \sum_{\epsilon_z=1}j_z\geq2h+1.
 \]
+For this quotient word put
+$S=\sum_{\epsilon_z=1}j_z=3T+1$.  Its two surviving sections are padded
+reciprocals:
+\[
+ B_1(Y)=Y^T B_0(Y^{-1}).
+\]
+Thus the two divisibility conditions are equivalent, and the exact failure
+criterion is the single condition
+\[
+ \eta_k^{N/\ell}=1
+ \quad\Longleftrightarrow\quad
+ Y^{2H}+Y^H+1\mid B_0(Y).
+\]
+Equivalently, define $\mathcal T_m\in\mathbb F_2[Y]$ by
+\[
+ \mathcal T_0=\mathcal T_1=\mathcal T_2=1,
+ \qquad
+ \mathcal T_m=\mathcal T_{m-1}+\mathcal T_{m-2}
+ +(1+Y)\mathcal T_{m-3}\quad(m\geq3).
+\]
+Then, for $d=N/\ell$,
+\[
+ \eta_k^d=1
+ \quad\Longleftrightarrow\quad
+ Y^{2H}+Y^H+1\mid\mathcal T_d(Y).
+\]
 \end{proposition}
 
 \begin{proof}
@@ -2085,6 +2181,37 @@ $\ell\geq5$ and $N/\ell<2^{2H}$.  Its binary indices lie below $2H$ and
 have distinct residues modulo $3h$.  A missing full $\ell$-part gives
 $\eta_k^{N/\ell}=1$, so the first assertion gives the displayed residue-weight
 bound.
+
+For the quotient word, every current prime satisfies
+$\operatorname{ord}_{\ell}(2^H)=3$, hence $\ell\equiv1\pmod3$, while
+$N\equiv1\pmod3$; therefore $d\equiv1\pmod3$ and
+$S\equiv d\equiv1\pmod3$.  The product $B_E$ is self-reciprocal of degree
+$S=3T+1$.  If $[X^m]B_E=b_m$, then $b_m=b_{S-m}$, so comparison of the
+residue-zero and residue-one coefficients gives
+\[
+ B_1(Y)=Y^TB_0(Y^{-1}).
+\]
+The polynomial $G(Y)=Y^{2H}+Y^H+1$ is self-reciprocal.  Since
+$\deg B_0\leq T$, reversing a factorization by $G$ shows
+$G\mid B_0$ if and only if $G\mid B_1$; the zero and subdegree cases are
+included.  The generic padded-mirror divisibility step is kernel-checked as
+\texttt{selfMirror\_dvd\_paddedMirror\_iff}.  The vanished section is
+$a_0\equiv-S\equiv2\pmod3$, proving the single-section criterion.
+
+For the recurrence formulation, let $y$ be a root of $G$, choose $w$ with
+$w^3=y$, and let $\omega^2+\omega+1=0$.  The three elements
+$1+w,1+\omega w,1+\omega^2w$ are the roots of
+\[
+ Z^3+Z^2+Z+(1+y),
+\]
+so their power sums obey the displayed recurrence and have initial values
+$1,1,1$.  Lucas's theorem gives
+$(1+X)^d=\prod_{\epsilon_z=1}(1+X^{2^z})$, and this product is congruent to
+$B_E(X)$ modulo $X^{3h}-1$.  Summing its values at the three cube roots of
+$y$ projects onto the residue-zero section.  Therefore
+$\mathcal T_d(y)=B_0(y)$.  Since $y$ has order $h=3^k$ and
+$\operatorname{ord}_h(2)=2H$, its minimal polynomial is $G$; the last
+divisibility criterion follows.
 \end{proof}
 
 The all-weight criterion has an equivalent projective-torsion form which
@@ -3094,9 +3221,10 @@ Cited input & Conway--Lenstra tower formulas, standard finite-field and
 Capelli theory, and the cited cyclotomic, class-field, function-field, and
 order results.  These are not reproved in Lean. \\
 Proved here & The four-arm equivalence; the exact selected coordinates and
-order criteria; the primitive-support, packet, supersingular, Singer and
-selected norm-one partition and first-relation bounds, corrected-norm,
-ordinary section, reciprocal-doubling, and Kummer-ratio packing sieves,
+order criteria; the primitive-support, packet-degree, supersingular, Singer
+and selected norm-one partition and single-section first-relation bounds,
+corrected-norm, ordinary section, reciprocal-doubling, and unconditional
+Kummer-ratio selected-order bounds,
 exceptional palindromicity, one-third compression, intermediate-field packing,
 prime-complement exceptional case, ray-index, boundedness, and
 reciprocity-saturation results stated above. \\

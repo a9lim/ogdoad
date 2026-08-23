@@ -114,6 +114,31 @@ theorem polynomial_natDegree_add_le_of_isCoprime_dvd
       (Polynomial.natDegree_mul hP hQ).symm
     _ ≤ S.natDegree := Polynomial.natDegree_le_of_dvd hmul hS
 
+/-- Divisibility by a self-mirror polynomial is unchanged by a padded
+coefficient reversal, provided the divisor is coprime to `X`.  In the cubic
+selected-order sieve the divisor is `Y^(2H) + Y^H + 1`, while the two
+surviving residue sections are padded mirrors of one another.  This is the
+generic polynomial core of the resulting one-section criterion. -/
+theorem selfMirror_dvd_paddedMirror_iff
+    {K : Type*} [Field K] (G P : Polynomial K) (n : Nat)
+    (hG : G.mirror = G)
+    (hcop : IsCoprime G (Polynomial.X : Polynomial K)) :
+    G ∣ P.mirror * Polynomial.X ^ n ↔ G ∣ P := by
+  constructor
+  · intro h
+    have hcopn : IsCoprime G (Polynomial.X ^ n) := hcop.pow_right
+    have hm : G ∣ P.mirror := hcopn.dvd_of_dvd_mul_right h
+    obtain ⟨Q, hQ⟩ := hm
+    refine ⟨Q.mirror, ?_⟩
+    calc
+      P = P.mirror.mirror := P.mirror_mirror.symm
+      _ = (G * Q).mirror := by rw [hQ]
+      _ = G.mirror * Q.mirror := Polynomial.mirror_mul_of_domain G Q
+      _ = G * Q.mirror := by rw [hG]
+  · rintro ⟨Q, rfl⟩
+    rw [Polynomial.mirror_mul_of_domain, hG, mul_assoc]
+    exact dvd_mul_right G (Q.mirror * Polynomial.X ^ n)
+
 /-- Characteristic-two Frobenius expansion used before separating
 coefficients in the affine odd-power-basis argument.  The paper rewrites the
 first and last products as powers with exponent `2^k + 1`. -/
