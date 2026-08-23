@@ -82,4 +82,27 @@ fn main() {
             )
             .unwrap()
     );
+    let p_symbol = modular
+        .psymbol_presentation(
+            vec![Nimber(2), Nimber(3)],
+            WeylRepresentationBudget::new(4, 0, 0),
+        )
+        .unwrap();
+    let reduced_xd = p_symbol
+        .fiber()
+        .reduce(&modular.mul(&modular.x(0), &modular.d(0)))
+        .unwrap();
+    let cyclic = p_symbol
+        .cyclic_factor(
+            0,
+            WeylRepresentationBudget::new(4, 0, 0),
+            WeylExpansionBudget::new(32, 1_000),
+        )
+        .unwrap();
+    println!(
+        "p-symbol residue(xd) = {}, cyclic factor = ({}, {}]",
+        p_symbol.p_residue(&reduced_xd).unwrap(),
+        cyclic.momentum_power(),
+        cyclic.artin_schreier_parameter(),
+    );
 }

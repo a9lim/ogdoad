@@ -22,6 +22,7 @@ subsets, while Weyl PBW monomials carry arbitrary natural-number exponents.
 | `center.rs` | certified radical/characteristic-`p` centre data and lazy PBW basis |
 | `fiber.rs` | bounded central quotients, split modules, and odd matrix certificates |
 | `clifford_fiber.rs` | characteristic-two central-fibre isomorphism to Clifford algebras |
+| `psymbol.rs` | `p`-symbol, cyclic-factor, residue, character-transport, and Darboux-fibre certificates |
 
 ## Algebra contract
 
@@ -51,6 +52,10 @@ backend representation and never divide by a factorial in generic code.
 - In characteristic two, the central-fibre Clifford bridge keeps generator
   squares in `Metric::q` and the Weyl pairing in `Metric::b`; neither determines
   the other.
+- A `WeylPSymbolPresentation` is a theorem-facing view of an existing bounded
+  central fibre, not a second multiplication engine. Its Brauer interpretation
+  remains cited mathematics; residue, cyclic relations, coordinate transport,
+  and any split matrix comparison are independently checked here.
 - Degenerate alternating forms are valid; radical generators are central.
 - Darboux witnesses are field-gated through `ExactFieldScalar`. Generic ring
   backends may still use the PBW algebra, maps whose relations check, and the

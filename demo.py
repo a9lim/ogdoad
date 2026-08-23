@@ -35,6 +35,8 @@ x, d = W.x(0), W.d(0)
 print("  [d,x]        =", W.commutator(d, x))
 print("  centre gens  =", W.center_generators())
 assert W.commutator(d, x) == W.one()
+assert W.center_rank_over_center() == 4
+assert W.center_basis_element(3) == x * d
 assert W.central_reduce(x ** 3, [pl.Nimber(2), pl.Nimber(3)], 4) == x.scale(pl.Nimber(2))
 assert W.clifford_fiber_products_agree(
     d * x, x + d, [pl.Nimber(2), pl.Nimber(3)], 4,
@@ -46,6 +48,67 @@ module_generators = W.central_character_generator_matrices(
     max_basis_dimension=2, max_matrix_entries=8, max_steps=10_000,
 )
 print("  split module =", len(module_generators[0]), "x", len(module_generators[0]))
+
+# Wave 2: sparse polynomial action, symbols, transformations, and hbar.
+t2 = pl.NimberSparsePolynomial.monomial([2], 1)
+assert W.act_on_sparse_polynomial(d, t2) == pl.NimberSparsePolynomial.monomial([1], 0)
+# d(t²)=0 in characteristic two; adding t gives a nonzero derivative.
+poly = t2 + pl.NimberSparsePolynomial.monomial([1], 1)
+assert W.act_on_sparse_polynomial(d, poly) == pl.NimberSparsePolynomial.scalar(1, 1)
+symbol = W.principal_symbol(d * x, "bernstein")
+assert symbol == pl.NimberSparsePolynomial.monomial([1, 1], 1)
+assert W.poisson_bracket(
+    pl.NimberSparsePolynomial.variable(2, 1),
+    pl.NimberSparsePolynomial.variable(2, 0),
+) == pl.NimberSparsePolynomial.scalar(2, 1)
+assert W.fourier_inverse(W.fourier(x + d)) == x + d
+assert W.hbar_commutator(d, x, 0) == W.zero()
+assert W.hbar_commutator(d, x, 1) == W.one()
+
+# Wave 3.5: p-symbol/cyclic data and characteristic transport.
+psymbol = W.psymbol([pl.Nimber(2), pl.Nimber(3)], 4)
+assert psymbol.tensor_rank() == 1 and psymbol.brauer_split() is None
+assert psymbol.p_residue(x * d) == pl.Nimber(1)
+cyclic_b, cyclic_c = psymbol.cyclic_factor(0, 4, max_terms=32, max_steps=1_000)
+assert cyclic_b == pl.Nimber(3) and cyclic_c == pl.Nimber(2) * pl.Nimber(3)
+assert W.shear_central_character(
+    [pl.Nimber(2), pl.Nimber(3)], [[pl.Nimber(1)]], 4,
+    max_terms=32, max_steps=1_000,
+) == [pl.Nimber(2), pl.Nimber(0)]
+
+# An odd finite-field backend makes the exact split/Brauer and residue/trace
+# certificates operational from Python rather than merely exposing refusal.
+W3 = pl.Fp3WeylAlgebra(1)
+x3, d3 = W3.x(0), W3.d(0)
+psymbol3 = W3.psymbol([pl.Fp3(2), pl.Fp3(1)], 9)
+top3 = W3.monomial([2, 2], pl.Fp3(1))
+assert psymbol3.certify_split(
+    [pl.Fp3(2), pl.Fp3(1)], 9, 100, 1_000_000,
+)
+assert psymbol3.split_trace_matches_residue(
+    top3, [pl.Fp3(2), pl.Fp3(1)], 9, 100, 1_000_000,
+)
+
+general_weyl = pl.NimberWeylAlgebra.from_commutator([
+    [0, 1, 1],
+    [1, 0, 2],
+    [1, 2, 0],
+])
+assert general_weyl.darboux_ranks() == (1, 1)
+general_value = general_weyl.generator(0) * general_weyl.generator(1)
+normal_algebra, normal_value = general_weyl.darboux_to_normal(general_value)
+assert normal_algebra.dim() == 3
+assert general_weyl.darboux_from_normal(normal_value) == general_value
+assert general_weyl.transported_fiber_products_agree(
+    general_weyl.generator(0), general_weyl.generator(1),
+    [pl.Nimber(2), pl.Nimber(3)], [pl.Nimber(1)], 4,
+    max_terms=128, max_steps=10_000,
+)
+print(
+    "  p-symbol      =", psymbol,
+    "cyclic parameters", (cyclic_b, cyclic_c),
+    "F3 split", psymbol3.certify_split([pl.Fp3(2), pl.Fp3(1)], 9, 100, 1_000_000),
+)
 
 section("Grassmann — fully null metric, nilpotent generators")
 G = pl.SurrealAlgebra(q=[0, 0, 0])

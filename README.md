@@ -50,7 +50,7 @@ Representation limits are part of the API:
 | --- | --- |
 | `src/scalar/` | coefficient traits and exact, finite, valued, global, surreal, and ordinal backends |
 | `src/clifford/` | metrics, blades, multivectors, products, versors, spinors, and geometric-algebra constructions |
-| `src/weyl/` | alternating commutator forms, budgeted sparse PBW products, Darboux tensor coordinates, typed canonical transformations, symbols/Poisson brackets, and rank-`n` polynomial actions |
+| `src/weyl/` | alternating commutator forms, budgeted sparse PBW products, Darboux tensor coordinates, typed canonical transformations, symbols/Poisson brackets, modular fibres, and `p`-symbol/Brauer evidence |
 | `src/forms/` | quadratic-form classification, Clifford centers, Witt/Brauer and low Milnor-symbol theory, Springer and local--global arithmetic |
 | `src/forms/integral/` | lattices, discriminant forms, codes, theta series, genera, neighbors, and Weyl bridges |
 | `src/games/` | impartial, partizan, misere, loopy, thermographic, Witt--FIFO/Brown, octal-certificate, Hackenbush, and game-exterior constructions |
@@ -83,7 +83,12 @@ positive characteristic, certified centre generators, lazy PBW bases over the
 centre, bounded central-character quotients, and exact split-module matrices
 make the enlarged centre operational. Characteristic-two fibres have a checked
 two-way Clifford identification; supported split odd-characteristic fibres
-receive an exact full-matrix-algebra rank certificate.
+receive an exact full-matrix-algebra rank certificate. Executable tensor
+`p`-symbol presentations add checked cyclic conversion and noncommutative
+residue/trace comparison without overstating the cited Brauer theorem.
+Central-character pullback retains characteristic-two quadratic corrections,
+and certified Darboux transport gives arbitrary alternating presentations
+bounded fibres with distinct paired-power and linear-radical character data.
 
 ## Use
 
@@ -113,6 +118,18 @@ e0, e1 = A.gen(0), A.gen(1)
 W = og.NimberWeylAlgebra(1)
 x, d = W.x(0), W.d(0)
 assert W.commutator(d, x) == W.one()
+P = W.psymbol([og.Nimber(2), og.Nimber(3)], 4)
+assert P.p_residue(x * d) == og.Nimber(1)
+assert P.cyclic_factor(0, 4) == (og.Nimber(3), og.Nimber(1))
+
+# Fp3 supplies the odd-characteristic split and residue/trace certificates.
+W3 = og.Fp3WeylAlgebra(1)
+P3 = W3.psymbol([og.Fp3(2), og.Fp3(1)], 9)
+assert P3.certify_split([og.Fp3(2), og.Fp3(1)], 9, 100, 1_000_000)
+assert P3.split_trace_matches_residue(
+    W3.monomial([2, 2], 1), [og.Fp3(2), og.Fp3(1)],
+    9, 100, 1_000_000,
+)
 assert W.clifford_fiber_products_agree(
     d * x, x + d, [og.Nimber(2), og.Nimber(3)], 4,
     max_terms=32, max_steps=1_000,

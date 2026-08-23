@@ -541,7 +541,7 @@ impl HeisenbergWeilRepresentation {
             return false;
         };
         // The normalized Walsh matrix is real, symmetric, and self-inverse.
-        for pair in self.symplectic_basis.chunks_exact(2) {
+        for pair in self.symplectic_basis.as_chunks::<2>().0 {
             let Some(position) = self
                 .matrix(&ExtraspecialElement::new(false, pair[0]))
                 .map(|m| mat_mul(&mat_mul(&fourier, &m), &fourier))

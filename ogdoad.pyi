@@ -8270,6 +8270,257 @@ class Fp3RationalFunctionMV:
     def __truediv__(self, other: Any) -> Any: ...
     def __xor__(self, other: Any) -> Any: ...
 
+class Fp3SparsePolynomial:
+    def __init__(self, dim: builtins.int) -> None: ...
+    def dim(self) -> builtins.int:
+        """Number of polynomial variables."""
+    def is_zero(self) -> builtins.bool:
+        """Whether this is the zero polynomial."""
+    @staticmethod
+    def monomial(exponents: Sequence[builtins.int], coefficient: Any) -> Fp3SparsePolynomial:
+        """Construct one sparse monomial."""
+    def mul(self, other: Fp3SparsePolynomial, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> Fp3SparsePolynomial:
+        """Budgeted commutative multiplication."""
+    def partial_derivative(self, index: builtins.int) -> Fp3SparsePolynomial:
+        """Formal partial derivative in one variable."""
+    @staticmethod
+    def scalar(dim: builtins.int, coefficient: Any) -> Fp3SparsePolynomial:
+        """Construct a scalar polynomial in `dim` variables."""
+    def scale(self, scalar: Any) -> Fp3SparsePolynomial:
+        """Scalar multiplication."""
+    def term_count(self) -> builtins.int:
+        """Number of nonzero monomials."""
+    def terms(self) -> list[tuple[list[builtins.int], Fp3]]:
+        """Canonical sparse terms as `(exponents, coefficient)` pairs."""
+    def total_degree(self) -> builtins.int | None:
+        """Maximum total degree, or None for zero/overflow."""
+    @staticmethod
+    def variable(dim: builtins.int, index: builtins.int) -> Fp3SparsePolynomial:
+        """Construct one variable in a fixed-dimensional polynomial ring."""
+    def __add__(self, other: Any) -> Any: ...
+    def __eq__(self, other: builtins.object) -> builtins.bool: ...
+    def __ge__(self, other: Any) -> builtins.bool: ...
+    def __gt__(self, other: Any) -> builtins.bool: ...
+    def __hash__(self) -> builtins.int: ...
+    def __le__(self, other: Any) -> builtins.bool: ...
+    def __lt__(self, other: Any) -> builtins.bool: ...
+    def __mul__(self, other: Any) -> Any: ...
+    def __ne__(self, other: builtins.object) -> builtins.bool: ...
+    def __neg__(self) -> Any: ...
+    def __radd__(self, other: Any) -> Any: ...
+    def __repr__(self) -> builtins.str: ...
+    def __rmul__(self, other: Any) -> Any: ...
+    def __rsub__(self, other: Any) -> Any: ...
+    def __str__(self) -> builtins.str: ...
+    def __sub__(self, other: Any) -> Any: ...
+
+class Fp3WeylAlgebra:
+    def __init__(self, pairs: builtins.int) -> None: ...
+    def act_on_sparse_polynomial(self, operator: Fp3WeylElement, polynomial: Fp3SparsePolynomial, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> Fp3SparsePolynomial:
+        """Apply a standard Weyl operator to a sparse multivariate
+        polynomial.
+        """
+    def affine_map_to(self, target: Fp3WeylAlgebra, value: Fp3WeylElement, linear: Sequence[Sequence[Any]], translation: Sequence[Any], max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> Fp3WeylElement:
+        """Apply a checked affine-linear homomorphism into `target`."""
+    def bernstein_degree(self, value: Fp3WeylElement) -> builtins.int | None:
+        """Bernstein filtration degree; None for zero."""
+    def center_basis_element(self, index: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> Fp3WeylElement:
+        """One lazy PBW basis element over the characteristic-p centre,
+        transported to source coordinates.
+        """
+    def center_generators(self, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[Fp3WeylElement]:
+        """Certified characteristic-p centre generators in source
+        coordinates. Characteristic-zero backends raise ValueError.
+        """
+    def center_rank_over_center(self) -> builtins.int | None:
+        """Exact rank over the characteristic-p centre, or None when the
+        represented rank exceeds u128.
+        """
+    def central_character_generator_matrices(self, central_values: Sequence[Any], splitting_roots: Sequence[Any], max_basis_dimension: builtins.int, max_matrix_entries: builtins.int, max_steps: builtins.int) -> list[list[list[Fp3]]]:
+        """Exact generator matrices for a bounded split central-character
+        module. Roots must satisfy `root[i]^p = central_values[i]`.
+        """
+    def central_reduce(self, value: Fp3WeylElement, central_values: Sequence[Any], max_basis_dimension: builtins.int) -> Fp3WeylElement:
+        """Reduce an element modulo `z_i^p = central_values[i]` and return
+        its canonical PBW representative.
+        """
+    def clifford_fiber_products_agree(self, left: Fp3WeylElement, right: Fp3WeylElement, central_values: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> builtins.bool:
+        """Compare the characteristic-two central reduction with the
+        independent Clifford product oracle.
+        """
+    def commutator(self, left: Fp3WeylElement, right: Fp3WeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> Fp3WeylElement:
+        """Lie commutator under optional sparse-term and charged-work
+        limits.
+        """
+    def commutator_form(self) -> list[list[Fp3]]:
+        """Alternating commutator matrix in generator order."""
+    def d(self, index: builtins.int) -> Fp3WeylElement:
+        """Return a standard differential generator."""
+    def darboux_from_normal(self, value: Fp3WeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> Fp3WeylElement:
+        """Transport an element of this algebra's certified Darboux normal
+        presentation back to source coordinates.
+        """
+    def darboux_ranks(self) -> tuple[builtins.int, builtins.int]:
+        """`(Weyl rank, radical rank)` of the certified Darboux tensor
+        presentation.
+        """
+    def darboux_to_normal(self, value: Fp3WeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> tuple[Fp3WeylAlgebra, Fp3WeylElement]:
+        """Transport a source element into certified Darboux-plus-radical
+        coordinates, returning its normal algebra and element together.
+        """
+    def differential_order(self, value: Fp3WeylElement) -> builtins.int | None:
+        """Differential-operator order; None for zero."""
+    def dim(self) -> builtins.int:
+        """Number of ordered PBW generators."""
+    def direct_sum(self, other: Fp3WeylAlgebra) -> Fp3WeylAlgebra:
+        """Direct sum with another Weyl commutator context."""
+    def formal_adjoint(self, value: Fp3WeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> Fp3WeylElement:
+        """Apply the formal-adjoint anti-automorphism."""
+    def fourier(self, value: Fp3WeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> Fp3WeylElement:
+        """Apply the standard Fourier automorphism."""
+    def fourier_central_character(self, central_values: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[Fp3]:
+        """Pull a central character back through the Fourier automorphism."""
+    def fourier_inverse(self, value: Fp3WeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> Fp3WeylElement:
+        """Apply the inverse standard Fourier automorphism."""
+    @staticmethod
+    def from_commutator(rows: Sequence[Sequence[Any]]) -> Fp3WeylAlgebra:
+        """Construct from an alternating commutator matrix."""
+    def generator(self, index: builtins.int) -> Fp3WeylElement:
+        """Return one ordered generator."""
+    def hbar_commutator(self, left: Fp3WeylElement, right: Fp3WeylElement, hbar: Any, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> Fp3WeylElement:
+        """Commute in the polynomial hbar deformation and specialize the
+        result at the supplied scalar value.
+        """
+    def hbar_product(self, left: Fp3WeylElement, right: Fp3WeylElement, hbar: Any, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> Fp3WeylElement:
+        """Multiply in the polynomial hbar deformation and specialize the
+        result at the supplied scalar value.
+        """
+    def is_central(self, value: Fp3WeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> builtins.bool:
+        """Check commutation with every generator under optional expansion
+        limits.
+        """
+    def monomial(self, exponents: Sequence[builtins.int], coefficient: Any) -> Fp3WeylElement:
+        """Construct one checked PBW monomial."""
+    def mul(self, left: Fp3WeylElement, right: Fp3WeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> Fp3WeylElement:
+        """Multiply under optional sparse-term and charged-work limits."""
+    def one(self) -> Fp3WeylElement:
+        """Multiplicative identity."""
+    def parity(self, value: Fp3WeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> Fp3WeylElement:
+        """Apply the parity automorphism `z_i -> -z_i`."""
+    def poisson_bracket(self, left: Fp3SparsePolynomial, right: Fp3SparsePolynomial, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> Fp3SparsePolynomial:
+        """Constant Poisson bracket of two commutative Weyl symbols."""
+    def pow(self, value: Fp3WeylElement, exponent: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> Fp3WeylElement:
+        """Compute a power under optional sparse-term and charged-work
+        limits.
+        """
+    def principal_symbol(self, value: Fp3WeylElement, filtration_name: builtins.str) -> Fp3SparsePolynomial:
+        """Principal symbol for the named filtration."""
+    def psymbol(self, central_values: Sequence[Any], max_basis_dimension: builtins.int) -> Fp3WeylPSymbol:
+        """Construct the characteristic-p symbol presentation of a
+        standard central fibre.
+        """
+    def radical_generators(self, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[Fp3WeylElement]:
+        """Certified linear radical generators in source coordinates."""
+    def scalar(self, value: Any) -> Fp3WeylElement:
+        """Embed a scalar constant."""
+    def scaling(self, value: Fp3WeylElement, scales: Sequence[Any], max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> Fp3WeylElement:
+        """Apply standard diagonal symplectic scaling."""
+    def scaling_central_character(self, central_values: Sequence[Any], scales: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[Fp3]:
+        """Pull a central character back through diagonal scaling."""
+    def shear(self, value: Fp3WeylElement, shear: Sequence[Sequence[Any]], max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> Fp3WeylElement:
+        """Apply a symmetric momentum shear `d -> d + A*x`."""
+    def shear_central_character(self, central_values: Sequence[Any], shear: Sequence[Sequence[Any]], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[Fp3]:
+        """Pull a central character back through a symmetric momentum
+        shear, retaining the characteristic-two quadratic correction.
+        """
+    def standard_pairs(self) -> builtins.int | None:
+        """Standard Weyl rank, or None for a general alternating
+        presentation.
+        """
+    def translation(self, value: Fp3WeylElement, translation: Sequence[Any], max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> Fp3WeylElement:
+        """Apply scalar translation of every standard generator."""
+    def translation_central_character(self, central_values: Sequence[Any], translation: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[Fp3]:
+        """Pull a central character back through scalar translation."""
+    def transported_central_reduce(self, value: Fp3WeylElement, paired_values: Sequence[Any], radical_values: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> Fp3WeylElement:
+        """Reduce through the certified Darboux fibre of an arbitrary
+        alternating presentation and return the canonical source lift.
+        """
+    def transported_fiber_products_agree(self, left: Fp3WeylElement, right: Fp3WeylElement, paired_values: Sequence[Any], radical_values: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> builtins.bool:
+        """Compare a transported-fibre product with multiplication in the
+        original alternating presentation.
+        """
+    def x(self, index: builtins.int) -> Fp3WeylElement:
+        """Return a standard position generator."""
+    def zero(self) -> Fp3WeylElement:
+        """Additive identity."""
+    def __repr__(self) -> builtins.str: ...
+
+class Fp3WeylElement:
+    def algebra(self) -> Fp3WeylAlgebra:
+        """Owning monomorphic Weyl context."""
+    def dim(self) -> builtins.int:
+        """Number of ordered PBW generators."""
+    def is_zero(self) -> builtins.bool:
+        """Whether this is the additive identity."""
+    def mul(self, other: Fp3WeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> Fp3WeylElement:
+        """Budgeted multiplication convenience on the element itself."""
+    def pow(self, exponent: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> Fp3WeylElement:
+        """Budgeted PBW power."""
+    def scale(self, scalar: Any) -> Fp3WeylElement:
+        """Scalar multiplication without changing the Weyl context."""
+    def term_count(self) -> builtins.int:
+        """Number of nonzero PBW terms."""
+    def terms(self) -> list[tuple[list[builtins.int], Fp3]]:
+        """Canonical sparse terms as `(exponents, coefficient)` pairs."""
+    def __add__(self, other: Any) -> Any: ...
+    def __eq__(self, other: builtins.object) -> builtins.bool: ...
+    def __ge__(self, other: Any) -> builtins.bool: ...
+    def __gt__(self, other: Any) -> builtins.bool: ...
+    def __hash__(self) -> builtins.int: ...
+    def __le__(self, other: Any) -> builtins.bool: ...
+    def __lt__(self, other: Any) -> builtins.bool: ...
+    def __mul__(self, other: Any) -> Any: ...
+    def __ne__(self, other: builtins.object) -> builtins.bool: ...
+    def __neg__(self) -> Any: ...
+    def __pow__(self, other: Any) -> Any: ...
+    def __radd__(self, other: Any) -> Any: ...
+    def __repr__(self) -> builtins.str: ...
+    def __rmul__(self, other: Any) -> Any: ...
+    def __rpow__(self, other: Any) -> Any: ...
+    def __rsub__(self, other: Any) -> Any: ...
+    def __str__(self) -> builtins.str: ...
+    def __sub__(self, other: Any) -> Any: ...
+
+class Fp3WeylPSymbol:
+    def brauer_split(self) -> builtins.bool | None:
+        """Split status: None for a cited p-symbol presentation without a
+        full-matrix certificate.
+        """
+    def certify_split(self, splitting_roots: Sequence[Any], max_basis_dimension: builtins.int, max_matrix_entries: builtins.int, max_steps: builtins.int) -> builtins.bool:
+        """Certify that this odd-characteristic p-symbol tensor product is
+        a full matrix algebra using exact rank of every reduced PBW
+        basis image.
+        """
+    def characteristic(self) -> builtins.int:
+        """Positive characteristic `p`."""
+    def cyclic_factor(self, pair: builtins.int, max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> tuple[Fp3, Fp3]:
+        """Verify and return the cyclic parameters `(b,c]` for one factor,
+        where `c = x_i^p*d_i^p`.
+        """
+    def p_residue(self, value: Fp3WeylElement) -> Fp3:
+        """Tensor noncommutative p-residue of an ambient PBW element after
+        central reduction.
+        """
+    def pairs(self) -> list[tuple[Fp3, Fp3]]:
+        """Ordered `(x_i^p, d_i^p)` parameter pairs."""
+    def split_trace_matches_residue(self, value: Fp3WeylElement, splitting_roots: Sequence[Any], max_basis_dimension: builtins.int, max_matrix_entries: builtins.int, max_steps: builtins.int) -> builtins.bool:
+        """Check `p_residue = (-1)^rank * matrix_trace` on an exact split
+        central-character module.
+        """
+    def tensor_rank(self) -> builtins.int:
+        """Number of rank-one p-symbol tensor factors."""
+    def __repr__(self) -> builtins.str: ...
+
 class Fp5:
     def __init__(self, *args: Any, **kwargs: Any) -> None: ...
     @property
@@ -19726,11 +19977,71 @@ class NimberRationalFunctionMV:
     def __truediv__(self, other: Any) -> Any: ...
     def __xor__(self, other: Any) -> Any: ...
 
+class NimberSparsePolynomial:
+    def __init__(self, dim: builtins.int) -> None: ...
+    def dim(self) -> builtins.int:
+        """Number of polynomial variables."""
+    def is_zero(self) -> builtins.bool:
+        """Whether this is the zero polynomial."""
+    @staticmethod
+    def monomial(exponents: Sequence[builtins.int], coefficient: Any) -> NimberSparsePolynomial:
+        """Construct one sparse monomial."""
+    def mul(self, other: NimberSparsePolynomial, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> NimberSparsePolynomial:
+        """Budgeted commutative multiplication."""
+    def partial_derivative(self, index: builtins.int) -> NimberSparsePolynomial:
+        """Formal partial derivative in one variable."""
+    @staticmethod
+    def scalar(dim: builtins.int, coefficient: Any) -> NimberSparsePolynomial:
+        """Construct a scalar polynomial in `dim` variables."""
+    def scale(self, scalar: Any) -> NimberSparsePolynomial:
+        """Scalar multiplication."""
+    def term_count(self) -> builtins.int:
+        """Number of nonzero monomials."""
+    def terms(self) -> list[tuple[list[builtins.int], Nimber]]:
+        """Canonical sparse terms as `(exponents, coefficient)` pairs."""
+    def total_degree(self) -> builtins.int | None:
+        """Maximum total degree, or None for zero/overflow."""
+    @staticmethod
+    def variable(dim: builtins.int, index: builtins.int) -> NimberSparsePolynomial:
+        """Construct one variable in a fixed-dimensional polynomial ring."""
+    def __add__(self, other: Any) -> Any: ...
+    def __eq__(self, other: builtins.object) -> builtins.bool: ...
+    def __ge__(self, other: Any) -> builtins.bool: ...
+    def __gt__(self, other: Any) -> builtins.bool: ...
+    def __hash__(self) -> builtins.int: ...
+    def __le__(self, other: Any) -> builtins.bool: ...
+    def __lt__(self, other: Any) -> builtins.bool: ...
+    def __mul__(self, other: Any) -> Any: ...
+    def __ne__(self, other: builtins.object) -> builtins.bool: ...
+    def __neg__(self) -> Any: ...
+    def __radd__(self, other: Any) -> Any: ...
+    def __repr__(self) -> builtins.str: ...
+    def __rmul__(self, other: Any) -> Any: ...
+    def __rsub__(self, other: Any) -> Any: ...
+    def __str__(self) -> builtins.str: ...
+    def __sub__(self, other: Any) -> Any: ...
+
 class NimberWeylAlgebra:
     def __init__(self, pairs: builtins.int) -> None: ...
+    def act_on_sparse_polynomial(self, operator: NimberWeylElement, polynomial: NimberSparsePolynomial, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> NimberSparsePolynomial:
+        """Apply a standard Weyl operator to a sparse multivariate
+        polynomial.
+        """
+    def affine_map_to(self, target: NimberWeylAlgebra, value: NimberWeylElement, linear: Sequence[Sequence[Any]], translation: Sequence[Any], max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> NimberWeylElement:
+        """Apply a checked affine-linear homomorphism into `target`."""
+    def bernstein_degree(self, value: NimberWeylElement) -> builtins.int | None:
+        """Bernstein filtration degree; None for zero."""
+    def center_basis_element(self, index: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> NimberWeylElement:
+        """One lazy PBW basis element over the characteristic-p centre,
+        transported to source coordinates.
+        """
     def center_generators(self, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[NimberWeylElement]:
         """Certified characteristic-p centre generators in source
         coordinates. Characteristic-zero backends raise ValueError.
+        """
+    def center_rank_over_center(self) -> builtins.int | None:
+        """Exact rank over the characteristic-p centre, or None when the
+        represented rank exceeds u128.
         """
     def central_character_generator_matrices(self, central_values: Sequence[Any], splitting_roots: Sequence[Any], max_basis_dimension: builtins.int, max_matrix_entries: builtins.int, max_steps: builtins.int) -> list[list[list[Nimber]]]:
         """Exact generator matrices for a bounded split central-character
@@ -19752,17 +20063,45 @@ class NimberWeylAlgebra:
         """Alternating commutator matrix in generator order."""
     def d(self, index: builtins.int) -> NimberWeylElement:
         """Return a standard differential generator."""
+    def darboux_from_normal(self, value: NimberWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> NimberWeylElement:
+        """Transport an element of this algebra's certified Darboux normal
+        presentation back to source coordinates.
+        """
+    def darboux_ranks(self) -> tuple[builtins.int, builtins.int]:
+        """`(Weyl rank, radical rank)` of the certified Darboux tensor
+        presentation.
+        """
+    def darboux_to_normal(self, value: NimberWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> tuple[NimberWeylAlgebra, NimberWeylElement]:
+        """Transport a source element into certified Darboux-plus-radical
+        coordinates, returning its normal algebra and element together.
+        """
+    def differential_order(self, value: NimberWeylElement) -> builtins.int | None:
+        """Differential-operator order; None for zero."""
     def dim(self) -> builtins.int:
         """Number of ordered PBW generators."""
+    def direct_sum(self, other: NimberWeylAlgebra) -> NimberWeylAlgebra:
+        """Direct sum with another Weyl commutator context."""
     def formal_adjoint(self, value: NimberWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> NimberWeylElement:
         """Apply the formal-adjoint anti-automorphism."""
     def fourier(self, value: NimberWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> NimberWeylElement:
         """Apply the standard Fourier automorphism."""
+    def fourier_central_character(self, central_values: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[Nimber]:
+        """Pull a central character back through the Fourier automorphism."""
+    def fourier_inverse(self, value: NimberWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> NimberWeylElement:
+        """Apply the inverse standard Fourier automorphism."""
     @staticmethod
     def from_commutator(rows: Sequence[Sequence[Any]]) -> NimberWeylAlgebra:
         """Construct from an alternating commutator matrix."""
     def generator(self, index: builtins.int) -> NimberWeylElement:
         """Return one ordered generator."""
+    def hbar_commutator(self, left: NimberWeylElement, right: NimberWeylElement, hbar: Any, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> NimberWeylElement:
+        """Commute in the polynomial hbar deformation and specialize the
+        result at the supplied scalar value.
+        """
+    def hbar_product(self, left: NimberWeylElement, right: NimberWeylElement, hbar: Any, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> NimberWeylElement:
+        """Multiply in the polynomial hbar deformation and specialize the
+        result at the supplied scalar value.
+        """
     def is_central(self, value: NimberWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> builtins.bool:
         """Check commutation with every generator under optional expansion
         limits.
@@ -19773,17 +20112,49 @@ class NimberWeylAlgebra:
         """Multiply under optional sparse-term and charged-work limits."""
     def one(self) -> NimberWeylElement:
         """Multiplicative identity."""
+    def parity(self, value: NimberWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> NimberWeylElement:
+        """Apply the parity automorphism `z_i -> -z_i`."""
+    def poisson_bracket(self, left: NimberSparsePolynomial, right: NimberSparsePolynomial, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> NimberSparsePolynomial:
+        """Constant Poisson bracket of two commutative Weyl symbols."""
     def pow(self, value: NimberWeylElement, exponent: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> NimberWeylElement:
         """Compute a power under optional sparse-term and charged-work
         limits.
+        """
+    def principal_symbol(self, value: NimberWeylElement, filtration_name: builtins.str) -> NimberSparsePolynomial:
+        """Principal symbol for the named filtration."""
+    def psymbol(self, central_values: Sequence[Any], max_basis_dimension: builtins.int) -> NimberWeylPSymbol:
+        """Construct the characteristic-p symbol presentation of a
+        standard central fibre.
         """
     def radical_generators(self, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[NimberWeylElement]:
         """Certified linear radical generators in source coordinates."""
     def scalar(self, value: Any) -> NimberWeylElement:
         """Embed a scalar constant."""
+    def scaling(self, value: NimberWeylElement, scales: Sequence[Any], max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> NimberWeylElement:
+        """Apply standard diagonal symplectic scaling."""
+    def scaling_central_character(self, central_values: Sequence[Any], scales: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[Nimber]:
+        """Pull a central character back through diagonal scaling."""
+    def shear(self, value: NimberWeylElement, shear: Sequence[Sequence[Any]], max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> NimberWeylElement:
+        """Apply a symmetric momentum shear `d -> d + A*x`."""
+    def shear_central_character(self, central_values: Sequence[Any], shear: Sequence[Sequence[Any]], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[Nimber]:
+        """Pull a central character back through a symmetric momentum
+        shear, retaining the characteristic-two quadratic correction.
+        """
     def standard_pairs(self) -> builtins.int | None:
         """Standard Weyl rank, or None for a general alternating
         presentation.
+        """
+    def translation(self, value: NimberWeylElement, translation: Sequence[Any], max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> NimberWeylElement:
+        """Apply scalar translation of every standard generator."""
+    def translation_central_character(self, central_values: Sequence[Any], translation: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[Nimber]:
+        """Pull a central character back through scalar translation."""
+    def transported_central_reduce(self, value: NimberWeylElement, paired_values: Sequence[Any], radical_values: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> NimberWeylElement:
+        """Reduce through the certified Darboux fibre of an arbitrary
+        alternating presentation and return the canonical source lift.
+        """
+    def transported_fiber_products_agree(self, left: NimberWeylElement, right: NimberWeylElement, paired_values: Sequence[Any], radical_values: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> builtins.bool:
+        """Compare a transported-fibre product with multiplication in the
+        original alternating presentation.
         """
     def x(self, index: builtins.int) -> NimberWeylElement:
         """Return a standard position generator."""
@@ -19826,6 +20197,36 @@ class NimberWeylElement:
     def __rsub__(self, other: Any) -> Any: ...
     def __str__(self) -> builtins.str: ...
     def __sub__(self, other: Any) -> Any: ...
+
+class NimberWeylPSymbol:
+    def brauer_split(self) -> builtins.bool | None:
+        """Split status: None for a cited p-symbol presentation without a
+        full-matrix certificate.
+        """
+    def certify_split(self, splitting_roots: Sequence[Any], max_basis_dimension: builtins.int, max_matrix_entries: builtins.int, max_steps: builtins.int) -> builtins.bool:
+        """Certify that this odd-characteristic p-symbol tensor product is
+        a full matrix algebra using exact rank of every reduced PBW
+        basis image.
+        """
+    def characteristic(self) -> builtins.int:
+        """Positive characteristic `p`."""
+    def cyclic_factor(self, pair: builtins.int, max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> tuple[Nimber, Nimber]:
+        """Verify and return the cyclic parameters `(b,c]` for one factor,
+        where `c = x_i^p*d_i^p`.
+        """
+    def p_residue(self, value: NimberWeylElement) -> Nimber:
+        """Tensor noncommutative p-residue of an ambient PBW element after
+        central reduction.
+        """
+    def pairs(self) -> list[tuple[Nimber, Nimber]]:
+        """Ordered `(x_i^p, d_i^p)` parameter pairs."""
+    def split_trace_matches_residue(self, value: NimberWeylElement, splitting_roots: Sequence[Any], max_basis_dimension: builtins.int, max_matrix_entries: builtins.int, max_steps: builtins.int) -> builtins.bool:
+        """Check `p_residue = (-1)^rank * matrix_trace` on an exact split
+        central-character module.
+        """
+    def tensor_rank(self) -> builtins.int:
+        """Number of rank-one p-symbol tensor factors."""
+    def __repr__(self) -> builtins.str: ...
 
 class NumberGame:
     """A transfinite number-valued game carried by its surreal value, including its
@@ -31884,11 +32285,71 @@ class RationalPlaceInvariant:
     def place(self) -> Any: ...
     def __repr__(self) -> builtins.str: ...
 
+class RationalSparsePolynomial:
+    def __init__(self, dim: builtins.int) -> None: ...
+    def dim(self) -> builtins.int:
+        """Number of polynomial variables."""
+    def is_zero(self) -> builtins.bool:
+        """Whether this is the zero polynomial."""
+    @staticmethod
+    def monomial(exponents: Sequence[builtins.int], coefficient: Any) -> RationalSparsePolynomial:
+        """Construct one sparse monomial."""
+    def mul(self, other: RationalSparsePolynomial, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> RationalSparsePolynomial:
+        """Budgeted commutative multiplication."""
+    def partial_derivative(self, index: builtins.int) -> RationalSparsePolynomial:
+        """Formal partial derivative in one variable."""
+    @staticmethod
+    def scalar(dim: builtins.int, coefficient: Any) -> RationalSparsePolynomial:
+        """Construct a scalar polynomial in `dim` variables."""
+    def scale(self, scalar: Any) -> RationalSparsePolynomial:
+        """Scalar multiplication."""
+    def term_count(self) -> builtins.int:
+        """Number of nonzero monomials."""
+    def terms(self) -> list[tuple[list[builtins.int], Rational]]:
+        """Canonical sparse terms as `(exponents, coefficient)` pairs."""
+    def total_degree(self) -> builtins.int | None:
+        """Maximum total degree, or None for zero/overflow."""
+    @staticmethod
+    def variable(dim: builtins.int, index: builtins.int) -> RationalSparsePolynomial:
+        """Construct one variable in a fixed-dimensional polynomial ring."""
+    def __add__(self, other: Any) -> Any: ...
+    def __eq__(self, other: builtins.object) -> builtins.bool: ...
+    def __ge__(self, other: Any) -> builtins.bool: ...
+    def __gt__(self, other: Any) -> builtins.bool: ...
+    def __hash__(self) -> builtins.int: ...
+    def __le__(self, other: Any) -> builtins.bool: ...
+    def __lt__(self, other: Any) -> builtins.bool: ...
+    def __mul__(self, other: Any) -> Any: ...
+    def __ne__(self, other: builtins.object) -> builtins.bool: ...
+    def __neg__(self) -> Any: ...
+    def __radd__(self, other: Any) -> Any: ...
+    def __repr__(self) -> builtins.str: ...
+    def __rmul__(self, other: Any) -> Any: ...
+    def __rsub__(self, other: Any) -> Any: ...
+    def __str__(self) -> builtins.str: ...
+    def __sub__(self, other: Any) -> Any: ...
+
 class RationalWeylAlgebra:
     def __init__(self, pairs: builtins.int) -> None: ...
+    def act_on_sparse_polynomial(self, operator: RationalWeylElement, polynomial: RationalSparsePolynomial, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> RationalSparsePolynomial:
+        """Apply a standard Weyl operator to a sparse multivariate
+        polynomial.
+        """
+    def affine_map_to(self, target: RationalWeylAlgebra, value: RationalWeylElement, linear: Sequence[Sequence[Any]], translation: Sequence[Any], max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> RationalWeylElement:
+        """Apply a checked affine-linear homomorphism into `target`."""
+    def bernstein_degree(self, value: RationalWeylElement) -> builtins.int | None:
+        """Bernstein filtration degree; None for zero."""
+    def center_basis_element(self, index: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> RationalWeylElement:
+        """One lazy PBW basis element over the characteristic-p centre,
+        transported to source coordinates.
+        """
     def center_generators(self, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[RationalWeylElement]:
         """Certified characteristic-p centre generators in source
         coordinates. Characteristic-zero backends raise ValueError.
+        """
+    def center_rank_over_center(self) -> builtins.int | None:
+        """Exact rank over the characteristic-p centre, or None when the
+        represented rank exceeds u128.
         """
     def central_character_generator_matrices(self, central_values: Sequence[Any], splitting_roots: Sequence[Any], max_basis_dimension: builtins.int, max_matrix_entries: builtins.int, max_steps: builtins.int) -> list[list[list[Rational]]]:
         """Exact generator matrices for a bounded split central-character
@@ -31910,17 +32371,45 @@ class RationalWeylAlgebra:
         """Alternating commutator matrix in generator order."""
     def d(self, index: builtins.int) -> RationalWeylElement:
         """Return a standard differential generator."""
+    def darboux_from_normal(self, value: RationalWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> RationalWeylElement:
+        """Transport an element of this algebra's certified Darboux normal
+        presentation back to source coordinates.
+        """
+    def darboux_ranks(self) -> tuple[builtins.int, builtins.int]:
+        """`(Weyl rank, radical rank)` of the certified Darboux tensor
+        presentation.
+        """
+    def darboux_to_normal(self, value: RationalWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> tuple[RationalWeylAlgebra, RationalWeylElement]:
+        """Transport a source element into certified Darboux-plus-radical
+        coordinates, returning its normal algebra and element together.
+        """
+    def differential_order(self, value: RationalWeylElement) -> builtins.int | None:
+        """Differential-operator order; None for zero."""
     def dim(self) -> builtins.int:
         """Number of ordered PBW generators."""
+    def direct_sum(self, other: RationalWeylAlgebra) -> RationalWeylAlgebra:
+        """Direct sum with another Weyl commutator context."""
     def formal_adjoint(self, value: RationalWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> RationalWeylElement:
         """Apply the formal-adjoint anti-automorphism."""
     def fourier(self, value: RationalWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> RationalWeylElement:
         """Apply the standard Fourier automorphism."""
+    def fourier_central_character(self, central_values: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[Rational]:
+        """Pull a central character back through the Fourier automorphism."""
+    def fourier_inverse(self, value: RationalWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> RationalWeylElement:
+        """Apply the inverse standard Fourier automorphism."""
     @staticmethod
     def from_commutator(rows: Sequence[Sequence[Any]]) -> RationalWeylAlgebra:
         """Construct from an alternating commutator matrix."""
     def generator(self, index: builtins.int) -> RationalWeylElement:
         """Return one ordered generator."""
+    def hbar_commutator(self, left: RationalWeylElement, right: RationalWeylElement, hbar: Any, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> RationalWeylElement:
+        """Commute in the polynomial hbar deformation and specialize the
+        result at the supplied scalar value.
+        """
+    def hbar_product(self, left: RationalWeylElement, right: RationalWeylElement, hbar: Any, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> RationalWeylElement:
+        """Multiply in the polynomial hbar deformation and specialize the
+        result at the supplied scalar value.
+        """
     def is_central(self, value: RationalWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> builtins.bool:
         """Check commutation with every generator under optional expansion
         limits.
@@ -31931,17 +32420,49 @@ class RationalWeylAlgebra:
         """Multiply under optional sparse-term and charged-work limits."""
     def one(self) -> RationalWeylElement:
         """Multiplicative identity."""
+    def parity(self, value: RationalWeylElement, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> RationalWeylElement:
+        """Apply the parity automorphism `z_i -> -z_i`."""
+    def poisson_bracket(self, left: RationalSparsePolynomial, right: RationalSparsePolynomial, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> RationalSparsePolynomial:
+        """Constant Poisson bracket of two commutative Weyl symbols."""
     def pow(self, value: RationalWeylElement, exponent: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> RationalWeylElement:
         """Compute a power under optional sparse-term and charged-work
         limits.
+        """
+    def principal_symbol(self, value: RationalWeylElement, filtration_name: builtins.str) -> RationalSparsePolynomial:
+        """Principal symbol for the named filtration."""
+    def psymbol(self, central_values: Sequence[Any], max_basis_dimension: builtins.int) -> RationalWeylPSymbol:
+        """Construct the characteristic-p symbol presentation of a
+        standard central fibre.
         """
     def radical_generators(self, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[RationalWeylElement]:
         """Certified linear radical generators in source coordinates."""
     def scalar(self, value: Any) -> RationalWeylElement:
         """Embed a scalar constant."""
+    def scaling(self, value: RationalWeylElement, scales: Sequence[Any], max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> RationalWeylElement:
+        """Apply standard diagonal symplectic scaling."""
+    def scaling_central_character(self, central_values: Sequence[Any], scales: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[Rational]:
+        """Pull a central character back through diagonal scaling."""
+    def shear(self, value: RationalWeylElement, shear: Sequence[Sequence[Any]], max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> RationalWeylElement:
+        """Apply a symmetric momentum shear `d -> d + A*x`."""
+    def shear_central_character(self, central_values: Sequence[Any], shear: Sequence[Sequence[Any]], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[Rational]:
+        """Pull a central character back through a symmetric momentum
+        shear, retaining the characteristic-two quadratic correction.
+        """
     def standard_pairs(self) -> builtins.int | None:
         """Standard Weyl rank, or None for a general alternating
         presentation.
+        """
+    def translation(self, value: RationalWeylElement, translation: Sequence[Any], max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> RationalWeylElement:
+        """Apply scalar translation of every standard generator."""
+    def translation_central_character(self, central_values: Sequence[Any], translation: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[Rational]:
+        """Pull a central character back through scalar translation."""
+    def transported_central_reduce(self, value: RationalWeylElement, paired_values: Sequence[Any], radical_values: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> RationalWeylElement:
+        """Reduce through the certified Darboux fibre of an arbitrary
+        alternating presentation and return the canonical source lift.
+        """
+    def transported_fiber_products_agree(self, left: RationalWeylElement, right: RationalWeylElement, paired_values: Sequence[Any], radical_values: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> builtins.bool:
+        """Compare a transported-fibre product with multiplication in the
+        original alternating presentation.
         """
     def x(self, index: builtins.int) -> RationalWeylElement:
         """Return a standard position generator."""
@@ -31984,6 +32505,36 @@ class RationalWeylElement:
     def __rsub__(self, other: Any) -> Any: ...
     def __str__(self) -> builtins.str: ...
     def __sub__(self, other: Any) -> Any: ...
+
+class RationalWeylPSymbol:
+    def brauer_split(self) -> builtins.bool | None:
+        """Split status: None for a cited p-symbol presentation without a
+        full-matrix certificate.
+        """
+    def certify_split(self, splitting_roots: Sequence[Any], max_basis_dimension: builtins.int, max_matrix_entries: builtins.int, max_steps: builtins.int) -> builtins.bool:
+        """Certify that this odd-characteristic p-symbol tensor product is
+        a full matrix algebra using exact rank of every reduced PBW
+        basis image.
+        """
+    def characteristic(self) -> builtins.int:
+        """Positive characteristic `p`."""
+    def cyclic_factor(self, pair: builtins.int, max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> tuple[Rational, Rational]:
+        """Verify and return the cyclic parameters `(b,c]` for one factor,
+        where `c = x_i^p*d_i^p`.
+        """
+    def p_residue(self, value: RationalWeylElement) -> Rational:
+        """Tensor noncommutative p-residue of an ambient PBW element after
+        central reduction.
+        """
+    def pairs(self) -> list[tuple[Rational, Rational]]:
+        """Ordered `(x_i^p, d_i^p)` parameter pairs."""
+    def split_trace_matches_residue(self, value: RationalWeylElement, splitting_roots: Sequence[Any], max_basis_dimension: builtins.int, max_matrix_entries: builtins.int, max_steps: builtins.int) -> builtins.bool:
+        """Check `p_residue = (-1)^rank * matrix_trace` on an exact split
+        central-character module.
+        """
+    def tensor_rank(self) -> builtins.int:
+        """Number of rank-one p-symbol tensor factors."""
+    def __repr__(self) -> builtins.str: ...
 
 class RealWittDecomp:
     @property

@@ -121,7 +121,7 @@ fn grade_masks_vec(n: usize, k: usize) -> Vec<u128> {
     let limit = 1u128 << n;
     loop {
         out.push(current);
-        let low = current & current.wrapping_neg();
+        let low = current.isolate_lowest_one();
         let next_high = current + low;
         let next = next_high + (((next_high ^ current) / low) >> 2);
         if next >= limit {

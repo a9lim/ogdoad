@@ -8,6 +8,7 @@ PBW algebra
     -> canonical transformations
     -> filtrations and symbols
     -> representations and central fibres
+    -> p-symbols and Brauer evidence
     -> ideals and D-modules
 ```
 
@@ -116,6 +117,47 @@ matrix and Clifford certificates.
 This wave is complete when every reported central generator commutes
 independently, each central reduction is a tested algebra homomorphism, and the
 characteristic-two fibre agrees exactly with the Clifford engine.
+
+## Wave 3.5: p-symbol classification surface (implemented)
+
+- Every bounded standard central fibre has an executable tensor presentation
+  by rank-one `p`-symbols `S_(a_i,b_i)`, backed by the existing reduced-fibre
+  multiplication engine rather than a second presentation-specific product.
+- The tensor noncommutative `p`-residue is the top reduced PBW coefficient. On
+  a verified splitting module it is compared exactly with matrix trace, with
+  the source convention `residue = (-1)^n trace`.
+- When `b_i` is invertible, the factor `S_(a_i,b_i)` converts to the cyclic
+  presentation `(b_i,a_i b_i]`. The Artin--Schreier power, multiplicative
+  power, and crossed relation are all rechecked inside the finite fibre.
+- Brauer reports distinguish an executable, cited `p`-symbol presentation from
+  an internally computed split certificate. A presentation alone returns
+  unknown split status; only the existing exact full-rank matrix certificate
+  upgrades it to split.
+- Central characters pull back through canonical automorphisms by reducing
+  `phi(z_i)^p` in the relevant fibre. This calculation retains the extra
+  quadratic term of mixed characteristic-two coordinates instead of applying
+  a characteristic-zero formula.
+- Arbitrary exact-field alternating presentations acquire bounded central
+  fibres through their certified Darboux decomposition. Paired characteristic-
+  power values and linear radical values remain distinct; multiplication is
+  independently compared after lifting back to source coordinates.
+- The Rational, `Fp3`, and Nimber Python families now expose the stable
+  computational surface of Waves 1--3.5: sparse polynomials and actions, both
+  filtrations,
+  principal symbols and Poisson brackets, the polynomial `hbar` family,
+  Darboux transport, affine/canonical maps, centres and finite fibres,
+  p-symbols, character pullbacks, and transported-fibre checks. Raw Rust map
+  and fibre structs remain implementation-facing rather than runtime-tagged
+  Python containers.
+
+The Azumaya and `p`-torsion Brauer interpretation remains the cited theorem
+from Wodzicki used in Wave 3. Wave 3.5 implements and checks its concrete
+presentations, conversions, residues, transports, and supported splitting
+certificates; it does not relabel that external theorem as proved here.
+
+This wave is complete when the cyclic relations, residue/trace identity,
+character pullbacks (including the characteristic-two shear correction), and
+source-versus-Darboux fibre products all pass independent exact tests.
 
 ## Wave 4: certified computational D-modules
 

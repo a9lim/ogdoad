@@ -31,7 +31,7 @@ pub(crate) fn grade_k_masks(n: usize, k: usize) -> impl Iterator<Item = u128> {
             current = None;
             return Some(c);
         }
-        let u = c & c.wrapping_neg();
+        let u = c.isolate_lowest_one();
         let v = c.checked_add(u);
         current = match v {
             Some(v) if v != 0 => {

@@ -29,7 +29,10 @@
 //! In positive characteristic, [`WeylCenterDescription`] certifies the enlarged
 //! centre, [`WeylCentralFiber`] and [`WeylCentralCharacterModule`] keep finite
 //! quotient dimensions explicit, and characteristic-two fibres have a checked
-//! [`WeylCliffordFiber`] product oracle.
+//! [`WeylCliffordFiber`] product oracle. [`WeylPSymbolPresentation`] adds
+//! checked cyclic conversion, noncommutative residue, claim-disciplined Brauer
+//! evidence, central-character pullback, and Darboux-transported fibres for
+//! arbitrary alternating presentations.
 //!
 //! This is a separate public pillar from [`crate::clifford`]. It shares the
 //! commutative [`crate::scalar::Scalar`] coefficient discipline, but a Weyl
@@ -45,6 +48,7 @@ mod fiber;
 mod normal_form;
 mod polynomial;
 mod product;
+mod psymbol;
 mod symbol;
 mod transform;
 
@@ -56,5 +60,6 @@ pub use element::*;
 pub use fiber::*;
 pub use normal_form::*;
 pub use polynomial::*;
+pub use psymbol::*;
 pub use symbol::*;
 pub use transform::*;
