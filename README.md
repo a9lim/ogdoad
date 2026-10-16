@@ -185,7 +185,7 @@ The papers under `writeups/` form one current research suite:
 | `linking_affine.tex` | proved reductions and exact remaining obstruction for isolated-dummy FIFO linking |
 | `excess.tex` | exact four-arm selected-order reduction, proved arithmetic boundaries, and authoritative open status of the transfinite nim-excess `0/1/4` rule |
 | `nim_fast_multiplication.tex` | quasi-linear canonical-word multiplication via explicit affine transforms to a primitive Artin--Schreier tower |
-| `misere_natural_realization.tex` | exact octal trace calculus, finite-exception heap normal form, realization of every tame finite quotient, and exact misere Grundy quotients through heap 18 |
+| `misere_natural_realization.tex` | exact octal traces and periodic code compression, binary split classification, complete ordinary-subtraction realization, and exact misere Grundy quotients through heap 18 |
 
 The unresolved universal claims and their sharp proof boundaries are in
 [`docs/OPEN.md`](docs/OPEN.md). Lean checks named algebraic components and

@@ -41,21 +41,31 @@ complete option-value set determines its value, and no transition value can
 occur among its own options.  These facts give an if-and-only-if trace
 criterion, absolute digit obstructions, automatic periodicity for finite
 no-split quotients, and finite certificates for asserted periodic split
-traces.  The split recurrence is exactly a system of unary Boolean language
+traces.  Any exact word periodic from $N$ with period $p$ has a realizing
+code of length at most $3N+2p$, giving finite synthesis with bounded
+periodic complexity.  The split recurrence is exactly a system of unary Boolean language
 equations.  For arbitrary partial decoders its totality problem is
 $\Pi^0_1$-complete already for $0.7$; the reduction deliberately falls
-outside the valid-table class and therefore isolates, rather than resolves,
-the remaining decision problem.
+outside the valid-table class.  For that same code every nontrivial valid
+table has the universal parity trace.  More generally, every two-element
+split quotient has a period-two heap trace, giving a complete finite mask
+classification for this target.
 
 On the realization side, every nontrivial finite valid quotient has a
 one-species heap model with finitely many source-local rules and the uniform
 tail $H_n\to H_{n-1}$, but an inert-pad theorem prevents a verbatim finite-octal
-encoding when the quotient has more than two elements.  Positively, the code
-with $2^{n-1}$ consecutive digits $3$ realizes the tame quotient
-$\mathcal T_n$ for every $n\ge2$.  For mis\`ere Grundy's game we prove exact
+encoding when the quotient has more than two elements.  For ordinary
+subtraction games we give a self-contained derivation from
+Ferguson's theorem of the complete realization classification: the trivial
+quotient, the two-element quotient, and the tame quotients $\mathcal T_n$.
+The code with $2^{n-1}$ consecutive digits $3$ realizes $\mathcal T_n$ for
+every $n\ge2$.  For mis\`ere Grundy's game we prove exact
 all-multiplicity quotients of orders $6$, $12$, and $24$ through heaps $12$,
-$13$, and $18$.  If the full quotient is finite, its kernel is nontrivial.
-The wild octal-realization family and the full Grundy quotient remain open.
+$13$, and $18$.  A finite full quotient forces a heap with its own squared
+value among its
+option values, and hence a nonconstant positive-power cycle.  The canonical
+mate of $H_{13}$ has no representative among Grundy positions.  The wild
+octal-realization family and the full Grundy quotient remain open.
 \end{abstract}
 
 \section{Introduction}
@@ -69,8 +79,8 @@ algebraic condition imposed by that uniform tail.
 The argument has one spine.  Transition-table determinism makes the heap word
 canonical; the octal rule turns that word into a totality problem; exact
 periodic certificates and normal forms locate the boundary of the problem;
-and the tame and Grundy calculations solve the recurrence in two complementary
-regimes.  The main results are grouped accordingly.
+and the subtraction classification and Grundy calculations solve the
+recurrence in two complementary regimes.  The main results are grouped accordingly.
 
 \begin{thmA}
 \begin{enumerate}
@@ -81,31 +91,41 @@ and generates the monoid.  No transition value is one of its own option
 values, yielding explicit whole-, one-, and two-remainder exclusions.
 \item Finite no-split quotients have ultimately periodic heap traces, so exact
 realization by a fixed no-split code is decidable.  An asserted periodic split
-trace also has a finite exact certificate.  For arbitrary partial decoders,
+trace also has a finite exact certificate.  Every exact word periodic from
+$N$ with period $p$ has a realizing code of length at most $3N+2p$,
+so synthesis is decidable when these two parameters are bounded.
+For arbitrary partial decoders,
 however, fixed-code split totality is $\Pi^0_1$-complete already for $0.7$;
-the valid-table case remains open.
+every nontrivial valid table is total for that code.  All two-element
+split quotients have period two from heap $1$ and admit an explicit finite
+mask classification; the general valid-table case remains open.
 \item Every nontrivial finite quotient has a finite-exception unary-heap normal
 form with tail $H_n\to H_{n-1}$.  Its inert pad cannot be retained by a
-verbatim finite-octal encoding when $|Q|>2$.  In the strict octal class, for
-every $n\ge2$ the code
-\(0.\underbrace{33\cdots3}_{2^{n-1}\text{ digits}}\) has exact quotient
-$\mathcal T_n$, realizing every tame quotient in the finite $|P|=2$
-classification.
+verbatim finite-octal encoding when $|Q|>2$.  In the ordinary subtraction
+class, the realizable finite quotients are
+exactly the trivial quotient, $\mathcal C_2$, and $\mathcal T_n$ for
+$n\ge2$.  This gives an unbounded-code synthesis algorithm in that class;
+the code \(0.\underbrace{33\cdots3}_{2^{n-1}\text{ digits}}\) realizes
+$\mathcal T_n$.
 \item In mis\`ere Grundy's game, the exact quotients generated through heaps
 $12$, $13$, and $18$ have orders $6$, $12$, and $24$, respectively, with
 the presentations and reduced translation tables given below.  Any finite
-full Grundy quotient has a nontrivial kernel.
+full Grundy quotient has a heap transition whose option set contains the
+square of its own value, forcing a nonconstant positive-power cycle.
+The mate of the canonical representative of $H_{13}$ is not globally
+equivalent to any Grundy position.
 \end{enumerate}
 \end{thmA}
 
 The normal form in item~3 belongs to a comparison class, while the tame family
-in the same item is a strict finite-octal theorem.  Item~4 is an exact prefix
-theorem plus a conditional structure theorem.  None of the four items asserts
-automatic periodicity for valid split traces or finiteness of the full Grundy
+in the same item is a strict finite-octal theorem.  Item~4 combines exact
+prefixes, a global obstruction, and a conditional structure theorem.
+None of the four items asserts
+automatic periodicity for general valid split traces or finiteness of the full Grundy
 quotient.
 Sections~\ref{sec:tables} and~\ref{sec:traces} build the trace calculus,
 Section~\ref{sec:normalform} gives the comparison normal form,
-Section~\ref{sec:tame} realizes the tame family, and
+Section~\ref{sec:tame} classifies ordinary subtraction realization, and
 Section~\ref{sec:grundy} gives the Grundy extensions.
 Section~\ref{sec:boundary} states the formal and open boundaries.
 
@@ -230,6 +250,48 @@ in $P$.
 The one-element quotient has only the terminal record and satisfies the same
 no-self conclusion trivially.  Reducedness without a valid table would not be
 enough for the $P$-reaching statement.
+
+\subsection{The universal star action}\label{sec:star}
+
+Every nontrivial valid quotient contains the same two-element submonoid.
+This standard fact is useful both for positive trace theorems and for
+recognizing which purported obstructions do not distinguish a ruleset.
+
+\begin{proposition}[Free star involution]\label{prop:star}
+In a nontrivial reduced valid table there is an element $a\ne1$ with
+\[
+ (a,\{1\})\in T,\qquad a^2=1,\qquad aq\ne q\quad(q\in Q).
+\]
+Consequently every nonempty finite ideal, in particular the kernel of a finite
+quotient, has positive even cardinality.
+\end{proposition}
+
+\begin{proof}
+Choose a nonidentity element of least rank and a descending record for it.
+Every option value is $1$, and the option set cannot be empty by determinism
+against $(1,\varnothing)$.  This gives $(a,\{1\})$ and $a\in P$.
+Its square is $(a^2,\{a\})$, so $a^2\notin P$.
+
+We prove $a^2z\in P\Longleftrightarrow z\in P$ by induction on the rank
+of a descending record $(z,F)$.  If $F$ is empty, then $z=1$ and both
+sides are false.  Otherwise, if $a^2z\in P$, its options $a^2f$ are
+outside $P$, hence so are all $f\in F$ by induction; thus $z\in P$.
+Conversely, if $z\in P$, then $az\notin P$, since the product of
+$(a,\{1\})$ with $(z,F)$ has option $z$.  Also every $a^2f$ is outside
+$P$ by induction.  These are exactly the options of the product of
+$(a^2,\{a\})$ with $(z,F)$, so $a^2z\in P$.  Reducedness now gives
+$a^2=1$.
+
+For any $q$, multiply its record by $(a,\{1\})$.  The resulting record
+has value $aq$ and option $q$, so Proposition~\ref{prop:noself} gives
+$aq\ne q$.  Multiplication by $a$ is therefore a fixed-point-free
+involution on $Q$ and on every ideal.  Its orbits have size two.
+\end{proof}
+
+Lean checks star existence in the normal-form module, and the involution
+and free action in \texttt{MisereParityTrace}.
+In particular, a nontrivial kernel is a universal requirement on finite
+mis\`ere quotients, not a special obstruction for Grundy's game.
 
 \section{Exact octal traces}\label{sec:traces}
 
@@ -364,6 +426,189 @@ through that first tail period, and generation check form an exact
 infinite-rule certificate.  This is a transition-table form of the
 periodicity argument in \cite{siegel2006notes,plambecksiegel2008}.
 
+\subsection{Compressing periodic octal witnesses}
+
+A periodic pretending function bounds the length of a code realizing it,
+even when the given realization has arbitrarily large offsets.  The
+transition records themselves need not be preserved.  We first make precise
+the enlargement of a valid table that this argument uses.
+
+\begin{lemma}[Parity-preserving meximal saturation]
+\label{lem:parity-saturation}
+Let $T$ be a valid transition table on a reduced bipartite monoid $(Q,P)$.
+Let $\widehat T$ consist of all pairs $(x,E)$ such that
+\[
+ E\subseteq M_x,\qquad
+ x\in P\ \Longleftrightarrow\ E\ne\varnothing
+       \text{ and }E\cap P=\varnothing,
+\]
+and some $(x,F)\in T$ satisfies $F\subseteq E$.
+Then $\widehat T$ is a valid transition table containing $T$.
+\end{lemma}
+
+\begin{proof}
+The meximal obstruction gives $T\subseteq\widehat T$, so completeness and
+the descending witnesses are inherited.  It remains to prove closure.
+Take $(x,E),(y,G)\in\widehat T$ with baseline records
+$(x,F),(y,H)\in T$, where $F\subseteq E$ and $H\subseteq G$.
+Their product has option set $K=yE\cup xG$, containing the baseline option
+set $K_0=yF\cup xH$ of a record $(xy,K_0)\in T$.
+Moreover $K\subseteq M_{xy}$: if $e\in E$ and both $xyz,yez$ belonged to
+$P$, then the context $yz$ would contradict $e\in M_x$; the other summand
+is symmetric.
+
+If $K_0\ne\varnothing$, then $K\ne\varnothing$.
+When $xy\in P$, meximal safety excludes $P$-elements of $K$ by taking
+context $1$.  When $xy\notin P$, parity of the baseline record supplies
+a $P$-element of $K_0\subseteq K$.  Thus the product is parity-correct.
+If $K_0=\varnothing$, then $F=H=\varnothing$, and option-set determinism
+against $(1,\varnothing)$ gives $x=y=1$.  Now $K=E\cup G$.
+If this union is nonempty, one factor has a nonempty option set and its
+individual parity supplies a $P$-element; if it is empty, the product is
+the terminal record.  Since $1\notin P$, both cases are parity-correct.
+Hence the product belongs to $\widehat T$.
+\end{proof}
+
+The individual parity condition cannot be omitted when a baseline is
+empty.  It is exactly the condition handled separately for terminal heaps
+in the following theorem.
+
+\begin{theorem}[Periodic octal witness compression]
+\label{thm:periodic-compression}
+Suppose a finite octal code has exact reduced quotient $(Q,P)$ and heap
+pretending function $(x_n)_{n\ge0}$.  If $N,p\ge1$ and
+$x_{n+p}=x_n$ for every $n\ge N$, then the same sequence is the exact
+pretending function of a finite octal code whose last nonzero digit is at
+most
+\[
+ B=3N+2p.
+\]
+\end{theorem}
+
+\begin{proof}
+Keep all original bits at offsets at most $B$ and discard all bits at larger
+offsets.  For every original one-remainder or split bit at offset
+$k\ge N+p$, also set that same bit at the unique offset
+\[
+ \rho(k)\in\{N,N+1,\ldots,N+p-1\},\qquad
+ \rho(k)\equiv k\pmod p.
+\]
+This is done for every such original persistent bit, including those with
+$k\le B$.  Whole-heap bits are not copied.  For original persistent offsets
+$k<N+p$, write $\rho(k)=k$; these bits were already retained.
+Every original persistent bit therefore has a representative at an offset
+at most $N+p-1$.
+
+Let $E_n$ and $E'_n$ be the original and new option-value sets, both
+computed from the given sequence $x$, and let $T$ be the original valid
+transition table.  Every option from a retained bit lies in
+$E_n\subseteq M_{x_n}$.  An added bit at $k'=\rho(k)$ comes from an
+original offset $k\ge k'$ with $k-k'=tp$ for some $t\ge0$.
+A new move from heap $n$ using this bit has exactly the same remainder
+heap or heaps as the original move from heap $n+tp$ using offset $k$.
+Its existence implies $n>k'\ge N$, so $x_{n+tp}=x_n$.
+Thus every added option is also meximal-safe, and
+\[
+ E'_n\subseteq M_{x_n}\qquad(n\ge0).
+\]
+
+If $Q$ is trivial, validity allows only the record $(1,\varnothing)$.
+The original code therefore has no active bits, and there is nothing to
+prove.  Assume henceforth that $Q$ is nontrivial, and let $a$ be its
+universal star value.  In particular,
+$(a,\{1\})\in T$, $a\in P$, $a^2=1$, and
+$(1,\{a\})\in T$.
+
+For $n\le B$, every original move uses an offset at most $B$, so
+$E_n\subseteq E'_n$.  If $E_n\ne\varnothing$, the new record is
+parity-correct: a $P$-value has no $P$-option by meximal safety, while an
+$N$-value retains a $P$-option from its nonempty baseline.  Therefore
+$(x_n,E'_n)\in\widehat T$.
+If $E_n=\varnothing$, then the original heap $n$ is terminal and $x_n=1$.
+No persistent bit is active at any smaller heap: a one-remainder bit
+active below $n$ is also active at $n$, and the same holds for a split bit.
+Every smaller original heap consequently has either no options or only
+the empty position as an option, so its value lies in $\{1,a\}$.
+Every new option at $n$, including a product from two remainder heaps,
+therefore has value in $\{1,a\}$.  But $1\notin M_1$, as witnessed by
+the context $a\in P$.  Meximal safety forces
+$E'_n=\varnothing$ or $E'_n=\{a\}$.
+Both resulting records already belong to $T$, which resolves the terminal
+case without assuming generic saturation preserves parity.
+
+If the original code has no persistent bits, its sequence is eventually
+$1$; periodicity from $N$ then implies $x_n=1$ for every $n\ge N$.
+Every active whole-heap bit is therefore below $N$, since such a bit gives
+heap value $a$.  The construction leaves this code unchanged, proving the
+theorem in this case.  Now assume some persistent bit is present.
+
+Write
+\[
+ F_m=\{x_i x_j:i,j\ge1,\ i+j=m\}.
+\]
+For $m\ge2N+p$ one has $F_{m+p}=F_m$.
+Indeed, in a pair summing to $m$, some part is at least $N$ and can be
+increased by $p$; in a pair summing to $m+p\ge2N+2p$, some part is at
+least $N+p$ and can be decreased by $p$.  Periodicity preserves the
+corresponding products.
+
+Fix $n>B$, and choose $m\equiv n\pmod p$ sufficiently large that it is
+beyond the last original digit and that, for every original persistent
+offset $k$, the residual $m-k$ is at least $2N+p$.
+The original whole-heap contribution at $m$ is absent, and $E_m$ is
+nonempty because some persistent bit is active.  Every representative
+satisfies
+\[
+ n-\rho(k)\ge(B+1)-(N+p-1)=2N+p+2.
+\]
+Thus $m-k$ and $n-\rho(k)$ are congruent modulo $p$ and lie in the
+stable range.  Their one-remainder values agree, and their split
+convolution sets agree.  Every original contribution to $E_m$ is
+therefore present in $E'_n$.  We have obtained a nonempty baseline
+\[
+ (x_n,E_m)=(x_m,E_m)\in T,\qquad E_m\subseteq E'_n.
+\]
+Meximal safety and this nonempty baseline give individual parity as
+before, hence $(x_n,E'_n)\in\widehat T$ for every $n>B$ as well.
+
+All new heap records now lie in the valid table $\widehat T$.
+The exact trace criterion proves that their sequence is an outcome map
+for the new ruleset.  Its values still generate $Q$, because the sequence
+was unchanged; reducedness therefore gives the same exact quotient.
+\end{proof}
+
+\begin{corollary}[Bounded periodic-complexity synthesis]
+\label{cor:bounded-periodic-synthesis}
+For a given finite reduced bipartite monoid $(Q,P)$ and integers $N,p\ge1$,
+it is decidable whether some finite octal code realizes $(Q,P)$ with a
+pretending function periodic from $N$ with period $p$.
+The same holds when $N$ and $p$ are upper bounds rather than specified
+parameters.
+\end{corollary}
+
+\begin{proof}
+There are finitely many $Q$-valued prefix-and-period words for the specified
+$N,p$, with $x_0=1$.  By Theorem~\ref{thm:periodic-compression}, any
+realizable word has a realizing code of length at most $3N+2p$.
+Enumerate those finitely many words and codes, together with the finitely
+many transition tables on $Q$.  Check table validity, generation of $Q$,
+and the finite periodic trace certificate.  These are finite decisions
+and the exact trace criterion proves both directions.
+For upper bounds, enumerate the finitely many admissible parameter pairs.
+\end{proof}
+
+The Lean module \texttt{MisereOctalCompression} checks the actual mask
+transformation, its $3N+2p$ bound, and every compressed heap record's
+membership in the valid saturated table.  It uses the saturation and
+terminal-prefix modules; the quotient interpretation and finite enumeration
+are the paper-level composition of these certificates.
+
+This reduces code-length control, within the periodic branch of the
+realization problem, to control of the preperiod and period.
+It supplies no computable bound for those two parameters in terms of
+$|Q|$, and it does not prove that a splitting code with finite quotient
+has an ultimately periodic pretending function.
+
 \subsection{The Boolean-language boundary}\label{sec:languages}
 
 The convolution obstruction can be made exact.  For languages
@@ -485,10 +730,118 @@ is $\Pi^0_1$-complete, completing the reduction.
 The decoder in Theorem~\ref{thm:decoder-hardness} is deliberately arbitrary.
 It need not extend to a reduced, closed, parity-correct, ranked mis\`ere
 transition table.  Therefore the theorem neither proves undecidability of
-natural realization nor decides a fixed valid-table trace.  It proves the
+natural realization nor decides a fixed valid-table trace.  Its truncated monoid also has an absorbing element $\bot$, which cannot
+occur in any nontrivial valid quotient: Proposition~\ref{prop:star} would
+give $a\bot\ne\bot$.  The hardness theorem proves the
 more surgical statement needed here: any decision argument must use the
 valid-table axioms in a load-bearing way.  Finiteness of $Q$, commutativity of
 its multiplication, and unary input alone are insufficient.
+
+\subsection{What validity forces on the hardness code}\label{sec:parity-traces}
+
+The code in Theorem~\ref{thm:decoder-hardness} becomes completely tractable
+when its decoder comes from a valid table.  The following statement permits
+split moves and does not assume a finite table.
+
+\begin{theorem}[Odd-removal traces]\label{thm:odd-removal}
+Suppose all active removal offsets of an octal code are odd, and its first
+digit has both the whole-removal and one-remainder bits.  In every nontrivial
+reduced valid table the unique total trace is
+\[
+ x_n=a^n,\qquad E_n=\{a^{n-1}\}\quad(n\ge1),
+\]
+where $a$ is the star value of Proposition~\ref{prop:star}.  The exact
+quotient is
+$\mathcal C_2=(\langle a\mid a^2=1\rangle,\{a\})$.
+In particular, a valid-table trace for $0.7$ exists if and only if its
+ambient monoid is nontrivial; this is a totality statement even when the
+trace does not generate that ambient monoid.
+\end{theorem}
+
+\begin{proof}
+A move removes an odd number $k$ of counters.  With $x_n=a^n$, a one-heap
+option and a split option both have value $a^{n-k}=a^{n-1}$.
+A whole-removal move occurs at odd $n$ and has value $1=a^{n-1}$.
+The first-digit hypotheses ensure at least one option at every positive
+heap size, so the displayed option-set equality is exact.
+
+Closure contains every positive power of $(a,\{1\})$, whose $n$th power
+is $(a^n,\{a^{n-1}\})$.  Thus all heap records lie in the table, and
+uniqueness follows from determinism.  On the generated submonoid
+$\{1,a\}$ the $P$-portion is $\{a\}$, and these two elements are separated
+by the empty context, proving the exact quotient assertion.
+For a one-element ambient monoid, the terminal record forces $1\notin P$,
+whereas the first $0.7$ heap record would be $(1,\{1\})$, contradicting
+parity.  This proves the final equivalence.
+\end{proof}
+
+Thus the arbitrary-decoder hardness carrier itself supplies no hard valid
+instance.  The Lean module \texttt{MisereParityTrace} checks the option
+identity, totality, trace uniqueness, and period two.
+
+\subsection{Complete two-element split classification}\label{sec:binary-split}
+
+There is also an exact classification with no restriction on the removal
+parities in advance.  Write $C,A,B\subset\N_{>0}$ for the whole-, one-,
+and two-remainder masks, and assume $B\ne\varnothing$.  Define the first
+heap size at which a persistent move is available by
+\[
+ L=\min\bigl(\{k+1:k\in A\}\cup\{k+2:k\in B\}\bigr).
+\]
+All arithmetic on the bits $u,v$ in the next theorem is in $\F_2$.
+
+\begin{theorem}[Two-element split quotients]\label{thm:binary-split}
+A finite octal code with $B\ne\varnothing$ has exact quotient
+$\mathcal C_2$ if and only if there are bits $(u,v)\ne(0,0)$ satisfying
+\[
+\begin{aligned}
+ uk&=1 &&(k\in A),\\
+ uk+v&=1 &&(k\in B\cup C),\\
+ \{n:1\le n<L,\ un+v=1\}&\subseteq C.
+\end{aligned}
+\]
+Its heap map is then $x_n=a^{un+v}$ for every $n\ge1$.
+There are only three candidates: the constant word $a$, the word $a^n$,
+and the word $a^{n+1}$.  Hence these finite mask tests decide every
+split-code instance with target $\mathcal C_2$.
+\end{theorem}
+
+\begin{proof}
+In a two-element valid table, no-self and parity allow exactly the records
+\[
+ (1,\varnothing),\qquad(a,\{1\}),\qquad(1,\{a\}).
+\]
+Fix one active split offset $k$.  Every split option of $H_{k+i+j}$ has
+the same value.  Comparing the pairs $(1,3)$ and $(2,2)$ at total $4$
+gives $x_1x_3=x_2^2=1$, hence $x_3=x_1$.  Comparing $(1,n+2)$ and
+$(3,n)$ now gives $x_1x_{n+2}=x_3x_n$, hence
+$x_{n+2}=x_n$ for every $n\ge1$.  Each pair is a legal octal split;
+equal parts are allowed.  The positive heap word therefore has the form
+$x_n=a^{un+v}$.  The constant word $1$ is impossible because an active
+split would be a self-option.
+
+A one-remainder move changes the exponent by $uk$, so no-self is exactly
+the first condition.  A split option has exponent $u(n-k)$, so no-self
+is $uk+v=1$.  A whole-removal option has value $1$, requiring
+$un+v=1$ at its source $n\in C$.  These give
+the second condition.  Below $L$, only whole-removal moves are possible;
+a heap there with value $a$ must have such a move, giving
+the third condition.
+
+Conversely, these conditions make every available option the complement of
+the proposed heap value.  Every heap $n\ge L$ has a persistent move; for
+$n<L$, the second and third conditions say that a heap is terminal exactly when its
+proposed value is $1$.  Thus all records belong to the displayed
+three-record table.  This table is valid, and each of the three candidate
+words attains $a$, so generation and the trace criterion prove sufficiency.
+\end{proof}
+
+For example, $0.51$ has constant heap value $a$, $0.5$ has heap value
+$a^n$, and $0.05$ has heap value $a^{n+1}$.  These examples also show why
+the first-digit hypotheses of Theorem~\ref{thm:odd-removal} are sufficient
+rather than necessary.  The period-two rigidity is kernel-checked in
+\texttt{MisereParityTrace}; the explicit mask classification above is its
+paper-level algebraic consequence.
 
 \section{A finite-exception heap normal form}\label{sec:normalform}
 
@@ -587,112 +940,170 @@ replace the inert pad by an active bridge or may encode quotient generators
 contextually rather than representing every chosen descending record by one
 heap.
 
-\section{Uniform realization of the tame family}\label{sec:tame}
+\section{Complete realization for ordinary subtraction}\label{sec:tame}
 
-For $n\ge2$, let
-\[
- m=2^{n-1},\qquad L=m+1,
-\]
-and let $\Gamma_n$ be the finite octal code
-\[
- \Gamma_n=0.\underbrace{33\cdots3}_{m\text{ digits}}.
-\]
-A move subtracts any number in $\{1,\ldots,m\}$ from one heap, deleting it
-if the remainder is zero and otherwise leaving the one remainder heap.
-There are no splits.
+An ordinary subtraction game has a finite set $S\subset\N_{>0}$ of
+allowed removal sizes; its octal digits are $3$ on $S$ and $0$ elsewhere.
+Unlike a general no-split code, it always permits taking the whole heap
+whenever it permits the corresponding subtraction.  This subclass admits a
+complete realization classification, including synthesis over unbounded code
+lengths.  The underlying zero/one mechanism is Ferguson's classical theorem
+\cite{ferguson1974}; see also \cite[Section~6.2]{gurvichho2018}.
+We give the proof to make the quotient construction self-contained.
 
-Define
-\[
- Q_n=\{1,a\}\sqcup\{z_v:v\in\F_2^n\},\qquad
- P_n=\{a,z_0\}.
-\]
-Identify $v\in\F_2^n$ with an integer in $[0,2^n)$ and write vector addition
-as XOR.  Multiplication is
-\begin{equation}
- a^2=1,\qquad z_u z_v=z_{u\xor v},\qquad
- a z_v=z_{v\xor1}.
-\end{equation}
-This is Siegel's tame quotient $\mathcal T_n$: its kernel is
-$\{z_v\}\cong(\mathbb Z/2)^n$, and $|Q_n|=2^n+2$
-\cite{plambecksiegel2008,siegel2006notes}.
+\subsection{The zero/one shift and the full outcome law}
 
-\begin{theorem}[Tame-family realization]\label{thm:tame}
-For every $n\ge2$, the exact mis\`ere quotient of $\Gamma_n$ is
-$\mathcal T_n$.
+Let $g(n)=\operatorname{mex}\{g(n-t):t\in S,\ t\le n\}$ be the normal
+Sprague--Grundy sequence, with $g(0)=0$.  Suppose $S\ne\varnothing$ and
+put $s=\min S$.
+
+\begin{lemma}[Ferguson's shift]\label{lem:ferguson}
+For every $n\ge0$,
+\[
+ g(n)=0\quad\Longleftrightarrow\quad g(n+s)=1.
+\]
+Every nonterminal heap of value zero has an option of value one.
+\end{lemma}
+
+\begin{proof}
+Use strong induction on $n$.  If $g(n)=0$, the legal subtraction $s$ shows
+$g(n+s)\ne0$.  If also $g(n+s)\ne1$, mex gives an option
+$m=n+s-t$ with $g(m)=1$.  Since heaps below $s$ are terminal, $m\ge s$.
+Induction at $m-s=n-t<n$ then gives $g(n-t)=0$, contradicting the mex
+condition at $n$.  Conversely, if $g(n+s)=1$ but $g(n)>0$, choose a legal
+$t$ with $g(n-t)=0$.  Induction gives $g(n+s-t)=1$, contradicting the mex
+condition at $n+s$.
+
+For the last assertion, a nonterminal zero-valued $n$ satisfies $n\ge s$
+and $g(n-s)\ne0$.  Choose $t\in S$ with $t\le n-s$ and
+$g(n-s-t)=0$.  The shift theorem gives $g(n-t)=1$, and $t$ is legal at $n$.
+\end{proof}
+
+\begin{theorem}[Subtraction outcome law]\label{thm:subtraction-outcome}
+For any finite sum of heaps, put $v_i=g(h_i)$ and
+$w=\bigoplus_i v_i$.  Its mis\`ere outcome is $P$ exactly when
+\[
+ \begin{cases}
+ w=1,&\text{every }v_i\le1,\\
+ w=0,&\text{some }v_i\ge2.
+ \end{cases}
+\]
 \end{theorem}
 
 \begin{proof}
-For a heap $H_h$, let $r(h)$ be the residue of $h$ modulo $L$ and define
-\begin{equation}
- \Phi(H_h)=
- \begin{cases}
-  1,&r(h)=0,\\
-  a,&r(h)=1,\\
-  z_{r(h)},&2\le r(h)\le m.
- \end{cases}
-\end{equation}
-Extend $\Phi$ multiplicatively.
+Induct on total counters.  Every move changes exactly one $v_i$ to a
+unequal value.  If all values are small and their parity is odd, a move to
+another small value changes that parity, while a move to a large value
+makes the XOR nonzero.  If a large value occurs and $w=0$, at least two
+large values occur.  After any move one remains and the XOR is nonzero.
+Thus no listed $P$-position has a listed $P$-option.
 
-We first prove the outcome criterion directly.  Discard residue-zero heaps.
-Let $t\in\F_2$ be the parity of the number of residue-one heaps, and let
-$R$ be the multiset of residues in $\{2,\ldots,m\}$.  From
-the displayed multiplication laws,
-\begin{equation}
- \Phi(X)\in P_n\quad\Longleftrightarrow\quad
- \begin{cases}
-  t=1,&R=\varnothing,\\
-  t\xor\displaystyle\bigoplus_{r\in R}r=0,&R\ne\varnothing.
- \end{cases}
-\end{equation}
-
-Induct on total counter count.  A legal move changes one residue $r$ to a
-different residue $s$.  If $R=\varnothing$ and $t=1$, changing a residue
-$0$ or $1$ either flips the parity or creates a nonzero XOR, so every option
-fails this criterion.  If $R\ne\varnothing$ and the displayed
-XOR is zero, there must be at least two residues at least $2$: one such
-residue cannot cancel either $0$ or $1$.  A move changes the XOR by
-$r\xor s\ne0$, and at least one large residue remains.  Hence every option
-of a predicted $P$-position is predicted $N$.
-
-Conversely suppose the position is predicted $N$.  If $R=\varnothing$ and
-$t=0$, move a residue-one heap to residue zero when one exists.  Otherwise
-the nonempty position has a positive residue-zero heap; subtracting $m$
-moves it to residue one.  Either move makes $t=1$.
-
-Now suppose at least two residues at least $2$ occur, and write
-\[
- w=t\xor\bigoplus_{r\in R}r\ne0.
-\]
-Choose a component residue $r$ whose binary expansion contains the highest
-set bit of $w$ and put $s=r\xor w$.  Such a component exists among the
-residues contributing to the XOR: it may be a residue-one component when
-the highest bit is the low bit, and otherwise it lies in $R$.  Then $s<r$,
-so subtracting
-$r-s\le m$ is legal, the new XOR is zero, and at least one large residue
-remains.  Finally, if exactly one large residue $r$ occurs, move it to
-residue $1-t<r$.  No large residue remains and the new residue-one parity is
-odd.  This proves the displayed criterion is the actual mis\`ere outcome
-for every position.
-
-The map is onto.  The heap residues provide $a$ and
-$z_2,z_4,\ldots,z_m$; also $z_2^2=z_0$ and $az_0=z_1$.  These are a binary
-basis for every $z_v$.  Finally $(Q_n,P_n)$ is reduced.  Distinct
-$z_u,z_v$ are separated by $z_u$.  The elements $1,a$ are separated by
-$1$; the context $a$ separates $1$ from $z_v$ unless $v=1$, when $z_1$
-does; and the context $1$ separates $a$ from $z_v$ unless $v=0$, when
-$z_0$ does.  Outcome correctness, surjectivity, and reduction identify the
-fibers of $\Phi$ with exact indistinguishability classes.
+Conversely, consider a nonterminal unlisted position.  With all values
+small and parity even, any value-one component can move to value zero by
+mex.  If no such component exists, some zero-valued component is movable,
+and Lemma~\ref{lem:ferguson} gives a move to value one.  If exactly one
+large value occurs, move it to zero or one to make the final parity of the small
+values odd; both targets occur by mex.  If at least two large values occur,
+the ordinary Nim argument selects a component $v$ with
+$v\xor w<v$.  Mex supplies this move, the resulting XOR is zero, and at
+least one large component remains.  Every nonterminal unlisted position
+therefore has a listed option.  Terminal positions have all values zero
+and are correctly unlisted.
 \end{proof}
 
-For $n=2$, the construction is $0.33$ and gives the six-element quotient
-$\mathcal T_2$.  The theorem realizes the entire tame arm in Siegel's
-classification of finite quotients with $|P|=2$; the other arm consists of
-the tame extensions of the eight-element wild quotient $\mathcal R_8$
-\cite{siegel2007}.  The base $\mathcal R_8$ itself is realized by $0.75$
-\cite{plambecksiegel2008}, but a uniform finite-code realization of all its
-tame extensions is not supplied here.
+The module \texttt{MisereSubtraction} constructs the actual mex sequence,
+defines legal heap moves and the literal mis\`ere recursion, and checks
+both results for every heap size and every finite list of heaps.  This is
+an outcome theorem, not verification of a finite table of samples.
 
-\section{Exact initial quotients of mis\`ere Grundy's game}\label{sec:grundy}
+\subsection{Exact quotients and a construction algorithm}
+
+For $r\ge2$, let
+\[
+ Q_r=\{1,a\}\sqcup\{z_v:v\in\F_2^r\},\qquad P_r=\{a,z_0\},
+\]
+with multiplication
+\begin{equation}
+ a^2=1,\qquad z_u z_v=z_{u\xor v},\qquad az_v=z_{v\xor1}.
+\end{equation}
+This is the tame quotient $\mathcal T_r$, of order $2^r+2$
+\cite{plambecksiegel2008,siegel2006notes}.  Also write $\mathcal I$ for
+the one-element quotient with empty $P$-portion.
+
+\begin{theorem}[Complete subtraction classification]\label{thm:subtraction-classification}
+The exact mis\`ere quotients of finite ordinary subtraction games are
+precisely
+\[
+ \mathcal I,\qquad\mathcal C_2,\qquad\mathcal T_r\ (r\ge2).
+\]
+For $S\ne\varnothing$, let $M=\max_{n\ge0}g(n)$.  If $M=1$, the
+quotient is $\mathcal C_2$.  Otherwise it is $\mathcal T_r$, where
+$2^{r-1}\le M<2^r$, with heap map
+\[
+ \Phi(H_n)=
+ \begin{cases}
+ 1,&g(n)=0,\\
+ a,&g(n)=1,\\
+ z_{g(n)},&g(n)\ge2.
+ \end{cases}
+\]
+Both the exact quotient of a given subtraction code and realization of a
+given finite reduced bipartite monoid by some subtraction code are decidable.
+\end{theorem}
+
+\begin{proof}
+Each heap has at most $|S|$ options, so $g(n)\le|S|$.  The maximum $M$
+therefore exists, and every value $0,\ldots,M$ occurs: a heap attaining
+$M$ has options attaining every smaller value.  Also $M\ge1$ since
+$g(s)=1$.  If $M=1$, Theorem~\ref{thm:subtraction-outcome} gives exactly
+the two parity classes.  If $M\ge2$, the same theorem says that the
+multiplicative map displayed above has the correct $P$-preimage.
+
+This map is onto.  All SG values through $2^{r-1}$ occur, so its image
+contains
+\[
+ a,z_2,z_4,\ldots,z_{2^{r-1}},\qquad z_0=z_2^2,\qquad z_1=az_0.
+\]  These generate the whole kernel.  Reducedness is explicit:
+distinct $z_u,z_v$ are separated by $z_u$; $1,a$ by $1$; $1,z_v$ by $a$
+unless $v=1$, when $z_1$ works; and $a,z_v$ by $1$ unless $v=0$, when
+$z_0$ works.  Thus the map's fibers are exactly indistinguishability.
+The empty subtraction set gives $\mathcal I$.
+
+For a given nonempty $S$, put $d=\max S$.  The next SG value is determined
+by the preceding $d$ values, each in $\{0,\ldots,|S|\}$.  A repeated
+window therefore occurs among $(|S|+1)^d+1$ successive windows starting at
+$(g(0),\ldots,g(d-1))$.  The finite prefix and ensuing cycle determine
+$M$ and the complete heap map.
+
+For synthesis, test the input finite multiplication table and $P$-portion
+for isomorphism with the listed candidates; its cardinality leaves only
+finitely many possibilities.  The empty code and $0.3$ realize
+$\mathcal I$ and $\mathcal C_2$.  Corollary~\ref{thm:tame} below supplies
+a code for each $\mathcal T_r$.  Failure of these finite isomorphism tests
+rules out every ordinary subtraction code, regardless of its length.
+\end{proof}
+
+\begin{corollary}[Uniform tame-family realization]\label{thm:tame}
+For every $r\ge2$, the code with $2^{r-1}$ consecutive digits $3$ has
+exact quotient $\mathcal T_r$.
+\end{corollary}
+
+\begin{proof}
+Put $m=2^{r-1}$ and take $S=\{1,\ldots,m\}$.  Direct mex induction gives
+$g(n)=n\bmod(m+1)$: before $m+1$ all smaller residues occur, and afterward
+the preceding $m$ terms contain every other residue.  Thus $M=m$, and
+Theorem~\ref{thm:subtraction-classification} applies.
+\end{proof}
+
+This classifies all ordinary subtraction codes, not all no-split codes.
+Digits $1$ and $2$ decouple whole removal from leaving a remainder and can
+produce wild behavior.  In Siegel's finite $|P|=2$ classification, the
+remaining arm comprises tame extensions of $\mathcal R_8$
+\cite{siegel2007}; its base is realized by $0.75$
+\cite{plambecksiegel2008}.  No uniform finite-octal realization of all
+those extensions is established here.
+
+\section{Exact quotients and constraints for mis\`ere Grundy's game}\label{sec:grundy}
 
 In Grundy's game a heap may be split into two unequal positive heaps:
 \[
@@ -1027,19 +1438,179 @@ the localized quotient $Q_{18}$; they are not asserted as identities in the
 global semigroup of all mis\`ere impartial games.  (The relation $a^2=1$
 is global.)
 
-\subsection{A necessary kernel obstruction to finiteness}
+\subsection{A canonical mate missing from the Grundy universe}
 
-The split rule and finiteness alone force a nontrivial recurrent algebraic
-component.  This does not decide finiteness, but it excludes stabilization in
-any quotient whose kernel is trivial.
+This obstruction concerns the global values available as Grundy positions,
+not the finiteness of their localized quotient.  It rules out one possible
+route from global canonical distinctions to an infinite family of Grundy
+contexts.
 
-\begin{theorem}[Finite Grundy quotients have nontrivial kernel]
-\label{thm:grundy-kernel}
+We use global impartial mis\`ere equality throughout this subsection, and
+write $G\approx H$ when $G=H$ or $G=H+a$, where $a=*1$.  We need the
+following standard results, all with proofs or precise statements in
+\cite{siegelelements2021}: the Grundy--Smith simplification rule and simplest
+form theorem (Definition~2 and Theorems~3, 8, 9), cancellation
+(Theorem~15), the fact that $0,a$ are the only units (Lemma~17), and the
+canonical-option consequence of equality (Corollary~21).  The latter says that if a canonical game $G$ equals a game $Y$, then
+every canonical option of $G$ equals an actual option of $Y$.
+Indeed, apply Corollary~21 to $G+0=Y$; the alternative requiring an option
+of $0$ is unavailable.  We call this the canonical-option lifting property.
+We also use the equality test (Lemma~11 and Theorem~12): if $H=G$, then
+every actual option $O$ of $H$ either equals an option of $G$ or has an
+actual option equal to $G$.
+
+We will also use the following elementary prime criterion, spelling out
+its nonunit hypothesis: a \emph{nonunit} canonical game with $0$ or $a$ as
+an option is prime up to the units $0,a$.  To see this, write $G=X+Y$ and
+lift its unit-valued option by canonical-option lifting; one of $X,Y$
+is then a part of a unit, hence a unit.  This is the argument of
+\cite[Proposition~34]{siegelelements2021}.  Including ``nonunit'' avoids
+applying the criterion to $a=\{0\}$ itself.
+
+Put
+\[
+ a=\{0\},\qquad b=\{0,a\},\qquad
+ c=\{a,b,b^2\},\qquad k=\{0,b,b^2\}.
+\]
+Here $b^2=b+b$ is a disjunctive sum, not a Nim multiplication.  The global
+reductions already established for Grundy's game give
+\[
+ H_{13}=H_{16}=c,\qquad H_{10}=0,
+\]
+and every heap through $13$ has global value in $\{0,a,b,c\}$.
+
+\begin{lemma}\label{lem:grundy-canonical-mate-small}
+The games $c,k$ are canonical nonunits, are not associates of $b$, and
+$k+a$ is canonical with $k$ as an option.  Moreover, $k$ is the mate of the
+canonical game $c$.
+\end{lemma}
+\begin{proof}
+The needed elementary canonical forms are
+\[
+ ab=\{0,a,b\},\qquad
+ b^2=\{b,ab\},\qquad
+ ab^2=\{b,ab,b^2\}.
+\]
+For $ab$, the raw option set is $\{b,a,0\}$; for $b^2$, it is
+$\{b,ab\}$; and for $ab^2$, it is $\{b,ab,b^2\}$.  The simplification
+rule verifies that these displayed forms are canonical.  Here are the
+checks explicitly.  The possible simplification targets for $ab$ lie in
+$\{0,a\}$.  Both already occur among the options of $ab$; either would be
+an extra option required to have itself as an option, which it does not.
+For $b^2$, the possible targets are $0,a,b$.
+The target $0$ fails the mis\`ere proviso, since $b^2$ is $P$; the other
+targets require the missing option $0$.  For $ab^2$, the candidates are
+$0,a,b,ab$: $0$ fails because $b^2$ has no $0$ option, and each nonzero
+candidate requires the missing $0$ option.
+
+For $c$, every possible proper simplification target lies among
+$0,a,b,ab$.  The target $0$ fails because $b^2$ has no $0$ option; each
+nonzero target requires the missing option $0$.  Thus $c$ is canonical.
+For $k$, the possible targets are likewise $0,a,b,ab$.  The target $0$
+fails because $0$ itself is an option.  The target $a$ fails because the
+extra option $b^2$ has no $a$ option.  The targets $b,ab$ require the
+missing option $a$.  Thus $k$ is canonical.
+
+Adding $a$ to $k$ gives the raw option set
+\[
+ k+a=\{k,a,ab,ab^2\}.
+\]
+Its possible proper simplification targets are $0,a,b,ab,b^2$.
+The target $0$ fails because $ab^2$ has no $0$ option.  The targets
+$a,b,ab$ require the missing option $0$, while $b^2$ requires the missing
+option $b$.  Thus this form is canonical and retains $k$.
+The displayed distinct canonical forms also show that $c,k$ are nonunits,
+that $c$ is not $b$ or $ab$, and that no element of $\{0,a,b,c\}$ is an
+associate of $k$.
+
+For the mate assertion, the definition $0^-=a$ and
+$G^-=\{(G')^-:G'\in G\}$ gives $a^-=0$, $b^-=b$, and $(ab)^-=ab$.
+Consequently $(b^2)^-=\{b,ab\}=b^2$, and
+$c^-=\{0,b,b^2\}=k$.
+\end{proof}
+
+\begin{lemma}\label{lem:grundy-c-not-part-small}
+For every finite impartial game $X$,
+\[
+ c+X\notin\{0,b,b^2\}.
+\]
+\end{lemma}
+\begin{proof}
+Both $b$ and $c$ are nonunit primes by their unit-valued canonical options.
+The equality $c+X=0$ would make $c$ a unit.  The equality $c+X=b$ would,
+by primality of $b$, make $c$ a unit or an associate of $b$.  Both
+possibilities contradict the displayed canonical forms.
+
+Suppose $c+X=b^2$.  The canonical option $b$ of $b^2$ lifts to an actual
+option of $c+X$.  An option of the form $c+X'$ cannot equal $b$, by the
+previous paragraph.  Therefore $c'+X=b$ for one of the three canonical
+options $c'\in\{a,b,b^2\}$.
+If $c'=a$, then $X=ab$, and cancellation in
+$c+ab=b^2$ yields $c=ab$, a contradiction.  If $c'=b$, cancellation gives
+$X=0$, whence $c=b^2$, again contradicted by the canonical forms.
+If $c'=b^2$, cancellation in $b^2+X=b$ gives $b+X=0$, contradicting
+that $b$ is a nonunit.  This exhausts all possibilities.
+\end{proof}
+
+\begin{theorem}[A missing canonical mate]\label{thm:grundy-missing-mate}
+No position of Grundy's game is globally equivalent to $k$ or $k+a$.
+In particular, the image of the Grundy universe in the global monoid of
+impartial mis\`ere values is not closed under taking the mate of a
+canonical representative.
+\end{theorem}
+\begin{proof}
+Suppose otherwise, and choose a Grundy position $Y$ globally associated to
+$k$ minimizing lexicographically
+\[
+ \left(\sum_{h\in Y}h,\quad \sum_{h\in Y}\max(h-2,0)\right).
+\]
+A legal split preserves the first coordinate and strictly decreases the
+second.  Deleting any positive-size heap strictly decreases the first.
+The game $k$ is a nonunit prime because its canonical form has $0$ as an
+option.  The same is true up to association for $k+a$.  Hence in any
+additive decomposition of $Y$ into heaps, all but one component are units,
+and the remaining heap is associated to $k$.  Minimality therefore forces
+$Y$ to be a single heap $H_n$.
+
+If $H_n=k+a$, its canonical option $k$ lifts by
+canonical-option lifting to an actual option of $H_n$, contradicting
+minimality.  Thus $H_n=k$.
+The equality test now says that every actual option of $H_n$ either has
+value in $\{0,b,b^2\}$ or has an actual option of value $k$.
+The second case gives a two-move follower of $H_n$ of smaller rank and
+contradicts minimality.  Thus every legal split of $H_n$ has global value
+in $\{0,b,b^2\}$.
+
+For $n\ge14$ with $n\ne26$, the unequal split
+$13+(n-13)$ is legal and has value $c+H_{n-13}$, contradicting
+Lemma~\ref{lem:grundy-c-not-part-small}.  For $n=26$, the split $10+16$
+has value $0+c=c$, giving the same contradiction.  Finally, the known
+global reductions for $n\le13$ have values in $\{0,a,b,c\}$, none
+associated to $k$.  All heap sizes have been excluded.
+\end{proof}
+
+\begin{remark}
+The mate operation is not invariant under changing a game to a globally
+equivalent form; see \cite[Section~3]{siegelelements2021}.  Thus the theorem
+is deliberately about the mate of the \emph{canonical representative}
+$c$, not a claim that the literal unreduced tree $H_{13}^{-}$ has value
+$k$.  Nor does the theorem exclude localized testers or prove the full
+Grundy quotient finite or infinite.
+\end{remark}
+
+\subsection{A square-option constraint on finite Grundy traces}
+
+The split rule and finite coloring locate a particular heap transition with
+a nonconstant power cycle.  This is a constraint on the heap trace; generic
+nontriviality of a finite quotient's kernel already follows from
+Proposition~\ref{prop:star} and supplies no additional Grundy obstruction.
+
+\begin{theorem}[A square-option heap in every finite Grundy trace]
+\label{thm:grundy-square}
 Suppose the full mis\`ere quotient $Q$ of Grundy's game is finite.  Then there
 is a heap transition $(c,E)$ with $c^2\in E$.  Every two consecutive positive
 powers of $c$ are distinct, and the powers of $c$ are eventually periodic
-with a period of length at least two.  In particular, the kernel of the finite
-commutative monoid $Q$ is nontrivial.
+with a period of length at least two.
 \end{theorem}
 
 \begin{proof}
@@ -1066,16 +1637,6 @@ $c^r\ne c^{r+1}$ for every $r\ge1$.  Finiteness of $Q$ makes the power
 sequence eventually periodic, and the displayed inequalities exclude
 period one.
 
-Let $K$ be the kernel, or minimal ideal, of $Q$.  Since $Q$ is a finite
-commutative monoid, $K$ is a group; write $z$ for its identity.  Surjectivity
-of the quotient map supplies a transition with value $z$.  Multiplying it by
-$(c,E)$ gives a kernel-valued transition of value $k=zc$ whose option set
-contains
-\[
- zc^2=(zc)^2=k^2.
-\]
-Again no-self gives $k\ne k^2$.  A one-element kernel would have $k=z=k^2$,
-a contradiction.
 \end{proof}
 
 The conclusion is structural rather than contradictory: period two already
@@ -1099,22 +1660,29 @@ target is not a proof that a natural ruleset realizes it.
 Status & Content \\
 \midrule
 Cited input & Plambeck--Siegel quotient theory, Siegel's valid-transition-table
-classification, the stated Grundy--Smith global reductions, and the unary
-conjunctive-grammar hardness theorem. \\
+classification, Ferguson's subtraction theorem, the stated Grundy--Smith
+global reductions, global mis\`ere canonical forms and cancellation, and the unary conjunctive-grammar hardness theorem. \\
 Proved here & Option-set determinism; the exact trace criterion and digit
-exclusions; no-split periodicity and periodic split certificates; arbitrary-
-decoder hardness; the finite-exception normal form and inert-pad obstruction;
-the tame-family realization; the exact Grundy quotients through heap $18$;
-and the conditional kernel theorem. \\
+exclusions; no-split periodicity, periodic split certificates, and periodic
+witness compression; arbitrary-
+decoder hardness and valid-table parity contrast; two-element split rigidity
+and mask classification; the finite-exception normal form and inert-pad
+obstruction; complete subtraction synthesis; the exact Grundy quotients
+through heap $18$; the missing canonical mate; and the square-option theorem. \\
 Kernel-checked & Transition determinism, meximality, $P$-reaching contexts and
-no-self; exact quotient fibers; octal record periodicity and tail
-certification; the typed prefix/pad/unary-tail construction; the inert-pad
-obstruction; the unary-language dictionary; and the finite-color and
-power-period cores of the Grundy obstruction. \\
+no-self; the star involution and free action; exact quotient fibers; octal
+record periodicity and tail certification; safe saturation, terminal
+prefix repair, and the actual compressed masks with all-heap validity; odd-removal totality; the
+binary split period and finite-candidate criterion; the actual subtraction
+mex sequence and all-position outcome law; the typed prefix/pad/unary-tail
+construction; the inert-pad obstruction; the unary-language dictionary; and
+the finite-color and power-period cores of the Grundy constraint. \\
 Paper-level bridge & The grammar reduction itself; numerical enumeration and
-multiset transport for the typed normal form; the tame all-multiplicity
-strategy; the Grundy presentations and translation rows; and the final
-minimal-ideal deduction in Theorem~\ref{thm:grundy-kernel}. \\
+multiset transport for the typed normal form; the explicit two-element mask
+classification; the exact-quotient interpretation of compressed records
+and the bounded synthesis algorithm; the subtraction
+quotient presentation, reduction, and synthesis algorithm; and the Grundy
+presentations, translation rows, and canonical-mate obstruction. \\
 Open & Fixed valid-table split totality, unbounded finite-code synthesis, the
 tame extensions of $\mathcal R_8$, and the exact full quotient of mis\`ere
 Grundy's game. \\
@@ -1133,29 +1701,50 @@ are separated by role:
   \item \texttt{MisereOctalCertificate}: finite octal certificates;
   \item \texttt{MisereNaturalUniversality}: typed realization and normal
         forms;
-  \item \texttt{MisereTraceLanguage}: the partial-trace reduction; and
-  \item \texttt{MisereGrundyObstruction}: exact Grundy presentations and the
-        kernel obstruction.
+  \item \texttt{MisereTraceLanguage}: the partial-trace reduction;
+  \item \texttt{MisereParityTrace}: universal star structure, odd-removal
+        totality, and the finite binary split criterion;
+  \item \texttt{MisereSaturation}: parity-preserving option-set enlargement;
+  \item \texttt{MisereOctalTerminal}: the terminal-prefix repair;
+  \item \texttt{MisereOctalCompression}: actual compressed masks, their length
+        bound, and all-heap record validity;
+  \item \texttt{MisereSubtraction}: the mex sequence, Ferguson shift, and
+        all-position mis\`ere outcome theorem; and
+  \item \texttt{MisereGrundyObstruction}: the finite-color square-option
+        and power-period constraints.
 \end{itemize}
 The entry point imports only the terminal owners needed to expose this
 dependency graph.
 
-The remaining problem has two independent octal layers and one Grundy layer.
-First, for fixed finite $(Q,P)$, valid table $T$, and split code $\Gamma$,
+The remaining problem has a fixed-trace decision layer and a synthesis layer.
+For fixed finite $(Q,P)$, valid table $T$, and split code $\Gamma$, one must
 decide whether the canonical partial trace is total.  The arbitrary-decoder
 $\Pi^0_1$ theorem shows why a proof must use validity, but gives no hardness
-result for valid tables.  Second, even a fixed-code decision theorem does not
-bound the length of a synthesizing code.  A monoid-level characterization
-therefore needs a computable pumping or length theorem, or an undecidability
-proof for the synthesis problem.  Table enumeration adds no further gap,
+result for valid tables; indeed its own code is total in every nontrivial
+valid table.  Two-element split targets are completely decided by
+Theorem~\ref{thm:binary-split}.
+
+For synthesis, Theorem~\ref{thm:periodic-compression} removes an independent
+code-length gap within the periodic branch: bounding the preperiod and period
+already bounds a realizing code.  Table enumeration adds no further gap,
 because only finitely many transition tables exist on fixed $Q$.
+What remains is a computable bound on the necessary periodic complexity,
+and an argument accounting for realizations whose heap words might not be
+ultimately periodic.  An undecidability proof for synthesis would be an
+alternative.  Ordinary subtraction codes already admit complete synthesis by
+Theorem~\ref{thm:subtraction-classification}, but this subclass is not
+asserted to be maximal among decidable natural classes.
 
 For $|P|=2$, the tame arm is complete and the tame extensions of
 $\mathcal R_8$ remain.  For Grundy's game, a complete solution must either
 continue the exact presentations and prove stabilization, or exhibit
 infinitely many distinct translation rows with explicit separating contexts.
-In the finite branch, Theorem~\ref{thm:grundy-kernel} requires a nontrivial
-kernel and a nonconstant eventual power cycle.
+In the finite branch, Theorem~\ref{thm:grundy-square} requires a
+square-option heap and a nonconstant eventual power cycle.  The universal
+star involution prevents using generic kernel nontriviality as a further
+obstruction.  Theorem~\ref{thm:grundy-missing-mate} excludes transferring
+global distinctions by assuming closure under canonical mates; any separating
+contexts must instead be constructed inside the Grundy universe.
 
 \section{Conclusion}
 
@@ -1167,8 +1756,11 @@ itself the obstruction.  Strict octal homogeneity is: one digit couples an
 intended prefix move to infinitely many translated moves.
 
 That formulation supports exact positive and negative results.  The no-self
-and inert-pad theorems reject impossible direct encodings, while one explicit
-family realizes every tame quotient.  Grundy's game supplies exact wild
+and inert-pad theorems reject impossible direct encodings, while ordinary
+subtraction admits a complete quotient and synthesis
+classification.  Periodic witness compression also gives finite synthesis
+for bounded preperiod and period.  Validity forces universal parity on odd-removal codes and
+period two on every two-element split trace.  Grundy's game supplies exact wild
 prefixes at heaps $13$ and $18$, but no stabilization or infinite separation
 theorem yet follows.  The next decisive result must control the valid split
 recurrence or the Grundy extension process uniformly; further bounded tables

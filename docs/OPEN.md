@@ -491,7 +491,7 @@ the last `d` values. Hence exact realization by a fixed finite no-split code
 is decidable. Splitting introduces the unbounded convolution
 `{x_i x_j : i + j = n}`; an already periodic trace still has a finite exact
 certificate through the explicit bound `2N + p + d`, but automatic
-periodicity is not proved in that case. Every value in a nontrivial valid
+periodicity is not proved for general split targets. Every value in a nontrivial valid
 table has a context carrying it into `P`; combined with the meximal condition,
 this proves that no transition value can occur among its own options. For an
 octal trace this gives the absolute exclusions
@@ -503,6 +503,18 @@ B_k, i+j = n-k      => x_n != x_i x_j.
 ```
 
 These are exact obstruction filters, not a characterization.
+
+For the periodic branch, a code-length bound is now proved. If an exact heap
+word is periodic from `N >= 1` with period `p >= 1`, the same entire word
+has a realizing code of length at most `3N+2p`. Keep the original bits up to
+that bound and add bounded residue representatives of every persistent
+offset. Translated original moves prove meximal safety, while stable split
+convolutions supply the tail records. Terminal heaps require a separate
+argument: all their smaller heaps have values `1` or the star `a`, so any
+new safe option has value `a`. Thus synthesis for a supplied periodic word,
+or for bounded preperiod and period, is decidable over all finite code
+lengths. The proof permits enlargement of the valid table; it preserves the
+word and exact quotient, not every original transition record.
 
 The split recurrence also has an exact unary-language formulation. If
 `X_q = {n : x_n = q}`, then the language where `q` occurs as an option is a
@@ -517,6 +529,20 @@ emptiness in a truncated multiset monoid. Thus any fixed-code decision theorem
 must use closedness, parity, ranking, and reducedness essentially; finiteness
 and commutativity alone are insufficient.
 
+Validity does settle the hardness code itself: every nontrivial valid table
+contains a star record `(a, {1})`, with `a^2 = 1`, and its positive transition
+powers give the unique `0.7` trace `x_n = a^n`. The same proof covers every
+code with only odd removal offsets and both whole-removal and one-remainder
+moves at offset one. Its exact quotient is the two-element `C2`.
+
+More generally, for **every split code targeting `C2`**, no-self forces all
+options of a heap to have the same value. Comparing pairs at the same split
+total proves `x_(n+2) = x_n` for every positive `n`. Only four two-letter
+candidate words exist, and the constant-identity word is impossible. Lean
+checks that testing the candidates through heap `d+5` decides totality for a
+length-`d` code. The paper gives the equivalent explicit three-case mask
+classification, including the terminal heaps; no period discovery is needed.
+
 There is also a comparison normal-form theorem. Every nontrivial finite
 valid quotient has an exact one-species numerical heap realization with a
 finite source-local prefix, one inert padding heap, and the uniform tail move
@@ -530,21 +556,41 @@ nonidentity option, hence a persistent one- or two-remainder bit, and that bit
 also gives the pad an option. An active bridge or a contextual generator
 encoding remains possible.
 
-There is also a uniform positive family: for every `n >= 2`, the finite code
-with `2^(n-1)` consecutive digits equal to `3` has exact quotient `T_n`, the
-tame quotient of order `2^n + 2`. This realizes the entire tame arm of the
-finite `|P| = 2` classification. The parallel Grundy analysis is exact through
-heap 18: the quotient through heap 13 is a reduced monoid of order 12, and the
-quotient through heap 18 is a reduced monoid of order 24, with presentations,
-all-multiplicity outcome inductions, and separating translation rows in the
-note. These prefix theorems neither prove stabilization nor supply an infinite
-distinguishable family. There is also a global conditional obstruction: if
-the full Grundy quotient is finite, finite Ramsey supplies unequal `i,j` with
+Ordinary subtraction codes, whose digits lie in `{0,3}`, admit a complete
+classification: their exact quotients are the trivial quotient, `C2`, and the
+tame quotients `T_r` for `r >= 2`. For a nonempty finite subtraction set `S`,
+let `g` be its normal SG sequence and `M = max g <= |S|`. The quotient is
+`C2` if `M=1`, otherwise `T_r` where `2^(r-1) <= M < 2^r`. Ferguson's
+zero/one shift and the resulting Bouton outcome law prove this for every
+heap size and multiplicity. A finite SG window computes `M`; finite monoid
+isomorphism tests decide synthesis over all ordinary subtraction codes,
+without a code-length bound. The witnesses are the empty code, `0.3`, and
+`2^(r-1)` consecutive digits `3`. This settles the entire ordinary
+subtraction subclass, not general no-split codes or a maximal decidable class.
+
+The parallel Grundy analysis is exact through heap 18: the quotient through
+heap 13 has order 12, and the quotient through heap 18 has order 24, with
+presentations, all-multiplicity outcome inductions, and separating translation
+rows in the paper. These prefix theorems neither prove stabilization nor
+supply an infinite distinguishable family. If the full Grundy quotient is
+finite, finite Ramsey supplies unequal `i,j` with
 `x_i = x_j = x_(i+j) = c`, so a heap record contains `c^2` among its options.
-Closure and the no-self theorem force all consecutive positive powers of `c`
-to differ. Hence the power sequence has eventual period at least two and the
-kernel of the finite quotient is nontrivial. This is compatible with tame
-period-two behavior and is not yet an infinity proof.
+Closure and no-self force every two consecutive positive powers of `c` to
+differ. Hence its power sequence has eventual period at least two, which is
+compatible with tame behavior. A nontrivial kernel supplies no additional
+Grundy obstruction: in every nontrivial valid quotient the star acts freely
+by `q -> aq`, so every finite nonempty ideal already has even cardinality.
+
+Global canonical theory does not automatically provide the missing Grundy
+contexts. Write `a=*1`, `b=*2`, and `c={a,b,b^2}`, the canonical value of
+`H_13`. The paper proves that no Grundy position is globally equivalent to
+`k={0,b,b^2}` or `k+a`. Since `k` is the mate of canonical `c`, the global
+value image of the Grundy universe is not closed under canonical mating.
+The proof uses global cancellation and canonical-option lifting, followed
+by descent in total counters and split rank; it is not a finite census.
+Mating is not invariant under global equivalence, so this statement does
+not identify the mate of the literal unreduced `H_13` tree. It excludes a
+canonical-mate closure argument, not all possible separating contexts.
 
 ### Milestones and completion
 
@@ -564,15 +610,17 @@ period-two behavior and is not yet an infinity proof.
    induction, then verify surjectivity, reduction, and the `P`-portion. A
    stable bounded table is not enough.
 
-The algorithmic gap has two independent layers. For fixed finite `(Q, P)`,
+The algorithmic gap has a fixed-trace layer and a synthesis layer. For fixed finite `(Q, P)`,
 fixed valid `T`, and fixed split code, determinism makes the trace a partial
-computable recurrence; deciding whether that recurrence is total is still
-open. The arbitrary-decoder `Pi^0_1`-completeness theorem identifies validity
+computable recurrence; deciding whether that recurrence is total remains
+open for general targets beyond the solved classes above. The arbitrary-decoder `Pi^0_1`-completeness theorem identifies validity
 as the precise missing restriction, but does not establish hardness for valid
-tables. Even if every fixed-code instance became decidable, monoid-level
-synthesis ranges over unbounded code lengths. A complete decision procedure
-therefore also needs a computable length bound or pumping normalization, or
-else an undecidability theorem.
+tables, and valid-table totality for its own code `0.7` is automatic.
+Periodic witness compression removes an independent code-length gap when
+the preperiod and period are bounded. Monoid-level synthesis still needs a
+computable bound on the necessary periodic complexity and an argument
+accounting for realizations with nonperiodic heap words, or else an
+undecidability theorem.
 
 The octal-realization arm closes with the requested if-and-only-if theorem and
 certified construction/obstruction algorithm. The Grundy arm closes with one
@@ -586,10 +634,17 @@ construction](https://arxiv.org/abs/math/0609825) and Siegel's
 The algebraic determinism, meximal and no-self obstructions, exact quotient
 sufficiency, periodic complete-record certificate, typed
 prefix/pad/unary-tail normal form, inert-pad obstruction, unary-language
-dictionary, and algebraic power-period obstruction are checked in Lean. The
-formal-language hardness theorem, numerical rank-order transport for the
-normal form, tame-family strategy, kernel deduction, and exact Grundy-prefix
-presentations are presently paper proofs. The distinct-summand finite-color
+dictionary, safe saturation, terminal-prefix repair, actual compressed masks
+and their all-heap record validity, star involution and free action,
+odd-removal totality, binary
+split periodicity and finite-candidate criterion, subtraction mex sequence
+and all-position outcome law, and algebraic power-period obstruction are
+checked in Lean. The formal-language hardness theorem, numerical rank-order
+transport for the normal form, the exact-quotient interpretation of compressed
+records and the bounded synthesis algorithm, explicit binary mask classification,
+subtraction quotient identification and synthesis algorithm, exact
+Grundy-prefix presentations, and canonical-mate obstruction are presently
+paper proofs. The distinct-summand finite-color
 bridge is checked from Mathlib's Hindman theorem.
 The current `src/games/misere.rs` routines compare only bounded element and
 test sets, so their signatures and multiplication flags are observational

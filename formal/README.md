@@ -60,7 +60,7 @@ copies of the evaluator.
 | imperfect-field Witt realization | `WittRealizationExact`, `WittRealization`, `WittTransfer`, `WittRamification`, `WittRamifiedRestriction`, `WittSingularBoundary` | The concrete parity-zero presented coordinate space has a finite sparse trace-character compiler into literal `0/*` arenas, with equality of all outcomes equivalent to equality of presented classes. The development also checks the trace-dual Scharlau Arf calculation, finite unit-jet substitution and exact Artin--Schreier normalization, one-place and fixed-finite-family obstructions, and the quasilinear absorption isometry. The Aravire--Jacob exact sequence and local decomposition, their equivalence with the actual `W_q(F_2(t))`, and the local quadratic-form interpretation of ramified generators remain the cited bridge. |
 | stable semiring quadratic pairs | `SemiringQuadratic` | `hessenbergPolynomial_regular_isometric_hyperbolic` is the end-to-end finite-polynomial Hessenberg proxy: from bijectivity of the actual companion adjoint it proves Gram invertibility, proves internally that every invertible `MvPolynomial (Fin d) Nat` matrix is a permutation matrix, constructs its fixed-point-free transposition decomposition, and returns even rank plus an actual linear isometry of quadratic pairs with canonical hyperbolic planes. The module also proves that finite basis coefficients determine the entire pair, exposes Mathlib's characteristic-not-two diagonalization, and gives an explicit additive equivalence from the exact cyclic/hyperbolic/parity presentation to `ZMod 2`. The ordinal CNF--polynomial identification, connected-graph stable quotient, concrete supertropical semiring and lift presentation, and thermograph facts remain cited or paper-level bridges. |
 | canonical nim multiplication | `Algebra.ArtinSchreier`, `NimFastMultiplication` | The shared finite-field trace-one irreducibility criterion, then the nim-specific trace carry through a quadratic generator, three-variable-product quadratic split, affine Artin--Schreier generator shift, involutive two-block coordinate transform, preservation of the canonical tower equations under ring equivalence, and exact recovery of source-basis product coordinates. The concrete Conway tower, De Feo--Schost algorithms, and asymptotic bounds remain cited or paper-level inputs. |
-| finite misere quotient realization | `MisereTransition`, `MisereOctalCertificate`, `MisereNaturalUniversality`, `MisereTraceLanguage`, `MisereGrundyObstruction` | A least-rank separator proves transition determinism. Every value has a `P`-reaching context, so no transition value is one of its own options; the whole-, one-, and two-remainder octal exclusions are checked explicitly. Rank plus table parity proves outcome correctness, and multiplicativity, surjectivity, and reducedness identify exact quotient fibers. An asserted ultimately periodic octal word has periodic complete option records past `2*N + p + d`, so a finite prefix through one tail period certifies all heap records. The typed finite-prefix/pad/unary-tail construction realizes every nontrivial finite valid table at the abstract heap level, while the later-terminal-pad theorem rules out its verbatim heapwise octal encoding for quotients with more than two elements. The unary Boolean-language module identifies exact option cells and the failure language coefficientwise. Mathlib's Hindman theorem supplies distinct positive `i < j` with equal finite colors at `i`, `j`, and `i+j`; for a finite Grundy trace this produces a square-valued option, which forces distinct consecutive powers and an eventual period of length at least two. The external unary-grammar hardness reduction, transport to numerical heap sizes and multisets, strict finite-octal synthesis, tame-family strategy, Grundy kernel argument, and quotients through heap 18 remain paper-level or open exactly as stated in `writeups/misere_natural_realization.tex`. |
+| finite misere quotient realization | `MisereTransition`, `MisereOctalCertificate`, `MisereNaturalUniversality`, `MisereTraceLanguage`, `MisereParityTrace`, `MisereSubtraction`, `MisereSaturation`, `MisereOctalTerminal`, `MisereOctalCompression`, `MisereGrundyObstruction` | Least-rank separation proves transition determinism; meximality and a `P`-reaching context exclude self-options. Exact quotient fibers and a finite periodic-record certificate are checked. The typed prefix/pad/unary-tail construction realizes every nontrivial valid table at the abstract heap level, with a no-go for retaining the inert pad in a verbatim octal encoding. The unary-language dictionary exposes the exact failure cells. Safe meximal saturation preserves validity with the explicit terminal parity condition, and the actual octal terminal-prefix repair returns new safe records to the original table. The actual compressed masks have length at most `3*N+2*p`, and every compressed heap record belongs to the valid saturated table. The star value is a free involution; every nontrivial valid table has the total parity trace for `0.7` and the odd-removal family. For a two-element quotient with any split bit, every positive heap trace has period two, and totality is equivalent to four candidates checked through heap `d+5`. The actual finite-subtraction mex sequence satisfies Ferguson's shift and the exact misere outcome recursion for every finite heap list. Hindman's theorem supplies a square-option heap in every finite Grundy trace, forcing unequal consecutive positive powers. The exact-quotient interpretation of compressed records and bounded periodic-complexity synthesis, the explicit binary mask classification, subtraction monoid identification and synthesis, numerical normal-form transport, grammar hardness reduction, Grundy prefix presentations, and canonical-mate obstruction remain paper-level; general octal synthesis and the full Grundy quotient remain open. |
 
 ## Arbitrary-graph FIFO linking: open
 
@@ -255,16 +255,25 @@ is still the missing datum in each universal arm. See `../docs/OPEN.md` and
 ## Natural finite misere realization: open
 
 `MisereTransition`, `MisereOctalCertificate`,
-`MisereNaturalUniversality`, `MisereTraceLanguage`, and
-`MisereGrundyObstruction` check the finite-table determinism, exact periodic
-trace certificate, abstract prefix/pad/unary-tail construction and its inert-pad
-obstruction, unary option-language dictionary, and finite-Grundy power-period
-obstruction listed in the closed-results table.
+`MisereNaturalUniversality`, `MisereTraceLanguage`, `MisereParityTrace`,
+`MisereSubtraction`, `MisereSaturation`, `MisereOctalTerminal`,
+`MisereOctalCompression`, and `MisereGrundyObstruction` check the results listed
+in the closed-results table. In particular, `finite_subtraction_outcome`
+connects the actual mex-defined SG sequence to the literal misere recursion
+on arbitrary finite heap lists, and `binary_split_total_iff_finite_candidate`
+connects a finite candidate check to all future heap records. The theorem
+`compressed_records_mem_saturation` checks every heap record of the actual
+bounded compressed masks. These are
+universal proofs with ordinary logical axioms, not native-decided censuses.
 
-They do not characterize exact quotients of finite-code octal games, prove
-automatic periodicity for split traces, or determine whether the full misere
-Grundy quotient is finite. The numerical transport, tame-family construction,
-and exact Grundy prefixes through heap 18 remain paper proofs. See
+They do not characterize exact quotients of all finite-code octal games,
+prove automatic periodicity for general split targets, or determine whether
+the full misere Grundy quotient is finite. The paper's exact-quotient
+interpretation of compressed records and bounded synthesis algorithm, explicit binary mask
+tests, subtraction quotient presentation and synthesis algorithm, numerical
+normal-form transport, exact Grundy prefixes through heap 18, and the
+canonical-mate obstruction remain paper-level compositions. Generic kernel
+nontriviality follows from the star free action and adds no special obstruction to Grundy's game. See
 `../docs/OPEN.md` and `../writeups/misere_natural_realization.tex`.
 
 ## Review contract
