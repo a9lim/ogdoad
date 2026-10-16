@@ -282,8 +282,9 @@ together, and **never guessed**:
 2. **Forcing occurrences infer.** An occurrence at a sort-forced position
    (an exponent slot, a stdlib I-slot, an `and` operand, a world-operator
    operand, …) fixes the binder's sort. The flagship:
-   `gold := (a, u) ↦ tr(u ⋅ u↑(2↑a))` infers `a : Index` (exponent slot),
-   `u : Element` (product operand) — no marks needed.
+   `gold := (a, u) ↦ tr(u ⋅ u↑(2↑a))` (in a finite-field world such as
+   `f4`) infers `a : Index` (exponent slot), `u : Element` (product
+   operand) — no marks needed.
 3. **Conflicts are definition errors.** A mark contradicted by a forcing
    occurrence, or two occurrences forcing different sorts, is
    `E_IndexSort`/`E_BoolSort` *at definition* (`#x ↦ x ⋅ e0` errors: the
@@ -297,6 +298,13 @@ together, and **never guessed**:
    mismatched sort fails honestly at the frame (`less@(#1, #2)` →
    `E_IndexSort`) with the teaching hint: *declare the binder —
    `(#i, #j) ↦ …`*.
+5. **A μ-Function's return sort is solved, not guessed.** Inside its own
+   body a Function `=:` name applies at an assumed return sort; the
+   definition takes the first assumption, in the order Element, Index, Bool,
+   under which the body's sort equals it. Unforced recursion therefore stays
+   Element: `count =: n ↦ if n = 0 then 0 else 1 + count@(n - 1)` counts in
+   games (`count@2` is `{1, 1 |}`), and an Index counter says so with a mark
+   or an Index literal (`if n = 0 then #0 else …`).
 
 Display of binders is minimal-mark (§12.4's law, mirrored): the canonical
 echo shows a binder's mark iff its occurrences do not force its sort — so
@@ -637,9 +645,9 @@ twos =: {2 | woes}; woes =: {2 | twos}   // a period-2 pair, mutually
   runs separated by any of these are two systems (`E_Unbound` across them,
   as ever — the adjacency *is* the grouping, visible in the text).
 - Mixed-sort runs: a run whose equations are not all game Elements is
-  resolved equation-by-equation (Function `=:` never joins a system —
-  mutual *function* groups require higher-order functions and are outside the
-  current language; the local-helper rule of §9.1 covers the supported shapes).
+  resolved equation-by-equation (Function `=:` never joins a system; mutual
+  *function* groups are not part of the current language, and the
+  local-helper rule of §9.1 covers the supported shapes).
   A Function `=:` adjacent to Element `=:`s simply ends the Element run.
 - Multi-line entry: a trailing `;` continues the line (§3), so systems are
   writable interactively.
@@ -1187,7 +1195,7 @@ mutual-system family (definition, guardedness across the name-set, display
 re-entry); the display-collision family (ambient `g1`, rebinding histories,
 named roots referencing external cycles);
 `ones ⧺ true` / `ones ⧺ #2` / `ones ⧺ (x ↦ x)` as sort errors;
-`g =: [g] ⧺ []` and `dead =: {true ? 0 : dead |}` as legal; `b =: not b` as
+`g =: [g] ⧺ []` and `dead =: {if true then 0 else dead |}` as legal; `b =: not b` as
 `E_FixpointSort`; the depth guard as `E_StackDepth`; shared-DAG operands
 hitting `E_GraphBudget` (never hanging) and `≡` returning on shared DAGs;
 binder-mark round-trips, conflicts, frame-mismatch hints; whitespace-signed

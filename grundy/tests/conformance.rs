@@ -737,7 +737,7 @@ fn recursion_depth_guard_preempts_the_host_stack() {
 fn recursive_list_folds_have_realistic_worker_stack_headroom() {
     let mut session = GrundySession::new("game").expect("game world");
     session
-        .eval_line("len =: m ↦ if nleft(m) = 0 then 0 else 1 + len@(right(m, 0))")
+        .eval_line("len =: m ↦ if nleft(m) = 0 then #0 else 1 + len@(right(m, 0))")
         .expect("recursive list length");
 
     for length in [80_u128, 1000] {

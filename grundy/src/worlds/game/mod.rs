@@ -210,20 +210,10 @@ impl WorldOps for GameRuntime {
         binders: &[String],
         binder_sorts: &mut [DataSort],
         ret: &mut DataSort,
-        mu_name: Option<&str>,
     ) {
         refine_game_binder_sorts(body, binders, binder_sorts, &self.state.env);
-        if let Some(hint) = game_return_sort_hint(body, &self.state.env, mu_name) {
+        if let Some(hint) = game_return_sort_hint(body, &self.state.env) {
             *ret = hint;
-        }
-        if let Some(name) = mu_name {
-            if is_game_index_counter(name, body) {
-                for (binder, sort) in binders.iter().zip(binder_sorts) {
-                    if contains_game_binder_unit_step(binder, body) {
-                        *sort = DataSort::Index;
-                    }
-                }
-            }
         }
     }
 

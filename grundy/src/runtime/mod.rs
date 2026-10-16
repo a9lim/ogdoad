@@ -74,7 +74,6 @@ pub(crate) trait WorldOps: Sized {
         _binders: &[String],
         _binder_sorts: &mut [DataSort],
         _ret: &mut DataSort,
-        _mu_name: Option<&str>,
     ) {
     }
 
@@ -629,14 +628,20 @@ pub(crate) trait SharedRuntime: WorldOps {
         bound.extend(self.validation_sample_function_names().iter().cloned());
         let substituted = substitute_env(&body, &bound, self.env())?;
         let body = beta_normalize(substituted)?;
-        let (mut binder_sorts, mut ret) = infer_function_signature(&body, &binders)?;
-        self.refine_function_signature(
-            &body,
-            &binder_names,
-            &mut binder_sorts,
-            &mut ret,
-            mu_name.as_deref(),
-        );
+        let fns = self
+            .env()
+            .iter()
+            .filter_map(|(name, value)| match value {
+                Value::Function(function) => Some((name.clone(), function.ret)),
+                _ => None,
+            })
+            .collect::<FnSorts>();
+        let infer = |binders: &[LambdaBinder]| match mu_name.as_deref() {
+            Some(name) => infer_recursive_signature(&body, binders, name, &fns),
+            None => infer_function_signature(&body, binders, &fns),
+        };
+        let (mut binder_sorts, mut ret) = infer(&binders)?;
+        self.refine_function_signature(&body, &binder_names, &mut binder_sorts, &mut ret);
         let natural_binders = binders
             .iter()
             .map(|binder| LambdaBinder {
@@ -644,18 +649,12 @@ pub(crate) trait SharedRuntime: WorldOps {
                 declared_sort: None,
             })
             .collect::<Vec<_>>();
-        let natural_sorts = infer_function_signature(&body, &natural_binders).ok().map(
-            |(mut sorts, mut natural_ret)| {
-                self.refine_function_signature(
-                    &body,
-                    &binder_names,
-                    &mut sorts,
-                    &mut natural_ret,
-                    mu_name.as_deref(),
-                );
+        let natural_sorts = infer(&natural_binders)
+            .ok()
+            .map(|(mut sorts, mut natural_ret)| {
+                self.refine_function_signature(&body, &binder_names, &mut sorts, &mut natural_ret);
                 sorts
-            },
-        );
+            });
         let function = FunctionValue {
             binders: binders
                 .into_iter()
@@ -780,7 +779,7 @@ pub(crate) trait SharedRuntime: WorldOps {
     fn sample_expr(&self, sort: DataSort) -> GrundyResult<Expr> {
         match sort {
             DataSort::Element => self.sample_element_expr(),
-            DataSort::Index => Ok(Expr::Int(1)),
+            DataSort::Index => Ok(index_literal_expr(1)),
             DataSort::Bool => Ok(Expr::Bool(true)),
         }
     }

@@ -1075,11 +1075,7 @@ pub(crate) fn game_function_expr_return_sort(
             let Expr::Lambda { body, .. } = &binding.expr else {
                 return None;
             };
-            game_return_sort_hint(
-                body,
-                env,
-                binding.recursive.then_some(binding.name.as_str()),
-            )
+            game_return_sort_hint(body, env)
         }
         _ => None,
     }
@@ -1088,15 +1084,9 @@ pub(crate) fn game_function_expr_return_sort(
 pub(crate) fn game_return_sort_hint(
     body: &Expr,
     env: &BTreeMap<String, Value<GameElement>>,
-    mu_name: Option<&str>,
 ) -> Option<DataSort> {
     if bool_shaped(body) {
         return Some(DataSort::Bool);
-    }
-    if let Some(name) = mu_name {
-        if is_game_index_counter(name, body) {
-            return Some(DataSort::Index);
-        }
     }
     match body {
         Expr::Apply { callee, .. } => game_function_expr_return_sort(callee, env),
@@ -1114,10 +1104,8 @@ pub(crate) fn game_return_sort_hint(
                 if let Expr::Lambda { body, .. } = &binding.expr {
                     let hint = if bool_shaped(body) {
                         Some(DataSort::Bool)
-                    } else if binding.recursive && is_game_index_counter(&binding.name, body) {
-                        Some(DataSort::Index)
                     } else {
-                        game_return_sort_hint(body, env, None)
+                        game_return_sort_hint(body, env)
                     };
                     if let Some(sort) = hint {
                         local_returns.insert(binding.name.as_str(), sort);
@@ -1129,178 +1117,17 @@ pub(crate) fn game_return_sort_hint(
                     return local_returns.get(name.as_str()).copied();
                 }
             }
-            game_return_sort_hint(body, env, None)
+            game_return_sort_hint(body, env)
         }
         Expr::If {
             then_expr,
             else_expr,
             ..
         } => {
-            let lhs = game_return_sort_hint(then_expr, env, mu_name);
-            let rhs = game_return_sort_hint(else_expr, env, mu_name);
+            let lhs = game_return_sort_hint(then_expr, env);
+            let rhs = game_return_sort_hint(else_expr, env);
             (lhs == rhs).then_some(lhs).flatten()
         }
         _ => game_known_sort(body, env),
-    }
-}
-
-pub(crate) fn is_game_index_counter(name: &str, expr: &Expr) -> bool {
-    contains_game_self_call(name, expr) && contains_game_unit_step(expr)
-}
-
-pub(crate) fn contains_game_self_call(name: &str, expr: &Expr) -> bool {
-    match expr {
-        Expr::Apply { callee, args } => {
-            matches!(&**callee, Expr::Ident(candidate) if candidate == name)
-                || contains_game_self_call(name, callee)
-                || args.iter().any(|arg| contains_game_self_call(name, arg))
-        }
-        Expr::Block { bindings, body } => {
-            bindings
-                .iter()
-                .any(|binding| contains_game_self_call(name, &binding.expr))
-                || contains_game_self_call(name, body)
-        }
-        Expr::Container(items) => items.iter().any(|item| contains_game_self_call(name, item)),
-        Expr::GameForm { left, right } => left
-            .iter()
-            .chain(right)
-            .any(|item| contains_game_self_call(name, item)),
-        Expr::Lambda { body, .. } | Expr::Index(body) | Expr::Unary { expr: body, .. } => {
-            contains_game_self_call(name, body)
-        }
-        Expr::Call { args, .. } => args.iter().any(|arg| contains_game_self_call(name, arg)),
-        Expr::Binary { lhs, rhs, .. } | Expr::Relation { lhs, rhs, .. } => {
-            contains_game_self_call(name, lhs) || contains_game_self_call(name, rhs)
-        }
-        Expr::If {
-            cond,
-            then_expr,
-            else_expr,
-        } => {
-            contains_game_self_call(name, cond)
-                || contains_game_self_call(name, then_expr)
-                || contains_game_self_call(name, else_expr)
-        }
-        Expr::Int(_)
-        | Expr::Bool(_)
-        | Expr::Star(_)
-        | Expr::Omega
-        | Expr::Blade(_)
-        | Expr::Up
-        | Expr::Down
-        | Expr::Dim
-        | Expr::Ident(_) => false,
-    }
-}
-
-pub(crate) fn contains_game_unit_step(expr: &Expr) -> bool {
-    match expr {
-        Expr::Binary {
-            op: BinaryOp::Add | BinaryOp::Sub,
-            lhs,
-            rhs,
-        } if (matches!(&**lhs, Expr::Ident(_)) && matches!(&**rhs, Expr::Int(1)))
-            || matches!(&**lhs, Expr::Int(1)) =>
-        {
-            true
-        }
-        Expr::Block { bindings, body } => {
-            bindings
-                .iter()
-                .any(|binding| contains_game_unit_step(&binding.expr))
-                || contains_game_unit_step(body)
-        }
-        Expr::Container(items) => items.iter().any(contains_game_unit_step),
-        Expr::Apply { callee, args } => {
-            contains_game_unit_step(callee) || args.iter().any(contains_game_unit_step)
-        }
-        Expr::GameForm { left, right } => left.iter().chain(right).any(contains_game_unit_step),
-        Expr::Lambda { body, .. } | Expr::Index(body) | Expr::Unary { expr: body, .. } => {
-            contains_game_unit_step(body)
-        }
-        Expr::Call { args, .. } => args.iter().any(contains_game_unit_step),
-        Expr::Binary { lhs, rhs, .. } | Expr::Relation { lhs, rhs, .. } => {
-            contains_game_unit_step(lhs) || contains_game_unit_step(rhs)
-        }
-        Expr::If {
-            cond,
-            then_expr,
-            else_expr,
-        } => {
-            contains_game_unit_step(cond)
-                || contains_game_unit_step(then_expr)
-                || contains_game_unit_step(else_expr)
-        }
-        Expr::Int(_)
-        | Expr::Bool(_)
-        | Expr::Star(_)
-        | Expr::Omega
-        | Expr::Blade(_)
-        | Expr::Up
-        | Expr::Down
-        | Expr::Dim
-        | Expr::Ident(_) => false,
-    }
-}
-
-pub(crate) fn contains_game_binder_unit_step(binder: &str, expr: &Expr) -> bool {
-    match expr {
-        Expr::Binary {
-            op: BinaryOp::Add | BinaryOp::Sub,
-            lhs,
-            rhs,
-        } if matches!(&**lhs, Expr::Ident(name) if name == binder)
-            && matches!(&**rhs, Expr::Int(1)) =>
-        {
-            true
-        }
-        Expr::Block { bindings, body } => {
-            bindings
-                .iter()
-                .any(|binding| contains_game_binder_unit_step(binder, &binding.expr))
-                || contains_game_binder_unit_step(binder, body)
-        }
-        Expr::Container(items) => items
-            .iter()
-            .any(|item| contains_game_binder_unit_step(binder, item)),
-        Expr::Apply { callee, args } => {
-            contains_game_binder_unit_step(binder, callee)
-                || args
-                    .iter()
-                    .any(|arg| contains_game_binder_unit_step(binder, arg))
-        }
-        Expr::GameForm { left, right } => left
-            .iter()
-            .chain(right)
-            .any(|item| contains_game_binder_unit_step(binder, item)),
-        Expr::Lambda { body, .. } | Expr::Index(body) | Expr::Unary { expr: body, .. } => {
-            contains_game_binder_unit_step(binder, body)
-        }
-        Expr::Call { args, .. } => args
-            .iter()
-            .any(|arg| contains_game_binder_unit_step(binder, arg)),
-        Expr::Binary { lhs, rhs, .. } | Expr::Relation { lhs, rhs, .. } => {
-            contains_game_binder_unit_step(binder, lhs)
-                || contains_game_binder_unit_step(binder, rhs)
-        }
-        Expr::If {
-            cond,
-            then_expr,
-            else_expr,
-        } => {
-            contains_game_binder_unit_step(binder, cond)
-                || contains_game_binder_unit_step(binder, then_expr)
-                || contains_game_binder_unit_step(binder, else_expr)
-        }
-        Expr::Int(_)
-        | Expr::Bool(_)
-        | Expr::Star(_)
-        | Expr::Omega
-        | Expr::Blade(_)
-        | Expr::Up
-        | Expr::Down
-        | Expr::Dim
-        | Expr::Ident(_) => false,
     }
 }
