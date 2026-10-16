@@ -41,13 +41,14 @@ open.  The paper then isolates the arithmetic content of each coordinate.  It
 constructs the primitive-support quotient and the Conway--Fermat packet
 recursion and a packet-degree defect bound, identifies the ordinary Artin
 symbol, proves least-counterexample one-primary regimes in the Fermat and
-ordinary arms, the cubic Singer recursion, a partition selected-order bound,
+ordinary arms, the cubic Singer recursion, a shared minimal-coefficient-field
+packing bound for the ordinary and cubic arms, and a partition selected-order
+bound,
 and a sharp first-relation threshold with a single reciprocal section and an
 exact power-state composition saturation theorem and transverse first-jet
 boundary,
 classifies the selected top-orbit elliptic $S$-unit lattice,
-proves an ordinary section sieve and an unconditional Kummer-ratio
-selected-order bound,
+proves an ordinary section sieve,
 and gives the exceptional Capelli
 criterion, a primitive-only palindromicity test, a one-third Frobenius
 compression, a Cayley-coordinate norm boundary, an intermediate-field packing
@@ -115,7 +116,8 @@ Proposition~\ref{prop:z-iterate-ramification}, the generalized-Prym
 saturation boundary of Proposition~\ref{prop:z-prym-boundary}, the selected
 top-orbit $S$-unit reduction of
 Proposition~\ref{prop:z-top-orbit-units},
-selected Singer and partition bounds of Propositions~\ref{prop:sieve}
+selected Singer, ratio-packing, and partition bounds of
+Propositions~\ref{prop:sieve}, \ref{prop:c-ratio-packing},
 and~\ref{prop:c-partition}, the cubic first-relation, power-state composition,
 first-jet, and marked-projective obstructions of
 Propositions~\ref{prop:c-first-relation}, \ref{prop:c-composition},
@@ -126,8 +128,8 @@ and~\ref{prop:d-bound} are proved here.
 Corollary~\ref{cor:o-large-factor} settles the ordinary large-factor case,
 Proposition~\ref{prop:o-reciprocal} doubles its degree range whenever the
 literal bottom polynomial is not self-reciprocal, and
-Proposition~\ref{prop:o-ratio-packing} enlarges that range polynomially in
-$r^a$, while Corollary~\ref{cor:o-one-primary} isolates a one-primary
+Proposition~\ref{prop:o-ratio-packing} enlarges that range exponentially in
+$\sqrt{r^a}$ for fixed $r$, while Corollary~\ref{cor:o-one-primary} isolates a one-primary
 least-counterexample range; the compression settles the exceptional
 prime-complement case, and
 the intermediate-field sieve settles an exponential-in-$\sqrt{3^k}$
@@ -1644,167 +1646,175 @@ Proposition~\ref{prop:o-reciprocal}.
 The full Kummer orbit gives a second sieve which is substantially stronger
 when the tower level is large.
 
-\begin{proposition}[Kummer-ratio packing sieve]
+\begin{proposition}[Kummer-ratio packing over minimal coefficient fields]
 \label{prop:o-ratio-packing}
-Assume $r\ne3$ and $a\geq1$, put $n=r^a$, and let the prime $p\ne r$ divide
-$N=L_{r,a}$.  Set
+Let $r$ be any odd prime, $b=b_r$, and $a\ge1$, and let
+$o$ be the order of the literal selected class
+$(1+x_{r,a})F_{r,a-1}^{\times}$.  For $1\le m\le a$ put
 \[
- d=N/p,\qquad
- D=r^{a-1}(r-1),\qquad s=(r-1)/2.
+ t_m=\operatorname{ord}_{r^m}(2),\qquad
+ D_m=r^{m-1}(r-1),\qquad
+ R_m=\frac{br^a}{t_m}.
 \]
-Let $K=F_{a-1}$, $L=F_a$, $y=1+x_a$, and let $o$ be the order of
-$yK^\times$ in $L^\times/K^\times$.  Then, unconditionally,
+These are positive integers, and $R_m\ge r$.  Write
 \[
- o\geq
- \mathcal R(D,s)+
- \left\lceil
- \frac{\mathcal R(D,s+1)-\mathcal R(D,s)}r
- \right\rceil,
- \qquad
- \mathcal R(D,t):=
- \sum_{j=0}^{t}2^j\binom Dj\binom tj.
+ \mathcal R(D,s)=\sum_{t=0}^s2^t\binom Dt\binom st
 \]
-If the current $p$-coordinate is deficient, then
+and define the parity-sensitive bound
 \[
- d\geq
- \mathcal R(D,s)+
- \left\lceil
- \frac{\mathcal R(D,s+1)-\mathcal R(D,s)}r
- \right\rceil.
+ \mathcal B_r(D,R)=
+ \begin{cases}
+  \mathcal R(D,R/2),&R\text{ even},\\[2pt]
+  \displaystyle\mathcal R(D,(R-1)/2)+
+  \left\lceil\frac{
+   \mathcal R(D,(R+1)/2)-\mathcal R(D,(R-1)/2)}r\right\rceil,
+   &R\text{ odd}.
+ \end{cases}
 \]
-Consequently arm~$O$ holds at every such factor satisfying
+Then
 \[
- \frac{L_{r,a}}p<
- \mathcal R\left(r^{a-1}(r-1),\frac{r-1}{2}\right)
- +
- \left\lceil\frac1r\left[
- \mathcal R\left(r^{a-1}(r-1),\frac{r+1}{2}\right)
- -\mathcal R\left(r^{a-1}(r-1),\frac{r-1}{2}\right)
- \right]\right\rceil.
+ B_{r,a}:=
+ \max_{1\le m\le a}\mathcal B_r(D_m,R_m)\le o.
 \]
+Consequently, a deficient current prime $p\ne r$ must satisfy
+$L_{r,a}/p\ge B_{r,a}$.
 \end{proposition}
 
 \begin{proof}
-Put $K=F_{a-1}$, $L=F_a$, $x=x_a$, and $y=1+x$.  The nonpower radicand gives
-$r\mid2^b-1$, so LTE gives $r^a\mid2^{br^{a-1}}-1$; hence $K$ contains
-$\mu_n$.  Since $F_a=K(x)$, the element $x$ has minimal-polynomial degree
-$r$ over $K$.
-
-Let $\sigma$ generate $\operatorname{Gal}(L/K)$, with
-$\sigma(x)=\zeta x$, and put $u=\sigma(y)/y$.  Hilbert--90 gives an
-isomorphism
+Put $v=v_r(2^b-1)\ge1$, $K=F_{r,a-1}$, $L=F_{r,a}$,
+$x=x_{r,a}$, and $y=1+x$.  Fix $m$.  LTE gives
 \[
- L^\times/K^\times\longrightarrow\ker\operatorname N_{L/K},
- \qquad zK^\times\longmapsto\frac{\sigma(z)}z.
+ v_r(2^{br^{a-1}}-1)=v+a-1\ge a\ge m.
 \]
-Indeed its kernel is $K^\times$, and both groups have order $N$.
-Consequently $\operatorname{ord}(u)=o$.
-
-Choose representatives
-$\mathcal C$ for $\mu_n/\mu_r$.  Deficiency and
-Proposition~\ref{prop:o-bottom-divisibility} give, at every root $cx$ of
-$P_r(T^n)$ and every $\zeta\in\mu_r$,
+Thus $t_m\mid br^{a-1}$ and the smallest finite field containing
+$\mu_{r^m}$ is
 \[
- (1+\zeta cx)^d
- =(1+(\zeta cx)^r)^e
- =(1+(cx)^r)^e
- =(1+cx)^d.
+ H_m=\mathbb F_{2^{t_m}}\subset K.
 \]
-Every numerator and denominator below is nonzero: an equality
-$1+\xi x=0$ with $\xi\in\mu_n$ would put $x$ in $K$, contradicting its
-relative degree $r>1$.
-Thus each of the
-\[
- u_{c,\zeta}=\frac{1+\zeta cx}{1+cx},
- \qquad c\in\mathcal C,\quad
- \zeta\in\mu_r\setminus\{1\},
-\]
-is a $d$-th root of unity.  There are
-$|\mathcal C|(r-1)=D$ such ratios.
+Since $x$ generates $L$ over $\mathbb F_2$, its minimal polynomial over
+$H_m$ has degree $[L:H_m]=R_m\ge r$ and nonzero constant coefficient.
 
-More is true without deficiency: all these ratios lie in $\langle u\rangle$.
-For each $c$, the root $cx$ is an absolute-Frobenius conjugate $x^{2^j}$.
-Writing $\eta=\zeta^k$ and $q=|K|$, commutativity of the Frobenius maps gives
+Let $\sigma$ be the $|K|$-Frobenius on $L$, and put $u=\sigma(y)/y$.
+The Hilbert--90 isomorphism
+$L^\times/K^\times\longrightarrow\ker\operatorname N_{L/K}$
+gives $\operatorname{ord}(u)=o$: its kernel is $K^\times$ and both
+finite groups have order $L_{r,a}$.
+Choose representatives $\mathcal C_m$ for $\mu_{r^m}/\mu_r$.
+For $c\in\mathcal C_m$ and $\zeta\in\mu_r\setminus\{1\}$ set
 \[
- u_{c,\eta}
- =\frac{\sigma^k(y^{2^j})}{y^{2^j}}
- =u^{2^j(1+q+\cdots+q^{k-1})}.
+ u_{c,\zeta}=\frac{1+\zeta cx}{1+cx}.
+\]
+There are exactly $D_m$ such ratios, all with coefficients in $H_m$.
+Their numerators and denominators are nonzero: otherwise $x\in H_m$,
+contrary to $R_m>1$.
+
+Every ratio belongs to $\langle u\rangle$.  Indeed, $m\le a$ makes
+$cx$ a root of the literal irreducible polynomial $P_r(T^{r^a})$,
+so $cx=x^{2^e}$ for some $e$.  The automorphism $\sigma$ fixes $c$,
+and $\sigma(x)/x$ generates $\mu_r$.  Choose $k$ such that
+$\sigma^k(cx)=\zeta cx$.  Commutativity of absolute and relative
+Frobenius gives
+\[
+ u_{c,\zeta}
+ =u^{2^e(1+|K|+\cdots+|K|^{k-1})}.
 \]
 
-Index these ratios by a set $I$ of size $D$.  For every vector
-$v=(v_i)_{i\in I}\in\mathbb Z^I$ with $\sum_i|v_i|\leq s$, put
-$U_v=\prod_i u_i^{v_i}$.  We claim that the $U_v$ are distinct.  If
-$U_v=U_w$, set $g_i=v_i-w_i$.  After separating positive and negative
-exponents, the resulting rational-function equality at $x$ has the form
-\[
- A(x)=B(x),
- \qquad \deg A,\deg B\leq\sum_i|g_i|\leq2s=r-1<r,
-\]
-where $A,B\in K[T]$ have constant coefficient one.  Since the minimal
-polynomial of $x$ over $K$ has degree $r$, one has $A=B$ as polynomials.
-This low-degree step is the ordinary Lean theorem
-\texttt{polynomial\_eq\_of\_aeval\_eq\_of\_natDegree\_lt\_minpoly}.
+Index the ratios by $I$, with $|I|=D_m$, and evaluate integer vectors by
+$U_w=\prod_{i\in I}u_i^{w_i}$.  A signed ball
+$\sum_i|w_i|\le s$ has exactly $\mathcal R(D_m,s)$ elements:
+choose its $t$ nonzero coordinates, their signs, and their positive
+absolute values with sum at most $s$.
 
-For a fixed $c\in\mathcal C$, the ratios form the star
-\[
- \frac{1+\zeta cT}{1+cT},\qquad
- \zeta\in\mu_r\setminus\{1\}.
-\]
-Stars belonging to different cosets have disjoint linear factors.  Within a
-star, the valuation at the distinct factor $1+\zeta cT$ recovers the
-corresponding exponent.  Unique factorization therefore forces every
-$g_i=0$, and hence $v=w$.
+Suppose first that $R_m$ is even.  Include the entire signed ball of
+radius $R_m/2$.  If $U_w=U_{w'}$, put $g=w-w'$ and clear denominators
+without cancelling common factors.  This gives $A(x)=B(x)$ with
+$A,B\in H_m[T]$, both constant coefficients one, and both degrees
+$\sum_i|g_i|\le R_m$.
+The minimal polynomial of $x$ divides $A-B$.  A nonzero difference
+would therefore be a scalar multiple of that minimal polynomial,
+contradicting its zero constant coefficient.  Hence $A=B$.
 
-To count these integer vectors, choose the $j$ nonzero coordinates, their
-signs, and their positive absolute values.  There are $\binom Dj$, $2^j$,
-and $\binom sj$ choices respectively, the last count being the number of
-positive $j$-tuples with sum at most $s$.  Hence there are exactly
-$\mathcal R(D,s)$ vectors.  Their values are distinct elements of
-$\langle u\rangle$, already giving the inner-ball contribution to the
-unconditional order bound.
-
-Part of the next signed shell can be retained after separating the ratios by
-their leading phase.  For $i=(c,\zeta)$ put $\chi_i=\zeta$ and, for
-$v\in\mathbb Z^I$, put
+If $R_m$ is odd, put $s=(R_m-1)/2$ and include the inner ball of
+radius $s$ together with a largest fibre, in the shell of radius $s+1$,
+of the leading-phase character
 \[
- \chi(v)=\prod_i\chi_i^{v_i}\in\mu_r.
+ \chi(w)=\prod_{(c,\zeta)}\zeta^{w_{c,\zeta}}\in\mu_r.
 \]
-The outer shell of vectors of signed $\ell^1$-weight exactly $s+1$ has
-$\mathcal R(D,s+1)-\mathcal R(D,s)$ elements.  Some fibre $H$ of $\chi$ in
-that shell therefore has at least
+The chosen family has cardinality at least $\mathcal B_r(D_m,R_m)$.
+For a collision with at least one inner-ball vector, the same
+cross-product degree is at most $2s+1=R_m$.  For two shell vectors,
+it is at most $2s+2=R_m+1$, but equality of leading phases cancels
+the leading coefficient.  Thus $\deg(A-B)\le R_m$ again, and the
+same zero-constant argument gives $A=B$.
+
+In either parity, different $c$-cosets have disjoint stars of linear
+factors.  Within each star, valuation at $1+\zeta cT$ recovers the
+corresponding signed exponent.  Unique factorization makes $A=B$
+force $g=0$.  The chosen vectors therefore inject into the same cyclic
+group $\langle u\rangle$.  The normalized rational evaluation injection
+and the resulting bound by $\operatorname{ord}(u)$ are kernel-checked in
+\texttt{ExcessOrdinaryPacking}; finite-field ancestry, the disjoint-factor
+comparison, and the lattice count remain paper-level inputs.  Taking the
+maximum over $m$ proves the bound.
+Under a deficient current $p$-coordinate, $o\mid L_{r,a}/p$, proving
+the stated sieve.
+\end{proof}
+
+\begin{corollary}[intermediate-field recovery and explicit growth]
+\label{cor:o-ratio-growth}
+Put $v=v_r(2^b-1)$.  For $0\le j<a$, set
 \[
- \left\lceil
- \frac{\mathcal R(D,s+1)-\mathcal R(D,s)}r
+ m_j=\min\{a,j+v\},\quad
+ D'_j=r^{m_j-1}(r-1),\quad R'_j=r^{a-j},\quad s_j=(R'_j-1)/2.
+\]
+Then $B_{r,a}$ is at least
+\[
+ \mathcal R(D'_j,s_j)+
+ \left\lceil\frac{\mathcal R(D'_j,s_j+1)-\mathcal R(D'_j,s_j)}r
  \right\rceil
 \]
-elements.  We claim that the $U_v$ for the entire inner ball together with
-$H$ are distinct.
-
-Indeed, suppose that $U_v=U_w$ for two vectors in this union and set
-$g=v-w$.  Form the same cross-products $A,B\in K[T]$, without cancelling
-common factors.  Both have constant coefficient one and exact degree
+for every $j$.  The case $j=a-1$ uses
+$D=r^{a-1}(r-1)$ and signed radius $(r-1)/2$.  Moreover,
 \[
- t=\sum_i|g_i|.
+ \log_2 o\ge
+ (\log_2 3)(1-1/r)\sqrt{r^a}-\tfrac12\log_2 3.
 \]
-If at least one vector is in the inner ball, then $t\leq s+(s+1)=r$.
-If both lie in $H$, then $t\leq2(s+1)=r+1$, while the quotient of the
-leading coefficients is
-$\prod_i\chi_i^{g_i}=\chi(v)/\chi(w)=1$; their leading terms cancel.  Thus
-in either case $A-B=0$ or $\deg(A-B)\leq r$.  The minimal polynomial $m_x$
-divides $A-B$.  If the difference were nonzero, this degree bound and
-$\deg m_x=r$ would give $A-B=\lambda m_x$ for some $\lambda\in K^\times$.
-But $A-B$ has constant coefficient zero, whereas the relative Kummer
-minimal polynomial $m_x$ has nonzero constant coefficient, a contradiction.
-This boundary step is the ordinary Lean theorem
-\texttt{polynomial\_eq\_of\_aeval\_eq\_of\_natDegree\_le\_minpoly\_of\_coeff\_zero}.
-Thus $A=B$, and the same disjoint-star valuations force $g=0$.
+\end{corollary}
 
-The union therefore injects into $\langle u\rangle$.  Its cardinality is at
-least the displayed inner-ball-plus-shell expression, proving the
-unconditional bound on $o$.  Under deficiency the class $yK^\times$ has
-order dividing $d=N/p$, so $o\mid d$; this proves the stated deficient bound
-and its contrapositive.
+\begin{proof}
+LTE puts $\mu_{r^{m_j}}$ in $F_{r,j}$, so
+$t_{m_j}\mid br^j$ and hence $R_{m_j}\ge R'_j$.
+If these degrees are equal, they are odd and the displayed term is
+exactly $\mathcal B_r(D_{m_j},R_{m_j})$.
+If they are unequal, $R_{m_j}\ge R'_j+1=2(s_j+1)$, so the larger
+degree bound contains the entire ball of radius $s_j+1$, which already
+dominates the displayed inner-ball-plus-partial-shell term.
+
+For the growth assertion choose $j=\lfloor(a-1)/2\rfloor$ and put
+$h=\min\{D'_j,s_j\}$.  The inner ball contains $\{-1,0,1\}^h$,
+so its size is at least $3^h$.  Since $v\ge1$,
+$D'_j\ge(r-1)r^j$.  If $a=2k$, then
+$h\ge(r-1)r^{k-1}$.  If $a=2k+1$, then
+$h\ge(r^{k+1}-1)/2$.  In both cases
+$h\ge(1-1/r)r^{a/2}-1/2$, already for $r\ge3$.
 \end{proof}
+
+For fixed $r$ and bottom ancestry this packing bound is exponential in
+$\sqrt{r^a}$, whereas $L_{r,a}$ is exponential in $r^a$.  To see the upper
+scale as well, put $v_0=v_r(2^{t_1}-1)$.  Order lifting gives
+$t_m=t_1r^{\max(0,m-v_0)}$, so $D_mR_m=O(r^a)$ uniformly in $m$.
+The elementary estimate
+\[
+ \mathcal R(D,s)\le\sum_{t\ge0}\frac{(2Ds)^t}{(t!)^2}
+ \le\exp(2\sqrt{2Ds})
+\]
+and $\mathcal B_r(D,R)\le\mathcal R(D,\lceil R/2\rceil)$ therefore give
+$\log B_{r,a}=O(\sqrt{r^a})$.  Thus the theorem proves a selected
+large-factor range, not universal arm~$O$.  Bounds from different coefficient
+fields cannot simply be multiplied: they count subsets of the same cyclic
+group, and a mixed collision must be tested over the largest coefficient
+field present.  The statement includes $r=3$; its cubic interpretation is
+given in Proposition~\ref{prop:c-ratio-packing}.
 
 \begin{corollary}[minimal-counterexample congruence-gap regime]
 \label{cor:o-one-primary}
@@ -1812,15 +1822,8 @@ Suppose that $p$ is the least odd prime at which the $0/1/4$ rule fails and
 that its putative failure lies in arm~$O$ at $(r,a,p)$, so $r\ne3$.
 Let $N=L_{r,a}$,
 let $o$ be the selected projective order, write $N=o\Delta$, and let
-$\Delta^{(r')}$ be the prime-to-$r$ part of $\Delta$.  Put
-\[
- B_{r,a}=\mathcal R\left(r^{a-1}(r-1),\frac{r-1}{2}\right)
- +\left\lceil\frac1r\left[
- \mathcal R\left(r^{a-1}(r-1),\frac{r+1}{2}\right)
- -\mathcal R\left(r^{a-1}(r-1),\frac{r-1}{2}\right)
- \right]\right\rceil.
-\]
-Put
+$\Delta^{(r')}$ be the prime-to-$r$ part of $\Delta$.  Let $B_{r,a}$ be the minimal-coefficient-field maximum in
+Proposition~\ref{prop:o-ratio-packing}, and put
 \[
  M=2r^a,\qquad
  A_{<p}=\prod_{\substack{q<p,\ q\ne r\\q\mid N}}q^{v_q(N)},
@@ -2147,6 +2150,123 @@ subgroup of order $N/\ell$, which must contain all these quotients.
 
 The sieve is polynomial in $h$, while $N$ is exponential.  It proves a
 genuine selected large-factor range but not arm $C$.
+
+\begin{proposition}[intermediate-field cubic ratio packing]
+\label{prop:c-ratio-packing}
+Let $k\geq1$, $h=3^k$, $H=3^{k-1}$, $q=2^H$, and
+$N=q^2+q+1$.  Let $x=\zeta_k$ be the selected primitive
+$3^{k+1}$-st root, put $\gamma_k=x+x^{-1}$, and put
+$\eta_k=\gamma_k^{q-1}$.  For $0\leq j<k$ define
+\[
+ D_j=2\cdot3^j,\qquad R_j=3^{k-j},\qquad s_j=(R_j-1)/2,
+\]
+\[
+ B_j=\mathcal R(D_j,s_j)+
+ \left\lceil\frac{\mathcal R(D_j,s_j+1)-\mathcal R(D_j,s_j)}3\right\rceil,
+ \qquad B_{3,k}=\max_{0\leq j<k}B_j.
+\]
+These are the $r=3$, $b_3=2$ parameters of
+Proposition~\ref{prop:o-ratio-packing}, with $m=j+1$.  Then
+\[
+ \operatorname{ord}(\eta_k)\geq
+ \left\lceil\frac{B_{3,k}}3\right\rceil.
+\]
+In particular, if a prime $\ell\mid N$ is missing from the order of
+$\eta_k$ at its full valuation, then
+\[
+ \frac N\ell\geq\left\lceil\frac{B_{3,k}}3\right\rceil.
+\]
+\end{proposition}
+
+\begin{proof}
+Write $L=\mathbb F_{q^6}=\mathbb F_{4^{3^k}}$ and
+$K=\mathbb F_{q^2}=\mathbb F_{4^{3^{k-1}}}$.  We first identify exactly
+the order $o$ of $(1+x)K^\times$ in $L^\times/K^\times$:
+\[
+ o=3\operatorname{ord}(\eta_k).
+\]
+Indeed, write $A=\operatorname{ord}(\gamma_k)$.  The half-angle identity
+gives $\operatorname{ord}(1+x)=3^{k+1}A$, with
+$A\mid q^3-1$ and $3\nmid A$.  Since $H$ is odd,
+$\gcd(q^3-1,q^2-1)=q-1$, while LTE gives
+$v_3(q^2-1)=k$.  Consequently
+\[
+ \gcd(3^{k+1}A,q^2-1)=3^k\gcd(A,q-1),
+\]
+and the order in the cyclic quotient is
+\[
+ o=\frac{3^{k+1}A}{\gcd(3^{k+1}A,q^2-1)}
+   =3\frac A{\gcd(A,q-1)}
+   =3\operatorname{ord}(\gamma_k^{q-1}).
+\]
+The coprime circle/real order splitting and transfer of a lower bound
+through this factor of three are kernel-checked in
+\texttt{ExcessCubicPacking}; the finite-field half-angle, valuation, and
+component-gcd inputs remain paper-level.
+
+Since $\operatorname{ord}_{3^m}(2)=2\cdot3^{m-1}$, the minimal
+coefficient fields in Proposition~\ref{prop:o-ratio-packing} are exactly
+$\mathbb F_{4^{3^{m-1}}}$.  Its unconditional bound gives
+$o\geq B_{3,k}$, and the identity $o=3\operatorname{ord}(\eta_k)$ gives the first
+assertion.  A deficient full $\ell$-part implies
+$\operatorname{ord}(\eta_k)\mid N/\ell$, proving the second.
+\end{proof}
+
+\begin{corollary}[cubic square-root exponential bound]
+\label{cor:c-ratio-growth}
+As $k\to\infty$, with $h=3^k$,
+\[
+ \log_2\operatorname{ord}(\eta_k)
+ \geq\left(\log_2 3+\frac56\right)\sqrt h-O(\log h).
+\]
+The coefficient $\log_2 3+5/6>2.4182$ improves the partition coefficient
+$\pi/(3\log 2)$ in Proposition~\ref{prop:c-partition}.
+\end{corollary}
+
+\begin{proof}
+It is enough to retain one summand
+$2^t\binom{D_j}t\binom{s_j}t$ of the signed ball.
+Put $u=\sqrt h$ and $t=\lfloor u/2\rfloor$.
+If $k=2m$ is even, take $j=m-1$.  Then
+\[
+ D_j=\frac23u,\qquad s_j=\frac32u-\frac12.
+\]
+Writing $H_2(z)=-z\log_2z-(1-z)\log_2(1-z)$, the elementary
+Stirling estimate gives
+\[
+ \log_2\left(2^t\binom{D_j}t\binom{s_j}t\right)
+ =\left[\frac12+\frac23H_2\left(\frac34\right)
+              +\frac32H_2\left(\frac13\right)\right]u-O(\log h)
+ =\left(\log_2 3+\frac56\right)u-O(\log h).
+\]
+If $k=2m+1$ is odd, take $j=m$.  Then
+\[
+ D_j=\frac2{\sqrt3}u,\qquad
+ s_j=\frac{\sqrt3}2u-\frac12,
+\]
+giving the coefficient
+\[
+ c_{\rm odd}=\frac12+
+ \frac2{\sqrt3}H_2\left(\frac{\sqrt3}4\right)
+ +\frac{\sqrt3}2H_2\left(\frac1{\sqrt3}\right).
+\]
+This is at least the even coefficient, as can be seen without numerical
+comparison.  The function
+$g(x)=e^xH_2(\tfrac12e^{-x})$ is strictly concave on $x>-\log2$:
+with $z=\tfrac12e^{-x}\in(0,1)$,
+\[
+ g''(x)=\frac{e^x}{\log2}
+ \left(-\log(1-z)-\frac z{1-z}\right)<0.
+\]
+Thus $g(x)+g(-x)$ decreases for $0<x<\log2$.
+The even coefficient uses $x=\log(3/2)$, whereas the odd coefficient
+uses $x=\log(2/\sqrt3)$, which is smaller.
+Finally, dividing the order bound by three costs only $\log_2 3$,
+which is absorbed into $O(\log h)$.
+\end{proof}
+
+The bound remains subexponential in $h$, while $N$ is exponential in $h$.
+It therefore leaves the smaller current prime factors unresolved.
 
 The cyclotomic selector also permits a complementary partition bound.  This
 is the usual low-degree collision argument for Gaussian periods, specialized
@@ -3776,15 +3896,17 @@ Capelli theory, and the cited cyclotomic, class-field, function-field, and
 order results.  These are not reproved in Lean. \\
 Proved here & The four-arm equivalence; the exact selected coordinates and
 order criteria; the primitive-support, packet-degree, supersingular, Singer
-and selected norm-one partition and single-section first-relation bounds,
+and selected norm-one ratio-packing and partition and single-section first-relation bounds,
 corrected-norm, ordinary section, reciprocal-doubling, and unconditional
-Kummer-ratio selected-order bounds,
+intermediate-field Kummer-ratio selected-order bounds,
 exceptional palindromicity, one-third compression, intermediate-field packing,
 prime-complement exceptional case, ray-index, boundedness, and
 reciprocity-saturation results stated above. \\
 Ordinary kernel-checked Lean & Algebra without native evaluation: the
 algebraic Kummer interface, full-primary power tests, selected cubic and
-exceptional identities, low-degree minimal-polynomial collision, cubical
+exceptional identities, low-degree minimal-polynomial collision and
+normalized rational-packing injection and the cubic factor-of-three
+order bridge, cubical
 reductions, packet and Fibonacci identities, and marked-holonomy calculus.
 These proofs may still use Lean's standard
 logical dependencies \texttt{propext}, \texttt{Classical.choice}, and

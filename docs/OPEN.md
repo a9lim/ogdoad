@@ -130,10 +130,13 @@ The paper proves the four-arm equivalence, exact cyclic power criteria,
 boundedness reformulation, structural norm identities, primitive-support
 quotient, supersingular and Singer descriptions, the ordinary ray-class
 decomposition, and the principal-ray/circular-unit factorization in the cubic
-and exceptional arms.  In the cubic arm, a selector-retaining partition
-argument gives
-`log_2 ord(eta_k) >= (pi/(3 log 2) + o(1)) sqrt(3^k)`.  A complementary
-section argument proves that the first possible nonempty one-sided relation
+and exceptional arms.  In the cubic arm, packing over minimal coefficient
+fields gives
+`log_2 ord(eta_k) >= (log_2 3 + 5/6) sqrt(3^k) - O(k)`.  This follows
+from the exact selected identity `o_(3,k) = 3 ord(eta_k)` and the Kummer
+ratio bound below; its coefficient exceeds `2.4182`.  The separate
+selector-retaining partition and section arguments prove that the first
+possible nonempty one-sided relation
 has weighted residue at least `2 * 3^k + 1`, sharply attained by the norm
 triple.  At every weight, such a relation is exactly simultaneous
 divisibility of the two non-killed residue sections by
@@ -210,14 +213,22 @@ has `P_r != P_r^*`, and its cofactor must be at least
 self-reciprocal but belongs to the separate cubic/exceptional arms.  Thus a
 self-reciprocal bottom at `r != 3` would already be an earlier failure of
 the global rule, rather than an independent ordinary-arm obstruction.  This
-still leaves all larger cofactors unresolved.  A Kummer-ratio packing
-argument strengthens this unconditionally: with `D=r^(a-1)(r-1)`,
-`s=(r-1)/2`, and `o` the order of the selected class in
-`F_(r,a)^times/F_(r,a-1)^times`, one has
-`o >= R(D,s)+ceil((R(D,s+1)-R(D,s))/r)`, where
-`R(D,t)=sum_(j=0)^t 2^j binom(D,j) binom(t,j)`.  The second summand retains
-the largest leading-`mu_r` phase fibre of the next signed shell while keeping
-the entire inner ball.  At a globally least failing prime, enlarge this lower
+still leaves all larger cofactors unresolved.  Kummer-ratio packing over
+minimal coefficient fields strengthens this
+unconditionally.  For `1 <= m <= a`, put `t_m=ord_(r^m)(2)`,
+`D_m=r^(m-1)(r-1)`, and `R_m=b_r r^a/t_m`.  The selected top quotient
+order `o` is at least the maximum over `m` of
+`R(D_m,R_m/2)` when `R_m` is even, and
+`R(D_m,(R_m-1)/2) + ceil((R(D_m,(R_m+1)/2)-R(D_m,(R_m-1)/2))/r)`
+when `R_m` is odd, where
+`R(D,s)=sum_(j=0)^s 2^j binom(D,j) binom(s,j)`.
+The odd case retains the largest leading-`mu_r` phase fibre of the next
+signed shell; the even case retains the entire ball through the degree
+boundary.  This dominates the bound from every intermediate tower field
+and gives
+`log_2 o >= (log_2 3)(1-1/r) sqrt(r^a) - (log_2 3)/2`.
+The same theorem includes `r=3` and yields the cubic bound above.  At a
+globally least failing prime, enlarge this lower
 bound `B` by the fully selected lower-prime part.  Then
 `L_(r,a) < B p^2` forces the prime-to-`r` order defect to equal exactly `p`,
 while below `B p(p+2r^a)` the only other possibility is a repeated
@@ -225,9 +236,12 @@ base-`2^b_r` Wieferich factor `p^2`.  Deficiency otherwise forces the same
 lower bound on `L_(r,a)/p`.  The final `p`-rough arithmetic implication is
 kernel-checked as `rough_defect_eq_prime`; the congruence-gap refinement is
 kernel-checked as `rough_congruent_defect_eq_prime_or_square_dvd`.  The
-finite-field packing and minimality inputs remain paper-level.  The packing argument
-also proves
-several finite tensor-rank zero cases and shows why generic trace, norm,
+finite-field ancestry, disjoint-factor comparison, lattice counts, and
+minimality inputs remain paper-level; `ExcessOrdinaryPacking.lean` checks
+the normalized rational evaluation injection and its cyclic-order bound.
+`ExcessCubicPacking.lean` checks the coprime circle/real factor-of-three
+order bridge and the resulting Singer bound; its finite-field and valuation
+inputs remain paper-level.  The paper also proves several finite tensor-rank zero cases and shows why generic trace, norm,
 conductor, factor-shape, reciprocity, and
 unselected Kummer information cannot recover the marked Conway coordinate.
 For the exceptional arm, automatic vanishing on the `X^h - 1` component

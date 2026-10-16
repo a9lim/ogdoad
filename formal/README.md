@@ -112,8 +112,8 @@ selection. See `../docs/OPEN.md` and `../writeups/linking_affine.tex`.
 
 ## Finite Lenstra excess: open
 
-The module `Excess` (`Excess.lean`) proves algebraic ingredients of the
-four-arm `Z/O/C/D` reduction, including:
+The modules `Excess`, `ExcessOrdinaryPacking`, and `ExcessCubicPacking`
+prove algebraic ingredients of the four-arm `Z/O/C/D` reduction, including:
 
 - exact finite-cyclic-group and finite-field power/order criteria, including
   norm reduction, coprime-exponent invariance, and strict-ancestor primary
@@ -222,11 +222,20 @@ divisibility target, not the full universal `0/1/4` theorem. Source-assisted
 factor data and Python certificates remain external evidence.
 
 For the selected-order packing bounds, Lean checks the reusable low-degree
-minimal-polynomial collision lemma. The ordinary ratio-star
-unique-factorization and lattice count, the cubic weighted-subset coefficient
-argument, the three-section first-relation theorem, the full symmetric cubic
-power-state composition law and its specialized projective-fibre consequence,
-and the cited Tauberian asymptotic remain paper-level mathematics.  Lean
+minimal-polynomial collision lemma. `ExcessOrdinaryPacking` additionally
+checks top-coefficient cancellation, injectivity of normalized rational
+function evaluations through the minimal-polynomial degree boundary, and
+the resulting bound by the order of a common cyclic subgroup. The
+minimal-coefficient-field ancestry, parity-sensitive ball and shell counts,
+and ratio-star unique factorization remain paper-level.
+`ExcessCubicPacking` checks the coprime circle/real order splitting, the
+factor-of-three order identity, and transfer of a packing bound to the
+Singer coordinate. Its finite-field half-angle specialization, valuation
+input, and component-gcd equality remain paper-level.
+The cubic weighted-subset coefficient argument, the three-section
+first-relation theorem, the full symmetric cubic power-state composition law
+and its specialized projective-fibre consequence, and the entropy and cited
+Tauberian asymptotics also remain paper-level mathematics.  Lean
 checks the algebraic cubic recurrence, its first nontrivial value and two zero
 residue classes, and the pairwise-root invariants used by that composition
 law; no declaration upgrades them to a universal arm.
