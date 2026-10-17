@@ -18,7 +18,7 @@ use ogdoad::scalar::{Rational, Surreal};
 use super::super::error::{err, GrundyError, GrundyErrorKind, GrundyResult};
 
 /// The latest day a `Game` may be born: game algorithms recurse on depth, so
-/// depth is a host resource like the call stack.
+/// depth is a host resource.
 pub const MAX_BIRTHDAY: u128 = 1 << 14;
 
 /// A sealed canonical short game.

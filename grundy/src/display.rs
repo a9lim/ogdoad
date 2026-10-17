@@ -1065,15 +1065,17 @@ impl<'a> Show<'a> {
 
     fn generic_parts<'v>(&self, generic: &'v GenericV) -> Option<FunctionParts<'v>> {
         match &generic.body {
-            PolyBody::Expr(super::core::Core::Lambda(lam)) => Some(FunctionParts {
-                sources: vec![&lam.source],
-                bound: Vec::new(),
-                env: &generic.env,
-                globals: &generic.globals,
-                body: unparse_expr(&lam.source),
-                index: None,
-            }),
-            PolyBody::Expr(_) => None,
+            PolyBody::Expr(core) => match &**core {
+                super::core::Core::Lambda(lam) => Some(FunctionParts {
+                    sources: vec![&lam.source],
+                    bound: Vec::new(),
+                    env: &generic.env,
+                    globals: &generic.globals,
+                    body: unparse_expr(&lam.source),
+                    index: None,
+                }),
+                _ => None,
+            },
             PolyBody::Group { names, lams, index } => {
                 let sources: Vec<&Expr> = lams.iter().map(|lam| &lam.source).collect();
                 let body = equations(names, &sources, *index);

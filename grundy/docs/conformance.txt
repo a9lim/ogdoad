@@ -446,8 +446,8 @@
 > loop =: n ↦ loop(n + 1)
 
 > loop(0)
-! E_StackDepth: call depth exceeds the host guard
-? depth is a host resource, not fuel
+! E_StackDepth: call depth exceeds its limit of 4096 frames
+? call depth is a budget of its own, distinct from fuel
 
 // recursion through data with function fields is metered like any call
 > data Spin = Box(Spin → Int)
@@ -455,7 +455,30 @@
 > spin := b ↦ match b { Box(f) ↦ f(b) }
 
 > spin(Box(spin))
-! E_StackDepth: call depth exceeds the host guard
+! E_StackDepth: call depth exceeds its limit of 4096 frames
+
+// frames live on the evaluator's own stack: a call at depth n succeeds
+// exactly when n ≤ 4096, whatever surrounds it and in every build
+> deep =: n ↦ if n = 0 then 0 else 1 + deep(n - 1)
+
+> deep(4095)
+= 4095
+
+> deep(4096)
+! E_StackDepth: call depth exceeds its limit of 4096 frames
+
+> through_map =: n ↦ if n = 0 then 0 else 1 + sum(map(through_map, [n - 1]))
+
+> through_map(4095)
+= 4095
+
+> through_comp =: n ↦ if n = 0 then [0] else [k + 1 for k in through_comp(n - 1)]
+
+> through_comp(4095)
+= [4095]
+
+> through_comp(4096)
+! E_StackDepth: call depth exceeds its limit of 4096 frames
 
 @fuel 1000
 > [k for k in 0..5000]

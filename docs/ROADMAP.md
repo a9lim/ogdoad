@@ -62,7 +62,7 @@ unpublished until the publication row is complete.
 | sided loopy values | onside/offside and stopper canonical forms, so `Form` relations and `canon` extend beyond finite forms and stopper pairs |
 | ordinal sum | expose the engine's `Game::ordinal_sum` and add a `Form` version, with surface syntax that does not collide with `:` annotation, display recognition, and law tests |
 | exported certificates | outcome, Grundy, and separation witnesses accepted by a checker in `formal/` |
-| host-independent depth | an explicit-stack evaluator, so recursion depth is a budget rather than a host limit; today the 4096-frame guard counts calls, and a deeply nested body or an unoptimized build can overflow the worker stack and abort first |
+| host-independent nested evaluation | resumable ruleset exploration and game-equation reduction, so a move function or equation operand runs on the evaluator's heap stack and recursion through them is held to the call budget; today each is a fresh evaluation from host code, and a chain of them is refused by a measured host-stack guard whose reach depends on the build |
 | publication | the name and package boundary settled, an installable binary, curated examples, and a mathematical language note |
 
 ## Papers

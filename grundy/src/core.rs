@@ -47,18 +47,18 @@ pub enum CPat {
 #[derive(Clone, Debug)]
 pub enum CItem {
     /// One element.
-    One(Core),
+    One(Rc<Core>),
     /// A spliced list.
-    Splice(Core),
+    Splice(Rc<Core>),
 }
 
 /// A comprehension clause.
 #[derive(Clone, Debug)]
 pub enum CClause {
     /// Iterate a list.
-    For(CPat, Core),
+    For(CPat, Rc<Core>),
     /// Keep elements satisfying a guard.
-    If(Core),
+    If(Rc<Core>),
 }
 
 /// A lambda.
@@ -67,7 +67,7 @@ pub struct Lam {
     /// Parameter patterns.
     pub params: Vec<CPat>,
     /// The body.
-    pub body: Core,
+    pub body: Rc<Core>,
     /// The surface source, for display.
     pub source: Expr,
     /// Every variable name the body mentions: a superset of what a closure
@@ -83,7 +83,7 @@ impl Lam {
         let mentions = mentioned(&body);
         Lam {
             params,
-            body,
+            body: Rc::new(body),
             source,
             mentions,
             ty,
@@ -108,7 +108,7 @@ pub enum CBind {
         /// The pattern.
         pat: CPat,
         /// The right-hand side.
-        expr: Core,
+        expr: Rc<Core>,
         /// Runtime type parameters.
         tparams: Vec<TyVar>,
         /// Source span of the binding.
@@ -128,13 +128,14 @@ pub enum CBind {
         /// Names in the run.
         names: Vec<String>,
         /// Their right-hand sides.
-        exprs: Vec<Core>,
+        exprs: Vec<Rc<Core>>,
         /// Source spans.
         spans: Vec<Span>,
     },
 }
 
-/// Elaborated expressions.
+/// Elaborated expressions. Subexpressions are shared, so the evaluator's
+/// frames can hold the parts they have yet to run.
 #[derive(Clone, Debug)]
 pub enum Core {
     /// A numeral at its type.
@@ -158,41 +159,41 @@ pub enum Core {
     /// A constructor (a function if it has fields).
     Ctor(CtorRef, usize),
     /// A tuple.
-    Tuple(Vec<Core>),
+    Tuple(Vec<Rc<Core>>),
     /// A list.
     List(Vec<CItem>),
     /// A comprehension.
-    Comp(Box<Core>, Vec<CClause>),
+    Comp(Rc<Core>, Vec<CClause>),
     /// An Int range.
-    Range(Box<Core>, Box<Core>, bool, Span),
+    Range(Rc<Core>, Rc<Core>, bool, Span),
     /// A brace form at `Game` or `Form`.
     Form(Vec<CItem>, Vec<CItem>, Ty, Span),
     /// A call.
-    Call(Box<Core>, Vec<Core>, Span),
+    Call(Rc<Core>, Vec<Rc<Core>>, Span),
     /// Polynomial or rational-function evaluation/composition.
-    Subst(Box<Core>, Box<Core>, Span),
+    Subst(Rc<Core>, Rc<Core>, Span),
     /// List indexing.
-    Index(Box<Core>, Box<Core>, Span),
+    Index(Rc<Core>, Rc<Core>, Span),
     /// A lambda.
     Lambda(Rc<Lam>),
     /// A unary operator.
-    Unary(UnaryOp, Box<Core>, Span),
+    Unary(UnaryOp, Rc<Core>, Span),
     /// An arithmetic or list operator.
-    Binary(BinaryOp, Box<Core>, Box<Core>, Span),
+    Binary(BinaryOp, Rc<Core>, Rc<Core>, Span),
     /// A relation.
-    Rel(RelOp, Box<Core>, Box<Core>, Span),
+    Rel(RelOp, Rc<Core>, Rc<Core>, Span),
     /// Short-circuit `and`.
-    And(Box<Core>, Box<Core>),
+    And(Rc<Core>, Rc<Core>),
     /// Short-circuit `or`.
-    Or(Box<Core>, Box<Core>),
+    Or(Rc<Core>, Rc<Core>),
     /// A conditional.
-    If(Box<Core>, Box<Core>, Box<Core>),
+    If(Rc<Core>, Rc<Core>, Rc<Core>),
     /// A match.
-    Match(Box<Core>, Vec<(CPat, Core)>, Span),
+    Match(Rc<Core>, Vec<(CPat, Rc<Core>)>, Span),
     /// A sequence of bindings scoped over a body.
-    Let(Vec<CBind>, Box<Core>),
+    Let(Vec<CBind>, Rc<Core>),
     /// Bind a type's named generator (`t` or `x`) over a body.
-    Gen(String, Ty, Box<Core>),
+    Gen(String, Ty, Rc<Core>),
 }
 
 /// Visit every variable reference in an expression.

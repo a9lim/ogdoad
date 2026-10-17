@@ -40,7 +40,7 @@ pub struct Checked {
     /// The elaborated bindings.
     pub binds: Vec<CBind>,
     /// The elaborated final expression, if any.
-    pub expr: Option<Core>,
+    pub expr: Option<Rc<Core>>,
     /// New global schemes, in binding order.
     pub defined: Vec<(String, Scheme)>,
     /// The final expression's type.
@@ -112,7 +112,7 @@ impl<'a> Checker<'a> {
             .collect();
         Ok(Checked {
             binds,
-            expr,
+            expr: expr.map(Rc::new),
             defined,
             ty: ty.map(|ty| self.ts.zonk(&ty)),
         })
@@ -170,7 +170,7 @@ impl<'a> Checker<'a> {
             return Ok((
                 CBind::Let {
                     pat: CPat::Var(name.clone()),
-                    expr: core,
+                    expr: Rc::new(core),
                     tparams,
                     span,
                 },
@@ -214,7 +214,7 @@ impl<'a> Checker<'a> {
         Ok((
             CBind::Let {
                 pat,
-                expr: core,
+                expr: Rc::new(core),
                 tparams: Vec::new(),
                 span,
             },
@@ -363,7 +363,7 @@ impl<'a> Checker<'a> {
             Ok((
                 CBind::RecForms {
                     names,
-                    exprs: cores,
+                    exprs: cores.into_iter().map(Rc::new).collect(),
                     spans: run.iter().map(|binding| binding.span).collect(),
                 },
                 defined,
@@ -444,7 +444,7 @@ impl<'a> Checker<'a> {
                 let mut tys = Vec::new();
                 for item in items {
                     let (core, ty) = self.infer(item)?;
-                    cores.push(core);
+                    cores.push(Rc::new(core));
                     tys.push(ty);
                 }
                 Ok((Core::Tuple(cores), Ty::tuple(tys)))
@@ -469,17 +469,17 @@ impl<'a> Checker<'a> {
                                 for (name, ty) in bound {
                                     self.bind_local(&name, Scheme::mono(ty));
                                 }
-                                out.push(CClause::For(cpat, core));
+                                out.push(CClause::For(cpat, Rc::new(core)));
                             }
                             Clause::If(guard) => {
                                 let (core, ty) = self.infer(guard)?;
                                 self.unify_at(&ty, &Ty::bool(), guard.span)?;
-                                out.push(CClause::If(core));
+                                out.push(CClause::If(Rc::new(core)));
                             }
                         }
                     }
                     let (head, ty) = self.infer(head)?;
-                    Ok((Core::Comp(Box::new(head), out), Ty::list(ty)))
+                    Ok((Core::Comp(Rc::new(head), out), Ty::list(ty)))
                 })();
                 self.scopes.pop();
                 result
@@ -490,7 +490,7 @@ impl<'a> Checker<'a> {
                 let (hi_core, hi_ty) = self.infer(hi)?;
                 self.unify_at(&hi_ty, &Ty::int(), hi.span)?;
                 Ok((
-                    Core::Range(Box::new(lo_core), Box::new(hi_core), *inclusive, span),
+                    Core::Range(Rc::new(lo_core), Rc::new(hi_core), *inclusive, span),
                     Ty::list(Ty::int()),
                 ))
             }
@@ -508,7 +508,7 @@ impl<'a> Checker<'a> {
                 let (index_core, index_ty) = self.infer(index)?;
                 self.unify_at(&index_ty, &Ty::int(), index.span)?;
                 Ok((
-                    Core::Index(Box::new(base_core), Box::new(index_core), span),
+                    Core::Index(Rc::new(base_core), Rc::new(index_core), span),
                     elem,
                 ))
             }
@@ -561,7 +561,7 @@ impl<'a> Checker<'a> {
                     UnaryOp::Neg => self.require(Class::Add, &ty, span)?,
                     UnaryOp::Recip => self.require(Class::Div, &ty, span)?,
                 }
-                Ok((Core::Unary(*op, Box::new(core), span), ty))
+                Ok((Core::Unary(*op, Rc::new(core), span), ty))
             }
             ExprKind::Binary(op, lhs, rhs) => self.binary(*op, lhs, rhs, span),
             ExprKind::Relation(op, lhs, rhs) => {
@@ -581,7 +581,7 @@ impl<'a> Checker<'a> {
                     RelOp::Outcome(_) => self.require(Class::GameLike, &lhs_ty, span)?,
                 }
                 Ok((
-                    Core::Rel(*op, Box::new(lhs_core), Box::new(rhs_core), span),
+                    Core::Rel(*op, Rc::new(lhs_core), Rc::new(rhs_core), span),
                     Ty::bool(),
                 ))
             }
@@ -592,11 +592,7 @@ impl<'a> Checker<'a> {
                 let (else_core, else_ty) = self.infer(else_branch)?;
                 self.unify_at(&then_ty, &else_ty, else_branch.span)?;
                 Ok((
-                    Core::If(
-                        Box::new(cond_core),
-                        Box::new(then_core),
-                        Box::new(else_core),
-                    ),
+                    Core::If(Rc::new(cond_core), Rc::new(then_core), Rc::new(else_core)),
                     then_ty,
                 ))
             }
@@ -614,19 +610,19 @@ impl<'a> Checker<'a> {
                         }
                         let (body_core, body_ty) = self.infer(body)?;
                         self.unify_at(&body_ty, &result_ty, body.span)?;
-                        Ok((cpat, body_core))
+                        Ok((cpat, Rc::new(body_core)))
                     })();
                     self.scopes.pop();
                     out.push(arm?);
                 }
-                Ok((Core::Match(Box::new(scrutinee_core), out, span), result_ty))
+                Ok((Core::Match(Rc::new(scrutinee_core), out, span), result_ty))
             }
             ExprKind::Block(bindings, body) => {
                 self.scopes.push(Vec::new());
                 let result = (|| {
                     let (binds, _) = self.bindings(bindings, false)?;
                     let (body_core, body_ty) = self.infer(body)?;
-                    Ok((Core::Let(binds, Box::new(body_core)), body_ty))
+                    Ok((Core::Let(binds, Rc::new(body_core)), body_ty))
                 })();
                 self.scopes.pop();
                 result
@@ -661,7 +657,7 @@ impl<'a> Checker<'a> {
                     self.require(class, &args[0].clone(), span)?;
                 }
                 let core = match generator {
-                    Some(name) => Core::Gen(name.to_string(), ty.clone(), Box::new(core)),
+                    Some(name) => Core::Gen(name.to_string(), ty.clone(), Rc::new(core)),
                     None => core,
                 };
                 Ok((core, ty))
@@ -676,12 +672,12 @@ impl<'a> Checker<'a> {
                 Item::One(expr) => {
                     let (core, ty) = self.infer(expr)?;
                     self.unify_at(&ty, elem, expr.span)?;
-                    out.push(CItem::One(core));
+                    out.push(CItem::One(Rc::new(core)));
                 }
                 Item::Splice(expr) => {
                     let (core, ty) = self.infer(expr)?;
                     self.unify_at(&ty, &Ty::list(elem.clone()), expr.span)?;
-                    out.push(CItem::Splice(core));
+                    out.push(CItem::Splice(Rc::new(core)));
                 }
             }
         }
@@ -740,7 +736,7 @@ impl<'a> Checker<'a> {
         let mut arg_tys = Vec::new();
         for arg in args {
             let (core, ty) = self.infer(arg)?;
-            arg_cores.push(core);
+            arg_cores.push(Rc::new(core));
             arg_tys.push(ty);
         }
         // Polynomials and rational functions are callable: evaluation at a
@@ -768,8 +764,8 @@ impl<'a> Checker<'a> {
             };
             return Ok((
                 Core::Subst(
-                    Box::new(callee_core),
-                    Box::new(arg_cores.pop().expect("one argument")),
+                    Rc::new(callee_core),
+                    arg_cores.pop().expect("one argument"),
                     span,
                 ),
                 result,
@@ -799,7 +795,7 @@ impl<'a> Checker<'a> {
                     e.at(span)
                 }
             })?;
-        Ok((Core::Call(Box::new(callee_core), arg_cores, span), ret))
+        Ok((Core::Call(Rc::new(callee_core), arg_cores, span), ret))
     }
 
     fn binary(
@@ -815,8 +811,8 @@ impl<'a> Checker<'a> {
             BinaryOp::And | BinaryOp::Or => {
                 self.unify_at(&lhs_ty, &Ty::bool(), lhs.span)?;
                 self.unify_at(&rhs_ty, &Ty::bool(), rhs.span)?;
-                let lhs_core = Box::new(lhs_core);
-                let rhs_core = Box::new(rhs_core);
+                let lhs_core = Rc::new(lhs_core);
+                let rhs_core = Rc::new(rhs_core);
                 return Ok((
                     if op == BinaryOp::And {
                         Core::And(lhs_core, rhs_core)
@@ -853,7 +849,7 @@ impl<'a> Checker<'a> {
             }
         };
         Ok((
-            Core::Binary(op, Box::new(lhs_core), Box::new(rhs_core), span),
+            Core::Binary(op, Rc::new(lhs_core), Rc::new(rhs_core), span),
             ty,
         ))
     }
@@ -1242,15 +1238,15 @@ fn zonk_scheme(ts: &TypeState, scheme: &Scheme) -> Scheme {
 /// Apply the final substitution to every type in a binding.
 pub fn zonk_bind(ts: &TypeState, bind: &mut CBind) {
     match bind {
-        CBind::Let { expr, .. } => zonk_core(ts, expr),
+        CBind::Let { expr, .. } => zonk_node(ts, expr),
         CBind::RecFns { lams, .. } => {
             for lam in lams {
                 let lam = Rc::get_mut(lam).expect("fresh lambda");
-                zonk_core(ts, &mut lam.body);
+                zonk_node(ts, &mut lam.body);
                 lam.ty = ts.zonk(&lam.ty);
             }
         }
-        CBind::RecForms { exprs, .. } => exprs.iter_mut().for_each(|expr| zonk_core(ts, expr)),
+        CBind::RecForms { exprs, .. } => exprs.iter_mut().for_each(|expr| zonk_node(ts, expr)),
     }
 }
 
@@ -1265,24 +1261,24 @@ pub fn zonk_core(ts: &TypeState, core: &mut Core) {
         | Core::Up(_, ty) => z(ty),
         Core::Bool(_) | Core::Var(..) | Core::Ctor(..) => {}
         Core::Inst(_, tys, _) | Core::Builtin(_, tys) => tys.iter_mut().for_each(z),
-        Core::Tuple(items) => items.iter_mut().for_each(|item| zonk_core(ts, item)),
+        Core::Tuple(items) => items.iter_mut().for_each(|item| zonk_node(ts, item)),
         Core::List(items) => items.iter_mut().for_each(|item| zonk_item(ts, item)),
         Core::Comp(head, clauses) => {
-            zonk_core(ts, head);
+            zonk_node(ts, head);
             for clause in clauses {
                 match clause {
-                    CClause::For(_, source) => zonk_core(ts, source),
-                    CClause::If(guard) => zonk_core(ts, guard),
+                    CClause::For(_, source) => zonk_node(ts, source),
+                    CClause::If(guard) => zonk_node(ts, guard),
                 }
             }
         }
         Core::Range(a, b, ..) | Core::Subst(a, b, _) | Core::Index(a, b, _) => {
-            zonk_core(ts, a);
-            zonk_core(ts, b);
+            zonk_node(ts, a);
+            zonk_node(ts, b);
         }
         Core::Binary(_, a, b, _) | Core::Rel(_, a, b, _) | Core::And(a, b) | Core::Or(a, b) => {
-            zonk_core(ts, a);
-            zonk_core(ts, b);
+            zonk_node(ts, a);
+            zonk_node(ts, b);
         }
         Core::Form(left, right, ty, _) => {
             left.iter_mut().for_each(|item| zonk_item(ts, item));
@@ -1290,37 +1286,43 @@ pub fn zonk_core(ts: &TypeState, core: &mut Core) {
             z(ty);
         }
         Core::Call(callee, args, _) => {
-            zonk_core(ts, callee);
-            args.iter_mut().for_each(|arg| zonk_core(ts, arg));
+            zonk_node(ts, callee);
+            args.iter_mut().for_each(|arg| zonk_node(ts, arg));
         }
         Core::Lambda(lam) => {
             let lam = Rc::get_mut(lam).expect("fresh lambda");
-            zonk_core(ts, &mut lam.body);
+            zonk_node(ts, &mut lam.body);
             lam.ty = ts.zonk(&lam.ty);
         }
-        Core::Unary(_, a, _) => zonk_core(ts, a),
+        Core::Unary(_, a, _) => zonk_node(ts, a),
         Core::If(c, a, b) => {
-            zonk_core(ts, c);
-            zonk_core(ts, a);
-            zonk_core(ts, b);
+            zonk_node(ts, c);
+            zonk_node(ts, a);
+            zonk_node(ts, b);
         }
         Core::Match(scrutinee, arms, _) => {
-            zonk_core(ts, scrutinee);
-            arms.iter_mut().for_each(|(_, body)| zonk_core(ts, body));
+            zonk_node(ts, scrutinee);
+            arms.iter_mut().for_each(|(_, body)| zonk_node(ts, body));
         }
         Core::Let(binds, body) => {
             binds.iter_mut().for_each(|bind| zonk_bind(ts, bind));
-            zonk_core(ts, body);
+            zonk_node(ts, body);
         }
         Core::Gen(_, ty, body) => {
             z(ty);
-            zonk_core(ts, body);
+            zonk_node(ts, body);
         }
     }
 }
 
+/// Zonk a shared subexpression; the checker's are unshared, so this is in
+/// place.
+fn zonk_node(ts: &TypeState, node: &mut Rc<Core>) {
+    zonk_core(ts, Rc::make_mut(node));
+}
+
 fn zonk_item(ts: &TypeState, item: &mut CItem) {
     match item {
-        CItem::One(core) | CItem::Splice(core) => zonk_core(ts, core),
+        CItem::One(core) | CItem::Splice(core) => zonk_node(ts, core),
     }
 }

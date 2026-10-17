@@ -607,3 +607,99 @@ fn fraction_literals_agree_with_division_wherever_both_exist() {
         }
     }
 }
+
+// ------------------------------------------------------------ depth
+
+/// The error kind and message of a statement that must fail.
+fn failure(session: &mut GrundySession, src: &str) -> (String, String) {
+    match session.eval_line(src) {
+        Ok(out) => panic!("`{src}` returned {:?}", out.value),
+        Err(err) => (err.kind.code().to_string(), err.message),
+    }
+}
+
+#[test]
+fn the_call_budget_is_independent_of_nesting() {
+    // Frames live on the evaluator's own stack, so the same call depth
+    // succeeds and the next is refused however deeply the recursive call
+    // sits in its body, in every build profile.
+    let mut session = GrundySession::new();
+    for nesting in [1, 50, 200] {
+        let body = format!(
+            "{}f{nesting}(n - 1){}",
+            "1 + (".repeat(nesting),
+            ")".repeat(nesting)
+        );
+        eval(
+            &mut session,
+            &format!("f{nesting} =: n ↦ if n = 0 then 0 else {body}"),
+        );
+        for n in [3500, 4000, 4095] {
+            let got = eval(&mut session, &format!("f{nesting}({n})"));
+            assert_eq!(got, (n * nesting).to_string(), "nesting {nesting}");
+        }
+        let (kind, message) = failure(&mut session, &format!("f{nesting}(4096)"));
+        assert_eq!(kind, "E_StackDepth", "nesting {nesting}");
+        assert!(message.contains("call depth"), "{message}");
+    }
+}
+
+#[test]
+fn higher_order_builtins_recurse_on_the_call_budget() {
+    let mut session = GrundySession::new();
+    for (name, definition, at_limit) in [
+        (
+            "m",
+            "m =: n ↦ if n = 0 then 0 else 1 + sum(map(m, [n - 1]))",
+            "4095",
+        ),
+        ("a", "a =: n ↦ n = 0 or any(a, [n - 1])", "true"),
+        ("e", "e =: n ↦ n = 0 or all(e, [n - 1])", "true"),
+        (
+            "k",
+            "k =: n ↦ if n = 0 then [0] else filter(x ↦ true, [x + 1 for x in k(n - 1)])",
+            "[4095]",
+        ),
+    ] {
+        eval(&mut session, definition);
+        assert_eq!(eval(&mut session, &format!("{name}(4095)")), at_limit);
+        assert_eq!(
+            failure(&mut session, &format!("{name}(4096)")).0,
+            "E_StackDepth"
+        );
+    }
+    eval(
+        &mut session,
+        "t =: (acc, n) ↦ if n = 0 then acc else fold(t, acc + 1, [n - 1])",
+    );
+    assert_eq!(eval(&mut session, "t(0, 4095)"), "4095");
+    assert_eq!(failure(&mut session, "t(0, 4096)").0, "E_StackDepth");
+}
+
+#[test]
+fn nested_evaluations_are_refused_before_the_host_stack_runs_out() {
+    // A game equation's operand and a ruleset's move function re-enter the
+    // evaluator on the host stack; a deep chain of them is a typed error.
+    let mut session = GrundySession::new();
+    let mut equation = "{(_ := forms(n - 1); {|}) | g}".to_string();
+    for _ in 0..1000 {
+        equation = format!("{{{equation} |}}");
+    }
+    eval(
+        &mut session,
+        &format!("forms =: n ↦ if n = 0 then {{|}} else (g =: {equation}; g)"),
+    );
+    eval(&mut session, "forms(2)");
+    let (kind, message) = failure(&mut session, "forms(4000)");
+    assert_eq!(kind, "E_StackDepth");
+    assert!(message.contains("nested evaluation"), "{message}");
+    eval(
+        &mut session,
+        "moves =: n ↦ if n = 0 then 0 else \
+         sg(impartial(p ↦ if p = 0 or moves(n - 1) < 0 then [] else [[p - 1]]), 1)",
+    );
+    assert_eq!(eval(&mut session, "moves(100)"), "1");
+    assert_eq!(failure(&mut session, "moves(5000)").0, "E_StackDepth");
+    // The session survives every refusal.
+    assert_eq!(eval(&mut session, "forms(3) ≡ forms(3)"), "true");
+}

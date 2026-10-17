@@ -164,7 +164,7 @@ pub struct GenericV {
 /// The two generalized forms.
 pub enum PolyBody {
     /// A non-recursive right-hand side (a lambda, possibly wrapped).
-    Expr(Core),
+    Expr(Rc<Core>),
     /// A member of a recursive function group.
     Group {
         /// Member names.
@@ -297,6 +297,14 @@ impl Value {
 
     /// The elements of a list value.
     pub fn as_list(&self) -> &[Value] {
+        match self {
+            Value::List(items) => items,
+            other => panic!("expected a list, found {}", other.kind_name()),
+        }
+    }
+
+    /// The shared elements of a list value.
+    pub fn into_list(self) -> Rc<Seq> {
         match self {
             Value::List(items) => items,
             other => panic!("expected a list, found {}", other.kind_name()),

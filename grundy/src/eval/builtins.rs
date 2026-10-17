@@ -30,33 +30,8 @@ pub fn call_builtin(
     match builtin {
         // ------------------------------------------------------------- lists
         B::Len => Ok(Value::Int(arg(0).as_list().len() as i128)),
-        B::Map => {
-            let f = arg(0).clone();
-            let mut out = Vec::new();
-            for item in arg(1).as_list().iter() {
-                interp.spend(1)?;
-                out.push(interp.apply(&f, vec![item.clone()])?);
-            }
-            Ok(Value::list(out))
-        }
-        B::Filter => {
-            let f = arg(0).clone();
-            let mut out = Vec::new();
-            for item in arg(1).as_list().iter() {
-                if interp.apply(&f, vec![item.clone()])?.as_bool() {
-                    interp.spend(1)?;
-                    out.push(item.clone());
-                }
-            }
-            Ok(Value::list(out))
-        }
-        B::Fold => {
-            let f = arg(0).clone();
-            let mut acc = arg(1).clone();
-            for item in arg(2).as_list().iter() {
-                acc = interp.apply(&f, vec![acc, item.clone()])?;
-            }
-            Ok(acc)
+        B::Map | B::Filter | B::Fold | B::Any | B::All => {
+            unreachable!("the evaluator walks higher-order builtins on its own stack")
         }
         B::Sum => {
             let mut acc = zero_of(&tys[0])?;
@@ -64,16 +39,6 @@ pub fn call_builtin(
                 acc = interp.binary(super::super::syntax::ast::BinaryOp::Add, acc, item.clone())?;
             }
             Ok(acc)
-        }
-        B::Any | B::All => {
-            let f = arg(0).clone();
-            let want = builtin == B::Any;
-            for item in arg(1).as_list().iter() {
-                if interp.apply(&f, vec![item.clone()])?.as_bool() == want {
-                    return Ok(Value::Bool(want));
-                }
-            }
-            Ok(Value::Bool(!want))
         }
         B::Contains => {
             for item in arg(0).as_list().iter() {

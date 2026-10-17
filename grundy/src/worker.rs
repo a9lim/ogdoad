@@ -9,9 +9,11 @@ use super::error::GrundyResult;
 use super::session::Session;
 use super::syntax::lex::needs_continuation;
 
-/// The worker's stack. Parsing, checking, and evaluation guard their own
-/// recursion depth, but the evaluator's frame limit counts calls rather than
-/// bytes, so a deeply nested body can still exhaust this stack.
+/// The worker's stack. Parsing and checking recurse at most to the source
+/// nesting limit, game algorithms and value walks to their 2¹⁴ depth guards,
+/// and the evaluator keeps its frames on the heap. Only a nested evaluation
+/// (a ruleset's move function, a game equation's operand) grows this stack,
+/// and a chain of them is refused once it has used half of it.
 pub const EVAL_STACK_BYTES: usize = 256 << 20;
 
 type Job = Box<dyn FnOnce(&mut Session) + Send>;

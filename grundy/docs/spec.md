@@ -286,8 +286,14 @@ never becomes a value, a draw, or an equality.
   the size of the form it builds. Displaying a value spends one unit per atom
   written. Metering every call closes divergence through data with function
   fields.
-- **The depth guards** (`E_StackDepth`) are host resources, distinct from
-  fuel: 4096 call frames, and games born no later than day 2¹⁴.
+- **The depth guards** (`E_StackDepth`) are distinct from fuel. Calls nest
+  at most 4096 frames deep, counted on the evaluator's own stack, so neither
+  the expression around a call nor the build profile moves the limit. Games
+  are born no later than day 2¹⁴ and values nest at most 2¹⁴ levels, because
+  their algorithms recurse on the host stack. A ruleset's move function and a
+  game equation's operand are evaluated from inside such host code, and a
+  chain of these nested evaluations is refused before the host stack runs
+  out.
 - **The node budget** (`E_GraphBudget`, default 2¹⁶) bounds distinct
   positions, sum-states, and graph nodes in every exploration and
   materialization.

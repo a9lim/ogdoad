@@ -20,7 +20,7 @@ grundy/src/
   builtins.rs            builtin names and signatures (surface type syntax)
   eval/
     value.rs             values, persistent environments, closures, generics
-    interp.rs            the evaluator, budgets, patterns, Form equation systems
+    interp.rs            the explicit-stack evaluator, budgets, patterns, Form equation systems
     builtins.rs          builtin implementations and dispatch
   games/
     game.rs              the sealed GameV handle over the engine's GameArena, birthday guard, fuel metering
@@ -78,20 +78,30 @@ evidence types, and its misère solver.
   structural total order on values.
 - **Iterative exploration.** Component graphs, topological valuation, sum-state
   graphs, and the misère solver use explicit worklists, not host recursion.
+- **Explicit-stack evaluation.** The evaluator is a machine whose pending work
+  is a heap stack of frames, each holding the shared `Core` node it came
+  from. Calls, expression nesting, comprehensions, and `map`, `filter`,
+  `fold`, `any`, and `all` push frames rather than host stack. Quick
+  expressions (a leaf, or at most four levels of operators, tuples, and
+  conditionals over leaves) run directly. Within one step, host recursion is
+  bounded by the source nesting limit (quick expressions, patterns, a
+  binding's free variables, a game equation's braces) or by the 2¹⁴ depth
+  guards. Host code re-enters the machine only to run a ruleset's move
+  function or a game equation's operand.
 - **Evidence is checked where it is sealed.** Producers build a witness and
   pass it through the same `verify` that user-constructed witnesses go
   through.
 
 ## Host-resource guards
 
-Every limit except the host stack fails with a typed error, and no partial
-value escapes. The host stack is the one exception: see the call-depth row.
+Every limit fails with a typed error, and no partial value escapes.
 
 | guard | contract |
 | --- | --- |
-| worker stack | one persistent 256 MiB worker per session |
+| worker stack | one persistent 256 MiB worker per session. It holds parsing, checking, the bounded host recursion inside one evaluation step, and nested evaluations; the evaluator's own frames are on the heap |
 | source nesting | 1536 delimiters, and 1536 levels of expression nesting (each operand of a flat operator chain counts as a level), checked before or inside the parser (`E_Parse`) |
-| call depth | 4096 closure frames (`E_StackDepth`, distinct from fuel). The guard counts calls, not stack bytes: a deeply nested body, or an unoptimized build (about 3480 frames of `1 + f(n - 1)`), can exhaust the worker stack first and abort the process. The roadmap's explicit-stack evaluator removes this gap |
+| call depth | 4096 closure frames (`E_StackDepth`, distinct from fuel), counted on the evaluator's heap stack: the same depth succeeds in every build profile however deeply the call sits in its body, and recursion through the higher-order builtins and comprehensions counts the same way. The heap stack's length is bounded by this budget times the source nesting limit |
+| nested evaluation | a ruleset's move function or a game equation's operand runs in a fresh evaluation called from host code; a chain of them is refused once it has used half the worker stack (`E_StackDepth`), so how long such a chain may grow depends on the build profile |
 | game depth | `Game` and `Form` literals and every `Game` result are born by day 2¹⁴ (`E_StackDepth`): game algorithms recurse on depth |
 | canonical games | one per-thread `ogdoad::games::GameArena`; its steps are charged to fuel, so values met before are free |
 | value depth | data, closures, recursive groups, and generics nest at most 2¹⁴ levels (`E_StackDepth`); lists and tuples record their depth when built, so the check is constant time |
