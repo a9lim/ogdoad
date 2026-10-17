@@ -11,7 +11,7 @@ ring element.
 | `grundy.rs`, `kernel.rs` | finite impartial evaluation and P/N kernels |
 | `octal.rs` | finite octal moves and checked Guy--Smith normal-play certificates |
 | `misere.rs` | bounded misere quotient machinery |
-| `loopy/` | finite cyclic impartial and partizan graphs |
+| `loopy/` | finite cyclic impartial and partizan graphs, and certifying retrograde outcomes |
 | `partizan.rs`, `piecewise.rs` | short partizan values and piecewise dyadic data |
 | `number_game.rs`, `nimber_game.rs` | number- and nimber-valued game subclasses |
 | `coin_turning.rs` | turning games and nim-product oracle |
@@ -42,6 +42,9 @@ ring element.
 - `nim_mul_mex` is the exponential game-definition oracle for small values.
   Use algebraic nim multiplication for computation.
 - `nim_moves(&Vec<u128>)` intentionally matches a generic `Fn(&P)` signature.
+- Outcome certificates label every turn-state with a verdict, rank, and chosen
+  move under normal or misère play; `verify_outcome_certificate` checks local
+  conditions only and must stay independent of the solver.
 - Guy--Smith certificates recompute their exact finite Grundy prefix and prove
   the supplied eventual period, not period discovery or minimality. They are
   normal-play certificates and do not certify a misere quotient.

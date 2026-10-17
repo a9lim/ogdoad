@@ -82,7 +82,7 @@ impl<S: Scalar> fmt::Display for Multivector<S> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // The empty multivector renders as the
         // scalar zero's own display (`*0` in nim-worlds, `0` elsewhere) — bare
-        // `0` would not round-trip where bare integers are `E_BareInt`.
+        // `0` would not round-trip where integers are not literals (nimbers).
         if self.terms.is_empty() {
             return write!(f, "{}", S::zero());
         }

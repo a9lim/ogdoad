@@ -56,7 +56,7 @@ Representation limits are part of the API:
 | `src/games/` | impartial, partizan, misere, loopy, thermographic, Witt--FIFO/Brown, octal-certificate, Hackenbush, and game-exterior constructions |
 | `src/py/` | optional per-backend PyO3 bindings; scalar worlds never mix at runtime |
 | `src/linalg/` | crate-private shared linear algebra |
-| `grundy/` | unpublished expression-language workspace crate using only Ogdoad's public API |
+| `grundy/` | unpublished typed ruleset language using only Ogdoad's public API |
 | `formal/` | separately pinned Lean 4 development |
 | `writeups/` | current mathematical papers and BibTeX sources |
 

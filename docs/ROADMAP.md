@@ -38,17 +38,20 @@ generated stub in the same commit.
 
 ## Grundy language
 
-The current contract is `grundy/docs/spec.md`. The path to publication is:
+The current contract is `grundy/docs/spec.md`: typed rulesets whose answers
+are exact, verified claims, or sampled `Bounded` values.
 
-1. add ordinal sum and remove host stack depth as a semantic limit while
-   retaining explicit fuel and graph budgets;
-2. integrate the loopy-game model, stops, mean, temperature, and sided
-   comparison;
-3. settle the public name and package boundary, then ship an installable binary
-   with curated examples and a mathematical language note;
-4. add higher-order traversal over the three container shapes.
+| work | completion criterion |
+| --- | --- |
+| certified misère quotients | a sampled quotient becomes a `Claim` exactly when a checked theorem (periodicity or pretension) covers the whole universe, with the `docs/OPEN.md` §3 boundary stated in the claim |
+| loopy impartial values | generalized Sprague–Grundy values (infinite labels with counters) for cyclic rulesets, distinguishing ambiguous, absent, and over-budget, checked against the engine's sidling solver |
+| sided loopy values | onside/offside and stopper canonical forms, so `Form` relations and `canon` extend beyond finite forms and stopper pairs |
+| ordinal sum | `G:H` on `Game` and `Form`, with display recognition and law tests |
+| exported certificates | outcome, Grundy, and separation witnesses accepted by a checker in `formal/` |
+| host-independent depth | an explicit-stack evaluator, so recursion depth is a budget rather than a host limit |
+| publication | the name and package boundary settled, an installable binary, curated examples, and a mathematical language note |
 
-The crate remains unpublished until step 3 is complete.
+The crate remains unpublished until publication is complete.
 
 ## Papers
 

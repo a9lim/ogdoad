@@ -2,7 +2,7 @@
 // Format: tests/conformance.rs. Values are canonical displays; a type
 // annotation appears exactly when the display alone would not re-read at its
 // type. Expected values were verified independently of the implementation:
-// by hand, against OEIS, or against the 0.3.6 blessed vectors.
+// by hand, against OEIS, or against independently computed tables.
 
 // ================================================================ literals and defaulting
 @reset

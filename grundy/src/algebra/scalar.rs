@@ -1,4 +1,4 @@
-//! Scalar types: the coefficient worlds of 0.3.6, now coexisting as types.
+//! Scalar types: the coefficient worlds, coexisting as types.
 
 use std::cmp::Ordering;
 use std::fmt;

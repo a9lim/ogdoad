@@ -1,5 +1,5 @@
 //! `Form`: presented games — finite trees as built, and finite cyclic
-//! graphs from guarded equations — with the 0.3.6 loopy machinery: graph
+//! graphs from guarded equations — with the loopy machinery: graph
 //! materialization, retrograde classification, product-graph sums, stopper
 //! gates, multiset bisimilarity, and self-contained equation-system display.
 

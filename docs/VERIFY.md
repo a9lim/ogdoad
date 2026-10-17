@@ -27,7 +27,7 @@ standalone Lean project are not part of the core gate or mandatory CI.
 
 ## Optional sidecar gates
 
-For changes to the `grundy/` expression language:
+For changes to the `grundy/` ruleset language:
 
 ```sh
 cargo fmt -p grundy --check

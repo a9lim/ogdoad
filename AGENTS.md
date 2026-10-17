@@ -19,7 +19,7 @@ Before changing a subsystem, read its local instructions:
 | Weyl algebras | `src/weyl/AGENTS.md` |
 | Python bindings | `src/py/AGENTS.md` |
 | shared linear algebra | `src/linalg/AGENTS.md` |
-| expression language | `grundy/docs/spec.md` and `grundy/docs/implementation.md` |
+| ruleset language | `grundy/docs/spec.md` and `grundy/docs/implementation.md` |
 | Lean | `formal/README.md` |
 
 For mathematical claims, also read the relevant live paper and
@@ -132,7 +132,7 @@ RUSTDOCFLAGS="-D warnings" cargo doc --no-deps -p ogdoad
 
 Additional gates:
 
-- after changing the optional `grundy/` expression language:
+- after changing the optional `grundy/` ruleset language:
 
   ```sh
   cargo fmt -p grundy --check
