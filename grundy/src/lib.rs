@@ -20,6 +20,10 @@ pub mod parse;
 /// Canonical source rendering for syntax trees.
 pub mod unparse;
 
+/// The 0.4.0 implementation, built alongside the current language.
+#[doc(hidden)]
+pub mod next;
+
 pub use error::{GrundyError, GrundyErrorKind, GrundyResult, Span};
 pub use eval::{eval_to_string, EvalLine, GrundySession, GRUNDY_VERSION, WORLD_MENU};
 pub use lex::needs_continuation;
