@@ -234,6 +234,19 @@ impl PolyV {
         Ok(self.divrem(rhs)?.1)
     }
 
+    /// `(c⋅t↑d)↑k = c↑k⋅t↑(dk)` for a monomial, without repeated products;
+    /// `None` when the polynomial has more than one term.
+    /// `pay` is charged the result's size before it is built.
+    pub fn monomial_power(&self, k: u128, pay: Pay<'_>) -> Option<GrundyResult<PolyV>> {
+        Some(match self {
+            PolyV::F2(p) => monomial_power(p, k, pay)?.map(PolyV::F2),
+            PolyV::F3(p) => monomial_power(p, k, pay)?.map(PolyV::F3),
+            PolyV::F5(p) => monomial_power(p, k, pay)?.map(PolyV::F5),
+            PolyV::F7(p) => monomial_power(p, k, pay)?.map(PolyV::F7),
+            PolyV::Int(p) => monomial_power(p, k, pay)?.map(PolyV::Int),
+        })
+    }
+
     /// The coefficient count, for work accounting.
     pub fn size(&self) -> u128 {
         poly_dispatch!(self, p => p.coeffs().len().max(1) as u128)
@@ -380,7 +393,83 @@ impl fmt::Display for PolyV {
     }
 }
 
+fn is_monomial<S: Scalar>(p: &Poly<S>) -> bool {
+    p.coeffs().iter().filter(|c| !c.is_zero()).count() == 1
+}
+
+/// Work accounting for a result about to be built.
+pub type Pay<'a> = &'a mut dyn FnMut(u128) -> GrundyResult<()>;
+
+/// `(c⋅t↑d)↑k`, built directly after paying for its size; `None` unless `p`
+/// has exactly one term.
+fn monomial_power<S: Scalar + Clone>(
+    p: &Poly<S>,
+    k: u128,
+    pay: Pay<'_>,
+) -> Option<GrundyResult<Poly<S>>> {
+    let mut terms = p.coeffs().iter().enumerate().filter(|(_, c)| !c.is_zero());
+    let (d, c) = terms.next()?;
+    if terms.next().is_some() {
+        return None;
+    }
+    let degree = (d as u128).saturating_mul(k);
+    if let Err(e) = pay(degree.saturating_add(1)) {
+        return Some(Err(e));
+    }
+    let Some(degree) = usize::try_from(degree).ok().filter(|n| *n < usize::MAX / 2) else {
+        return Some(Err(err(
+            GrundyErrorKind::Overflow,
+            "the power's degree exceeds the platform's indexing space",
+        )));
+    };
+    let mut base = c.clone();
+    let mut acc = S::one();
+    let mut e = k;
+    while e > 0 {
+        if e & 1 == 1 {
+            acc = acc.mul(&base);
+        }
+        e >>= 1;
+        if e > 0 {
+            base = base.mul(&base);
+        }
+    }
+    let mut coeffs = vec![S::zero(); degree + 1];
+    coeffs[degree] = acc;
+    Some(Ok(Poly::new(coeffs)))
+}
+
 impl RatFuncV {
+    /// `(n/d)↑k` when the numerator and denominator are monomials.
+    pub fn monomial_power(&self, k: u128, pay: Pay<'_>) -> Option<GrundyResult<RatFuncV>> {
+        macro_rules! go {
+            ($f:expr, $variant:ident) => {{
+                // Both parts must be monomials before either is paid for.
+                if !is_monomial($f.num()) || !is_monomial($f.den()) {
+                    return None;
+                }
+                let num = match monomial_power($f.num(), k, pay)? {
+                    Ok(p) => p,
+                    Err(e) => return Some(Err(e)),
+                };
+                let den = match monomial_power($f.den(), k, pay)? {
+                    Ok(p) => p,
+                    Err(e) => return Some(Err(e)),
+                };
+                Some(Ok(RatFuncV::$variant(RationalFunction::new(
+                    num.coeffs().to_vec(),
+                    den.coeffs().to_vec(),
+                ))))
+            }};
+        }
+        match self {
+            RatFuncV::F2(f) => go!(f, F2),
+            RatFuncV::F3(f) => go!(f, F3),
+            RatFuncV::F5(f) => go!(f, F5),
+            RatFuncV::F7(f) => go!(f, F7),
+        }
+    }
+
     /// The coefficient type.
     pub fn coefficient_con(&self) -> TyCon {
         match self {

@@ -18,11 +18,12 @@ use ogdoad::games::{Game, PlayConvention, StateVerdict};
 
 use super::algebra::AlgebraV;
 use super::core::CtorRef;
-use super::eval::value::{Closure, Env, GenericV, Globals, PolyBody, Value};
+use super::eval::value::{Closure, Env, GenericV, Globals, PolyBody, TEnv, Value};
 use super::games::claims::{BoundedV, QuotientV, Statement, WitnessV};
 use super::games::form::{
-    display_game_element_in_env, game_structural_eq_multiset, structural_game_dyadic,
-    structural_game_integer, structural_game_nimber, FormNames, FormV, GameElement,
+    display_finite_edges, display_game_element_in_env, display_graph_size,
+    game_structural_eq_multiset, graph_identity, structural_game_dyadic, structural_game_integer,
+    structural_game_nimber, FormNames, FormV, GameElement,
 };
 use super::games::game::GameV;
 use super::games::rules::{RulesKind, RulesV};
@@ -36,6 +37,10 @@ const SPLIT_DEPTH: usize = 256;
 /// A repeated subvalue is bound only when its text is longer than this.
 const SHARE_MIN_LEN: usize = 40;
 
+/// A sum of more terms than this is cut into bindings, so its text stays
+/// within the parser's limit on chains.
+const CHUNK_TERMS: usize = 512;
+
 /// Re-reads a display at a type: `true` when the text alone has that type.
 pub type Reads<'a> = &'a dyn Fn(&str, &Ty) -> bool;
 
@@ -47,6 +52,7 @@ enum Node {
     List(usize),
     Some(usize),
     Opaque(usize),
+    Graph(usize, usize),
     Game(usize),
     Form(usize),
 }
@@ -71,6 +77,7 @@ enum Shape {
     Game(usize),
     Form(Vec<Part>, Vec<Part>),
     Opaque(usize),
+    Graph(usize, usize),
 }
 
 /// One thing to render: a value, a canonical game, or a finite form.
@@ -175,6 +182,10 @@ impl Item {
             Item::Value(Value::Claim(c)) => Node::Opaque(Rc::as_ptr(c) as *const () as usize),
             Item::Value(Value::Bounded(b)) => Node::Opaque(Rc::as_ptr(b) as *const () as usize),
             Item::Value(Value::Quotient(q)) => Node::Opaque(Rc::as_ptr(q) as *const () as usize),
+            Item::Value(Value::Form(FormV(element @ GameElement::Graph(_)))) => {
+                let (graph, node) = graph_identity(element).expect("a graph Form");
+                Node::Graph(graph, node)
+            }
             Item::Game(g) if !is_game_atom(g) => Node::Game(g.id()),
             Item::Form(game) if form_atom(game).is_none() => Node::Form(game.ptr_id()),
             _ => return None,
@@ -208,8 +219,41 @@ pub fn value_type(value: &Value) -> Option<Ty> {
         Value::Witness(_) => con(TyCon::Witness),
         Value::Claim(_) => con(TyCon::Claim),
         Value::Bounded(b) => Ty::Con(TyCon::Bounded, vec![value_type(&b.value)?]),
+        // A closure has the type its lambda was checked at, instantiated.
+        Value::Closure(c) => resolved(&c.lam.ty, &c.tenv)?,
         _ => return None,
     })
+}
+
+/// A type tag for an atom, so that equal texts of different types are
+/// different parts.
+fn atom_type(item: &Item) -> String {
+    match item {
+        Item::Value(v) => {
+            value_type(v).map_or_else(|| v.kind_name().to_string(), |t| format!("{t:?}"))
+        }
+        Item::Game(_) => "Game".to_string(),
+        Item::Form(_) => "Form".to_string(),
+    }
+}
+
+/// A type through a runtime instantiation, when it is fully determined.
+fn resolved(ty: &Ty, tenv: &TEnv) -> Option<Ty> {
+    match ty {
+        Ty::Var(v) => resolved(tenv.get(v)?, tenv),
+        Ty::Con(con, args) => Some(Ty::Con(
+            *con,
+            args.iter()
+                .map(|a| resolved(a, tenv))
+                .collect::<Option<_>>()?,
+        )),
+        Ty::Fun(args, ret) => Some(Ty::Fun(
+            args.iter()
+                .map(|a| resolved(a, tenv))
+                .collect::<Option<_>>()?,
+            Box::new(resolved(ret, tenv)?),
+        )),
+    }
 }
 
 /// Whether every display of a value of this type re-reads at the type.
@@ -272,20 +316,40 @@ impl<'a> Show<'a> {
     /// bare `g =: …` statement; a bare field element or polynomial is left
     /// for the caller to annotate.
     pub fn top(&self, value: &Value) -> String {
-        if let Value::Form(f @ FormV(GameElement::Graph(_))) = value {
-            return display_game_element_in_env(&f.0, &self.names);
-        }
         self.analyze(value);
         let text = match value {
-            Value::Scalar(_) | Value::Poly(_) | Value::RatFunc(_) => self.atom_text(value),
+            Value::Form(FormV(element @ GameElement::Graph(_))) => self.graph_form(element),
+            Value::Scalar(_) | Value::Poly(_) | Value::RatFunc(_) => {
+                if !self.spend() {
+                    return String::new();
+                }
+                self.chunked(&self.atom_text(value))
+            }
             other => self.render(&Item::of(other)).0,
         };
         let lets = std::mem::take(&mut self.sharing.borrow_mut().lets);
         if lets.is_empty() {
-            text
-        } else {
-            format!("({}; {text})", lets.join("; "))
+            return text;
         }
+        let lets = lets.join("; ");
+        match text.split_once(" =: ") {
+            // A system's block takes the bindings first.
+            Some(_) if text.starts_with('(') => format!("({lets}; {}", &text[1..]),
+            Some((root, _)) => format!("({lets}; {text}; {root})"),
+            None => format!("({lets}; {text})"),
+        }
+    }
+
+    /// A cyclic Form: its equation system, with finite edges rendered here
+    /// so that they share, annotate, and pay like any other value.
+    fn graph_form(&self, element: &GameElement) -> String {
+        for _ in 0..display_graph_size(element) {
+            if !self.spend() {
+                return String::new();
+            }
+        }
+        let finite = |game: &Game| self.render(&Item::Form(game.clone())).0;
+        display_game_element_in_env(element, &self.names, &finite)
     }
 
     fn spend(&self) -> bool {
@@ -342,7 +406,12 @@ impl<'a> Show<'a> {
                         .iter()
                         .map(|kid| match kid.node() {
                             Some(n) => Part::Sid(sharing.sid_of[&n]),
-                            None => Part::Atom(self.render_body(kid).0),
+                            // Atoms that read alike at different types differ.
+                            None => Part::Atom(format!(
+                                "{}:{}",
+                                atom_type(kid),
+                                self.render_body(kid).0
+                            )),
                         })
                         .collect();
                     let shape = self.shape(&item, &node, parts.clone());
@@ -394,6 +463,7 @@ impl<'a> Show<'a> {
             }
             _ => match node {
                 Node::Opaque(ptr) => Shape::Opaque(*ptr),
+                Node::Graph(graph, node) => Shape::Graph(*graph, *node),
                 _ => unreachable!("composite shapes are listed"),
             },
         }
@@ -424,6 +494,11 @@ impl<'a> Show<'a> {
             Item::Value(value) => match value {
                 Value::Tuple(items) | Value::List(items) => values(&mut items.iter()),
                 Value::Data(d) => values(&mut d.fields.iter()),
+                Value::Form(FormV(element @ GameElement::Graph(_))) => {
+                    for edge in display_finite_edges(element) {
+                        push(Item::Form(edge));
+                    }
+                }
                 Value::Option(Some(inner)) => values(&mut std::iter::once(&**inner)),
                 Value::Closure(_) | Value::Generic(_) => {
                     let (captures, bound) = self.captures(value);
@@ -502,26 +577,9 @@ impl<'a> Show<'a> {
     /// `text`, annotated with the value's type when the text alone would
     /// re-read at a different type, in the scope of the bindings so far.
     fn annotated(&self, text: String, value: Option<&Value>) -> String {
-        let (Some(reads), Some(ty)) = (self.reads, value.and_then(value_type)) else {
-            return text;
-        };
-        if self_typed(&ty) {
-            return text;
-        }
-        let lets = self.sharing.borrow().lets.join("; ");
-        let probe = if lets.is_empty() {
-            text.clone()
-        } else {
-            format!("({lets}; {text})")
-        };
-        if reads(&probe, &ty) {
-            return text;
-        }
-        let ty = show_ty(&ty, self.data, &mut VarNames::default());
-        if starts_open(&text) {
-            format!("({text}) : {ty}")
-        } else {
-            format!("{text} : {ty}")
+        match value {
+            Some(value) => self.annotated_in(text, value, &[]),
+            None => text,
         }
     }
 
@@ -663,7 +721,7 @@ impl<'a> Show<'a> {
     }
 
     fn self_annotated(&self, value: &Value) -> String {
-        let text = self.atom_text(value);
+        let text = self.chunked(&self.atom_text(value));
         let generator = match value {
             Value::Scalar(s) => generator_of(s.con()),
             _ => Some("t"),
@@ -707,7 +765,7 @@ impl<'a> Show<'a> {
             Value::Game(g) => self.game(g),
             Value::Form(FormV(GameElement::Finite(game))) => self.form(game),
             Value::Form(f) => {
-                let text = display_game_element_in_env(&f.0, &self.names);
+                let text = self.graph_form(&f.0);
                 // A bare single equation is a statement; nested, it names its root.
                 let text = match text.split_once(" =: ") {
                     Some((root, _)) if !text.starts_with('(') => format!("({text}; {root})"),
@@ -779,19 +837,62 @@ impl<'a> Show<'a> {
                 format!("{v} + ({attach})")
             }
         };
-        let generator = generator_of(v.con())
-            .filter(|name| mentions(&body, name))
-            .map(|name| {
-                format!(
-                    "{name} := ({name} : {}); ",
-                    show_ty(&Ty::con(v.con()), self.data, &mut VarNames::default())
+        let body = self.chunked(&body);
+        // `Mv(F8)` binds `x` as the scalar of the algebra.
+        let body = match generator_of(v.con()) {
+            Some(name) if mentions(&body, name) => format!(
+                "({body} : {})",
+                show_ty(
+                    &Ty::Con(TyCon::Mv, vec![Ty::con(v.con())]),
+                    self.data,
+                    &mut VarNames::default()
                 )
-            })
-            .unwrap_or_default();
+            ),
+            _ => body,
+        };
         format!(
-            "({generator}alg := {}; [{basis}] := basis(alg); {body})",
+            "(alg := {}; [{basis}] := basis(alg); {body})",
             self.algebra(&alg)
         )
+    }
+
+    /// A sum of more than [`CHUNK_TERMS`] terms, cut into bindings:
+    /// `(v1 := a + … ; v2 := v1 + … ; v2 + …)`. A rational function cuts its
+    /// numerator and denominator.
+    fn chunked(&self, text: &str) -> String {
+        if let Some((num, den)) = split_quotient(text) {
+            let (n, d) = (self.chunked(num), self.chunked(den));
+            if n != num || d != den {
+                return format!("({n})/({d})");
+            }
+            return text.to_string();
+        }
+        let terms = split_terms(text);
+        if terms.len() <= CHUNK_TERMS {
+            return text.to_string();
+        }
+        let mut lets = Vec::new();
+        let mut previous: Option<String> = None;
+        let mut chunks = terms.chunks(CHUNK_TERMS).peekable();
+        while let Some(chunk) = chunks.next() {
+            let mut piece = previous.clone().unwrap_or_default();
+            for (index, (sep, term)) in chunk.iter().enumerate() {
+                if previous.is_none() && index == 0 {
+                    piece.push_str(sep.trim_start());
+                } else {
+                    piece.push_str(sep);
+                }
+                piece.push_str(term);
+            }
+            if chunks.peek().is_none() {
+                lets.push(piece);
+                break;
+            }
+            let name = self.fresh();
+            lets.push(format!("{name} := {piece}"));
+            previous = Some(name);
+        }
+        format!("({})", lets.join("; "))
     }
 
     fn rules(&self, rules: &RulesV) -> (String, usize) {
@@ -944,6 +1045,7 @@ impl<'a> Show<'a> {
                     env: &closure.env,
                     globals: &closure.globals,
                     body: unparse_expr(lambda),
+                    index: None,
                 }
             }
             Some((group, index)) => {
@@ -955,6 +1057,7 @@ impl<'a> Show<'a> {
                     env: &group.env,
                     globals: &group.globals,
                     body,
+                    index: Some(*index),
                 }
             }
         }
@@ -968,6 +1071,7 @@ impl<'a> Show<'a> {
                 env: &generic.env,
                 globals: &generic.globals,
                 body: unparse_expr(&lam.source),
+                index: None,
             }),
             PolyBody::Expr(_) => None,
             PolyBody::Group { names, lams, index } => {
@@ -979,6 +1083,7 @@ impl<'a> Show<'a> {
                     env: &generic.env,
                     globals: &generic.globals,
                     body,
+                    index: Some(*index),
                 })
             }
         }
@@ -1015,10 +1120,43 @@ impl<'a> Show<'a> {
     }
 
     fn function(&self, value: &Value) -> (String, usize) {
-        let Some(FunctionParts { bound, body, .. }) = self.function_parts(value) else {
+        let Some(FunctionParts {
+            sources,
+            bound,
+            mut body,
+            index,
+            ..
+        }) = self.function_parts(value)
+        else {
             return ("<generic>".to_string(), 0);
         };
-        let (captures, _) = self.captures(value);
+        let (mut captures, _) = self.captures(value);
+        // Hygiene: a capture named like a builtin would shadow it for every
+        // text that follows, so it takes a fresh name in the sources.
+        let mut renames = std::collections::BTreeMap::new();
+        for (name, _) in captures.iter_mut() {
+            if super::builtins::lookup(name).is_some() {
+                let fresh = self.fresh_like(name, &body);
+                renames.insert(std::mem::replace(name, fresh.clone()), fresh);
+            }
+        }
+        if !renames.is_empty() {
+            let sources: Vec<Expr> = sources
+                .iter()
+                .map(|source| {
+                    let mut source = (*source).clone();
+                    rename_free(&mut source, &renames, &mut Vec::new());
+                    source
+                })
+                .collect();
+            body = match index {
+                None => unparse_expr(&sources[0]),
+                Some(index) => {
+                    let refs: Vec<&Expr> = sources.iter().collect();
+                    equations(&bound, &refs, index)
+                }
+            };
+        }
         let (lets, depth) = self.capture_lets(captures);
         if lets.is_empty() && bound.is_empty() {
             return (body, 1);
@@ -1028,79 +1166,129 @@ impl<'a> Show<'a> {
         (format!("({})", parts.join("; ")), depth + 1)
     }
 
-    /// Capture bindings in an order where every builtin a capture names is
-    /// read before another capture shadows it. A cycle of such shadowings
-    /// reads the builtin into a fresh name first.
+    /// Capture bindings, each annotated in the scope of those before it.
+    /// No capture shadows a builtin (see [`Show::function`]), so their order
+    /// is free.
     fn capture_lets(&self, captures: Vec<(String, Value)>) -> (Vec<String>, usize) {
-        let builtin_name = |value: &Value| match value {
-            Value::Builtin(b, _) => Some(b.name()),
-            _ => None,
-        };
-        let mut pending: Vec<(String, Value, Option<String>)> =
-            captures.into_iter().map(|(n, v)| (n, v, None)).collect();
         let mut lets = Vec::new();
         let mut depth = 0;
-        while !pending.is_empty() {
-            // A capture may be bound once no pending capture still needs
-            // the builtin its name shadows.
-            let ready = (0..pending.len()).find(|&i| {
-                let name = pending[i].0.as_str();
-                !pending.iter().enumerate().any(|(j, (_, v, alias))| {
-                    j != i && alias.is_none() && builtin_name(v) == Some(name)
-                })
-            });
-            let index = match ready {
-                Some(index) => index,
-                None => {
-                    // Break the cycle: read the shadowed builtin into a
-                    // fresh name, and let its readers use that name.
-                    let name = pending[0].0.clone();
-                    let alias = self.fresh();
-                    lets.push(format!("{alias} := {name}"));
-                    for entry in pending.iter_mut() {
-                        if entry.2.is_none() && builtin_name(&entry.1) == Some(name.as_str()) {
-                            entry.2 = Some(alias.clone());
-                        }
-                    }
-                    continue;
-                }
-            };
-            let (name, value, alias) = pending.remove(index);
-            let text = match alias {
-                Some(alias) => alias,
-                None => {
-                    let (text, d) = self.nested(&value);
-                    depth = depth.max(d);
-                    self.annotated_in(text, &value, &lets)
-                }
-            };
+        for (name, value) in captures {
+            let (text, d) = self.nested(&value);
+            depth = depth.max(d);
+            let text = self.annotated_in(text, &value, &lets);
             lets.push(format!("{name} := {text}"));
         }
         (lets, depth)
     }
 
-    /// Annotate a capture, reading it after the captures bound before it.
-    fn annotated_in(&self, text: String, value: &Value, before: &[String]) -> String {
-        if before.is_empty() {
-            return self.annotated(text, Some(value));
+    /// A fresh name for a capture renamed away from a builtin: `abs1`, ….
+    fn fresh_like(&self, name: &str, body: &str) -> String {
+        let mut sharing = self.sharing.borrow_mut();
+        let mut k = 1;
+        loop {
+            let candidate = format!("{name}{k}");
+            if super::builtins::lookup(&candidate).is_none()
+                && !sharing.reserved.contains(&candidate)
+                && !mentions(body, &candidate)
+            {
+                sharing.reserved.insert(candidate.clone());
+                return candidate;
+            }
+            k += 1;
         }
+    }
+
+    /// Annotate a binding's text when it would not re-read at its value's
+    /// type. The probe binds only the bindings the text names, so probing
+    /// stays proportional to the text; a text that names a binding which
+    /// itself names others may be annotated when it need not be.
+    fn annotated_in(&self, text: String, value: &Value, before: &[String]) -> String {
         let (Some(reads), Some(ty)) = (self.reads, value_type(value)) else {
             return text;
         };
         if self_typed(&ty) {
             return text;
         }
-        let mut scope = self.sharing.borrow().lets.clone();
-        scope.extend(before.iter().cloned());
-        if reads(&format!("({}; {text})", scope.join("; ")), &ty) {
+        if let Some((probe, expected)) = self.closure_probe(value, &ty) {
+            if reads(&probe, &expected) {
+                return text;
+            }
+            return self.with_type(text, &ty);
+        }
+        let scope: Vec<String> = self
+            .sharing
+            .borrow()
+            .lets
+            .iter()
+            .chain(before)
+            .filter(|binding| {
+                binding
+                    .split_once(" := ")
+                    .is_some_and(|(name, _)| mentions(&text, name))
+            })
+            .cloned()
+            .collect();
+        let probe = if scope.is_empty() {
+            text.clone()
+        } else {
+            format!("({}; {text})", scope.join("; "))
+        };
+        if reads(&probe, &ty) {
             return text;
         }
-        let ty = show_ty(&ty, self.data, &mut VarNames::default());
+        self.with_type(text, &ty)
+    }
+
+    fn with_type(&self, text: String, ty: &Ty) -> String {
+        let ty = show_ty(ty, self.data, &mut VarNames::default());
         if starts_open(&text) {
             format!("({text}) : {ty}")
         } else {
             format!("{text} : {ty}")
         }
+    }
+
+    /// For a closure whose captures all have known types, a probe that reads
+    /// its lambda alone with each capture as an annotated parameter, so the
+    /// cost is one lambda rather than everything it captures.
+    fn closure_probe(&self, value: &Value, ty: &Ty) -> Option<(String, Ty)> {
+        let Value::Closure(_) = value else {
+            return None;
+        };
+        let parts = self.function_parts(value)?;
+        let (captures, _) = self.captures(value);
+        let typed = captures
+            .iter()
+            .map(|(name, v)| value_type(v).map(|t| (name.clone(), t)))
+            .collect::<Option<Vec<_>>>()?;
+        // Renamed captures would need the renamed source; probe those fully.
+        if typed
+            .iter()
+            .any(|(name, _)| super::builtins::lookup(name).is_some())
+        {
+            return None;
+        }
+        let body = if parts.bound.is_empty() {
+            parts.body
+        } else {
+            format!("({})", parts.body)
+        };
+        if typed.is_empty() {
+            return Some((body, ty.clone()));
+        }
+        let params = join(&typed, |(name, t)| {
+            format!(
+                "{name} : {}",
+                show_ty(t, self.data, &mut VarNames::default())
+            )
+        });
+        Some((
+            format!("(({params}) ↦ {body})"),
+            Ty::Fun(
+                typed.into_iter().map(|(_, t)| t).collect(),
+                Box::new(ty.clone()),
+            ),
+        ))
     }
 }
 
@@ -1111,6 +1299,196 @@ struct FunctionParts<'v> {
     env: &'v Env,
     globals: &'v Globals,
     body: String,
+    /// The member a recursive group's display names.
+    index: Option<usize>,
+}
+
+/// The top-level terms of a sum, each with the separator before it.
+fn split_terms(text: &str) -> Vec<(String, String)> {
+    let mut terms = Vec::new();
+    let mut depth = 0i32;
+    let mut start = 0;
+    let mut sep = String::new();
+    let bytes = text.as_bytes();
+    let mut i = 0;
+    while i < bytes.len() {
+        match bytes[i] {
+            b'(' | b'[' | b'{' => depth += 1,
+            b')' | b']' | b'}' => depth -= 1,
+            b' ' if depth == 0 && i + 2 < bytes.len() && bytes[i + 2] == b' ' => {
+                if matches!(bytes[i + 1], b'+' | b'-') {
+                    terms.push((std::mem::take(&mut sep), text[start..i].to_string()));
+                    sep = text[i..i + 3].to_string();
+                    start = i + 3;
+                    i += 3;
+                    continue;
+                }
+            }
+            _ => {}
+        }
+        i += 1;
+    }
+    terms.push((sep, text[start..].to_string()));
+    terms
+}
+
+/// `(num)/(den)` at the top level, as written for rational functions.
+fn split_quotient(text: &str) -> Option<(&str, &str)> {
+    let inner = text.strip_prefix('(')?.strip_suffix(')')?;
+    let mut depth = 0i32;
+    for (at, c) in inner.char_indices() {
+        match c {
+            '(' => depth += 1,
+            ')' => {
+                if depth == 0 {
+                    let rest = &inner[at..];
+                    let den = rest.strip_prefix(")/(")?;
+                    return Some((&inner[..at], den));
+                }
+                depth -= 1;
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
+/// Rename free variables, respecting every binder.
+fn rename_free(
+    expr: &mut Expr,
+    map: &std::collections::BTreeMap<String, String>,
+    bound: &mut Vec<String>,
+) {
+    let scoped =
+        |bound: &mut Vec<String>, names: Vec<String>, f: &mut dyn FnMut(&mut Vec<String>)| {
+            let depth = bound.len();
+            bound.extend(names);
+            f(bound);
+            bound.truncate(depth);
+        };
+    let item = |item: &mut Item_, bound: &mut Vec<String>| match item {
+        Item_::One(e) | Item_::Splice(e) => rename_free(e, map, bound),
+    };
+    match &mut expr.kind {
+        ExprKind::Var(name) => {
+            if !bound.contains(name) {
+                if let Some(to) = map.get(name) {
+                    *name = to.clone();
+                }
+            }
+        }
+        ExprKind::Int(_)
+        | ExprKind::Frac(..)
+        | ExprKind::Star(_)
+        | ExprKind::Omega
+        | ExprKind::Bool(_)
+        | ExprKind::Up
+        | ExprKind::Down
+        | ExprKind::Con(_) => {}
+        ExprKind::Tuple(items) => items.iter_mut().for_each(|e| rename_free(e, map, bound)),
+        ExprKind::List(items) => items.iter_mut().for_each(|i| item(i, bound)),
+        ExprKind::Form { left, right } => left
+            .iter_mut()
+            .chain(right.iter_mut())
+            .for_each(|i| item(i, bound)),
+        ExprKind::Comprehension(head, clauses) => {
+            let depth = bound.len();
+            for clause in clauses.iter_mut() {
+                match clause {
+                    Clause::For(pat, source) => {
+                        rename_free(source, map, bound);
+                        bound.extend(pat.binders().into_iter().map(String::from));
+                    }
+                    Clause::If(guard) => rename_free(guard, map, bound),
+                }
+            }
+            rename_free(head, map, bound);
+            bound.truncate(depth);
+        }
+        ExprKind::Range { lo, hi, .. } => {
+            rename_free(lo, map, bound);
+            rename_free(hi, map, bound);
+        }
+        ExprKind::Call(callee, args) => {
+            rename_free(callee, map, bound);
+            args.iter_mut().for_each(|a| rename_free(a, map, bound));
+        }
+        ExprKind::Index(a, b) | ExprKind::Binary(_, a, b) | ExprKind::Relation(_, a, b) => {
+            rename_free(a, map, bound);
+            rename_free(b, map, bound);
+        }
+        ExprKind::Lambda(params, body) => {
+            let names = params
+                .iter()
+                .flat_map(|p| p.pat.binders().into_iter().map(String::from))
+                .collect();
+            scoped(bound, names, &mut |bound| rename_free(body, map, bound));
+        }
+        ExprKind::Unary(_, a) => rename_free(a, map, bound),
+        ExprKind::If(c, a, b) => {
+            rename_free(c, map, bound);
+            rename_free(a, map, bound);
+            rename_free(b, map, bound);
+        }
+        ExprKind::Match(scrutinee, arms) => {
+            rename_free(scrutinee, map, bound);
+            for (pat, body) in arms.iter_mut() {
+                let names = pat.binders().into_iter().map(String::from).collect();
+                scoped(bound, names, &mut |bound| rename_free(body, map, bound));
+            }
+        }
+        ExprKind::Block(bindings, body) => {
+            let depth = bound.len();
+            let mut index = 0;
+            while index < bindings.len() {
+                if bindings[index].kind == BindKind::Rec {
+                    let mut end = index;
+                    while end < bindings.len() && bindings[end].kind == BindKind::Rec {
+                        bound.extend(bindings[end].pat.binders().into_iter().map(String::from));
+                        end += 1;
+                    }
+                    for binding in &mut bindings[index..end] {
+                        rename_free(&mut binding.expr, map, bound);
+                    }
+                    index = end;
+                } else {
+                    rename_free(&mut bindings[index].expr, map, bound);
+                    let names: Vec<String> = bindings[index]
+                        .pat
+                        .binders()
+                        .into_iter()
+                        .map(String::from)
+                        .collect();
+                    bound.extend(names);
+                    index += 1;
+                }
+            }
+            rename_free(body, map, bound);
+            bound.truncate(depth);
+        }
+        ExprKind::Annot(inner, ty) => match annotation_generator(ty) {
+            Some(name) => scoped(bound, vec![name.to_string()], &mut |bound| {
+                rename_free(inner, map, bound)
+            }),
+            None => rename_free(inner, map, bound),
+        },
+    }
+}
+
+/// The generator an annotation binds inside its expression.
+fn annotation_generator(ty: &TypeExpr) -> Option<&'static str> {
+    let field = |t: &TypeExpr| {
+        matches!(&t.kind, TypeKind::Named(name, args) if args.is_empty()
+            && matches!(name.as_str(), "F4" | "F8" | "F16" | "F9" | "F27" | "F25"))
+    };
+    match &ty.kind {
+        TypeKind::PolyRing(_) | TypeKind::RatField(_) => Some("t"),
+        _ if field(ty) => Some("x"),
+        TypeKind::Named(name, args) if name == "Mv" && args.len() == 1 && field(&args[0]) => {
+            Some("x")
+        }
+        _ => None,
+    }
 }
 
 /// An omnific integer whose coefficients are not all integers has no
@@ -1283,24 +1661,12 @@ pub fn free_vars(expr: &Expr, bound: &mut Vec<String>, out: &mut BTreeSet<String
             free_vars(body, bound, out);
             bound.truncate(depth);
         }
-        ExprKind::Annot(inner, ty) => {
-            let generator = match &ty.kind {
-                TypeKind::PolyRing(_) | TypeKind::RatField(_) => Some("t"),
-                TypeKind::Named(name, args)
-                    if args.is_empty()
-                        && matches!(name.as_str(), "F4" | "F8" | "F16" | "F9" | "F27" | "F25") =>
-                {
-                    Some("x")
-                }
-                _ => None,
-            };
-            match generator {
-                Some(name) => with(vec![name.to_string()], bound, &mut |bound| {
-                    free_vars(inner, bound, out)
-                }),
-                None => free_vars(inner, bound, out),
-            }
-        }
+        ExprKind::Annot(inner, ty) => match annotation_generator(ty) {
+            Some(name) => with(vec![name.to_string()], bound, &mut |bound| {
+                free_vars(inner, bound, out)
+            }),
+            None => free_vars(inner, bound, out),
+        },
     }
 }
 

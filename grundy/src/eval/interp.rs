@@ -1036,6 +1036,29 @@ impl Interp<'_> {
 
     /// `x ↑ k` by square-and-multiply; negative `k` inverts first.
     fn power(&mut self, base: Value, k: i128) -> GrundyResult<Value> {
+        // A monomial's power is its coefficient's power, placed: the work is
+        // the size of the result.
+        let magnitude = k.unsigned_abs();
+        match &base {
+            Value::Poly(p) if k >= 0 => {
+                if let Some(result) = p.monomial_power(magnitude, &mut |n| self.spend(n)) {
+                    return Ok(Value::Poly(result?));
+                }
+            }
+            Value::RatFunc(f) => {
+                let inverted;
+                let f = if k < 0 {
+                    inverted = f.inverse()?;
+                    &inverted
+                } else {
+                    f
+                };
+                if let Some(result) = f.monomial_power(magnitude, &mut |n| self.spend(n)) {
+                    return Ok(Value::RatFunc(result?));
+                }
+            }
+            _ => {}
+        }
         let unit = one_like(&base)?;
         let mut base = if k < 0 {
             if let Value::Poly(_) = base {

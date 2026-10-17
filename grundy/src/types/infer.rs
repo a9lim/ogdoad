@@ -339,9 +339,10 @@ impl<'a> Checker<'a> {
             let lams = run
                 .iter()
                 .zip(cores)
-                .map(|(binding, core)| match core {
+                .zip(&vars)
+                .map(|((binding, core), ty)| match core {
                     Core::Lambda(lam) => lam,
-                    _ => Rc::new(Lam::new(Vec::new(), core, binding.expr.clone())),
+                    _ => Rc::new(Lam::new(Vec::new(), core, binding.expr.clone(), ty.clone())),
                 })
                 .collect();
             Ok((
@@ -539,9 +540,15 @@ impl<'a> Checker<'a> {
                         param_tys.push(ty);
                     }
                     let (body_core, body_ty) = self.infer(body)?;
+                    let ty = Ty::Fun(param_tys, Box::new(body_ty));
                     Ok((
-                        Core::Lambda(Rc::new(Lam::new(cpats, body_core, expr.clone()))),
-                        Ty::Fun(param_tys, Box::new(body_ty)),
+                        Core::Lambda(Rc::new(Lam::new(
+                            cpats,
+                            body_core,
+                            expr.clone(),
+                            ty.clone(),
+                        ))),
+                        ty,
                     ))
                 })();
                 self.scopes.pop();
@@ -999,6 +1006,8 @@ pub fn generator_name(ty: &Ty) -> Option<&'static str> {
     match ty {
         Ty::Con(TyCon::Poly | TyCon::RatFunc, _) => Some("t"),
         Ty::Con(TyCon::Fpn(..), _) => Some("x"),
+        // Over an extension field, `x` is also the multivector scalar.
+        Ty::Con(TyCon::Mv, args) if matches!(args[0], Ty::Con(TyCon::Fpn(..), _)) => Some("x"),
         _ => None,
     }
 }
@@ -1238,6 +1247,7 @@ pub fn zonk_bind(ts: &TypeState, bind: &mut CBind) {
             for lam in lams {
                 let lam = Rc::get_mut(lam).expect("fresh lambda");
                 zonk_core(ts, &mut lam.body);
+                lam.ty = ts.zonk(&lam.ty);
             }
         }
         CBind::RecForms { exprs, .. } => exprs.iter_mut().for_each(|expr| zonk_core(ts, expr)),
@@ -1286,6 +1296,7 @@ pub fn zonk_core(ts: &TypeState, core: &mut Core) {
         Core::Lambda(lam) => {
             let lam = Rc::get_mut(lam).expect("fresh lambda");
             zonk_core(ts, &mut lam.body);
+            lam.ty = ts.zonk(&lam.ty);
         }
         Core::Unary(_, a, _) => zonk_core(ts, a),
         Core::If(c, a, b) => {

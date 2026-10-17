@@ -241,7 +241,11 @@ variables scoped to that annotation.
 An annotation **binds its type's generator** within `e`:
 
 - `t` for `S[t]` and `S(t)`;
-- `x` for the extension fields.
+- `x` for the extension fields, and for `Mv(S)` over one, where `x` is the
+  scalar of the algebra.
+
+A generator names its ring, so `t` requires its coefficients to be `PolyBase`
+(for `S[t]`) or `PrimeField` (for `S(t)`).
 
 So `(t↑2 + 1 : F5[t])` and `(x + 1 : F9)` are self-contained, and these
 values display that way.
@@ -544,8 +548,11 @@ A display is linear in the value and depends only on the value:
 
 - a subvalue whose text repeats and is longer than 40 characters is bound
   once, `(v1 := B(B(Z, Z), B(Z, Z)); B(v1, v1))`, however the value was built;
-- a spine nested more than 256 levels is cut into such bindings, so every
-  display re-reads within the nesting limit.
+- a spine nested more than 256 levels, or a sum of more than 512 terms, is
+  cut into such bindings, so every display re-reads within the nesting
+  limit;
+- in a cyclic Form, a position reached from two places whose inline text
+  spans more than six positions is named as an equation of its system.
 
 - **Numbers and nimbers:** `7`, `*15 : Nimber`, `*6` (a game), `2 : Game`,
   `1/2`, `3⋅ω↑2 - ω + 5`.
@@ -567,12 +574,15 @@ A display is linear in the value and depends only on the value:
 - **Multivectors:** `(alg := clifford([*1, *1]); [e0, e1] := basis(alg); e0∧e1)`.
   A multivector that has met an algebra keeps it at every grade:
   `(alg := clifford([1]); [e0] := basis(alg); 1 + (e0 - e0))`. Coefficients
-  that mention the generator bind it first: `(x := (x : F8); alg := …; …)`.
+  that mention the generator are written under `Mv(F8)`, which binds `x` as
+  the scalar of the algebra: `(alg := clifford([1]); [e0] := basis(alg); (x⋅e0 : Mv(F8)))`.
 - **Closures:** a sequence binding their captured free variables, then the
-  lambda: `(k := 1 : F2; x ↦ k + k = 0)`. A capture holding a builtin is
-  bound before any capture that shadows the builtin's name; a cycle of such
-  shadowings reads the builtin into a fresh name first. Recursive groups
-  render as their system: `(fact =: n ↦ …; fact)`.
+  lambda: `(k := 1 : F2; x ↦ k + k = 0)`. A capture named like a builtin is
+  renamed in the lambda, `(abs1 := x ↦ 42; x ↦ abs(x) + abs1(x))`, so no
+  binding in a display shadows a builtin. Recursive groups render as their
+  system: `(fact =: n ↦ …; fact)`.
+- **Omnific integers** with fractional coefficients render as an exact
+  quotient: `ω/2 : Omnific`.
 - **Rulesets, evidence, and samples:** rulesets as `impartial(…)`,
   `partizan(…, …)`, or `octal([…])`; claims as `verify(…) /* claim: … */`;
   bounded answers as `bounded(…, n)`; quotients as `quotient(…)`.

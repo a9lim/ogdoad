@@ -1010,10 +1010,10 @@
 > f := x ↦ z(x) + abs(x)
 
 > f
-= (z := abs; abs := x ↦ 42; x ↦ z(x) + abs(x))
+= (abs1 := x ↦ 42; z := abs; x ↦ z(x) + abs1(x))
 
 @reset
-> (z := abs; abs := x ↦ 42; x ↦ z(x) + abs(x))(-2)
+> (abs1 := x ↦ 42; z := abs; x ↦ z(x) + abs1(x))(-2)
 = 44
 
 @reset
@@ -1028,10 +1028,10 @@
 > mixed := xs ↦ len(xs) + 10⋅sum(xs)
 
 > mixed
-= (v1 := len; len := sum; sum := v1; xs ↦ len(xs) + 10⋅sum(xs))
+= (len1 := sum; sum1 := len; xs ↦ len1(xs) + 10⋅sum1(xs))
 
 @reset
-> (v1 := len; len := sum; sum := v1; xs ↦ len(xs) + 10⋅sum(xs))([1, 2, 3])
+> (len1 := sum; sum1 := len; xs ↦ len1(xs) + 10⋅sum1(xs))([1, 2, 3])
 = 36
 
 @reset
@@ -1159,4 +1159,60 @@
 
 @fuel 0
 > reverse([1, 2, 3])
+! E_Fuel: exhausted its work budget of 0
+
+// ================================================================ verification fixes
+@reset
+> z := x ↦ abs(x)
+
+> abs := x ↦ 42
+
+> f := x ↦ abs(x) + z(x)
+
+> f
+= (abs1 := x ↦ 42; z := x ↦ abs(x); x ↦ abs1(x) + z(x))
+
+@reset
+> (abs1 := x ↦ 42; z := x ↦ abs(x); x ↦ abs1(x) + z(x))(-2)
+= 44
+
+> k := ((x ↦ 1) : Int → F2)
+
+> h := () ↦ k(0) + k(0) = 0
+
+> h
+= (k := (x ↦ 1) : Int → F2; () ↦ k(0) + k(0) = 0)
+
+> vector(clifford([1 : F8]), [x : F8])
+= (alg := clifford([1]); [e0] := basis(alg); (x⋅e0 : Mv(F8)))
+
+> ([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] : List(F2), [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] : List(Int))
+= ([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]) : (List(F2), List(Int))
+
+> g =: {g |}
+
+> fold((a, k) ↦ {a, a |}, g, 0..6)
+= (g =: {g |}; g2 =: {{g, g |}, {g, g |} |}; g1 =: {{g2, g2 |}, {g2, g2 |} |}; {{g1, g1 |}, {g1, g1 |} |})
+
+> (ω : Omnific) / 2
+= ω/2 : Omnific
+
+> (f2, g2) := (x ↦ x, y ↦ y)
+
+> (g2(1), g2(true))
+= (1, true)
+
+> sum([]) : Mv(a)
+= 0 : Mv(Int)
+
+> (2⋅t↑3 : F5[t])↑4
+= t↑12 : F5[t]
+
+> g8 := (8192 : Game) + *1
+
+> g8 - g8
+= 0 : Game
+
+@fuel 0
+> up
 ! E_Fuel: exhausted its work budget of 0

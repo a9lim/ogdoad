@@ -75,6 +75,7 @@ pub fn generator(ty: &Ty) -> GrundyResult<Value> {
             (5, 2) => ScalarV::F25(Fpn::<5, 2>::generator()),
             _ => return Err(internal("extension field")),
         })),
+        Ty::Con(TyCon::Mv, args) => mv_scalar(&generator(&args[0])?),
         _ => Err(internal("a generator for this type")),
     }
 }

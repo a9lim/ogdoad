@@ -429,6 +429,7 @@ pub fn classify_regular_nodes(
         .map(ClassificationPosition::Current)
         .collect::<Vec<_>>();
     let mut external = HashMap::new();
+    let mut finite = HashMap::new();
     let mut left = vec![Vec::new(); positions.len()];
     let mut right = vec![Vec::new(); positions.len()];
     let mut cursor = 0;
@@ -471,6 +472,7 @@ pub fn classify_regular_nodes(
             &mut left,
             &mut right,
             &mut external,
+            &mut finite,
         )?;
         right[cursor] = classification_edges(
             right_edges,
@@ -479,6 +481,7 @@ pub fn classify_regular_nodes(
             &mut left,
             &mut right,
             &mut external,
+            &mut finite,
         )?;
         cursor += 1;
     }
@@ -499,16 +502,22 @@ pub fn classification_edges(
     left: &mut Vec<Vec<usize>>,
     right: &mut Vec<Vec<usize>>,
     external: &mut HashMap<GraphKey, usize>,
+    finite: &mut HashMap<usize, usize>,
 ) -> GrundyResult<Vec<usize>> {
     edges
         .into_iter()
         .map(|edge| match edge {
             RegularGameEdge::Local(node) => Ok(node),
             RegularGameEdge::Finite(game) => {
+                // A finite subgame reached twice is one position.
+                if let Some(&index) = finite.get(&game.ptr_id()) {
+                    return Ok(index);
+                }
                 if positions.len() as u128 >= node_budget {
                     return Err(graph_budget_error(node_budget));
                 }
                 let index = positions.len();
+                finite.insert(game.ptr_id(), index);
                 positions.push(ClassificationPosition::Finite(game));
                 left.push(Vec::new());
                 right.push(Vec::new());
@@ -549,6 +558,7 @@ pub fn operational_partizan_graph(
 
     let mut positions = vec![ClassificationPosition::External(root.clone())];
     let mut external = HashMap::from([(graph_key(root), 0_usize)]);
+    let mut finite = HashMap::new();
     let mut left = vec![Vec::new()];
     let mut right = vec![Vec::new()];
     let mut cursor = 0;
@@ -591,6 +601,7 @@ pub fn operational_partizan_graph(
             &mut left,
             &mut right,
             &mut external,
+            &mut finite,
         )?;
         right[cursor] = operational_classification_edges(
             right_edges,
@@ -599,6 +610,7 @@ pub fn operational_partizan_graph(
             &mut left,
             &mut right,
             &mut external,
+            &mut finite,
         )?;
         cursor += 1;
     }
@@ -612,6 +624,7 @@ pub fn operational_classification_edges(
     left: &mut Vec<Vec<usize>>,
     right: &mut Vec<Vec<usize>>,
     external: &mut HashMap<GraphKey, usize>,
+    finite: &mut HashMap<usize, usize>,
 ) -> GrundyResult<Vec<usize>> {
     edges
         .into_iter()
@@ -619,13 +632,22 @@ pub fn operational_classification_edges(
             RegularGameEdge::Local(_) => {
                 unreachable!("external graph edges are adapted before flattening")
             }
-            RegularGameEdge::Finite(game) => push_operational_position(
-                ClassificationPosition::Finite(game),
-                node_budget,
-                positions,
-                left,
-                right,
-            ),
+            RegularGameEdge::Finite(game) => {
+                // A finite subgame reached twice is one position.
+                if let Some(&index) = finite.get(&game.ptr_id()) {
+                    return Ok(index);
+                }
+                let key = game.ptr_id();
+                let index = push_operational_position(
+                    ClassificationPosition::Finite(game),
+                    node_budget,
+                    positions,
+                    left,
+                    right,
+                )?;
+                finite.insert(key, index);
+                Ok(index)
+            }
             RegularGameEdge::External(reference) => {
                 let key = graph_key(&reference);
                 if let Some(&index) = external.get(&key) {
@@ -922,18 +944,73 @@ type DisplayReachability = (
     HashMap<GraphKey, GraphRef>,
 );
 
+/// A shared position is named when its inline display spans more positions
+/// than this.
+const SHARED_GRAPH_SIZE: usize = 6;
+
+/// Renders a finite Form reached as an edge of a cyclic one.
+pub type FiniteDisplay<'a> = &'a dyn Fn(&Game) -> String;
+
 pub fn display_game_element(element: &GameElement) -> String {
-    display_game_element_in_env(element, &BTreeMap::new())
+    display_game_element_in_env(element, &BTreeMap::new(), &display_game)
 }
 
-pub fn display_game_element_in_env(element: &GameElement, env: &FormNames) -> String {
+pub fn display_game_element_in_env(
+    element: &GameElement,
+    env: &FormNames,
+    finite: FiniteDisplay<'_>,
+) -> String {
     match element {
-        GameElement::Finite(game) => display_game(game),
-        GameElement::Graph(reference) => display_composite_graph(reference, env),
+        GameElement::Finite(game) => finite(game),
+        GameElement::Graph(reference) => display_composite_graph(reference, env, finite),
     }
 }
 
-pub fn display_composite_graph(reference: &GraphRef, env: &FormNames) -> String {
+/// The finite Forms a cyclic Form's display writes, one per edge.
+pub fn display_finite_edges(element: &GameElement) -> Vec<Game> {
+    let GameElement::Graph(reference) = element else {
+        return Vec::new();
+    };
+    let (discovery, _, references) = reachable_display_graph(reference);
+    discovery
+        .iter()
+        .flat_map(|key| {
+            let node = &references[key].graph.nodes[references[key].node];
+            node.left
+                .iter()
+                .chain(&node.right)
+                .filter_map(|edge| match edge {
+                    RegularGameEdge::Finite(game) => Some(game.clone()),
+                    _ => None,
+                })
+        })
+        .collect()
+}
+
+/// The identity of a cyclic Form's root position: its graph and node.
+pub fn graph_identity(element: &GameElement) -> Option<(usize, usize)> {
+    match element {
+        GameElement::Graph(reference) => Some((
+            Arc::as_ptr(&reference.graph) as *const () as usize,
+            reference.node,
+        )),
+        GameElement::Finite(_) => None,
+    }
+}
+
+/// The number of graph positions a cyclic Form's display visits.
+pub fn display_graph_size(element: &GameElement) -> usize {
+    match element {
+        GameElement::Graph(reference) => reachable_display_graph(reference).0.len(),
+        GameElement::Finite(_) => 0,
+    }
+}
+
+pub fn display_composite_graph(
+    reference: &GraphRef,
+    env: &FormNames,
+    finite: FiniteDisplay<'_>,
+) -> String {
     let (discovery, successors, references) = reachable_display_graph(reference);
     let (components, component_of) = display_components(&discovery, &successors);
     let cyclic_components = components
@@ -948,14 +1025,84 @@ pub fn display_composite_graph(reference: &GraphRef, env: &FormNames) -> String 
         })
         .collect::<HashSet<_>>();
     let anchor_keys = collect_display_anchor_keys(reference);
+    // A position reached from two places whose inline text is more than a
+    // few positions is named once, so the display is linear in the graph
+    // rather than in its unfolding. Sizes are estimated children first, an
+    // anchor or a named position counting as its name.
+    let mut parents = HashMap::<GraphKey, usize>::new();
+    for targets in successors.values() {
+        for target in targets {
+            *parents.entry(*target).or_default() += 1;
+        }
+    }
+    let cycle_anchor = |key: &GraphKey| {
+        anchor_keys.contains(key) && cyclic_components.contains(&component_of[key])
+    };
+    let mut size = HashMap::<GraphKey, usize>::new();
+    let mut named = HashSet::<GraphKey>::new();
+    let roots = std::iter::once(graph_key(reference))
+        .chain(discovery.iter().copied().filter(|key| cycle_anchor(key)));
+    for start in roots {
+        let mut on_stack = HashSet::new();
+        let mut stack = vec![(start, false)];
+        while let Some((key, done)) = stack.pop() {
+            if done {
+                on_stack.remove(&key);
+                let total = successors[&key].iter().fold(1usize, |acc, child| {
+                    let child_size = if cycle_anchor(child) || named.contains(child) {
+                        1
+                    } else {
+                        size.get(child).copied().unwrap_or(1)
+                    };
+                    acc.saturating_add(child_size)
+                });
+                size.insert(key, total);
+                if parents.get(&key).is_some_and(|count| *count > 1)
+                    && total > SHARED_GRAPH_SIZE
+                    && !cycle_anchor(&key)
+                {
+                    named.insert(key);
+                }
+                continue;
+            }
+            if size.contains_key(&key) || !on_stack.insert(key) {
+                continue;
+            }
+            stack.push((key, true));
+            for child in &successors[&key] {
+                if !cycle_anchor(child) && !size.contains_key(child) && !on_stack.contains(child) {
+                    stack.push((*child, false));
+                }
+            }
+        }
+    }
+    let shared = |key: &GraphKey| named.contains(key);
+    let named_components = cyclic_components
+        .iter()
+        .copied()
+        .chain(
+            discovery
+                .iter()
+                .filter(|key| shared(key))
+                .map(|key| component_of[key]),
+        )
+        .collect::<HashSet<_>>();
     let anchored = discovery
         .iter()
-        .filter(|key| anchor_keys.contains(key))
-        .filter(|key| cyclic_components.contains(&component_of[key]))
+        .filter(|key| {
+            (anchor_keys.contains(key) && cyclic_components.contains(&component_of[key]))
+                || shared(key)
+        })
         .map(|key| references[key].clone())
         .collect::<Vec<_>>();
     if anchored.is_empty() {
-        return display_graph_node(reference, &HashMap::new(), true, &mut HashSet::new());
+        return display_graph_node(
+            reference,
+            &HashMap::new(),
+            true,
+            &mut HashSet::new(),
+            finite,
+        );
     }
 
     let mut collision = env.keys().cloned().collect::<HashSet<_>>();
@@ -1011,7 +1158,7 @@ pub fn display_composite_graph(reference: &GraphRef, env: &FormNames) -> String 
     }
 
     let component_order =
-        display_component_order(&discovery, &successors, &component_of, &cyclic_components);
+        display_component_order(&discovery, &successors, &component_of, &named_components);
     let groups = component_order
         .iter()
         .map(|component| {
@@ -1030,7 +1177,7 @@ pub fn display_composite_graph(reference: &GraphRef, env: &FormNames) -> String 
             format!(
                 "{} =: {}",
                 anchors[&graph_key(anchor)],
-                display_graph_node(anchor, &anchors, true, &mut HashSet::new())
+                display_graph_node(anchor, &anchors, true, &mut HashSet::new(), finite)
             )
         })
         .collect::<Vec<_>>();
@@ -1053,6 +1200,7 @@ pub fn display_composite_graph(reference: &GraphRef, env: &FormNames) -> String 
         &anchors,
         true,
         &mut HashSet::new(),
+        finite,
     ));
     format!("({})", body.join("; "))
 }
@@ -1303,6 +1451,7 @@ pub fn display_graph_node(
     anchors: &HashMap<GraphKey, String>,
     expand_root: bool,
     active: &mut HashSet<GraphKey>,
+    finite: FiniteDisplay<'_>,
 ) -> String {
     let key = graph_key(reference);
     if !expand_root {
@@ -1320,13 +1469,13 @@ pub fn display_graph_node(
     let left = node
         .left
         .iter()
-        .map(|edge| display_regular_edge(reference, edge, anchors, active))
+        .map(|edge| display_regular_edge(reference, edge, anchors, active, finite))
         .collect::<Vec<_>>()
         .join(", ");
     let right = node
         .right
         .iter()
-        .map(|edge| display_regular_edge(reference, edge, anchors, active))
+        .map(|edge| display_regular_edge(reference, edge, anchors, active, finite))
         .collect::<Vec<_>>()
         .join(", ");
     active.remove(&key);
@@ -1338,9 +1487,10 @@ pub fn display_regular_edge(
     edge: &RegularGameEdge,
     anchors: &HashMap<GraphKey, String>,
     active: &mut HashSet<GraphKey>,
+    finite: FiniteDisplay<'_>,
 ) -> String {
     match edge {
-        RegularGameEdge::Finite(game) => display_game(game),
+        RegularGameEdge::Finite(game) => finite(game),
         RegularGameEdge::Local(node) => display_graph_node(
             &GraphRef {
                 graph: owner.graph.clone(),
@@ -1349,9 +1499,10 @@ pub fn display_regular_edge(
             anchors,
             false,
             active,
+            finite,
         ),
         RegularGameEdge::External(reference) => {
-            display_graph_node(reference, anchors, false, active)
+            display_graph_node(reference, anchors, false, active, finite)
         }
     }
 }

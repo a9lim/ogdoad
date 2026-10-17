@@ -73,17 +73,20 @@ pub struct Lam {
     /// Every variable name the body mentions: a superset of what a closure
     /// over it must capture.
     pub mentions: Vec<String>,
+    /// Its type, possibly over type parameters resolved at runtime.
+    pub ty: Ty,
 }
 
 impl Lam {
     /// A lambda, recording the names its body mentions.
-    pub fn new(params: Vec<CPat>, body: Core, source: Expr) -> Lam {
+    pub fn new(params: Vec<CPat>, body: Core, source: Expr, ty: Ty) -> Lam {
         let mentions = mentioned(&body);
         Lam {
             params,
             body,
             source,
             mentions,
+            ty,
         }
     }
 }
