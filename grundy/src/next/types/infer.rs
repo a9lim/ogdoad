@@ -1089,6 +1089,7 @@ pub fn type_from_expr(
                 "Option" => unary(TyCon::Option, converted),
                 "Rules" => unary(TyCon::Rules, converted),
                 "Bounded" => unary(TyCon::Bounded, converted),
+                "Quotient" => unary(TyCon::Quotient, converted),
                 "Algebra" => unary(TyCon::Algebra, converted),
                 "Mv" => unary(TyCon::Mv, converted),
                 _ => {
@@ -1102,7 +1103,6 @@ pub fn type_from_expr(
                         "Winner" => TyCon::Winner,
                         "Witness" => TyCon::Witness,
                         "Claim" => TyCon::Claim,
-                        "Quotient" => TyCon::Quotient,
                         other => match scalar_con(other) {
                             Some(con) => con,
                             None => match data.get(other) {

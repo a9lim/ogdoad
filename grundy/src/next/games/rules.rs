@@ -111,7 +111,7 @@ pub enum Player {
     Right,
 }
 
-fn player(value: &Value) -> GrundyResult<Player> {
+pub fn player(value: &Value) -> GrundyResult<Player> {
     match value {
         Value::Winner(0) => Ok(Player::Left),
         Value::Winner(1) => Ok(Player::Right),
@@ -122,7 +122,7 @@ fn player(value: &Value) -> GrundyResult<Player> {
     }
 }
 
-fn rules_of(value: &Value) -> &Rc<RulesV> {
+pub fn rules_of(value: &Value) -> &Rc<RulesV> {
     match value {
         Value::Rules(rules) => rules,
         other => panic!("expected Rules, found {}", other.kind_name()),
@@ -179,13 +179,16 @@ pub fn component_moves(
 
 /// The component graph reachable from a root: positions in discovery order,
 /// and each position's options (as indices) for both players.
-struct ComponentGraph {
-    positions: Vec<Value>,
-    left: Vec<Vec<Vec<usize>>>,
-    right: Vec<Vec<Vec<usize>>>,
+pub struct ComponentGraph {
+    /// Positions in discovery order, the root first.
+    pub positions: Vec<Value>,
+    /// Left options as component indices.
+    pub left: Vec<Vec<Vec<usize>>>,
+    /// Right options as component indices.
+    pub right: Vec<Vec<Vec<usize>>>,
 }
 
-fn explore_components(
+pub fn explore_components(
     interp: &mut Interp<'_>,
     rules: &RulesV,
     root: &Value,
@@ -253,7 +256,7 @@ fn explore_components(
 }
 
 /// Children-first order of the explored positions, or a component cycle.
-fn topological(
+pub fn topological(
     graph: &ComponentGraph,
     done: &dyn Fn(usize) -> bool,
 ) -> Result<Vec<usize>, Vec<usize>> {
@@ -306,7 +309,7 @@ fn topological(
     Ok(order)
 }
 
-fn cycle_error(
+pub fn cycle_error(
     data: &super::super::types::DataRegistry,
     graph: &ComponentGraph,
     cycle: &[usize],
@@ -409,12 +412,12 @@ pub fn grundy(interp: &mut Interp<'_>, rules: &RulesV, root: &Value) -> GrundyRe
 }
 
 /// A sum-state: components sorted by the structural order.
-fn normalize(mut components: Vec<Value>) -> Vec<Value> {
+pub fn normalize(mut components: Vec<Value>) -> Vec<Value> {
     components.sort_by(key_cmp);
     components
 }
 
-fn state_key(components: &[Value]) -> Vec<PosKey> {
+pub fn state_key(components: &[Value]) -> Vec<PosKey> {
     components.iter().map(pos_key).collect()
 }
 
@@ -445,14 +448,19 @@ pub fn sum_moves(
     Ok(out)
 }
 
-/// `graph(R, p)`: the presented sum-state graph, cycles allowed.
-pub fn graph(interp: &mut Interp<'_>, rules: &RulesV, root: &Value) -> GrundyResult<FormV> {
+/// The sum-state graph reachable from a sum: states in discovery order (the
+/// root first) with Left and Right successor indices.
+pub fn sum_graph(
+    interp: &mut Interp<'_>,
+    rules: &RulesV,
+    root: Vec<Value>,
+) -> GrundyResult<(Vec<Vec<Value>>, LoopyPartizanGraph)> {
     let budget = interp.graph_budget;
     let mut index: BTreeMap<Vec<PosKey>, usize> = BTreeMap::new();
     let mut states: Vec<Vec<Value>> = Vec::new();
     let mut left: Vec<Vec<usize>> = Vec::new();
     let mut right: Vec<Vec<usize>> = Vec::new();
-    let root_state = normalize(vec![root.clone()]);
+    let root_state = normalize(root);
     index.insert(state_key(&root_state), 0);
     states.push(root_state);
     left.push(Vec::new());
@@ -460,8 +468,8 @@ pub fn graph(interp: &mut Interp<'_>, rules: &RulesV, root: &Value) -> GrundyRes
     let mut cursor = 0;
     while cursor < states.len() {
         let state = states[cursor].clone();
-        for (who, edges) in [(Player::Left, true), (Player::Right, false)] {
-            if !edges && rules.impartial() {
+        for (who, is_left) in [(Player::Left, true), (Player::Right, false)] {
+            if !is_left && rules.impartial() {
                 right[cursor] = left[cursor].clone();
                 continue;
             }
@@ -484,7 +492,7 @@ pub fn graph(interp: &mut Interp<'_>, rules: &RulesV, root: &Value) -> GrundyRes
                 };
                 targets.push(id);
             }
-            if edges {
+            if is_left {
                 left[cursor] = targets;
             } else {
                 right[cursor] = targets;
@@ -493,10 +501,16 @@ pub fn graph(interp: &mut Interp<'_>, rules: &RulesV, root: &Value) -> GrundyRes
         cursor += 1;
     }
     let graph = LoopyPartizanGraph::new(left, right).map_err(partizan_graph_error)?;
+    Ok((states, graph))
+}
+
+/// `graph(R, p)`: the presented sum-state graph, cycles allowed.
+pub fn graph(interp: &mut Interp<'_>, rules: &RulesV, root: &Value) -> GrundyResult<FormV> {
+    let (_, graph) = sum_graph(interp, rules, vec![root.clone()])?;
     Ok(FormV(partizan_game_element(graph)))
 }
 
-fn budget_error(budget: u128) -> GrundyError {
+pub fn budget_error(budget: u128) -> GrundyError {
     err(
         GrundyErrorKind::GraphBudget,
         format!("the exploration exceeds the node budget of {budget} positions"),

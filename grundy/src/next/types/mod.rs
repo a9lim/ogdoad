@@ -867,7 +867,7 @@ pub fn show_ty(ty: &Ty, data: &DataRegistry, names: &mut VarNames) -> String {
                 TyCon::Winner => "Winner".into(),
                 TyCon::Witness => "Witness".into(),
                 TyCon::Claim => "Claim".into(),
-                TyCon::Quotient => "Quotient".into(),
+                TyCon::Quotient => format!("Quotient({})", arg(0, names)),
                 TyCon::Nimber => "Nimber".into(),
                 TyCon::Ordinal => "Ordinal".into(),
                 TyCon::Surreal => "Surreal".into(),

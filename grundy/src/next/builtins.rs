@@ -91,19 +91,28 @@ builtins! {
     Winning => "winning": "(Rules(s), List(s), Winner) → List(List(s))";
     // ----------------------------------------------------------------- misère
     Misere => "misere": "(Rules(s), List(s)) → (Winner, Winner)";
-    MisereQuotient => "misere_quotient": "(Rules(s), List(s), Int, Int) → Bounded(Quotient)";
+    MisereQuotient => "misere_quotient": "(Rules(s), List(s), Int, Int) → Bounded(Quotient(s))";
     MisereEqual => "misere_equal": "(Rules(s), List(s), List(s), List(List(s))) → Bounded(Bool)";
     Separate => "separate": "(Rules(s), List(s), List(s), List(List(s))) → Option(Claim)";
+    Bounded => "bounded": "(a, Int) → Bounded(a)";
     Sampled => "sampled": "Bounded(a) → a";
-    Classes => "classes": "Quotient → List(List(Int))";
-    PClasses => "p_classes": "Quotient → List(Int)";
-    Table => "table": "Quotient → Option(List(List(Int)))";
+    Samples => "samples": "Bounded(a) → Int";
+    QuotientOf => "quotient": "(List(List(List(s))), List(Int), Option(List(List(Int)))) → Quotient(s)";
+    Classes => "classes": "Quotient(s) → List(List(List(s)))";
+    PClasses => "p_classes": "Quotient(s) → List(Int)";
+    Table => "table": "Quotient(s) → Option(List(List(Int)))";
+    Consistent => "consistent": "Quotient(s) → Bool";
+    ClassOf => "class_of": "(Quotient(s), List(s)) → Option(Int)";
     // ----------------------------------------------------------------- claims
     Certify => "certify": "Form → Claim";
     CertifySg => "certify_sg": "(Rules(s), s) → Claim";
     Periodic => "periodic": "(Rules(Int), Int, Int) → Claim";
     Verify => "verify": "Witness → Claim";
     Evidence => "evidence": "Claim → Witness";
+    OutcomeWitness => "outcome_witness": "(List(List(Int)), List(List(Int)), Bool, List((Int, Int, Int))) → Witness";
+    SgWitness => "sg_witness": "(Rules(s), s, List((s, Int, Int))) → Witness";
+    PeriodicWitness => "periodic_witness": "(Rules(Int), Int, Int) → Witness";
+    SeparationWitness => "separation_witness": "(Rules(s), List(s), List(s), List(s)) → Witness";
 }
 
 /// A builtin's type scheme.

@@ -318,15 +318,24 @@ pub fn call_builtin(
         | B::MisereQuotient
         | B::MisereEqual
         | B::Separate
+        | B::Bounded
         | B::Sampled
+        | B::Samples
+        | B::QuotientOf
         | B::Classes
         | B::PClasses
         | B::Table
+        | B::Consistent
+        | B::ClassOf
         | B::Certify
         | B::CertifySg
         | B::Periodic
         | B::Verify
-        | B::Evidence => claims::call(interp, builtin, args),
+        | B::Evidence
+        | B::OutcomeWitness
+        | B::SgWitness
+        | B::PeriodicWitness
+        | B::SeparationWitness => claims::call(interp, builtin, args),
     }
 }
 

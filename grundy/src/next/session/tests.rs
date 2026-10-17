@@ -125,3 +125,54 @@ fn cycles_are_reported() {
     );
     assert!(out[2].contains("=:"), "{}", out[2]);
 }
+
+#[test]
+fn evidence_pipeline() {
+    let out = run(&[
+        "over =: {0 | over}",
+        "c := certify(over)",
+        "check := (c : Claim)",
+        "grundy_game := impartial(n ↦ [[a, n - a] for a in 1..n if 2⋅a < n])",
+        "s := certify_sg(grundy_game, 9)",
+        "kayles := octal([7, 7])",
+        "[sg(kayles, n) for n in 0..12]",
+        "p := periodic(kayles, 71, 12)",
+        "periodic(kayles, 70, 12)",
+        "good := verify(sg_witness(grundy_game, 3, [(3, 1, 1), (2, 0, 0), (1, 0, 0)]))",
+        "bad := verify(sg_witness(grundy_game, 3, [(3, 0, 1), (2, 0, 0), (1, 0, 0)]))",
+    ]);
+    for (index, line) in out.iter().enumerate() {
+        assert!(
+            !line.starts_with("E_Domain: internal"),
+            "line {index}: {line}"
+        );
+    }
+    assert_eq!(out[6], "[0, 1, 2, 3, 1, 4, 3, 2, 1, 4, 2, 6]");
+    assert!(out[8].starts_with("E_Refuted"), "{}", out[8]);
+    assert_eq!(out[9], "");
+    assert!(out[10].starts_with("E_Refuted"), "{}", out[10]);
+}
+
+#[test]
+fn misere_instruments() {
+    let out = run(&[
+        "nim := impartial(n ↦ [[k] for k in 0..n])",
+        "misere(nim, [1])",
+        "misere(nim, [1, 1])",
+        "q := sampled(misere_quotient(nim, [1], 3, 3))",
+        "len(classes(q))",
+        "p_classes(q)",
+        "if misere_equal(nim, [], [1, 1], sums([1], 3)) then 1 else 0",
+        "sampled(misere_equal(nim, [], [1, 1], sums([1], 3)))",
+        "match separate(nim, [1], [], sums([1], 2)) { None ↦ false, Some(_) ↦ true }",
+        "samples(misere_equal(nim, [], [1, 1], sums([1], 3)))",
+    ]);
+    assert_eq!(out[1], "(Right, Left)");
+    assert_eq!(out[2], "(Left, Right)");
+    assert_eq!(out[4], "2");
+    assert_eq!(out[5], "[1]");
+    assert!(out[6].starts_with("E_Type"), "{}", out[6]);
+    assert_eq!(out[7], "true");
+    assert_eq!(out[8], "true");
+    assert_eq!(out[9], "4");
+}
