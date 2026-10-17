@@ -269,8 +269,12 @@ never becomes a value, a draw, or an equality.
 
 - **Fuel** (`E_Fuel`, default 2²²) is spent on every closure call, on every
   list element produced by a range, comprehension, or builtin, and on every
-  component of every generated option and sum-state. Metering every call
-  closes divergence through data with function fields.
+  component of every generated option and sum-state. A product of
+  surreals, polynomials, rational functions, or multivectors spends the
+  product of its operands' term counts before the work, and their integer
+  powers are square-and-multiply chains of such products. A `Game` or `Form`
+  literal, and `game(x)`, spends the size of the canonical form it builds.
+  Metering every call closes divergence through data with function fields.
 - **The call-depth guard** (`E_StackDepth`, 4096 frames) is a host resource,
   distinct from fuel.
 - **The node budget** (`E_GraphBudget`, default 2¹⁶) bounds distinct

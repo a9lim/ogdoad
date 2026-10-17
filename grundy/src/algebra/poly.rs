@@ -156,23 +156,8 @@ impl PolyV {
         poly_zip!(self, rhs, (a, b) => a.mul(b))
     }
 
-    /// `↑k` for natural `k`.
-    pub fn pow(&self, k: i128) -> GrundyResult<PolyV> {
-        if k < 0 {
-            return Err(err(
-                GrundyErrorKind::NotInvertible,
-                "a negative power of a polynomial leaves the ring",
-            )
-            .with_hint("rational functions are `S(t)`"));
-        }
-        let mut acc = self.one_like();
-        for _ in 0..k {
-            acc = acc.mul(self);
-        }
-        Ok(acc)
-    }
-
-    fn one_like(&self) -> PolyV {
+    /// The unit of this polynomial's ring.
+    pub fn one_like(&self) -> PolyV {
         match self {
             PolyV::F2(_) => PolyV::F2(Poly::one()),
             PolyV::F3(_) => PolyV::F3(Poly::one()),
@@ -236,6 +221,11 @@ impl PolyV {
     /// `%`
     pub fn rem(&self, rhs: &PolyV) -> GrundyResult<PolyV> {
         Ok(self.divrem(rhs)?.1)
+    }
+
+    /// The coefficient count, for work accounting.
+    pub fn size(&self) -> u128 {
+        poly_dispatch!(self, p => p.coeffs().len().max(1) as u128)
     }
 
     /// Whether the polynomial is zero.
@@ -443,19 +433,14 @@ impl RatFuncV {
         Ok(self.mul(&rhs.inverse()?))
     }
 
-    /// `↑k` (negative `k` inverts).
-    pub fn pow(&self, k: i128) -> GrundyResult<RatFuncV> {
-        let base = if k < 0 { self.inverse()? } else { self.clone() };
-        let mut acc = match self {
+    /// The unit of this rational function's field.
+    pub fn one_like(&self) -> RatFuncV {
+        match self {
             RatFuncV::F2(_) => RatFuncV::F2(Scalar::one()),
             RatFuncV::F3(_) => RatFuncV::F3(Scalar::one()),
             RatFuncV::F5(_) => RatFuncV::F5(Scalar::one()),
             RatFuncV::F7(_) => RatFuncV::F7(Scalar::one()),
-        };
-        for _ in 0..k.unsigned_abs() {
-            acc = acc.mul(&base);
         }
-        Ok(acc)
     }
 
     /// Evaluate at a field element (`E_DivisionByZero` at a pole).
@@ -509,6 +494,16 @@ impl RatFuncV {
             (RatFuncV::F7(f), RatFuncV::F7(g)) => compose!(f, g, F7),
             _ => unreachable!("fields differ"),
         })
+    }
+
+    /// The numerator and denominator sizes, for work accounting.
+    pub fn size(&self) -> u128 {
+        match self {
+            RatFuncV::F2(x) => (x.num().coeffs().len() + x.den().coeffs().len()) as u128,
+            RatFuncV::F3(x) => (x.num().coeffs().len() + x.den().coeffs().len()) as u128,
+            RatFuncV::F5(x) => (x.num().coeffs().len() + x.den().coeffs().len()) as u128,
+            RatFuncV::F7(x) => (x.num().coeffs().len() + x.den().coeffs().len()) as u128,
+        }
     }
 
     /// Whether the rational function lies in `F_p[t]`.

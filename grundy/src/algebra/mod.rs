@@ -182,18 +182,15 @@ pub fn binary(op: BinaryOp, lhs: &Value, rhs: &Value) -> GrundyResult<Value> {
         (BinaryOp::Mul, Value::Poly(a), Value::Poly(b)) => Ok(Value::Poly(a.mul(b))),
         (BinaryOp::Div, Value::Poly(a), Value::Poly(b)) => Ok(Value::Poly(a.div(b)?)),
         (BinaryOp::Rem, Value::Poly(a), Value::Poly(b)) => Ok(Value::Poly(a.rem(b)?)),
-        (BinaryOp::Pow, Value::Poly(a), Value::Int(k)) => Ok(Value::Poly(a.pow(*k)?)),
         (BinaryOp::Add, Value::RatFunc(a), Value::RatFunc(b)) => Ok(Value::RatFunc(a.add(b))),
         (BinaryOp::Sub, Value::RatFunc(a), Value::RatFunc(b)) => Ok(Value::RatFunc(a.sub(b))),
         (BinaryOp::Mul, Value::RatFunc(a), Value::RatFunc(b)) => Ok(Value::RatFunc(a.mul(b))),
         (BinaryOp::Div, Value::RatFunc(a), Value::RatFunc(b)) => Ok(Value::RatFunc(a.div(b)?)),
-        (BinaryOp::Pow, Value::RatFunc(a), Value::Int(k)) => Ok(Value::RatFunc(a.pow(*k)?)),
         (BinaryOp::Add, Value::Mv(a), Value::Mv(b)) => Ok(Value::Mv(a.zip(b, MvOp::Add)?)),
         (BinaryOp::Sub, Value::Mv(a), Value::Mv(b)) => Ok(Value::Mv(a.zip(b, MvOp::Sub)?)),
         (BinaryOp::Mul, Value::Mv(a), Value::Mv(b)) => Ok(Value::Mv(a.zip(b, MvOp::Mul)?)),
         (BinaryOp::Div, Value::Mv(a), Value::Mv(b)) => Ok(Value::Mv(a.zip(b, MvOp::Div)?)),
         (BinaryOp::Wedge, Value::Mv(a), Value::Mv(b)) => Ok(Value::Mv(a.zip(b, MvOp::Wedge)?)),
-        (BinaryOp::Pow, Value::Mv(a), Value::Int(k)) => Ok(Value::Mv(a.map(MvUnary::Pow(*k))?)),
         _ => Err(internal("this binary operator")),
     }
 }

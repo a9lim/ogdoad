@@ -480,6 +480,16 @@ impl ScalarV {
         }
     }
 
+    /// A size measure for work accounting: the number of Hahn terms for the
+    /// surreal family, one otherwise.
+    pub fn size(&self) -> u128 {
+        match self {
+            ScalarV::Surreal(s) => s.terms().len().max(1) as u128,
+            ScalarV::Omnific(s) => s.inner().terms().len().max(1) as u128,
+            _ => 1,
+        }
+    }
+
     /// The structural total order used for `Key` normalization.
     pub fn key_cmp(&self, rhs: &ScalarV) -> Ordering {
         self.con().cmp(&rhs.con()).then_with(|| {

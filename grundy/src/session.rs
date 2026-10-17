@@ -3,12 +3,15 @@
 //! [`Session`] is single-threaded (values are `Rc`). The public handle runs
 //! it on a persistent large-stack worker.
 
+use std::cell::Cell;
 use std::collections::BTreeMap;
+use std::panic::{catch_unwind, resume_unwind, AssertUnwindSafe};
 use std::rc::Rc;
+use std::sync::Once;
 
 use super::core::CtorRef;
 use super::display::Show;
-use super::error::{GrundyError, GrundyErrorKind, GrundyResult};
+use super::error::{GrundyError, GrundyErrorKind, GrundyResult, Span};
 use super::eval::interp::{Interp, Scope, DEFAULT_FUEL, DEFAULT_GRAPH_BUDGET};
 use super::eval::value::{Env, Globals, Value};
 use super::games::form::{FormV, GameElement};
@@ -62,6 +65,10 @@ impl Session {
 
     /// Evaluate one statement.
     pub fn eval(&mut self, src: &str) -> GrundyResult<Output> {
+        contain_overflow(Span::new(0, src.len()), || self.eval_statement(src))
+    }
+
+    fn eval_statement(&mut self, src: &str) -> GrundyResult<Output> {
         let stmt = parse_statement(src)?;
         let echo = unparse_stmt(&stmt);
         match stmt {
@@ -293,3 +300,53 @@ pub fn alpha_equal(a: &Ty, b: &Ty) -> bool {
 
 #[cfg(test)]
 mod tests;
+
+thread_local! {
+    static CONTAINING: Cell<bool> = const { Cell::new(false) };
+}
+
+/// Whether a panic message is an exact backend's documented coefficient
+/// overflow, as opposed to a defect.
+fn engine_overflow(message: &str) -> bool {
+    message.contains("overflowed i128") || message.contains("overflows u128")
+}
+
+/// Run a statement, turning the exact backends' fixed-width coefficient
+/// overflow into `E_Overflow`. The statement commits nothing; any other
+/// panic propagates unchanged.
+fn contain_overflow<T>(span: Span, f: impl FnOnce() -> GrundyResult<T>) -> GrundyResult<T> {
+    static QUIET_HOOK: Once = Once::new();
+    QUIET_HOOK.call_once(|| {
+        let previous = std::panic::take_hook();
+        std::panic::set_hook(Box::new(move |info| {
+            let contained =
+                CONTAINING.with(Cell::get) && info.payload_as_str().is_some_and(engine_overflow);
+            if !contained {
+                previous(info);
+            }
+        }));
+    });
+    let outer = CONTAINING.with(|c| c.replace(true));
+    let outcome = catch_unwind(AssertUnwindSafe(f));
+    CONTAINING.with(|c| c.set(outer));
+    match outcome {
+        Ok(result) => result,
+        Err(payload) => {
+            let message = payload
+                .downcast_ref::<String>()
+                .map(String::as_str)
+                .or_else(|| payload.downcast_ref::<&str>().copied());
+            match message {
+                Some(message) if engine_overflow(message) => Err(GrundyError::new(
+                    GrundyErrorKind::Overflow,
+                    span,
+                    format!("exact arithmetic exceeds its fixed-width coefficients ({message})"),
+                )
+                .with_hint(
+                    "Surreal, Omnific, and Int[t] coefficients are i128 rationals and integers",
+                )),
+                _ => resume_unwind(payload),
+            }
+        }
+    }
+}

@@ -193,8 +193,14 @@ pub fn call_builtin(
         }
         // ------------------------------------------------------------- games
         B::GameOf => match arg(0) {
-            Value::Int(n) => Ok(Value::Game(GameV::integer(*n))),
-            Value::Scalar(ScalarV::Nimber(Nimber(n))) => Ok(Value::Game(GameV::nimber(*n))),
+            Value::Int(n) => {
+                interp.spend(n.unsigned_abs())?;
+                Ok(Value::Game(GameV::integer(*n)))
+            }
+            Value::Scalar(ScalarV::Nimber(Nimber(n))) => {
+                interp.spend(n.saturating_mul(n.saturating_add(1)) / 2)?;
+                Ok(Value::Game(GameV::nimber(*n)))
+            }
             Value::Scalar(ScalarV::Surreal(s)) => Game::from_surreal(s)
                 .map(|game| Value::Game(GameV::seal(&game)))
                 .ok_or_else(|| {

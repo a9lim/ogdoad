@@ -282,11 +282,18 @@ impl<'a> Interp<'a> {
     /// Evaluate an expression.
     pub fn eval(&mut self, core: &Core, scope: &Scope) -> GrundyResult<Value> {
         match core {
-            Core::Int(n, ty) => self.int_literal(*n, &self.resolve(ty, &scope.tenv)),
-            Core::Frac(num, den, ty) => {
-                self.frac_literal(*num, *den, &self.resolve(ty, &scope.tenv))
+            Core::Int(n, ty) => {
+                let ty = self.resolve(ty, &scope.tenv);
+                self.int_literal(*n, &ty)
             }
-            Core::Star(index, ty) => self.star_literal(index, &self.resolve(ty, &scope.tenv)),
+            Core::Frac(num, den, ty) => {
+                let ty = self.resolve(ty, &scope.tenv);
+                self.frac_literal(*num, *den, &ty)
+            }
+            Core::Star(index, ty) => {
+                let ty = self.resolve(ty, &scope.tenv);
+                self.star_literal(index, &ty)
+            }
             Core::Omega(ty) => match self.resolve(ty, &scope.tenv) {
                 Ty::Con(con, _) => Ok(Value::Scalar(ScalarV::omega(con)?)),
                 other => Err(unresolved(&other)),
@@ -680,7 +687,11 @@ impl<'a> Interp<'a> {
 
     // ---------------------------------------------------------------- literals
 
-    fn int_literal(&self, n: u128, ty: &Ty) -> GrundyResult<Value> {
+    fn int_literal(&mut self, n: u128, ty: &Ty) -> GrundyResult<Value> {
+        if let Ty::Con(TyCon::Game | TyCon::Form, _) = ty {
+            // The integer game n has n positions.
+            self.spend(n)?;
+        }
         match ty {
             Ty::Con(TyCon::Int, _) => {
                 Ok(Value::Int(i128::try_from(n).map_err(|_| {
@@ -697,9 +708,13 @@ impl<'a> Interp<'a> {
         }
     }
 
-    fn frac_literal(&self, num: i128, den: u128, ty: &Ty) -> GrundyResult<Value> {
+    fn frac_literal(&mut self, num: i128, den: u128, ty: &Ty) -> GrundyResult<Value> {
         if den == 0 {
             return Err(err(GrundyErrorKind::DivisionByZero, "zero denominator"));
+        }
+        if let Ty::Con(TyCon::Game | TyCon::Form, _) = ty {
+            // A dyadic game's form grows with its integer part and its depth.
+            self.spend(num.unsigned_abs() / den + 128)?;
         }
         match ty {
             Ty::Con(TyCon::Game, _) => Ok(Value::Game(GameV::dyadic(num, den)?)),
@@ -726,7 +741,11 @@ impl<'a> Interp<'a> {
         }
     }
 
-    fn star_literal(&self, index: &StarIndex, ty: &Ty) -> GrundyResult<Value> {
+    fn star_literal(&mut self, index: &StarIndex, ty: &Ty) -> GrundyResult<Value> {
+        if let (Ty::Con(TyCon::Game | TyCon::Form, _), StarIndex::Finite(n)) = (ty, index) {
+            // The nimber game *n has n(n+1)/2 option edges.
+            self.spend(n.saturating_mul(n.saturating_add(1)) / 2)?;
+        }
         let finite = || match index {
             StarIndex::Finite(n) => Ok(*n),
             _ => Err(err(
@@ -768,6 +787,20 @@ impl<'a> Interp<'a> {
 
     /// Apply an arithmetic or list operator.
     pub fn binary(&mut self, op: BinaryOp, lhs: Value, rhs: Value) -> GrundyResult<Value> {
+        // Products of values that grow cost the product of their sizes, paid
+        // before the work; their powers go through square-and-multiply so
+        // every step pays.
+        if let (Some(a), Some(b)) = (size_of(&lhs), size_of(&rhs)) {
+            if matches!(
+                op,
+                BinaryOp::Mul | BinaryOp::Div | BinaryOp::Wedge | BinaryOp::Rem
+            ) {
+                self.spend(a.saturating_mul(b))?;
+            }
+        }
+        if let (BinaryOp::Pow, Some(_), Value::Int(k)) = (op, size_of(&lhs), &rhs) {
+            return self.power(lhs, *k);
+        }
         let overflow = || {
             err(
                 GrundyErrorKind::Overflow,
@@ -860,6 +893,59 @@ impl<'a> Interp<'a> {
             _ => super::super::algebra::relation(op, lhs, rhs),
         }
     }
+}
+
+impl Interp<'_> {
+    /// `x ↑ k` by square-and-multiply; negative `k` inverts first.
+    fn power(&mut self, base: Value, k: i128) -> GrundyResult<Value> {
+        let unit = one_like(&base)?;
+        let mut base = if k < 0 {
+            if let Value::Poly(_) = base {
+                return Err(err(
+                    GrundyErrorKind::NotInvertible,
+                    "a negative power of a polynomial leaves the ring",
+                )
+                .with_hint("rational functions are `S(t)`"));
+            }
+            self.unary(UnaryOp::Recip, base)?
+        } else {
+            base
+        };
+        let mut k = k.unsigned_abs();
+        let mut acc = unit;
+        while k > 0 {
+            if k & 1 == 1 {
+                acc = self.binary(BinaryOp::Mul, acc, base.clone())?;
+            }
+            k >>= 1;
+            if k > 0 {
+                base = self.binary(BinaryOp::Mul, base.clone(), base)?;
+            }
+        }
+        Ok(acc)
+    }
+}
+
+/// The size of a value whose arithmetic cost grows with it.
+fn size_of(value: &Value) -> Option<u128> {
+    match value {
+        Value::Scalar(s @ (ScalarV::Surreal(_) | ScalarV::Omnific(_))) => Some(s.size()),
+        Value::Poly(p) => Some(p.size()),
+        Value::RatFunc(f) => Some(f.size()),
+        Value::Mv(v) => Some(v.size()),
+        _ => None,
+    }
+}
+
+/// The unit of a sized value's ring.
+fn one_like(value: &Value) -> GrundyResult<Value> {
+    Ok(match value {
+        Value::Scalar(s) => Value::Scalar(s.power(0)?),
+        Value::Poly(p) => Value::Poly(p.one_like()),
+        Value::RatFunc(f) => Value::RatFunc(f.one_like()),
+        Value::Mv(v) => Value::Mv(v.one_like()),
+        other => return Err(internal(format!("no unit for a {}", other.kind_name()))),
+    })
 }
 
 /// The outcome cell of `a - b` for short games: no draws.

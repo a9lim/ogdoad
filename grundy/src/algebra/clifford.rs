@@ -252,16 +252,6 @@ impl<S: CScalar> MvData<S> {
         self.mul(&other.inverse()?)
     }
 
-    /// `↑k`
-    pub fn pow(&self, k: i128) -> GrundyResult<MvData<S>> {
-        let base = if k < 0 { self.inverse()? } else { self.clone() };
-        let mut acc = MvData::scalar(S::one());
-        for _ in 0..k.unsigned_abs() {
-            acc = acc.mul(&base)?;
-        }
-        Ok(acc)
-    }
-
     fn need_alg(&self) -> Rc<CliffordAlgebra<S>> {
         self.alg
             .clone()
@@ -405,7 +395,6 @@ macro_rules! clifford_enums {
                     $(MvV::$variant(a) => Ok(MvV::$variant(match op {
                         MvUnary::Neg => a.neg(),
                         MvUnary::Inverse => a.inverse()?,
-                        MvUnary::Pow(k) => a.pow(k)?,
                         MvUnary::Rev => a.rev()?,
                         MvUnary::Grade(k) => a.grade(k)?,
                         MvUnary::Even => a.even(),
@@ -440,6 +429,20 @@ macro_rules! clifford_enums {
             pub fn algebra(&self) -> Option<AlgebraV> {
                 match self {
                     $(MvV::$variant(a) => a.alg.clone().map(AlgebraV::$variant),)*
+                }
+            }
+
+            /// The algebra-free unit of this backend.
+            pub fn one_like(&self) -> MvV {
+                match self {
+                    $(MvV::$variant(_) => MvV::$variant(MvData::scalar(<$ty>::one())),)*
+                }
+            }
+
+            /// The term count, for work accounting.
+            pub fn size(&self) -> u128 {
+                match self {
+                    $(MvV::$variant(a) => a.v.terms().len().max(1) as u128,)*
                 }
             }
 
@@ -592,8 +595,6 @@ pub enum MvUnary {
     Neg,
     /// `/`
     Inverse,
-    /// `↑k`
-    Pow(i128),
     /// `rev`
     Rev,
     /// `grade(·, k)`

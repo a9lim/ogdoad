@@ -82,7 +82,8 @@ All limits fail with typed errors; no partial value escapes.
 | worker stack | one persistent 256 MiB worker per session |
 | source nesting | 1536 delimiters, and 1536 levels of expression nesting, checked before or inside the parser (`E_Parse`) |
 | call depth | 4096 frames (`E_StackDepth`, distinct from fuel) |
-| fuel | default 2²²: closure calls, produced list elements, generated option and sum-state components (`E_Fuel`) |
+| fuel | default 2²²: closure calls, produced list elements, generated option and sum-state components, term-count products of growing algebra values, game-literal sizes (`E_Fuel`) |
+| exact coefficients | an exact backend's i128 overflow fails the statement with `E_Overflow`; only those documented engine panics are contained |
 | node budget | default 2¹⁶: distinct positions, sum-states, graph nodes, misère memo entries (`E_GraphBudget`) |
 | shared-DAG walks | pointer-keyed memoization in equivalence, recognition, and canonical interning |
 
