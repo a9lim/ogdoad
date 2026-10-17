@@ -879,6 +879,9 @@ impl<'a> Checker<'a> {
                             span,
                             format!("unknown constructor `{name}`"),
                         )
+                        .with_hint(
+                            "variables are lowercase; uppercase names are constructors and types",
+                        )
                     })?,
                 };
                 if args.len() != info.arity {
@@ -1090,6 +1093,8 @@ pub fn type_from_expr(
                 "Rules" => unary(TyCon::Rules, converted),
                 "Bounded" => unary(TyCon::Bounded, converted),
                 "Quotient" => unary(TyCon::Quotient, converted),
+                "Poly" => unary(TyCon::Poly, converted),
+                "RatFunc" => unary(TyCon::RatFunc, converted),
                 "Algebra" => unary(TyCon::Algebra, converted),
                 "Mv" => unary(TyCon::Mv, converted),
                 _ => {

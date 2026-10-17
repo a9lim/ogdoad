@@ -7,10 +7,11 @@ use std::collections::BTreeMap;
 use std::rc::Rc;
 
 use super::core::CtorRef;
-use super::display::show_plain;
+use super::display::Show;
 use super::error::{GrundyError, GrundyErrorKind, GrundyResult};
 use super::eval::interp::{Interp, Scope, DEFAULT_FUEL, DEFAULT_GRAPH_BUDGET};
 use super::eval::value::{Env, Globals, Value};
+use super::games::form::{FormV, GameElement};
 use super::syntax::ast::{DataDecl, Stmt};
 use super::syntax::parse::{parse_expr, parse_statement};
 use super::syntax::unparse::unparse_stmt;
@@ -173,7 +174,22 @@ impl Session {
     /// Display a value; annotate with its type exactly when re-reading the
     /// text alone would not recover that type.
     pub fn show_typed(&self, value: &Value, ty: &Ty) -> String {
-        let text = show_plain(value, &self.data);
+        let names = self
+            .values
+            .iter()
+            .map(|(name, value)| {
+                let graph = match value {
+                    Value::Form(FormV(GameElement::Graph(graph))) => Some(graph.clone()),
+                    _ => None,
+                };
+                (name.clone(), graph)
+            })
+            .collect();
+        let text = Show {
+            data: &self.data,
+            names,
+        }
+        .top(value);
         if self.reads_as(&text, ty) {
             text
         } else {

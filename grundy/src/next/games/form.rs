@@ -1031,13 +1031,8 @@ pub fn display_composite_graph(reference: &GraphRef, env: &FormNames) -> String 
     }
     if let Some(root_name) = root_name {
         let root_component = component_of[&root_key];
-        if groups.len() == 1
-            && groups[0]
-                .iter()
-                .all(|anchor| component_of[&graph_key(anchor)] == root_component)
-        {
-            return parts.join("; ");
-        }
+        // A system of several equations names its root explicitly.
+        let _ = root_component;
         let mut body = parts;
         body.push(root_name);
         return format!("({})", body.join("; "));

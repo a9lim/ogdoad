@@ -3,7 +3,7 @@
 use std::cmp::Ordering;
 use std::fmt;
 
-use ogdoad::scalar::{Fp, Fpn, Nimber, Omnific, Ordinal, Scalar, Surreal};
+use ogdoad::scalar::{FiniteField, Fp, Fpn, Nimber, Omnific, Ordinal, Scalar, Surreal};
 
 use super::super::error::{err, GrundyErrorKind, GrundyResult};
 use super::super::syntax::ast::{CnfExponent, CnfTerm, RelOp, StarIndex};
@@ -510,4 +510,33 @@ impl ScalarV {
                 .unwrap_or_else(|| self.to_string().cmp(&rhs.to_string()))
         })
     }
+}
+
+/// The Frobenius endomorphism of a finite field element.
+pub fn frobenius(value: &ScalarV) -> GrundyResult<ScalarV> {
+    Ok(match value {
+        ScalarV::Nimber(x) => ScalarV::Nimber(x.frobenius()),
+        ScalarV::F2(_) | ScalarV::F3(_) | ScalarV::F5(_) | ScalarV::F7(_) => value.clone(),
+        ScalarV::F4(x) => ScalarV::F4(x.frobenius()),
+        ScalarV::F8(x) => ScalarV::F8(x.frobenius()),
+        ScalarV::F16(x) => ScalarV::F16(x.frobenius()),
+        ScalarV::F9(x) => ScalarV::F9(x.frobenius()),
+        ScalarV::F27(x) => ScalarV::F27(x.frobenius()),
+        ScalarV::F25(x) => ScalarV::F25(x.frobenius()),
+        _ => return Err(err(GrundyErrorKind::Type, "Frobenius needs a finite field")),
+    })
+}
+
+/// The absolute trace of a finite field element down to its prime field.
+pub fn trace(value: &ScalarV) -> GrundyResult<ScalarV> {
+    Ok(match value {
+        ScalarV::F2(_) | ScalarV::F3(_) | ScalarV::F5(_) | ScalarV::F7(_) => value.clone(),
+        ScalarV::F4(x) => ScalarV::F4(x.relative_trace(1)),
+        ScalarV::F8(x) => ScalarV::F8(x.relative_trace(1)),
+        ScalarV::F16(x) => ScalarV::F16(x.relative_trace(1)),
+        ScalarV::F9(x) => ScalarV::F9(x.relative_trace(1)),
+        ScalarV::F27(x) => ScalarV::F27(x.relative_trace(1)),
+        ScalarV::F25(x) => ScalarV::F25(x.relative_trace(1)),
+        _ => return Err(err(GrundyErrorKind::Type, "the trace needs a finite field")),
+    })
 }

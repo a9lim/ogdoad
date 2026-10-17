@@ -185,6 +185,12 @@ pub enum Class {
     GameLike,
     /// Embeddable into `Game` by `game(x)`: Int, Nimber, Surreal, Game.
     IntoGame,
+    /// A Clifford coefficient: Int and the scalar types.
+    Scalar,
+    /// A finite field: the prime and extension fields, and Nimber.
+    FiniteField,
+    /// Carries a ring-of-integers test: Surreal, Omnific, Int, `S[t]`, `S(t)`.
+    Integral,
 }
 
 impl Class {
@@ -205,6 +211,9 @@ impl Class {
             Class::OmegaLit => "OmegaLit",
             Class::GameLike => "GameLike",
             Class::IntoGame => "IntoGame",
+            Class::Scalar => "Scalar",
+            Class::FiniteField => "FiniteField",
+            Class::Integral => "Integral",
         }
     }
 }
@@ -735,6 +744,9 @@ fn no_instance(class: Class, ty: &Ty, data: &DataRegistry) -> GrundyError {
         Class::Eq => format!("{shown} has no `=`"),
         Class::Key => format!("{shown} cannot be a ruleset position"),
         Class::IntoGame => format!("{shown} does not embed into Game"),
+        Class::Scalar => format!("{shown} is not a Clifford coefficient type"),
+        Class::FiniteField => format!("{shown} is not a finite field"),
+        Class::Integral => format!("{shown} has no ring-of-integers pairing"),
     };
     let mut error = err(GrundyErrorKind::Type, message);
     let hint = match (class, ty) {
@@ -779,6 +791,12 @@ pub fn instance(class: Class, ty: &Ty, data: &DataRegistry) -> Option<Vec<Pred>>
     };
     match (con, class) {
         (T::Int | T::Nimber | T::Surreal | T::Game, IntoGame) => yes(),
+        (
+            T::Int | T::Nimber | T::Ordinal | T::Surreal | T::Omnific | T::Fp(_) | T::Fpn(..),
+            Scalar,
+        ) => yes(),
+        (T::Nimber | T::Fp(_) | T::Fpn(..), FiniteField) => yes(),
+        (T::Surreal | T::Omnific | T::Int | T::Poly | T::RatFunc, Integral) => yes(),
         (T::Int, Eq | Ord | Add | Mul | Rem | Key | IntLit) => yes(),
         (T::Bool, Eq | Key) => yes(),
         (T::Winner, Eq | Key) => yes(),

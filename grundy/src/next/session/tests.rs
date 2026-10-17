@@ -176,3 +176,100 @@ fn misere_instruments() {
     assert_eq!(out[8], "true");
     assert_eq!(out[9], "4");
 }
+
+#[test]
+fn algebra_worlds() {
+    let out = run(&[
+        "p := (t↑2 + 1 : F5[t])",
+        "p",
+        "p(2)",
+        "deg(p)",
+        "gcd(p, (t↑4 - 1 : F5[t]))",
+        "(1/t : F2(t))",
+        "integral(1/t : F2(t))",
+        "(x↑2 : F9)",
+        "frob(x : F9)",
+        "alg := clifford([*1, *1])",
+        "[e0, e1] := basis(alg)",
+        "e0 ⋅ e0",
+        "e0 ∧ e1",
+        "(e0 + e1) ⋅ (e0 + e1)",
+        "vector(alg, [*1, *2]) ∧ vector(alg, [*1, *3])",
+        "other := clifford([*1])",
+        "[f0] := basis(other)",
+        "e0 + f0",
+        "rev(e0 ∧ e1)",
+        "tr(x : F4)",
+        "nimtr(*7, 4)",
+        "ω↑(1/2)",
+        "(*ω : Ordinal) ⋅ (*ω : Ordinal)",
+    ]);
+    assert_eq!(out[1], "t↑2 + 1 : F5[t]");
+    assert_eq!(out[2], "0 : F5");
+    assert_eq!(out[3], "2");
+    assert!(out[4].ends_with(": F5[t]"), "{}", out[4]);
+    assert_eq!(out[6], "false");
+    assert_eq!(out[11], "*1 : Mv(Nimber)");
+    assert_eq!(
+        out[12],
+        "(alg := clifford([*1, *1]); [e0, e1] := basis(alg); e0∧e1)"
+    );
+    assert!(out[17].starts_with("E_AlgebraMismatch"), "{}", out[17]);
+    for (index, line) in out.iter().enumerate() {
+        assert!(!line.contains("internal"), "line {index}: {line}");
+    }
+}
+
+/// The display law: re-evaluating a value's display in a fresh session
+/// reproduces the display.
+fn display_round_trip(setup: &[&str], expr: &str) {
+    let mut lines: Vec<&str> = setup.to_vec();
+    lines.push(expr);
+    let shown = run(&lines).pop().unwrap();
+    assert!(!shown.starts_with("E_"), "`{expr}` failed: {shown}");
+    let again = last(&[shown.as_str()]);
+    let bare_root = shown
+        .split_once(" =: ")
+        .map(|(root, _)| root.to_string())
+        .filter(|root| root.chars().all(|c| c.is_ascii_alphanumeric() || c == '_'));
+    let reshown = if let Some(root) = bare_root {
+        // A bare equation statement displays nothing; show its root.
+        run(&[shown.as_str(), root.as_str()]).pop().unwrap()
+    } else {
+        again
+    };
+    assert_eq!(reshown, shown, "display of `{expr}` is not a fixed point");
+}
+
+#[test]
+fn display_law_round_trips() {
+    display_round_trip(&[], "3 + 4");
+    display_round_trip(&[], "*3 ⋅ *5");
+    display_round_trip(&[], "{0 | 1} + *1");
+    display_round_trip(&[], "[(1, true), (2, false)]");
+    display_round_trip(&[], "(t↑3 - t : F7[t])");
+    display_round_trip(&[], "(x + 1 : F27)");
+    display_round_trip(&["k := 3"], "x ↦ x + k");
+    display_round_trip(
+        &["fact =: n ↦ if n = 0 then 1 else n ⋅ fact(n - 1)"],
+        "fact",
+    );
+    display_round_trip(&["on =: {on |}"], "on");
+    display_round_trip(&["a =: {b |}; b =: {| a}"], "a");
+    display_round_trip(&["on =: {on |}"], "[on, on]");
+    display_round_trip(
+        &["alg := clifford([1, 2])", "[e0, e1] := basis(alg)"],
+        "3⋅e0∧e1 + e1",
+    );
+    display_round_trip(&[], "impartial(n ↦ [[k] for k in 0..n])");
+    display_round_trip(&["over =: {0 | over}"], "certify(over)");
+    display_round_trip(
+        &["nim := impartial(n ↦ [[k] for k in 0..n])"],
+        "misere_quotient(nim, [1], 2, 2)",
+    );
+    display_round_trip(
+        &["g := impartial(n ↦ [[a, n - a] for a in 1..n if 2⋅a < n])"],
+        "certify_sg(g, 6)",
+    );
+    display_round_trip(&[], "periodic(octal([7, 7]), 71, 12)");
+}

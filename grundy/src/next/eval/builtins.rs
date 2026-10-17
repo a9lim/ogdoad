@@ -305,6 +305,26 @@ pub fn call_builtin(
                     "atomic weight needs an all-small game",
                 )
             }),
+        // ---------------------------------------------------------- algebra
+        B::Deg
+        | B::Coef
+        | B::Gcd
+        | B::Integral
+        | B::Frob
+        | B::Tr
+        | B::NimTr
+        | B::Clifford
+        | B::CliffordMetric
+        | B::Grassmann
+        | B::Basis
+        | B::Vector
+        | B::Dim
+        | B::Rev
+        | B::Even
+        | B::Dual
+        | B::Grade
+        | B::Component
+        | B::ScalarPart => super::super::algebra::call(interp, builtin, tys, args),
         // ---------------------------------------------- rulesets and evidence
         B::Impartial
         | B::Partizan

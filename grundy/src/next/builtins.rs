@@ -80,6 +80,26 @@ builtins! {
     LeftStop => "left_stop": "Game → Surreal";
     RightStop => "right_stop": "Game → Surreal";
     AtomicWeight => "atomic_weight": "Game → Game";
+    // ---------------------------------------------------------------- algebra
+    Deg => "deg": "Poly(s) → Int";
+    Coef => "coef": "(Poly(s), Int) → s";
+    Gcd => "gcd": "(Poly(s), Poly(s)) → Poly(s)";
+    Integral => "integral": "a → Bool" where Integral a;
+    Frob => "frob": "a → a" where FiniteField a;
+    Tr => "tr": "a → a" where FiniteField a;
+    NimTr => "nimtr": "(Nimber, Int) → Nimber";
+    Clifford => "clifford": "List(s) → Algebra(s)" where Scalar s;
+    CliffordMetric => "clifford_metric": "(List(s), List(((Int, Int), s)), List(((Int, Int), s))) → Algebra(s)" where Scalar s;
+    Grassmann => "grassmann": "Int → Algebra(s)" where Scalar s;
+    Basis => "basis": "Algebra(s) → List(Mv(s))";
+    Vector => "vector": "(Algebra(s), List(s)) → Mv(s)";
+    Dim => "dim": "Algebra(s) → Int";
+    Rev => "rev": "Mv(s) → Mv(s)";
+    Even => "even": "Mv(s) → Mv(s)";
+    Dual => "dual": "Mv(s) → Mv(s)";
+    Grade => "grade": "(Mv(s), Int) → Mv(s)";
+    Component => "component": "(Mv(s), Int) → s";
+    ScalarPart => "scalar_part": "Mv(s) → s";
     // --------------------------------------------------------------- rulesets
     Impartial => "impartial": "(s → List(List(s))) → Rules(s)" where Key s;
     Partizan => "partizan": "(s → List(List(s)), s → List(List(s))) → Rules(s)" where Key s;
@@ -140,6 +160,9 @@ fn build_scheme(builtin: Builtin) -> Scheme {
                 "Key" => Class::Key,
                 "GameLike" => Class::GameLike,
                 "IntoGame" => Class::IntoGame,
+                "Scalar" => Class::Scalar,
+                "FiniteField" => Class::FiniteField,
+                "Integral" => Class::Integral,
                 other => panic!("builtin `{}`: unknown class {other}", builtin.name()),
             };
             Pred::Is(class, vars[*var].clone())
