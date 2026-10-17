@@ -151,10 +151,36 @@ impl GameV {
     }
 
     /// `up` (or `down`).
-    pub fn up(down: bool) -> GameV {
-        GameV {
-            id: with(|arena| if down { arena.down() } else { arena.up() }),
-        }
+    pub fn up(down: bool, meter: &mut impl Meter) -> GrundyResult<GameV> {
+        GameV::sealed(metered(meter, |arena| {
+            if down {
+                arena.down()
+            } else {
+                arena.up()
+            }
+        })?)
+    }
+
+    /// `Some(false)` for `up`, `Some(true)` for `down`: `{0 | *}` and `{* | 0}`.
+    pub fn as_up(&self) -> Option<bool> {
+        with(|arena| {
+            let (left, right) = (arena.left(self.id), arena.right(self.id));
+            let one = |side: &[GameId], nimber: u128| {
+                side.len() == 1 && arena.nimber_value(side[0]) == Some(nimber)
+            };
+            if one(left, 0) && one(right, 1) {
+                Some(false)
+            } else if one(left, 1) && one(right, 0) {
+                Some(true)
+            } else {
+                None
+            }
+        })
+    }
+
+    /// The number of distinct positions, counting at most `limit + 1`.
+    pub fn positions(&self, limit: usize) -> usize {
+        with(|arena| arena.positions(self.id, limit))
     }
 
     /// Build `{L | R}` from sealed options.
@@ -173,10 +199,19 @@ impl GameV {
 
     /// The disjunctive sum.
     pub fn add(&self, other: &GameV, meter: &mut impl Meter) -> GrundyResult<GameV> {
-        let both_numbers = self.is_number() && other.is_number();
-        if !both_numbers {
-            // Sum algorithms recurse to the sum of the birthdays.
-            guard(self.birthday() + other.birthday())?;
+        if !(self.is_number() && other.is_number()) {
+            // The sum recurses through both games at once.
+            let depth = self.birthday() + other.birthday();
+            if depth > 2 * MAX_BIRTHDAY {
+                return Err(err(
+                    GrundyErrorKind::StackDepth,
+                    format!(
+                        "the sum recurses {depth} levels deep, past the host guard of {}",
+                        2 * MAX_BIRTHDAY
+                    ),
+                )
+                .with_hint("game depth is a host resource, distinct from fuel"));
+            }
         }
         GameV::sealed(metered(meter, |arena| arena.add(self.id, other.id))?)
     }

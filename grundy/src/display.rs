@@ -123,8 +123,7 @@ fn join<T>(items: impl IntoIterator<Item = T>, f: impl FnMut(T) -> String) -> St
 fn is_game_atom(game: &GameV) -> bool {
     game.number().is_some_and(|s| s.as_dyadic().is_some())
         || game.as_nimber().is_some()
-        || game.same(&GameV::up(false))
-        || game.same(&GameV::up(true))
+        || game.as_up().is_some()
 }
 
 fn form_atom(game: &Game) -> Option<String> {
@@ -614,11 +613,10 @@ impl<'a> Show<'a> {
         if let Some(n) = g.as_nimber() {
             return (format!("*{n}"), 0);
         }
-        if g.same(&GameV::up(false)) {
-            return ("up".to_string(), 0);
-        }
-        if g.same(&GameV::up(true)) {
-            return ("down".to_string(), 0);
+        match g.as_up() {
+            Some(false) => return ("up".to_string(), 0),
+            Some(true) => return ("down".to_string(), 0),
+            None => {}
         }
         let side = |options: Vec<GameV>| {
             let mut depth = 0;
@@ -656,6 +654,7 @@ impl<'a> Show<'a> {
     /// generator bind it with their own annotation.
     fn atom_text(&self, value: &Value) -> String {
         match value {
+            Value::Scalar(super::algebra::ScalarV::Omnific(o)) => omnific_text(o),
             Value::Scalar(s) => s.to_string(),
             Value::Poly(p) => p.to_string(),
             Value::RatFunc(f) => f.to_string(),
@@ -1112,6 +1111,40 @@ struct FunctionParts<'v> {
     env: &'v Env,
     globals: &'v Globals,
     body: String,
+}
+
+/// An omnific integer whose coefficients are not all integers has no
+/// literal; it displays as `(L⋅x)/L`, which exact division rebuilds.
+fn omnific_text(o: &ogdoad::scalar::Omnific) -> String {
+    use ogdoad::scalar::{Omnific, Scalar as _, Surreal};
+    fn gcd(a: i128, b: i128) -> i128 {
+        if b == 0 {
+            a.abs()
+        } else {
+            gcd(b, a % b)
+        }
+    }
+    let lcm = o.inner().terms().iter().try_fold(1i128, |acc, (_, c)| {
+        let d = c.denom();
+        acc.checked_mul(d / gcd(acc, d))
+    });
+    match lcm {
+        Some(1) | None => o.to_string(),
+        Some(l) => {
+            let scaled = o.inner().mul(&Surreal::from_int(l));
+            match Omnific::from_surreal(scaled) {
+                Some(scaled) => {
+                    let text = scaled.to_string();
+                    if scaled.inner().terms().len() == 1 && !text.starts_with('-') {
+                        format!("{text}/{l}")
+                    } else {
+                        format!("({text})/{l}")
+                    }
+                }
+                None => o.to_string(),
+            }
+        }
+    }
 }
 
 fn braces(left: &str, right: &str, empty: &str) -> String {

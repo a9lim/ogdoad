@@ -344,17 +344,42 @@ impl GameArena {
     }
 
     /// `↑ = {0 | *}`.
-    pub fn up(&mut self) -> GameId {
+    pub fn up(&mut self) -> Step<GameId> {
+        self.charge(2)?;
         let zero = self.zero();
         let star = self.intern_node(vec![zero], vec![zero]);
-        self.intern_node(vec![zero], vec![star])
+        Ok(self.intern_node(vec![zero], vec![star]))
     }
 
     /// `↓ = {* | 0}`.
-    pub fn down(&mut self) -> GameId {
+    pub fn down(&mut self) -> Step<GameId> {
+        self.charge(2)?;
         let zero = self.zero();
         let star = self.intern_node(vec![zero], vec![zero]);
-        self.intern_node(vec![star], vec![zero])
+        Ok(self.intern_node(vec![star], vec![zero]))
+    }
+
+    /// The number of distinct positions reachable from `g`, counting at
+    /// most `limit + 1`.
+    pub fn positions(&self, g: GameId, limit: usize) -> usize {
+        let mut seen = std::collections::HashSet::from([g]);
+        let mut stack = vec![g];
+        while let Some(node) = stack.pop() {
+            if seen.len() > limit {
+                break;
+            }
+            for &child in self
+                .node(node)
+                .left
+                .iter()
+                .chain(self.node(node).right.iter())
+            {
+                if seen.insert(child) {
+                    stack.push(child);
+                }
+            }
+        }
+        seen.len()
     }
 
     /// The canonical form of `{left | right}` for canonical options: dominated
@@ -363,6 +388,7 @@ impl GameArena {
         let mut left = dedup(left);
         let mut right = dedup(right);
         loop {
+            self.charge(1 + left.len() + right.len())?;
             left = self.extremal(left, true)?;
             right = self.extremal(right, false)?;
             let pending = Pending {
@@ -421,6 +447,8 @@ impl GameArena {
     fn extremal(&mut self, options: Vec<GameId>, maximal: bool) -> Step<Vec<GameId>> {
         let mut kept: Vec<GameId> = Vec::new();
         'candidates: for candidate in options {
+            // Comparisons against numbers take no memo step, but still work.
+            self.charge(1 + kept.len())?;
             for &k in &kept {
                 let dominated = if maximal {
                     self.le(candidate, k)?
@@ -782,9 +810,9 @@ mod tests {
             assert!(same(&mut arena, id, &Game::nim_heap(n)), "nimber {n}");
             assert_eq!(arena.nimber_value(id), Some(n));
         }
-        let up = arena.up();
+        let up = arena.up().unwrap();
         assert!(same(&mut arena, up, &Game::up()));
-        let down = arena.down();
+        let down = arena.down().unwrap();
         assert!(same(&mut arena, down, &Game::up().neg()));
         assert_eq!(arena.neg(up).unwrap(), down);
     }

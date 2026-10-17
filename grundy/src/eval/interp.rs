@@ -137,7 +137,7 @@ impl<'a> Interp<'a> {
                         unreachable!("only variables generalize")
                     };
                     return Ok(vec![(name.clone(), {
-                        let (env, depth) = capture(&scope.env, &mentioned(expr))?;
+                        let (env, depth) = capture(scope, &mentioned(expr))?;
                         Value::Generic(Rc::new(GenericV {
                             tparams: tparams.clone(),
                             body: PolyBody::Expr(expr.clone()),
@@ -164,7 +164,7 @@ impl<'a> Interp<'a> {
                 lams,
                 tparams,
             } => {
-                let (env, depth) = capture(&scope.env, &group_mentions(names, lams))?;
+                let (env, depth) = capture(scope, &group_mentions(names, lams))?;
                 if !tparams.is_empty() {
                     return Ok(names
                         .iter()
@@ -314,7 +314,7 @@ impl<'a> Interp<'a> {
                 other => Err(unresolved(&other)),
             },
             Core::Up(down, ty) => match self.resolve(ty, &scope.tenv) {
-                Ty::Con(TyCon::Game, _) => Ok(Value::Game(GameV::up(*down))),
+                Ty::Con(TyCon::Game, _) => Ok(Value::Game(GameV::up(*down, self)?)),
                 Ty::Con(TyCon::Form, _) => {
                     let up = Game::up();
                     Ok(Value::Form(FormV::finite(if *down {
@@ -444,7 +444,7 @@ impl<'a> Interp<'a> {
                     })
             }
             Core::Lambda(lam) => {
-                let (env, depth) = capture(&scope.env, &lam.mentions)?;
+                let (env, depth) = capture(scope, &lam.mentions)?;
                 Ok(Value::Closure(Rc::new(Closure {
                     lam: lam.clone(),
                     env,
@@ -1173,13 +1173,17 @@ fn guard_depth(depth: u32) -> GrundyResult<u32> {
 /// The bindings of `env` a function body mentions, and the depth of a
 /// function capturing them. Capturing only these keeps closures from holding
 /// unrelated values and makes the captured environment what display shows.
-fn capture(env: &Env, names: &[String]) -> GrundyResult<(Env, u32)> {
+fn capture(scope: &Scope, names: &[String]) -> GrundyResult<(Env, u32)> {
     let mut captured = Env::new();
     let mut depth = 0;
     for name in names {
-        if let Some(value) = env.get(name) {
+        if let Some(value) = scope.env.get(name) {
             depth = depth.max(value.depth());
             captured = captured.bind(name.clone(), value.clone());
+        } else if let Some(value) = scope.globals.get(name) {
+            // Globals are shared by snapshot, but a closure over one still
+            // nests through it.
+            depth = depth.max(value.depth());
         }
     }
     Ok((captured, guard_depth(depth)?))

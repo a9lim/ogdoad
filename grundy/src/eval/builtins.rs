@@ -198,7 +198,19 @@ pub fn call_builtin(
                 format!("game() of a {}", other.kind_name()),
             )),
         },
-        B::FormOf => Ok(Value::Form(FormV::finite(game_of(arg(0)).game()))),
+        B::FormOf => {
+            // Presenting a value materializes each of its positions.
+            let game = game_of(arg(0));
+            let budget = usize::try_from(interp.graph_budget).unwrap_or(usize::MAX);
+            let positions = game.positions(budget);
+            if positions > budget {
+                return Err(super::super::games::rules::budget_error(
+                    interp.graph_budget,
+                ));
+            }
+            interp.spend(positions as u128)?;
+            Ok(Value::Form(FormV::finite(game.game())))
+        }
         B::Canon => match &form_of(arg(0)).0 {
             GameElement::Finite(game) => Ok(Value::Game(GameV::seal(game, interp)?)),
             GameElement::Graph(_) => Err(err(

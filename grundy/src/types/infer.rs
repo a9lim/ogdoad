@@ -185,14 +185,29 @@ impl<'a> Checker<'a> {
         });
         self.ts.level -= 1;
         let (core, pat, bound) = typed?;
+        // As for a value binding, only unconstrained variables generalize: no
+        // runtime behavior reads them. The binders generalize together, since
+        // generalizing one releases every other local variable.
+        let joint = Ty::tuple(bound.iter().map(|(_, ty)| ty.clone()).collect());
+        let quantified: BTreeSet<TyVar> = self
+            .ts
+            .generalize(&joint, false, self.data)
+            .map_err(|e| e.at(binding.expr.span))?
+            .vars
+            .into_iter()
+            .collect();
         let mut defined = Vec::new();
         for (name, ty) in bound {
-            // As for a value binding, only unconstrained variables generalize:
-            // no runtime behavior reads them.
-            let scheme = self
-                .ts
-                .generalize(&ty, false, self.data)
-                .map_err(|e| e.at(binding.expr.span))?;
+            let ty = self.ts.zonk(&ty);
+            let scheme = Scheme {
+                vars: ty
+                    .vars()
+                    .into_iter()
+                    .filter(|v| quantified.contains(v))
+                    .collect(),
+                preds: Vec::new(),
+                ty,
+            };
             self.bind_local(&name, scheme.clone());
             defined.push((name, scheme));
         }

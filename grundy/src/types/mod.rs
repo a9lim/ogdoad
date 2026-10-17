@@ -784,7 +784,7 @@ pub fn instance(class: Class, ty: &Ty, data: &DataRegistry) -> Option<Vec<Pred>>
                 .collect(),
         )
     };
-    match (con, class) {
+    let found = match (con, class) {
         (T::Int | T::Nimber | T::Surreal | T::Game, IntoGame) => yes(),
         (
             T::Int | T::Nimber | T::Ordinal | T::Surreal | T::Omnific | T::Fp(_) | T::Fpn(..),
@@ -826,7 +826,24 @@ pub fn instance(class: Class, ty: &Ty, data: &DataRegistry) -> Option<Vec<Pred>>
         (T::Data(id), Eq) => data.get(*id).eq.then(Vec::new),
         (T::Data(id), Key) => data.get(*id).key.then(Vec::new),
         _ => None,
-    }
+    };
+    // Every operation of S[t], S(t), or Mv(S) needs S to be a supported
+    // coefficient type, so an undetermined S defaults or is ambiguous.
+    let base = match con {
+        T::Poly => Some(PolyBase),
+        T::RatFunc => Some(PrimeField),
+        T::Mv => Some(Scalar),
+        _ => None,
+    };
+    found.map(|mut subgoals| {
+        if let (Some(base), Some(arg)) = (base, args.first()) {
+            let pred = Pred::Is(base, arg.clone());
+            if !subgoals.contains(&pred) {
+                subgoals.push(pred);
+            }
+        }
+        subgoals
+    })
 }
 
 fn mismatch_hint(a: &Ty, b: &Ty) -> Option<&'static str> {

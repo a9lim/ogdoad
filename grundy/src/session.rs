@@ -286,9 +286,12 @@ impl Session {
             span: expr.span,
             expr,
         };
+        // A query leaves the session as it found it.
+        let saved = self.ts.clone();
         let mut checker = Checker::new(&mut self.ts, &self.data, &self.types);
-        let checked = checker.check_seq(&[binding], None)?;
-        let (_, scheme) = checked.defined.into_iter().next().expect("one binding");
+        let checked = checker.check_seq(&[binding], None);
+        self.ts = saved;
+        let (_, scheme) = checked?.defined.into_iter().next().expect("one binding");
         Ok(show_scheme(&scheme, &self.data))
     }
 
