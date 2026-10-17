@@ -1,4 +1,6 @@
-//! Sparse PBW Weyl algebra and its rank-one polynomial action. Run with:
+//! Weyl algebras: PBW products, polynomial actions, transformations, symbols,
+//! the `hbar` family, characteristic-`p` centres, the characteristic-two
+//! Clifford fibre, and `p`-symbols. Run with:
 //!   cargo run --example weyl
 
 use ogdoad::scalar::{Nimber, Poly, Rational, Scalar};

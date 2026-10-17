@@ -68,6 +68,44 @@ fn psymbol_residue_matches_split_matrix_trace() {
 }
 
 #[test]
+fn rank_two_psymbol_residue_matches_split_trace_with_even_sign() {
+    // In tensor rank two the residue equals the matrix trace with sign
+    // (-1)^2 = +1; the top monomial has residue 1, so a wrong sign would give
+    // trace -1 = 2 in F_3 and fail.
+    let algebra = WeylAlgebra::<F3>::standard(2);
+    let values = vec![f3(2), f3(1), f3(1), f3(2)];
+    let presentation = algebra
+        .psymbol_presentation(values.clone(), representation_budget())
+        .unwrap();
+    assert_eq!(presentation.tensor_rank(), 2);
+
+    let module = algebra
+        .split_central_character_module(values.clone(), values, representation_budget())
+        .unwrap();
+    let top = presentation
+        .fiber()
+        .reduce(&algebra.monomial(&[2, 2, 2, 2], f3(1)))
+        .unwrap();
+    assert_eq!(presentation.p_residue(&top).unwrap(), f3(1));
+
+    for exponents in [
+        [2, 2, 2, 2],
+        [0, 0, 0, 0],
+        [1, 1, 1, 1],
+        [2, 1, 0, 2],
+        [1, 2, 2, 0],
+    ] {
+        let reduced = presentation
+            .fiber()
+            .reduce(&algebra.monomial(&exponents, f3(2)))
+            .unwrap();
+        assert!(presentation
+            .split_matrix_trace_matches_residue(&module, &reduced, representation_budget())
+            .unwrap());
+    }
+}
+
+#[test]
 fn psymbol_cyclic_conversion_checks_all_relations() {
     let algebra = WeylAlgebra::<F3>::standard(1);
     let presentation = algebra

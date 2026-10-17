@@ -49,7 +49,7 @@ module_generators = W.central_character_generator_matrices(
 )
 print("  split module =", len(module_generators[0]), "x", len(module_generators[0]))
 
-# Wave 2: sparse polynomial action, symbols, transformations, and hbar.
+# Sparse polynomial action, symbols, transformations, and hbar.
 t2 = pl.NimberSparsePolynomial.monomial([2], 1)
 assert W.act_on_sparse_polynomial(d, t2) == pl.NimberSparsePolynomial.monomial([1], 0)
 # d(t²)=0 in characteristic two; adding t gives a nonzero derivative.
@@ -65,7 +65,7 @@ assert W.fourier_inverse(W.fourier(x + d)) == x + d
 assert W.hbar_commutator(d, x, 0) == W.zero()
 assert W.hbar_commutator(d, x, 1) == W.one()
 
-# Wave 3.5: p-symbol/cyclic data and characteristic transport.
+# p-symbol/cyclic data and characteristic transport.
 psymbol = W.psymbol([pl.Nimber(2), pl.Nimber(3)], 4)
 assert psymbol.tensor_rank() == 1 and psymbol.brauer_split() is None
 assert psymbol.p_residue(x * d) == pl.Nimber(1)
