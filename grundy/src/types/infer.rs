@@ -177,12 +177,22 @@ impl<'a> Checker<'a> {
                 vec![(name.clone(), scheme)],
             ));
         }
-        let (core, ty) = self.infer(&binding.expr)?;
-        let mut bound = Vec::new();
-        let pat = self.pattern(&binding.pat, &ty, &mut bound)?;
+        self.ts.level += 1;
+        let typed = self.infer(&binding.expr).and_then(|(core, ty)| {
+            let mut bound = Vec::new();
+            let pat = self.pattern(&binding.pat, &ty, &mut bound)?;
+            Ok((core, pat, bound))
+        });
+        self.ts.level -= 1;
+        let (core, pat, bound) = typed?;
         let mut defined = Vec::new();
         for (name, ty) in bound {
-            let scheme = Scheme::mono(ty);
+            // As for a value binding, only unconstrained variables generalize:
+            // no runtime behavior reads them.
+            let scheme = self
+                .ts
+                .generalize(&ty, false, self.data)
+                .map_err(|e| e.at(binding.expr.span))?;
             self.bind_local(&name, scheme.clone());
             defined.push((name, scheme));
         }
@@ -617,6 +627,17 @@ impl<'a> Checker<'a> {
                 }
                 let (core, inner_ty) = result?;
                 self.unify_at(&inner_ty, &ty, span)?;
+                // A generator names its ring, so the coefficients must be one.
+                if let (Some(_), Ty::Con(con @ (TyCon::Poly | TyCon::RatFunc), args)) =
+                    (generator, &ty)
+                {
+                    let class = if *con == TyCon::Poly {
+                        Class::PolyBase
+                    } else {
+                        Class::PrimeField
+                    };
+                    self.require(class, &args[0].clone(), span)?;
+                }
                 let core = match generator {
                     Some(name) => Core::Gen(name.to_string(), ty.clone(), Box::new(core)),
                     None => core,

@@ -339,11 +339,6 @@ impl<S: CScalar> MvData<S> {
     pub fn scalar_part(&self) -> S {
         self.v.terms().get(&0).cloned().unwrap_or_else(S::zero)
     }
-
-    /// Value equality.
-    pub fn equals(&self, other: &MvData<S>) -> bool {
-        self.common(other).is_ok() && self.v.terms() == other.v.terms()
-    }
 }
 
 macro_rules! clifford_enums {
@@ -414,14 +409,6 @@ macro_rules! clifford_enums {
             pub fn scalar_part(&self) -> Value {
                 match self {
                     $(MvV::$variant(a) => a.scalar_part().to_value(),)*
-                }
-            }
-
-            /// Value equality.
-            pub fn equals(&self, other: &MvV) -> bool {
-                match (self, other) {
-                    $((MvV::$variant(a), MvV::$variant(b)) => a.equals(b),)*
-                    _ => false,
                 }
             }
 

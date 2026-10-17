@@ -1076,3 +1076,87 @@
 
 > fold((acc, k) ↦ (y ↦ acc(y) + 1), (y ↦ y), 0..20000)
 ! E_StackDepth: past the host guard of 16384
+
+// ================================================================ algebra and types
+@reset
+> (*(ω↑(ω↑ω)) : Ordinal) / (*1 : Ordinal)
+! E_KummerEscape: past the represented Kummer tower
+
+> nimtr(*2, 2)
+= *1 : Nimber
+
+> nimtr(*2, 128)
+= *0 : Nimber
+
+> nimtr(*2, 1)
+! E_Domain: does not lie in F_(2^1)
+
+> nimtr(*2, 3)
+! E_Domain: is not a nim subfield
+
+> basis(clifford([1]))[0] = basis(clifford([2]))[0]
+! E_AlgebraMismatch: different Clifford algebras
+
+> [(0 : Form)] = [({* | *} : Form)]
+= true
+
+> dud =: {dud | dud}
+
+> contains([dud], dud)
+! E_Loopy: value relation requires stopper operands
+
+> (ω↑2 - 1 : Omnific) / (ω - 1)
+= ω + 1 : Omnific
+
+> (6 : Omnific) / 3
+= 2 : Omnific
+
+> (7 : Omnific) / 3
+! E_NotInvertible: the quotient is not an omnific integer
+
+> sum([(t : F5[t]), 1])
+= t + 1 : F5[t]
+
+> sum([] : List(Mv(Nimber)))
+= *0 : Mv(Nimber)
+
+> (ω : Mv(Surreal))
+= ω : Mv(Surreal)
+
+> 1 ↑ 4294967296
+= 1
+
+> 2 ↑ 127
+! E_Overflow: overflows i128
+
+> q := quotient([[[(n : Int) ↦ 0]]], [], None)
+! E_Type: cannot be a ruleset position
+
+> (t : Poly(a))
+= t : Int[t]
+
+> (1 : RatFunc(a))
+! E_Ambiguous: PrimeField
+? name the coefficient field
+
+> [id] := [x ↦ x]
+
+> (id(1), id(true))
+= (1, true)
+
+> data Box = Box(Form)
+
+> Box((0 : Form)) = Box((0 : Form))
+= true
+
+> impartial((b : Box) ↦ [])
+! E_Type: Box cannot be a ruleset position
+
+> data T1 = C1(Int)
+
+> data T2 = C1(Bool)
+! E_Shadow: constructor `C1` is already defined
+
+@fuel 0
+> reverse([1, 2, 3])
+! E_Fuel: exhausted its work budget of 0

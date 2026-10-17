@@ -117,7 +117,7 @@ builtins! {
     Bounded => "bounded": "(a, Int) → Bounded(a)";
     Sampled => "sampled": "Bounded(a) → a";
     Samples => "samples": "Bounded(a) → Int";
-    QuotientOf => "quotient": "(List(List(List(s))), List(Int), Option(List(List(Int)))) → Quotient(s)";
+    QuotientOf => "quotient": "(List(List(List(s))), List(Int), Option(List(List(Int)))) → Quotient(s)" where Key s;
     Classes => "classes": "Quotient(s) → List(List(List(s)))";
     PClasses => "p_classes": "Quotient(s) → List(Int)";
     Table => "table": "Quotient(s) → Option(List(List(Int)))";

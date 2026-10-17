@@ -201,6 +201,8 @@ classes. Users cannot add instances.
 | `Scalar` | Clifford coefficients | Int, Nimber, Ordinal, Surreal, Omnific, finite fields |
 | `FiniteField` | `frob`, `tr` | Nimber, finite fields |
 | `Integral` | `integral` | Surreal, Omnific, Int, polynomials, rational functions |
+| `PolyBase` | coefficients of `S[t]`, required by `t` and by literals there | F2, F3, F5, F7, Int |
+| `PrimeField` | coefficients of `S(t)`, required by `t` and by literals there | F2, F3, F5, F7 |
 
 A power `a ↑ e` needs `e : Int` with `Mul a`, except that `ω ↑ s` with
 `s : Surreal` builds a Hahn monomial (its base must be exactly `ω`).
@@ -509,7 +511,7 @@ cover terminating rulesets (`E_Loopy` on a misère cycle).
 | `bounded`, `sampled`, `samples`, `quotient`, `classes`, `p_classes`, `table`, `consistent`, `class_of` | §10.2 |
 | `certify`, `certify_sg`, `periodic`, `verify`, `evidence`, and the `*_witness` constructors | §10.1 |
 | `deg`, `coef`, `gcd`, `integral` | polynomials; `integral` is ring-of-integers membership |
-| `frob`, `tr`, `nimtr(x, m)` | finite fields; a nimber trace names its subfield `F_{2^m}` |
+| `frob`, `tr`, `nimtr(x, m)` | finite fields; `nimtr(x, m)` is the trace `F_{2^m} → F_2` of a nimber `x < 2^m`, for `m` a power of two up to 128 |
 | `clifford`, `clifford_metric`, `grassmann`, `basis`, `vector`, `dim` | §7 |
 | `rev`, `even`, `dual`, `grade`, `component`, `scalar_part` | multivectors |
 
@@ -519,8 +521,10 @@ Builtins live in the outermost scope; any binding may shadow one.
 
 - `data T = C1 | C2(A, B)` declares constructors, and a declaration may
   refer to itself.
-- A data type supports `=` and is a `Key` exactly when every field does.
-  Function fields remove both.
+- A data type supports `=` exactly when every field does, and is a `Key`
+  exactly when every field is. Function fields remove both; a `Form` field
+  keeps `=` and removes `Key`.
+- Constructor names are unique across all declarations (`E_Shadow`).
 - Constructors are values and patterns.
 - `Left`, `Right`, `Draw`, `Some`, and `None` are builtin.
 - The patterns are `_`, variables, integer and Boolean literals, tuples,

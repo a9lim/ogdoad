@@ -186,6 +186,10 @@ pub enum Class {
     FiniteField,
     /// Carries a ring-of-integers test: Surreal, Omnific, Int, `S[t]`, `S(t)`.
     Integral,
+    /// A coefficient ring of `S[t]`: F2, F3, F5, F7, and Int.
+    PolyBase,
+    /// A coefficient field of `S(t)`: F2, F3, F5, and F7.
+    PrimeField,
 }
 
 impl Class {
@@ -209,6 +213,8 @@ impl Class {
             Class::Scalar => "Scalar",
             Class::FiniteField => "FiniteField",
             Class::Integral => "Integral",
+            Class::PolyBase => "PolyBase",
+            Class::PrimeField => "PrimeField",
         }
     }
 }
@@ -280,8 +286,10 @@ pub struct DataInfo {
     pub name: String,
     /// Constructors: name and field types.
     pub ctors: Vec<(String, Vec<Ty>)>,
-    /// Whether values support `=` and `Key` (no function fields).
-    pub plain: bool,
+    /// Whether values support `=`: every field does.
+    pub eq: bool,
+    /// Whether values are `Key`s: every field is.
+    pub key: bool,
 }
 
 /// Session-wide registry of data declarations.
@@ -695,6 +703,12 @@ impl TypeState {
         )
         .with_hint(if game_ring {
             "games are an additive group, not a ring"
+        } else if self
+            .preds
+            .iter()
+            .any(|pred| matches!(pred, Pred::Is(Class::PrimeField, Ty::Var(v)) if vars.contains(v)))
+        {
+            "name the coefficient field: `(1 : F5(t))`"
         } else {
             "annotate the intended type: `(e : Surreal)`"
         })
@@ -726,6 +740,8 @@ fn no_instance(class: Class, ty: &Ty, data: &DataRegistry) -> GrundyError {
         Class::Scalar => format!("{shown} is not a Clifford coefficient type"),
         Class::FiniteField => format!("{shown} is not a finite field"),
         Class::Integral => format!("{shown} has no ring-of-integers pairing"),
+        Class::PolyBase => format!("{shown} is not a polynomial coefficient ring"),
+        Class::PrimeField => format!("{shown} is not a rational-function coefficient field"),
     };
     let mut error = err(GrundyErrorKind::Type, message);
     let hint = match (class, ty) {
@@ -785,13 +801,30 @@ pub fn instance(class: Class, ty: &Ty, data: &DataRegistry) -> Option<Vec<Pred>>
         (T::Surreal, Eq | Ord | Add | Mul | Div | Rem | Key | IntLit | FracLit | OmegaLit) => yes(),
         (T::Omnific, Eq | Ord | Add | Mul | Div | Rem | Key | IntLit | OmegaLit) => yes(),
         (T::Fp(_) | T::Fpn(..), Eq | Add | Mul | Div | Key | IntLit | FracLit) => yes(),
+        (T::Fp(_), PrimeField | PolyBase) | (T::Int, PolyBase) => yes(),
         (T::Poly, Eq | Add | Mul | Div | Rem | Key) => yes(),
-        (T::Poly, IntLit | FracLit) => each(class),
-        (T::RatFunc, Eq | Add | Mul | Div | Key | IntLit | FracLit) => yes(),
+        // A literal fixes the coefficient ring; defaulting reads `Int[t]`.
+        (T::Poly, IntLit | FracLit) => Some(
+            args.iter()
+                .flat_map(|arg| {
+                    [
+                        Pred::Is(class, arg.clone()),
+                        Pred::Is(PolyBase, arg.clone()),
+                    ]
+                })
+                .collect(),
+        ),
+        (T::RatFunc, Eq | Add | Mul | Div | Key) => yes(),
+        (T::RatFunc, IntLit | FracLit) => Some(
+            args.iter()
+                .map(|arg| Pred::Is(PrimeField, arg.clone()))
+                .collect(),
+        ),
         (T::Mv, Eq | Add | Mul | Div | Wedge) => yes(),
         (T::Mv, IntLit | StarLit | FracLit | OmegaLit) => each(class),
         (T::List | T::Tuple(_) | T::Option, Eq | Key) => each(class),
-        (T::Data(id), Eq | Key) => data.get(*id).plain.then(Vec::new),
+        (T::Data(id), Eq) => data.get(*id).eq.then(Vec::new),
+        (T::Data(id), Key) => data.get(*id).key.then(Vec::new),
         _ => None,
     }
 }

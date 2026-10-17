@@ -4,7 +4,7 @@ use std::collections::BTreeSet;
 use std::rc::Rc;
 
 use ogdoad::games::Game;
-use ogdoad::scalar::{Rational, Surreal};
+use ogdoad::scalar::{Omnific, Rational, Surreal};
 
 use super::super::algebra::scalar::{AddOp, DivOp, MulOp, RemOp, ScalarV, SubOp};
 use super::super::core::{mentioned, visit_vars, CBind, CClause, CItem, CPat, Core, CtorRef, Lam};
@@ -309,6 +309,7 @@ impl<'a> Interp<'a> {
                 self.star_literal(index, &ty)
             }
             Core::Omega(ty) => match self.resolve(ty, &scope.tenv) {
+                ty @ Ty::Con(TyCon::Mv, _) => super::super::algebra::omega_literal(&ty),
                 Ty::Con(con, _) => Ok(Value::Scalar(ScalarV::omega(con)?)),
                 other => Err(unresolved(&other)),
             },
@@ -419,6 +420,11 @@ impl<'a> Interp<'a> {
             Core::Subst(callee, arg, span) => {
                 let callee = self.eval(callee, scope)?;
                 let arg = self.eval(arg, scope)?;
+                // Horner's rule: one product per coefficient, and composition
+                // grows the accumulator to the product of the sizes.
+                let p = size_of(&callee).unwrap_or(1);
+                let q = size_of(&arg).unwrap_or(1);
+                self.spend(p.saturating_mul(p).saturating_mul(q).saturating_mul(q))?;
                 super::super::algebra::substitute(&callee, &arg).map_err(|e| e.at(*span))
             }
             Core::Index(base, index, span) => {
@@ -865,13 +871,24 @@ impl<'a> Interp<'a> {
                     .ok_or_else(overflow)
             }
             (BinaryOp::Pow, Value::Int(a), Value::Int(k)) => {
-                let k = u32::try_from(*k).map_err(|_| {
-                    err(
+                if *k < 0 {
+                    return Err(err(
                         GrundyErrorKind::Domain,
-                        "Int powers take a natural exponent below 2³²",
+                        "Int powers take a natural exponent",
                     )
-                })?;
-                a.checked_pow(k).map(Value::Int).ok_or_else(overflow)
+                    .with_hint("negative powers leave the integers; use a field such as Surreal"));
+                }
+                match a {
+                    0 => Ok(Value::Int(i128::from(*k == 0))),
+                    1 => Ok(Value::Int(1)),
+                    -1 => Ok(Value::Int(if k % 2 == 0 { 1 } else { -1 })),
+                    // |a| ≥ 2 overflows i128 past the 127th power.
+                    _ => u32::try_from(*k)
+                        .ok()
+                        .and_then(|k| a.checked_pow(k))
+                        .map(Value::Int)
+                        .ok_or_else(overflow),
+                }
             }
             (BinaryOp::Add, Value::Game(a), Value::Game(b)) => Ok(Value::Game(a.add(b, self)?)),
             (BinaryOp::Sub, Value::Game(a), Value::Game(b)) => Ok(Value::Game(a.sub(b, self)?)),
@@ -892,6 +909,11 @@ impl<'a> Interp<'a> {
             (BinaryOp::Mul, Value::Scalar(a), Value::Scalar(b)) => {
                 Ok(Value::Scalar(a.zip(b, MulOp)?))
             }
+            (
+                BinaryOp::Div,
+                Value::Scalar(ScalarV::Omnific(a)),
+                Value::Scalar(ScalarV::Omnific(b)),
+            ) => self.omnific_divide(a, b),
             (BinaryOp::Div, Value::Scalar(a), Value::Scalar(b)) => {
                 Ok(Value::Scalar(a.zip(b, DivOp)?))
             }
@@ -924,13 +946,94 @@ impl<'a> Interp<'a> {
             },
             (Value::Int(a), Value::Int(b)) => Ok(order_relation(op, Some(a.cmp(b)))),
             (Value::Scalar(a), Value::Scalar(b)) => Ok(a.relation(op, b)),
-            _ if op == RelOp::Eq => Ok(values_equal(lhs, rhs)),
+            (Value::Poly(_) | Value::RatFunc(_) | Value::Mv(_), _) => {
+                super::super::algebra::relation(op, lhs, rhs)
+            }
+            _ if op == RelOp::Eq => self.equal(lhs, rhs),
             _ => super::super::algebra::relation(op, lhs, rhs),
+        }
+    }
+
+    /// `=` on containers is element-wise with each element's own `=`: Forms
+    /// compare by value where the stopper theory licenses it, and
+    /// multivectors only within one algebra.
+    pub fn equal(&mut self, a: &Value, b: &Value) -> GrundyResult<bool> {
+        let pairwise = |interp: &mut Self, xs: &[Value], ys: &[Value]| -> GrundyResult<bool> {
+            if xs.len() != ys.len() {
+                return Ok(false);
+            }
+            for (x, y) in xs.iter().zip(ys) {
+                if !interp.equal(x, y)? {
+                    return Ok(false);
+                }
+            }
+            Ok(true)
+        };
+        match (a, b) {
+            (Value::Tuple(x), Value::Tuple(y)) | (Value::List(x), Value::List(y)) => {
+                pairwise(self, x, y)
+            }
+            (Value::Data(x), Value::Data(y)) => {
+                Ok(x.ctor == y.ctor && pairwise(self, &x.fields, &y.fields)?)
+            }
+            (Value::Option(x), Value::Option(y)) => match (x, y) {
+                (Some(x), Some(y)) => self.equal(x, y),
+                (None, None) => Ok(true),
+                _ => Ok(false),
+            },
+            (
+                Value::Game(_)
+                | Value::Form(_)
+                | Value::Int(_)
+                | Value::Scalar(_)
+                | Value::Poly(_)
+                | Value::RatFunc(_)
+                | Value::Mv(_),
+                _,
+            ) => self.relation(RelOp::Eq, a, b),
+            _ => Ok(values_equal(a, b)),
         }
     }
 }
 
 impl Interp<'_> {
+    /// Exact omnific division, by long division on leading terms. An omnific
+    /// quotient has no negative exponent and an integer constant term, so a
+    /// step that needs a negative exponent, or a non-integral result, shows
+    /// that no omnific quotient exists.
+    fn omnific_divide(&mut self, a: &Omnific, b: &Omnific) -> GrundyResult<Value> {
+        use ogdoad::scalar::Scalar as _;
+        if b.is_zero() {
+            return Err(err(GrundyErrorKind::DivisionByZero, "division by zero"));
+        }
+        let not_exact = || {
+            err(
+                GrundyErrorKind::NotInvertible,
+                "the quotient is not an omnific integer",
+            )
+            .with_hint("omnific division is exact; its units are ±1")
+        };
+        let divisor = b.inner();
+        let (lead_exp, lead_coef) = divisor.terms()[0].clone();
+        let lead_inv = lead_coef.inv().expect("a leading coefficient is nonzero");
+        let mut rem = a.inner().clone();
+        let mut quot = Surreal::zero();
+        while !rem.is_zero() {
+            self.spend(divisor.terms().len() as u128)?;
+            let (exp, coef) = rem.terms()[0].clone();
+            let q_exp = exp.add(&lead_exp.neg());
+            if q_exp.sign() == std::cmp::Ordering::Less {
+                return Err(not_exact());
+            }
+            let term = Surreal::monomial(q_exp, coef.mul(&lead_inv));
+            quot = quot.add(&term);
+            rem = rem.add(&term.mul(divisor).neg());
+        }
+        Omnific::from_surreal(quot)
+            .map(|q| Value::Scalar(ScalarV::Omnific(q)))
+            .ok_or_else(not_exact)
+    }
+
     /// `x ↑ k` by square-and-multiply; negative `k` inverts first.
     fn power(&mut self, base: Value, k: i128) -> GrundyResult<Value> {
         let unit = one_like(&base)?;

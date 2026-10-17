@@ -16,7 +16,7 @@ use super::super::games::{claims, rules};
 use super::super::syntax::ast::Mover;
 use super::super::types::{Ty, TyCon};
 use super::interp::{game_cell, Interp};
-use super::value::{key_cmp, values_equal, Value};
+use super::value::{key_cmp, Value};
 
 /// Call a builtin.
 pub fn call_builtin(
@@ -75,19 +75,20 @@ pub fn call_builtin(
             }
             Ok(Value::Bool(!want))
         }
-        B::Contains => Ok(Value::Bool(
-            arg(0)
-                .as_list()
-                .iter()
-                .any(|item| values_equal(item, arg(1))),
-        )),
-        B::Reverse => Ok(Value::list(
-            arg(0).as_list().iter().rev().cloned().collect(),
-        )),
+        B::Contains => {
+            for item in arg(0).as_list().iter() {
+                interp.spend(1)?;
+                if interp.equal(item, arg(1))? {
+                    return Ok(Value::Bool(true));
+                }
+            }
+            Ok(Value::Bool(false))
+        }
+        B::Reverse => produced(interp, arg(0).as_list().iter().rev().cloned().collect()),
         B::Sort => {
             let mut items = arg(0).as_list().to_vec();
             items.sort_by(key_cmp);
-            Ok(Value::list(items))
+            produced(interp, items)
         }
         B::Unique => {
             let items = arg(0).as_list();
@@ -101,14 +102,15 @@ pub fn call_builtin(
                     previous = Some(index);
                 }
             }
-            Ok(Value::list(
+            produced(
+                interp,
                 items
                     .iter()
                     .zip(keep)
                     .filter(|(_, keep)| *keep)
                     .map(|(item, _)| item.clone())
                     .collect(),
-            ))
+            )
         }
         B::Flatten => {
             let mut out = Vec::new();
@@ -118,14 +120,15 @@ pub fn call_builtin(
             }
             Ok(Value::list(out))
         }
-        B::Zip => Ok(Value::list(
+        B::Zip => produced(
+            interp,
             arg(0)
                 .as_list()
                 .iter()
                 .zip(arg(1).as_list().iter())
                 .map(|(a, b)| Value::tuple(vec![a.clone(), b.clone()]))
                 .collect(),
-        )),
+        ),
         B::Sums => {
             let k = arg(1).as_int();
             if k < 0 {
@@ -216,18 +219,20 @@ pub fn call_builtin(
         B::Lefts | B::Rights => {
             let left = builtin == B::Lefts;
             match arg(0) {
-                Value::Game(g) => Ok(Value::list(
+                Value::Game(g) => produced(
+                    interp,
                     if left { g.lefts() } else { g.rights() }
                         .into_iter()
                         .map(Value::Game)
                         .collect(),
-                )),
-                Value::Form(f) => Ok(Value::list(
+                ),
+                Value::Form(f) => produced(
+                    interp,
                     game_options(&f.0, left)
                         .into_iter()
                         .map(|option| Value::Form(FormV(option)))
                         .collect(),
-                )),
+                ),
                 other => Err(err(
                     GrundyErrorKind::Domain,
                     format!("options of a {}", other.kind_name()),
@@ -309,7 +314,10 @@ pub fn call_builtin(
         | B::Dual
         | B::Grade
         | B::Component
-        | B::ScalarPart => super::super::algebra::call(interp, builtin, tys, args),
+        | B::ScalarPart => {
+            let value = super::super::algebra::call(interp, builtin, tys, args)?;
+            charge_list(interp, value)
+        }
         // ---------------------------------------------- rulesets and evidence
         B::Impartial
         | B::Partizan
@@ -318,7 +326,10 @@ pub fn call_builtin(
         | B::Graph
         | B::Sg
         | B::Moves
-        | B::Winning => rules::call(interp, builtin, args),
+        | B::Winning => {
+            let value = rules::call(interp, builtin, args)?;
+            charge_list(interp, value)
+        }
         B::Misere
         | B::MisereQuotient
         | B::MisereEqual
@@ -340,7 +351,10 @@ pub fn call_builtin(
         | B::OutcomeWitness
         | B::SgWitness
         | B::PeriodicWitness
-        | B::SeparationWitness => claims::call(interp, builtin, args),
+        | B::SeparationWitness => {
+            let value = claims::call(interp, builtin, args)?;
+            charge_list(interp, value)
+        }
     }
 }
 
@@ -350,6 +364,7 @@ pub fn zero_of(ty: &Ty) -> GrundyResult<Value> {
         Ty::Con(TyCon::Int, _) => Ok(Value::Int(0)),
         Ty::Con(TyCon::Game, _) => Ok(Value::Game(GameV::zero())),
         Ty::Con(TyCon::Form, _) => Ok(Value::Form(FormV::finite(Game::zero()))),
+        Ty::Con(TyCon::Poly | TyCon::RatFunc | TyCon::Mv, _) => super::super::algebra::zero(ty),
         Ty::Con(con, _) => ScalarV::zero(*con)
             .map(Value::Scalar)
             .ok_or_else(|| err(GrundyErrorKind::Domain, "internal: no zero for this type")),
@@ -358,6 +373,20 @@ pub fn zero_of(ty: &Ty) -> GrundyResult<Value> {
             "internal: unresolved type for zero",
         )),
     }
+}
+
+/// Pay for a list another module's builtin produced.
+fn charge_list(interp: &mut Interp<'_>, value: Value) -> GrundyResult<Value> {
+    if let Value::List(items) = &value {
+        interp.spend(items.len() as u128)?;
+    }
+    Ok(value)
+}
+
+/// A list a builtin produced, paid one unit per element.
+fn produced(interp: &mut Interp<'_>, items: Vec<Value>) -> GrundyResult<Value> {
+    interp.spend(items.len() as u128)?;
+    Ok(Value::list(items))
 }
 
 fn game_of(value: &Value) -> GameV {

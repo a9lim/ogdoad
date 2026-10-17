@@ -63,9 +63,9 @@ pub trait GScalar: Scalar + Sized + 'static {
         self.inv()
             .ok_or_else(|| err(GrundyErrorKind::NotInvertible, "not invertible"))
     }
-    /// `a / b`.
+    /// `a / b`, through the checked product.
     fn divide(&self, rhs: &Self) -> GrundyResult<Self> {
-        Ok(self.mul(&rhs.inverse()?))
+        self.times(&rhs.inverse()?)
     }
     /// `a % b`.
     fn remainder(&self, _rhs: &Self) -> GrundyResult<Self> {

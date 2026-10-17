@@ -128,7 +128,10 @@ impl Session {
         let fields = data_field_types(decl, &names).map_err(|e| e.at(decl.span))?;
         let mut seen = std::collections::BTreeSet::new();
         for (ctor, _) in &fields {
-            if !seen.insert(ctor.clone()) || super::types::infer::is_builtin_ctor(ctor) {
+            if !seen.insert(ctor.clone())
+                || super::types::infer::is_builtin_ctor(ctor)
+                || self.types.ctors.contains_key(ctor)
+            {
                 return Err(GrundyError::new(
                     GrundyErrorKind::Shadow,
                     decl.span,
@@ -136,14 +139,19 @@ impl Session {
                 ));
             }
         }
-        let plain = fields
-            .iter()
-            .flat_map(|(_, tys)| tys)
-            .all(|ty| self.plain(ty, id));
+        use super::types::Class;
+        let derives = |class: Class| {
+            fields
+                .iter()
+                .flat_map(|(_, tys)| tys)
+                .all(|ty| self.derives(class, ty, id))
+        };
+        let (eq, key) = (derives(Class::Eq), derives(Class::Key));
         self.data.decls.push(DataInfo {
             name: decl.name.clone(),
             ctors: fields.clone(),
-            plain,
+            eq,
+            key,
         });
         self.types.types.insert(decl.name.clone(), id);
         let result = Ty::con(TyCon::Data(id));
@@ -166,18 +174,24 @@ impl Session {
         Ok(())
     }
 
-    /// Whether a field type supports `=` and `Key`, assuming the declaration
-    /// being defined does.
-    fn plain(&self, ty: &Ty, own: DataId) -> bool {
+    /// Whether a field type has `class` (`Eq` or `Key`), assuming the
+    /// declaration being defined does.
+    fn derives(&self, class: super::types::Class, ty: &Ty, own: DataId) -> bool {
         use super::types::{instance, Class, Pred};
         match ty {
-            Ty::Con(TyCon::Data(id), _) => *id == own || self.data.get(*id).plain,
-            Ty::Con(..) => [Class::Eq, Class::Key].iter().all(|class| {
-                instance(*class, ty, &self.data).is_some_and(|subgoals| {
-                    subgoals.iter().all(|pred| match pred {
-                        Pred::Is(_, inner) => self.plain(inner, own),
-                        Pred::Pow(..) => false,
-                    })
+            Ty::Con(TyCon::Data(id), _) if *id == own => true,
+            Ty::Con(TyCon::Data(id), _) => {
+                let info = self.data.get(*id);
+                if class == Class::Key {
+                    info.key
+                } else {
+                    info.eq
+                }
+            }
+            Ty::Con(..) => instance(class, ty, &self.data).is_some_and(|subgoals| {
+                subgoals.iter().all(|pred| match pred {
+                    Pred::Is(class, inner) => self.derives(*class, inner, own),
+                    Pred::Pow(..) => false,
                 })
             }),
             _ => false,

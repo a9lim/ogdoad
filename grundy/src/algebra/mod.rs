@@ -138,6 +138,28 @@ pub fn frac_literal(ty: &Ty, num: i128, den: u128) -> GrundyResult<Value> {
     }
 }
 
+/// `ω` at an algebra type.
+pub fn omega_literal(ty: &Ty) -> GrundyResult<Value> {
+    match ty {
+        Ty::Con(TyCon::Mv, _) => {
+            let con = scalar_con(ty).ok_or_else(|| internal("coefficient"))?;
+            mv_scalar(&Value::Scalar(ScalarV::omega(con)?))
+        }
+        _ => Err(internal("an ω literal at this type")),
+    }
+}
+
+/// The additive identity at an algebra type.
+pub fn zero(ty: &Ty) -> GrundyResult<Value> {
+    match ty {
+        Ty::Con(TyCon::Mv, args) => match &args[0] {
+            Ty::Con(TyCon::Nimber | TyCon::Ordinal, _) => star_literal(ty, &StarIndex::Finite(0)),
+            _ => int_literal(ty, 0),
+        },
+        _ => int_literal(ty, 0),
+    }
+}
+
 /// A star literal at an algebra type.
 pub fn star_literal(ty: &Ty, index: &StarIndex) -> GrundyResult<Value> {
     match ty {
@@ -194,7 +216,8 @@ pub fn relation(op: RelOp, lhs: &Value, rhs: &Value) -> GrundyResult<bool> {
     match (op, lhs, rhs) {
         (RelOp::Eq, Value::Poly(a), Value::Poly(b)) => Ok(a == b),
         (RelOp::Eq, Value::RatFunc(a), Value::RatFunc(b)) => Ok(a == b),
-        (RelOp::Eq, Value::Mv(a), Value::Mv(b)) => Ok(a.equals(b)),
+        // Operands from different algebras do not compare, as they do not add.
+        (RelOp::Eq, Value::Mv(a), Value::Mv(b)) => Ok(a.zip(b, MvOp::Sub)?.is_zero()),
         _ => Err(internal("this relation")),
     }
 }
@@ -288,12 +311,22 @@ pub fn call(
             let Value::Scalar(ScalarV::Nimber(x)) = &args[0] else {
                 unreachable!("typed Nimber")
             };
+            // Tr: F_{2^m} → F₂. The nim subfields are F_{2^m} for m a power
+            // of two up to 128, and F_{2^m} is the nimbers below 2^m.
             let m = args[1].as_int();
-            if m <= 0 {
+            if !(1..=128).contains(&m) || m & (m - 1) != 0 {
                 return Err(err(
                     GrundyErrorKind::Domain,
-                    "the nimber trace degree is positive",
-                ));
+                    format!("F_(2^{m}) is not a nim subfield"),
+                )
+                .with_hint("the subfield degrees are 1, 2, 4, …, 128"));
+            }
+            if m < 128 && x.0 >> m != 0 {
+                return Err(err(
+                    GrundyErrorKind::Domain,
+                    format!("*{} does not lie in F_(2^{m})", x.0),
+                )
+                .with_hint("F_(2^m) is the nimbers below 2^m"));
             }
             Ok(Value::Scalar(ScalarV::Nimber(Nimber(nim_trace(
                 x.0, m as u128,
