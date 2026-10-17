@@ -4755,11 +4755,7 @@ impl PySurcomplex {
         matches!(parse_surcomplex(other), Ok(x) if x == self.inner)
     }
     fn __repr__(&self) -> String {
-        if self.inner.im.is_zero() {
-            format!("{}", self.inner.re)
-        } else {
-            format!("{} + ({})i", self.inner.re, self.inner.im)
-        }
+        self.inner.to_string()
     }
 }
 

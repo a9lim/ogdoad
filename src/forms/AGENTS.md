@@ -77,10 +77,8 @@ convention):
 - `Record` for static catalogue entries;
 - `Signature` and `Isotropy` for those literal structures.
 
-Public reports implement canonical `Display`, and Python `repr` should
-delegate to it; a few wrappers (`ArfInvariants`, `BrownInvariants`,
-`RationalBrauerWallClass`) still hand-format and are the exception, not the
-pattern. Preserve honesty markers such as radical anisotropy,
+Public reports implement canonical `Display`, and Python `repr` delegates to
+it. Preserve honesty markers such as radical anisotropy,
 complement-dependent characteristic-two data, `mass_closed`, and bounded
 searches that return `None`.
 

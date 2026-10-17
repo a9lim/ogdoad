@@ -2360,7 +2360,7 @@ impl PyNumberGame {
         op.matches(self.inner.cmp(&other.inner))
     }
     fn __repr__(&self) -> String {
-        format!("NumberGame({:?})", self.inner.value())
+        self.inner.to_string()
     }
 }
 
@@ -2423,7 +2423,7 @@ impl PyNimberGame {
         op.matches(self.inner.cmp(&other.inner))
     }
     fn __repr__(&self) -> String {
-        format!("NimberGame(⋆{:?})", self.inner.grundy())
+        self.inner.to_string()
     }
 }
 
@@ -2688,7 +2688,7 @@ impl PyLoopyValue {
         }
     }
     fn __repr__(&self) -> String {
-        format!("LoopyValue({:?})", self.inner)
+        self.inner.to_string()
     }
 }
 

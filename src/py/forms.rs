@@ -72,14 +72,7 @@ impl PyArfInvariants {
         self.inner.o_type().to_string()
     }
     fn __repr__(&self) -> String {
-        format!(
-            "ArfInvariants(arf={}, type={}, rank={}, radical_dim={}, radical_anisotropic={})",
-            self.inner.arf,
-            self.inner.o_type(),
-            self.inner.rank,
-            self.inner.radical_dim,
-            self.inner.radical_anisotropic,
-        )
+        self.inner.display()
     }
 }
 
@@ -108,13 +101,7 @@ impl PyBrownInvariants {
         self.inner.radical_anisotropic
     }
     fn __repr__(&self) -> String {
-        format!(
-            "BrownInvariants(beta={}, rank={}, radical_dim={}, radical_anisotropic={})",
-            self.inner.beta,
-            self.inner.rank,
-            self.inner.radical_dim,
-            self.inner.radical_anisotropic
-        )
+        self.inner.display()
     }
 }
 
@@ -5107,20 +5094,7 @@ impl PyRationalBrauerWallClass {
     }
 
     fn __repr__(&self) -> String {
-        let places = self
-            .inner
-            .clifford_brauer_class()
-            .ramified_places()
-            .iter()
-            .copied()
-            .map(place_name)
-            .collect::<Vec<_>>();
-        format!(
-            "RationalBrauerWallClass(parity={}, signed_discriminant={}, clifford_ramified={places:?}, real_bott_index={})",
-            self.inner.dimension_parity(),
-            self.inner.signed_discriminant(),
-            self.inner.real_bott_index()
-        )
+        self.inner.to_string()
     }
 }
 

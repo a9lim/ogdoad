@@ -43,9 +43,7 @@ monomorphizations of the pure-Rust core behind the optional `python` feature.
 - A scalar `__mul__` must return `NotImplemented` for a multivector so Python
   can dispatch to the multivector's `__rmul__`.
 - Python `repr`/display delegates to canonical Rust `Display` whenever a core
-  report or value exists. `ArfInvariants`, `BrownInvariants`,
-  `RationalBrauerWallClass`, `NumberGame`, `NimberGame`, `LoopyValue`, and
-  `Surcomplex` still hand-format; converge them rather than adding more.
+  report or value exists.
 
 ## Rules
 
