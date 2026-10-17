@@ -137,14 +137,18 @@ pub(crate) fn inverse_matrix<S: Scalar>(mut m: Vec<Vec<S>>) -> Option<Vec<Vec<S>
 /// `ncols` columns.
 ///
 /// Columns without an available unit pivot remain free while elimination
-/// continues through later columns. Returns `None` if a nonzero residual row
-/// remains after all unit pivots are exhausted. Over a field this is ordinary
-/// nullspace elimination; over a ring it succeeds only when unit pivots suffice.
+/// continues through later columns. Returns `None` if some row does not have
+/// exactly `ncols` entries, or if a nonzero residual row remains after all unit
+/// pivots are exhausted. Over a field this is ordinary nullspace elimination;
+/// over a ring it succeeds only when unit pivots suffice.
 pub(crate) fn unit_pivot_nullspace<S: Scalar>(
     mut m: Vec<Vec<S>>,
     ncols: usize,
 ) -> Option<Vec<Vec<S>>> {
     let nrows = m.len();
+    if m.iter().any(|row| row.len() != ncols) {
+        return None;
+    }
     let mut pivot_cols: Vec<usize> = Vec::new();
     let mut row = 0;
     for col in 0..ncols {
@@ -219,6 +223,16 @@ mod tests {
         );
         assert_eq!(unit_pivot_rank::<Rational>(vec![]), Some(0));
         assert_eq!(unit_pivot_rank(vec![vec![r(1)], vec![r(0), r(1)]]), None);
+    }
+
+    #[test]
+    fn nullspace_rejects_rows_of_the_wrong_width() {
+        assert!(unit_pivot_nullspace(vec![vec![r(1), r(2)]], 3).is_none());
+        assert!(unit_pivot_nullspace(vec![vec![r(1), r(2), r(3)], vec![r(1)]], 3).is_none());
+        assert_eq!(
+            unit_pivot_nullspace::<Rational>(vec![], 2),
+            Some(vec![vec![r(1), r(0)], vec![r(0), r(1)]])
+        );
     }
 
     #[test]
