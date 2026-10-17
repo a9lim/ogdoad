@@ -1,100 +1,71 @@
-use grundy::{needs_continuation, GrundySession, GRUNDY_VERSION, WORLD_MENU};
+use grundy::{needs_continuation, GrundySession, GRUNDY_VERSION};
 use std::io::{self, Write};
 
-const TUTOR_TASKS: &str = concat!(
-    "commands:\n",
-    "  :world <decl>  :fuel [n]  :graph [n]  :env  :help  :quit\n",
-    "try (:world, then expression):\n",
-    "  :world nimber 0    | *3 ⋅ *5\n",
-    "  :world game        | {1, 2 | 0} > 0        up ∥ *1\n",
-    "  :world integer 0   | fact =: n ↦ (if n = 0 then 1 else n⋅fact@(n-1)); fact@5\n",
-    "  :world game        | ones =: {1 | ones}; ones ‿‿ ones\n",
-    "  :world surreal 0   | ω↑(1/2) + 1/2",
+const HELP: &str = concat!(
+    "commands:  :type e   :env   :fuel [n]   :graph [n]   :help   :quit\n",
+    "values:\n",
+    "  3 + 4          *3 ⋅ *5          {0 | 1} + *1        ω↑(1/2)\n",
+    "  (t↑2 + 1 : F5[t])               (x + 1 : F9)        [k⋅k for k in 0..5]\n",
+    "rulesets:\n",
+    "  g := impartial(n ↦ [[a, n - a] for a in 1..n if 2⋅a < n])   // Grundy's game\n",
+    "  [sg(g, n) for n in 0..20]       value(g, 7)          winning(g, [7, 5], Left)\n",
+    "  kayles := octal([7, 7])         periodic(kayles, 71, 12)\n",
+    "loopy games:\n",
+    "  over =: {0 | over}              over = over          over ‿‿ over\n",
+    "  certify(over)                   outcome(graph(g, 9))\n",
+    "misère:\n",
+    "  sampled(misere_quotient(g, [1, 2, 3, 4], 3, 3))      separate(g, [3], [6], sums([1, 2], 2))\n",
+    "algebra:\n",
+    "  alg := clifford([*1, *1]); [e0, e1] := basis(alg); (e0 + e1) ⋅ (e0 + e1)",
 );
 
-fn help_screen() -> String {
-    format!("{WORLD_MENU}\n{TUTOR_TASKS}")
-}
-
 fn main() {
-    let mut session = GrundySession::new("integer 0").expect("default grundy world");
-    println!("grundy {GRUNDY_VERSION} — {}", session.world_summary());
+    let mut session = GrundySession::new();
+    println!("grundy {GRUNDY_VERSION}");
     let stdin = io::stdin();
     let mut pending = String::new();
     loop {
-        if pending.is_empty() {
-            print!("og> ");
-        } else {
-            print!(">> ");
-        }
+        print!("{}", if pending.is_empty() { "og> " } else { ">> " });
         io::stdout().flush().expect("flush prompt");
         let mut line = String::new();
         if stdin.read_line(&mut line).expect("read line") == 0 {
             break;
         }
         let line = line.trim();
-        if pending.is_empty() && line.is_empty() {
-            continue;
-        }
         if pending.is_empty() {
-            match line {
-                ":quit" | ":q" => break,
-                ":help" => {
-                    println!("{}", help_screen());
-                    continue;
-                }
-                ":env" => {
-                    println!("{}", session.world_summary());
-                    for binding in session.env_summary() {
-                        println!("{binding}");
-                    }
-                    continue;
-                }
-                ":fuel" => {
-                    println!("{}", session.fuel_budget());
-                    continue;
-                }
-                ":graph" => {
-                    println!("{}", session.graph_budget());
-                    continue;
-                }
-                _ => {}
+            if line.is_empty() {
+                continue;
             }
-        }
-        if pending.is_empty() {
-            if let Some(rest) = line.strip_prefix(":fuel ") {
-                match rest.trim().parse::<u128>() {
-                    Ok(budget) => {
-                        session.set_fuel_budget(budget);
-                        println!("{budget}");
+            if let Some(command) = line.strip_prefix(':') {
+                let (name, arg) = command.split_once(' ').unwrap_or((command, ""));
+                let arg = arg.trim();
+                match name {
+                    "quit" | "q" => break,
+                    "help" => println!("{HELP}"),
+                    "env" => {
+                        for (name, scheme) in session.env() {
+                            println!("{name} : {scheme}");
+                        }
                     }
-                    Err(_) => eprintln!("E_Parse: fuel budget must be a u128"),
+                    "type" => match session.type_of(arg) {
+                        Ok(ty) => println!("{ty}"),
+                        Err(err) => eprintln!("{err}"),
+                    },
+                    "fuel" if arg.is_empty() => println!("{}", session.fuel()),
+                    "fuel" => match arg.parse() {
+                        Ok(n) => session.set_fuel(n),
+                        Err(_) => eprintln!("E_Parse: the fuel budget is a natural number"),
+                    },
+                    "graph" if arg.is_empty() => println!("{}", session.graph_budget()),
+                    "graph" => match arg.parse() {
+                        Ok(n) => session.set_graph_budget(n),
+                        Err(_) => eprintln!("E_Parse: the graph budget is a natural number"),
+                    },
+                    other => eprintln!("unknown command `:{other}`; try `:help`"),
                 }
                 continue;
             }
-        }
-        if pending.is_empty() {
-            if let Some(rest) = line.strip_prefix(":graph ") {
-                match rest.trim().parse::<u128>() {
-                    Ok(budget) => {
-                        session.set_graph_budget(budget);
-                        println!("{budget}");
-                    }
-                    Err(_) => eprintln!("E_Parse: graph budget must be a u128"),
-                }
-                continue;
-            }
-        }
-        if pending.is_empty() {
-            if let Some(rest) = line.strip_prefix(":world ") {
-                match session.set_world(rest) {
-                    Ok(()) => println!("{}", session.world_summary()),
-                    Err(err) => eprintln!("{err}"),
-                }
-                continue;
-            }
-        }
-        if !pending.is_empty() {
+        } else {
             pending.push('\n');
         }
         pending.push_str(line);
@@ -109,7 +80,7 @@ fn main() {
         }
         match session.eval_line(&pending) {
             Ok(out) => {
-                if !out.canonical.is_empty() && out.canonical != pending {
+                if out.canonical != pending {
                     println!("{}", out.canonical);
                 }
                 if let Some(value) = out.value {
@@ -127,14 +98,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn tutor_is_one_screen_and_covers_commands_and_seed_families() {
-        let help = help_screen();
-        assert!(help.lines().count() <= 20);
-        for command in [":world", ":fuel", ":graph", ":env", ":help", ":quit"] {
-            assert!(help.contains(command));
-        }
-        for seed in ["*3 ⋅ *5", "up ∥ *1", "fact =:", "ones ‿‿ ones", "ω↑(1/2)"] {
-            assert!(help.contains(seed));
+    fn help_fits_one_screen_and_names_every_command() {
+        assert!(HELP.lines().count() <= 20);
+        for command in [":type", ":env", ":fuel", ":graph", ":help", ":quit"] {
+            assert!(HELP.contains(command), "{command}");
         }
     }
 }

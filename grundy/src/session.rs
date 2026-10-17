@@ -1,416 +1,295 @@
-//! Persistent evaluation session, worker, and source/statement depth guards.
+//! A session: persistent types, data declarations, and global values.
+//!
+//! [`Session`] is single-threaded (values are `Rc`). The public handle runs
+//! it on a persistent large-stack worker.
 
-use super::*;
+use std::collections::BTreeMap;
+use std::rc::Rc;
 
-/// Canonical source and optional rendered value returned for one input line.
+use super::core::CtorRef;
+use super::display::Show;
+use super::error::{GrundyError, GrundyErrorKind, GrundyResult};
+use super::eval::interp::{Interp, Scope, DEFAULT_FUEL, DEFAULT_GRAPH_BUDGET};
+use super::eval::value::{Env, Globals, Value};
+use super::games::form::{FormV, GameElement};
+use super::syntax::ast::{DataDecl, Stmt};
+use super::syntax::parse::{parse_expr, parse_statement};
+use super::syntax::unparse::unparse_stmt;
+use super::types::infer::{data_field_types, Checker, CtorInfo, Globals as TypeGlobals};
+use super::types::{
+    show_scheme, show_ty, DataId, DataInfo, DataRegistry, Scheme, Ty, TyCon, TypeState, VarNames,
+};
+
+/// The printed result of one statement.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct EvalLine {
-    /// Canonical rendering of the submitted statement.
-    pub canonical: String,
-    /// Rendered value, or `None` for a binding-only statement.
+pub struct Output {
+    /// The canonical rendering of the input.
+    pub echo: String,
+    /// The final value's display, with a type annotation when needed.
     pub value: Option<String>,
 }
 
-/// Evaluate a newline-delimited program in one world and join its values.
-pub fn eval_to_string(world: &str, src: &str) -> GrundyResult<String> {
-    let mut session = GrundySession::new(world)?;
-    let mut out = Vec::new();
-    let mut pending = String::new();
-    for line in src.lines() {
-        let trimmed = line.trim();
-        if pending.is_empty() && (trimmed.is_empty() || trimmed.starts_with("//")) {
-            continue;
-        }
-        if pending.is_empty() {
-            if let Some(rest) = trimmed.strip_prefix(":world ") {
-                session.set_world(rest)?;
-                continue;
-            }
-            if let Some(rest) = trimmed.strip_prefix(":fuel ") {
-                let budget = rest
-                    .trim()
-                    .parse::<u128>()
-                    .map_err(|_| parse_error("fuel budget must be a u128"))?;
-                session.set_fuel_budget(budget);
-                continue;
-            }
-            if let Some(rest) = trimmed.strip_prefix(":graph ") {
-                let budget = rest
-                    .trim()
-                    .parse::<u128>()
-                    .map_err(|_| parse_error("graph budget must be a u128"))?;
-                session.set_graph_budget(budget);
-                continue;
-            }
-        }
-        if !pending.is_empty() {
-            pending.push('\n');
-        }
-        pending.push_str(trimmed);
-        if needs_continuation(&pending)? {
-            continue;
-        }
-        if let Some(value) = session.eval_line(&pending)?.value {
-            out.push(value);
-        }
-        pending.clear();
+/// Session state.
+pub struct Session {
+    ts: TypeState,
+    data: DataRegistry,
+    types: TypeGlobals,
+    values: Globals,
+    /// The per-statement work budget.
+    pub fuel: u128,
+    /// The node budget.
+    pub graph_budget: u128,
+}
+
+impl Default for Session {
+    fn default() -> Self {
+        Session::new()
     }
-    if !pending.is_empty() {
-        if let Some(value) = session.eval_line(&pending)?.value {
-            out.push(value);
+}
+
+impl Session {
+    /// An empty session.
+    pub fn new() -> Session {
+        Session {
+            ts: TypeState::default(),
+            data: DataRegistry::default(),
+            types: TypeGlobals::default(),
+            values: Rc::new(BTreeMap::new()),
+            fuel: DEFAULT_FUEL,
+            graph_budget: DEFAULT_GRAPH_BUDGET,
         }
     }
-    Ok(out.join("\n"))
-}
 
-enum WorkerReply<T> {
-    Returned(T),
-    Panicked(Box<dyn std::any::Any + Send + 'static>),
-}
-
-enum WorkerCommand {
-    EvalLine {
-        src: String,
-        reply: mpsc::Sender<WorkerReply<GrundyResult<EvalLine>>>,
-    },
-    SetWorld {
-        decl: String,
-        reply: mpsc::Sender<WorkerReply<GrundyResult<()>>>,
-    },
-    SetFuelBudget {
-        budget: u128,
-        reply: mpsc::Sender<WorkerReply<()>>,
-    },
-    FuelBudget {
-        reply: mpsc::Sender<WorkerReply<u128>>,
-    },
-    SetGraphBudget {
-        budget: u128,
-        reply: mpsc::Sender<WorkerReply<()>>,
-    },
-    GraphBudget {
-        reply: mpsc::Sender<WorkerReply<u128>>,
-    },
-    WorldSummary {
-        reply: mpsc::Sender<WorkerReply<String>>,
-    },
-    EnvSummary {
-        reply: mpsc::Sender<WorkerReply<Vec<String>>>,
-    },
-    Shutdown,
-}
-
-/// Persistent evaluator with one active world, environment, and resource budgets.
-pub struct GrundySession {
-    worker: mpsc::Sender<WorkerCommand>,
-    handle: Option<JoinHandle<()>>,
-}
-
-impl GrundySession {
-    /// Start a session from a world declaration such as `integer` or `nimber 2`.
-    pub fn new(world_decl: &str) -> GrundyResult<Self> {
-        let (worker, commands) = mpsc::channel();
-        let (initialized, initialization) = mpsc::channel();
-        let decl = world_decl.to_string();
-        let handle = std::thread::Builder::new()
-            .name("grundy-eval".to_string())
-            .stack_size(EVAL_STACK_BYTES)
-            .spawn(move || {
-                let world = catch_unwind(AssertUnwindSafe(|| World::from_decl(&decl)));
-                let mut world = match world {
-                    Ok(Ok(world)) => {
-                        let _ = initialized.send(WorkerReply::Returned(Ok(())));
-                        world
-                    }
-                    Ok(Err(err)) => {
-                        let _ = initialized.send(WorkerReply::Returned(Err(err)));
-                        return;
-                    }
-                    Err(payload) => {
-                        let _ = initialized.send(WorkerReply::Panicked(payload));
-                        return;
-                    }
+    /// Evaluate one statement.
+    pub fn eval(&mut self, src: &str) -> GrundyResult<Output> {
+        let stmt = parse_statement(src)?;
+        let echo = unparse_stmt(&stmt);
+        match stmt {
+            Stmt::Data(decl) => {
+                self.declare(&decl)?;
+                Ok(Output { echo, value: None })
+            }
+            Stmt::Seq(bindings, expr) => {
+                let checked = {
+                    let mut checker = Checker::new(&mut self.ts, &self.data, &self.types);
+                    checker.check_seq(&bindings, expr.as_ref())?
                 };
-                run_evaluation_worker(&mut world, commands);
-            })
-            .map_err(worker_spawn_error)?;
-        match initialization
-            .recv()
-            .expect("grundy evaluation worker stopped before initialization")
-        {
-            WorkerReply::Returned(Ok(())) => Ok(GrundySession {
-                worker,
-                handle: Some(handle),
-            }),
-            WorkerReply::Returned(Err(err)) => {
-                let _ = handle.join();
-                Err(err)
-            }
-            WorkerReply::Panicked(payload) => {
-                let _ = handle.join();
-                resume_unwind(payload)
-            }
-        }
-    }
-
-    /// Replace the active world and clear its bindings.
-    pub fn set_world(&mut self, world_decl: &str) -> GrundyResult<()> {
-        self.call_worker(|reply| WorkerCommand::SetWorld {
-            decl: world_decl.to_string(),
-            reply,
-        })
-    }
-
-    /// Evaluate one complete statement.
-    pub fn eval_line(&mut self, src: &str) -> GrundyResult<EvalLine> {
-        self.call_worker(|reply| WorkerCommand::EvalLine {
-            src: src.to_string(),
-            reply,
-        })
-    }
-
-    /// Set the per-statement recursive-unfolding budget.
-    pub fn set_fuel_budget(&mut self, budget: u128) {
-        self.call_worker(|reply| WorkerCommand::SetFuelBudget { budget, reply });
-    }
-
-    /// Return the per-statement recursive-unfolding budget.
-    pub fn fuel_budget(&self) -> u128 {
-        self.call_worker(|reply| WorkerCommand::FuelBudget { reply })
-    }
-
-    /// Set the graph-materialization node budget.
-    pub fn set_graph_budget(&mut self, budget: u128) {
-        self.call_worker(|reply| WorkerCommand::SetGraphBudget { budget, reply });
-    }
-
-    /// Return the graph-materialization node budget.
-    pub fn graph_budget(&self) -> u128 {
-        self.call_worker(|reply| WorkerCommand::GraphBudget { reply })
-    }
-
-    /// Render the active world declaration and resource settings.
-    pub fn world_summary(&self) -> String {
-        self.call_worker(|reply| WorkerCommand::WorldSummary { reply })
-    }
-
-    /// Render the current bindings in key order.
-    pub fn env_summary(&self) -> Vec<String> {
-        self.call_worker(|reply| WorkerCommand::EnvSummary { reply })
-    }
-
-    fn call_worker<T>(
-        &self,
-        command: impl FnOnce(mpsc::Sender<WorkerReply<T>>) -> WorkerCommand,
-    ) -> T {
-        let (reply, response) = mpsc::channel();
-        self.worker
-            .send(command(reply))
-            .expect("grundy evaluation worker stopped unexpectedly");
-        match response
-            .recv()
-            .expect("grundy evaluation worker stopped before replying")
-        {
-            WorkerReply::Returned(value) => value,
-            WorkerReply::Panicked(payload) => resume_unwind(payload),
-        }
-    }
-}
-
-impl Drop for GrundySession {
-    fn drop(&mut self) {
-        let _ = self.worker.send(WorkerCommand::Shutdown);
-        if let Some(handle) = self.handle.take() {
-            let _ = handle.join();
-        }
-    }
-}
-
-fn run_evaluation_worker(world: &mut World, commands: mpsc::Receiver<WorkerCommand>) {
-    for command in commands {
-        match command {
-            WorkerCommand::EvalLine { src, reply } => {
-                send_worker_reply(reply, || eval_line_in_world(world, &src));
-            }
-            WorkerCommand::SetWorld { decl, reply } => {
-                send_worker_reply(reply, || {
-                    *world = World::from_decl(&decl)?;
-                    Ok(())
-                });
-            }
-            WorkerCommand::SetFuelBudget { budget, reply } => {
-                send_worker_reply(reply, || world.set_fuel_budget(budget));
-            }
-            WorkerCommand::FuelBudget { reply } => {
-                send_worker_reply(reply, || world.fuel_budget());
-            }
-            WorkerCommand::SetGraphBudget { budget, reply } => {
-                send_worker_reply(reply, || world.set_graph_budget(budget));
-            }
-            WorkerCommand::GraphBudget { reply } => {
-                send_worker_reply(reply, || world.graph_budget());
-            }
-            WorkerCommand::WorldSummary { reply } => {
-                send_worker_reply(reply, || world.summary());
-            }
-            WorkerCommand::EnvSummary { reply } => {
-                send_worker_reply(reply, || world.env_summary());
-            }
-            WorkerCommand::Shutdown => break,
-        }
-    }
-}
-
-fn send_worker_reply<T>(reply: mpsc::Sender<WorkerReply<T>>, f: impl FnOnce() -> T) {
-    let response = match catch_unwind(AssertUnwindSafe(f)) {
-        Ok(value) => WorkerReply::Returned(value),
-        Err(payload) => WorkerReply::Panicked(payload),
-    };
-    let _ = reply.send(response);
-}
-
-fn eval_line_in_world(world: &mut World, src: &str) -> GrundyResult<EvalLine> {
-    ensure_source_nesting_depth(src)?;
-    if strip_comments(src)?.trim().is_empty() {
-        return Ok(EvalLine {
-            canonical: String::new(),
-            value: None,
-        });
-    }
-    let stmt = parse_statement(src)?;
-    ensure_statement_depth(&stmt)?;
-    let canonical = unparse_statement(&stmt);
-    world.reset_fuel();
-    let value = world.eval_statement(&stmt)?;
-    Ok(EvalLine { canonical, value })
-}
-
-fn worker_spawn_error(err: std::io::Error) -> GrundyError {
-    GrundyError::new(
-        GrundyErrorKind::Overflow,
-        Span::point(0),
-        format!("unable to allocate the {EVAL_STACK_BYTES}-byte evaluation stack: {err}"),
-    )
-}
-
-pub(crate) fn ensure_source_nesting_depth(src: &str) -> GrundyResult<()> {
-    let src = strip_comments(src)?;
-    let mut depth = 0_u128;
-    for line in src.lines() {
-        for ch in line.chars() {
-            match ch {
-                '(' | '[' | '{' => {
-                    depth += 1;
-                    if depth > AST_DEPTH_GUARD {
-                        return Err(GrundyError::new(
-                            GrundyErrorKind::Parse,
-                            Span::point(0),
-                            format!(
-                                "source nesting exceeds the depth safety guard of {AST_DEPTH_GUARD} delimiters; the parser stack is bounded"
-                            ),
-                        ));
+                let mut interp = Interp::new(&self.data, self.fuel, self.graph_budget);
+                let mut values = (*self.values).clone();
+                for bind in &checked.binds {
+                    let scope = Scope {
+                        env: Env::new(),
+                        globals: Rc::new(values.clone()),
+                        tenv: Rc::new(BTreeMap::new()),
+                    };
+                    for (name, value) in interp.exec_bind(bind, &scope)? {
+                        values.insert(name, value);
                     }
                 }
-                ')' | ']' | '}' => depth = depth.saturating_sub(1),
-                _ => {}
+                let shown = match (&checked.expr, &checked.ty) {
+                    (Some(expr), Some(ty)) => {
+                        let scope = Scope {
+                            env: Env::new(),
+                            globals: Rc::new(values.clone()),
+                            tenv: Rc::new(BTreeMap::new()),
+                        };
+                        let value = interp.eval(expr, &scope)?;
+                        Some(self.show_typed(&value, ty))
+                    }
+                    _ => None,
+                };
+                // Commit only after the whole statement succeeded.
+                self.values = Rc::new(values);
+                for (name, scheme) in checked.defined {
+                    self.types.values.insert(name, scheme);
+                }
+                Ok(Output { echo, value: shown })
             }
         }
     }
-    Ok(())
+
+    fn declare(&mut self, decl: &DataDecl) -> GrundyResult<()> {
+        let id = self.data.decls.len() as DataId;
+        let mut names = self.types.types.clone();
+        names.insert(decl.name.clone(), id);
+        let fields = data_field_types(decl, &names).map_err(|e| e.at(decl.span))?;
+        let mut seen = std::collections::BTreeSet::new();
+        for (ctor, _) in &fields {
+            if !seen.insert(ctor.clone()) || super::types::infer::is_builtin_ctor(ctor) {
+                return Err(GrundyError::new(
+                    GrundyErrorKind::Shadow,
+                    decl.span,
+                    format!("constructor `{ctor}` is already defined"),
+                ));
+            }
+        }
+        let plain = fields
+            .iter()
+            .flat_map(|(_, tys)| tys)
+            .all(|ty| self.plain(ty, id));
+        self.data.decls.push(DataInfo {
+            name: decl.name.clone(),
+            ctors: fields.clone(),
+            plain,
+        });
+        self.types.types.insert(decl.name.clone(), id);
+        let result = Ty::con(TyCon::Data(id));
+        for (index, (ctor, tys)) in fields.into_iter().enumerate() {
+            let arity = tys.len();
+            let ty = if tys.is_empty() {
+                result.clone()
+            } else {
+                Ty::Fun(tys, Box::new(result.clone()))
+            };
+            self.types.ctors.insert(
+                ctor,
+                CtorInfo {
+                    ctor: CtorRef::Data(id, index as u32),
+                    scheme: Scheme::mono(ty),
+                    arity,
+                },
+            );
+        }
+        Ok(())
+    }
+
+    /// Whether a field type supports `=` and `Key`, assuming the declaration
+    /// being defined does.
+    fn plain(&self, ty: &Ty, own: DataId) -> bool {
+        use super::types::{instance, Class, Pred};
+        match ty {
+            Ty::Con(TyCon::Data(id), _) => *id == own || self.data.get(*id).plain,
+            Ty::Con(..) => [Class::Eq, Class::Key].iter().all(|class| {
+                instance(*class, ty, &self.data).is_some_and(|subgoals| {
+                    subgoals.iter().all(|pred| match pred {
+                        Pred::Is(_, inner) => self.plain(inner, own),
+                        Pred::Pow(..) => false,
+                    })
+                })
+            }),
+            _ => false,
+        }
+    }
+
+    /// Display a value; annotate with its type exactly when re-reading the
+    /// text alone would not recover that type.
+    pub fn show_typed(&self, value: &Value, ty: &Ty) -> String {
+        let names = self
+            .values
+            .iter()
+            .map(|(name, value)| {
+                let graph = match value {
+                    Value::Form(FormV(GameElement::Graph(graph))) => Some(graph.clone()),
+                    _ => None,
+                };
+                (name.clone(), graph)
+            })
+            .collect();
+        let text = Show {
+            data: &self.data,
+            names,
+        }
+        .top(value);
+        if self.reads_as(&text, ty) {
+            text
+        } else {
+            format!(
+                "{text} : {}",
+                show_ty(ty, &self.data, &mut VarNames::default())
+            )
+        }
+    }
+
+    fn reads_as(&self, text: &str, ty: &Ty) -> bool {
+        // A display is an expression, or an equation system whose last
+        // equation names the value (`on =: {on |}`).
+        let (bindings, expr) = match parse_expr(text) {
+            Ok(expr) => (Vec::new(), expr),
+            Err(_) => match parse_statement(text) {
+                Ok(Stmt::Seq(bindings, None)) if !bindings.is_empty() => {
+                    let last = bindings.last().expect("non-empty");
+                    let names = last.pat.binders();
+                    let [name] = names.as_slice() else {
+                        return false;
+                    };
+                    let expr = super::syntax::ast::Expr::new(
+                        super::syntax::ast::ExprKind::Var(name.to_string()),
+                        last.span,
+                    );
+                    (bindings, expr)
+                }
+                _ => return false,
+            },
+        };
+        let mut ts = self.ts.clone();
+        let empty = TypeGlobals {
+            values: BTreeMap::new(),
+            types: self.types.types.clone(),
+            ctors: self.types.ctors.clone(),
+        };
+        let mut checker = Checker::new(&mut ts, &self.data, &empty);
+        let Ok(checked) = checker.check_seq(&bindings, Some(&expr)) else {
+            return false;
+        };
+        let Some(read) = checked.ty else {
+            return false;
+        };
+        alpha_equal(&read, ty)
+    }
+
+    /// The type of an expression, generalized as a binding would be, for
+    /// `:type`.
+    pub fn type_of(&mut self, src: &str) -> GrundyResult<String> {
+        let expr = parse_expr(src)?;
+        let binding = super::syntax::ast::Binding {
+            pat: super::syntax::ast::Pat::new(
+                super::syntax::ast::PatKind::Var("it".to_string()),
+                expr.span,
+            ),
+            kind: super::syntax::ast::BindKind::Let,
+            span: expr.span,
+            expr,
+        };
+        let mut checker = Checker::new(&mut self.ts, &self.data, &self.types);
+        let checked = checker.check_seq(&[binding], None)?;
+        let (_, scheme) = checked.defined.into_iter().next().expect("one binding");
+        Ok(show_scheme(&scheme, &self.data))
+    }
+
+    /// Every global with its scheme, for `:env`.
+    pub fn env(&self) -> Vec<(String, String)> {
+        self.types
+            .values
+            .iter()
+            .map(|(name, scheme)| (name.clone(), show_scheme(scheme, &self.data)))
+            .collect()
+    }
 }
 
-pub(crate) fn ensure_statement_depth(statement: &Statement) -> GrundyResult<()> {
-    enum SyntaxNode<'a> {
-        Statement(&'a Statement),
-        Expr(&'a Expr),
-    }
-
-    let mut pending = vec![(SyntaxNode::Statement(statement), 1_u128)];
-    while let Some((node, depth)) = pending.pop() {
-        if depth > AST_DEPTH_GUARD {
-            return Err(GrundyError::new(
-                GrundyErrorKind::Parse,
-                Span::point(0),
-                format!(
-                    "statement syntax tree exceeds the depth safety guard of {AST_DEPTH_GUARD} nodes; recursive AST consumers require bounded input depth"
-                ),
-            ));
-        }
-        let child_depth = depth + 1;
-        match node {
-            SyntaxNode::Statement(Statement::Binding { expr, .. })
-            | SyntaxNode::Statement(Statement::Expr(expr)) => {
-                pending.push((SyntaxNode::Expr(expr), child_depth));
+/// Type equality up to renaming of variables.
+pub fn alpha_equal(a: &Ty, b: &Ty) -> bool {
+    fn go(a: &Ty, b: &Ty, map: &mut BTreeMap<u32, u32>, back: &mut BTreeMap<u32, u32>) -> bool {
+        match (a, b) {
+            (Ty::Var(x), Ty::Var(y)) => {
+                let fwd = *map.entry(*x).or_insert(*y);
+                let bwd = *back.entry(*y).or_insert(*x);
+                fwd == *y && bwd == *x
             }
-            SyntaxNode::Statement(Statement::Seq { bindings, tail }) => {
-                pending.push((SyntaxNode::Statement(tail), child_depth));
-                pending.extend(
-                    bindings
-                        .iter()
-                        .map(|binding| (SyntaxNode::Expr(&binding.expr), child_depth)),
-                );
+            (Ty::Con(c, xs), Ty::Con(d, ys)) => {
+                c == d
+                    && xs.len() == ys.len()
+                    && xs.iter().zip(ys).all(|(x, y)| go(x, y, map, back))
             }
-            SyntaxNode::Expr(
-                Expr::Int(_)
-                | Expr::Bool(_)
-                | Expr::Star(_)
-                | Expr::Omega
-                | Expr::Blade(_)
-                | Expr::Up
-                | Expr::Down
-                | Expr::Dim
-                | Expr::Ident(_),
-            ) => {}
-            SyntaxNode::Expr(Expr::Container(items)) => {
-                pending.extend(
-                    items
-                        .iter()
-                        .map(|item| (SyntaxNode::Expr(item), child_depth)),
-                );
+            (Ty::Fun(xs, r), Ty::Fun(ys, s)) => {
+                xs.len() == ys.len()
+                    && xs.iter().zip(ys).all(|(x, y)| go(x, y, map, back))
+                    && go(r, s, map, back)
             }
-            SyntaxNode::Expr(Expr::Apply { callee, args }) => {
-                pending.push((SyntaxNode::Expr(callee), child_depth));
-                pending.extend(args.iter().map(|arg| (SyntaxNode::Expr(arg), child_depth)));
-            }
-            SyntaxNode::Expr(Expr::Lambda { body, .. } | Expr::Index(body)) => {
-                pending.push((SyntaxNode::Expr(body), child_depth));
-            }
-            SyntaxNode::Expr(Expr::Block { bindings, body }) => {
-                pending.push((SyntaxNode::Expr(body), child_depth));
-                pending.extend(
-                    bindings
-                        .iter()
-                        .map(|binding| (SyntaxNode::Expr(&binding.expr), child_depth)),
-                );
-            }
-            SyntaxNode::Expr(Expr::GameForm { left, right }) => {
-                pending.extend(
-                    left.iter()
-                        .chain(right)
-                        .map(|item| (SyntaxNode::Expr(item), child_depth)),
-                );
-            }
-            SyntaxNode::Expr(Expr::Call { args, .. }) => {
-                pending.extend(args.iter().map(|arg| (SyntaxNode::Expr(arg), child_depth)));
-            }
-            SyntaxNode::Expr(Expr::Unary { expr, .. }) => {
-                pending.push((SyntaxNode::Expr(expr), child_depth));
-            }
-            SyntaxNode::Expr(Expr::Binary { lhs, rhs, .. })
-            | SyntaxNode::Expr(Expr::Relation { lhs, rhs, .. }) => {
-                pending.push((SyntaxNode::Expr(lhs), child_depth));
-                pending.push((SyntaxNode::Expr(rhs), child_depth));
-            }
-            SyntaxNode::Expr(Expr::If {
-                cond,
-                then_expr,
-                else_expr,
-            }) => {
-                pending.push((SyntaxNode::Expr(cond), child_depth));
-                pending.push((SyntaxNode::Expr(then_expr), child_depth));
-                pending.push((SyntaxNode::Expr(else_expr), child_depth));
-            }
+            _ => false,
         }
     }
-    Ok(())
+    go(a, b, &mut BTreeMap::new(), &mut BTreeMap::new())
 }
+
+#[cfg(test)]
+mod tests;
