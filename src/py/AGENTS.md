@@ -49,6 +49,9 @@ monomorphizations of the pure-Rust core behind the optional `python` feature.
 
 - Never import PyO3 outside `src/py/`; never make it a default dependency.
 - Keep registrations, exports, and the generated `ogdoad.pyi` synchronized.
+  PyO3 installs every comparison slot once a class defines any comparison, so
+  a class with a genuine order must be listed in `ORDERED_CLASSES` in
+  `scripts/generate_stubs.py`.
 - Validate Python integer conversions against the core `u128`/`i128` widths;
   do not narrow payloads for convenience.
 - Preserve domain errors and optional/unknown distinctions instead of mapping
