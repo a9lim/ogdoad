@@ -41,8 +41,7 @@ monomorphizations of the pure-Rust core behind the optional `python` feature.
 - Panics inside a guarded scalar boundary become `ValueError`; an unguarded
   panic surfaces as `pyo3_runtime.PanicException`.
 - A scalar `__mul__` must return `NotImplemented` for a multivector so Python
-  can dispatch to the multivector's `__rmul__`. `Adele` does not yet, so
-  `adele * adele_mv` raises `TypeError`.
+  can dispatch to the multivector's `__rmul__`.
 - Python `repr`/display delegates to canonical Rust `Display` whenever a core
   report or value exists. `ArfInvariants`, `BrownInvariants`,
   `RationalBrauerWallClass`, `NumberGame`, `NimberGame`, `LoopyValue`, and

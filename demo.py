@@ -849,6 +849,8 @@ adele_pt = adele_cga.up([adelic])
 print("  adelic Cl/CGA backends        :",
       (adele_alg.gen(0) * adele_alg.gen(0)).terms[0][1] == adelic,
       adele_cga.inner(adele_pt, adele_pt).is_zero())
+# Adele.__mul__ defers to the multivector, so both orders land in AdeleMV
+assert (adelic * adele_alg.gen(0)).terms == (adele_alg.gen(0) * adelic).terms
 z8 = pl.Zp2_4(2)
 q5 = pl.Qp5_4.from_rational(1, 5)
 Q5 = pl.Qp5_4Algebra(q=[1, pl.Qp5_4.from_p_power(1)])

@@ -5505,13 +5505,20 @@ impl PyAdele {
             inner: self.inner.neg(),
         }
     }
-    fn __mul__(&self, other: &Bound<'_, PyAny>) -> PyResult<PyAdele> {
-        Ok(PyAdele {
-            inner: self.inner.mul(&parse_adele(other)?),
-        })
+    fn __mul__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        // defer to the other operand (e.g. a multivector's __rmul__) if it isn't a scalar
+        match parse_adele(other) {
+            Ok(o) => PyAdele {
+                inner: self.inner.mul(&o),
+            }
+            .into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
     }
     fn __rmul__(&self, other: &Bound<'_, PyAny>) -> PyResult<PyAdele> {
-        self.__mul__(other)
+        Ok(PyAdele {
+            inner: parse_adele(other)?.mul(&self.inner),
+        })
     }
     fn __truediv__(&self, other: &Bound<'_, PyAny>) -> PyResult<PyAdele> {
         let rhs = parse_adele(other)?;
