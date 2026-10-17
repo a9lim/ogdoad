@@ -697,7 +697,7 @@ fn trace_form_arf(degree: usize, power: usize) -> PyResult<PyArfInvariants> {
 // ---------------------------------------------------------------------------
 
 #[pyclass(name = "BaseField", module = "ogdoad", from_py_object)]
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 struct PyBaseField {
     inner: crate::forms::BaseField,
 }
@@ -772,7 +772,7 @@ impl PyBaseField {
 }
 
 #[pyclass(name = "RationalPlace", module = "ogdoad", from_py_object)]
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 struct PyRationalPlace {
     inner: crate::forms::Place,
 }

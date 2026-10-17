@@ -1089,7 +1089,7 @@ macro_rules! extension_field_pyclass {
 }
 
 #[pyclass(name = "ReductionPolynomialKind", module = "ogdoad", from_py_object)]
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 struct PyReductionPolynomialKind {
     inner: ReductionPolynomialKind,
 }
@@ -5313,7 +5313,7 @@ pub(crate) fn wrap_adele(inner: Adele) -> PyAdele {
 }
 
 #[pyclass(name = "AdelePlace", module = "ogdoad", from_py_object)]
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 struct PyAdelePlace {
     inner: AdelePlace,
 }
