@@ -3,9 +3,10 @@ import Mathlib
 /-!
 # Shared binary scalar facts
 
-This module owns the elementary `ZMod 2` interface used across the quadratic-
-form, FIFO, Gold, Witt-realization, and nim-multiplication developments.  These
-facts are algebraic infrastructure, not part of any one paper's formal surface.
+This module owns the elementary `ZMod 2` interface used by the FIFO, Gold,
+and Witt-realization developments and by the shared Artin--Schreier algebra.
+These facts are algebraic infrastructure, not part of any one paper's formal
+surface.
 -/
 
 namespace Ogdoad

@@ -4,8 +4,10 @@ import Ogdoad.Algebra.ZModTwo
 # Shared Artin--Schreier algebra
 
 This module collects paper-independent characteristic-two Artin--Schreier
-facts shared by the Gold, excess, and canonical-nim developments.  It has no
-dependency on any paper-specific surface.
+facts: additivity, companions, and tower lifting; the finite-field
+image/absolute-trace-kernel equality; and irreducibility of `X^2 + X + a`
+exactly at trace one.  The canonical nim-multiplication development uses the
+additivity law.  It has no dependency on any paper-specific surface.
 -/
 
 namespace Ogdoad.ArtinSchreier

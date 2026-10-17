@@ -44,9 +44,8 @@ thin import-only manifests. (A few small private helpers, and the
 Gold--Arf and transfinite Arf both import `Quadratic.CharTwo` and neither
 imports the other. `Papers.GoldArf` and `Papers.NimFastMultiplication` both
 import `Algebra.ArtinSchreier`, whose only current consumer inside a theorem is
-`NimFastMultiplication`. `WittTransfer` and `GoldMatchingAlgebra` reach `F2`
-through `Ogdoad.Fifo` although `Algebra.ZModTwo` suffices. The three
-binary-field certificates in `Excess` share `Certificate.BinaryPolynomial`:
+`NimFastMultiplication`. The three binary-field certificates in `Excess` share
+`Certificate.BinaryPolynomial`:
 the degree-110 ordinary-23 certificate (Rabin conditions, `native_decide`),
 the degree-81 cubic countermodel (Rabin conditions, kernel `decide`), and the
 degree-32 Fermat countermodel (`native_decide`, no irreducibility check). The
