@@ -72,6 +72,36 @@ pub enum WitnessV {
     },
 }
 
+impl WitnessV {
+    /// How deeply the witness nests through the values it holds.
+    pub fn depth(&self) -> u32 {
+        let values: Vec<&Value> = match self {
+            WitnessV::Outcome { .. } => Vec::new(),
+            WitnessV::Grundy { rules, root, table } => [rules, root]
+                .into_iter()
+                .chain(table.iter().map(|(p, _, _)| p))
+                .collect(),
+            WitnessV::Periodic { rules, .. } => vec![rules],
+            WitnessV::Separation {
+                rules,
+                p,
+                q,
+                context,
+            } => std::iter::once(rules)
+                .chain(p)
+                .chain(q)
+                .chain(context)
+                .collect(),
+        };
+        values
+            .into_iter()
+            .map(Value::depth)
+            .max()
+            .unwrap_or(0)
+            .saturating_add(1)
+    }
+}
+
 /// What a verified claim states.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Statement {

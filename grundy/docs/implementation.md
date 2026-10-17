@@ -58,9 +58,14 @@ the evidence types.
 - **No reference cycles.** A recursive group holds its definitions and
   captured environment, never itself. Calling a member rebuilds the group's
   bindings in the call environment.
-- **Closures capture globals at definition** through an immutable snapshot of
-  the global map. A statement commits its new globals only after it fully
-  succeeds.
+- **Closures capture what they mention.** A closure keeps only the local
+  bindings its body names, plus an immutable snapshot of the global map taken
+  at definition. A statement commits its new globals, and keeps its type
+  unifications, only after it fully succeeds.
+- **Displays are structural.** A pre-pass hash-conses every composite
+  subvalue by structure and counts its occurrences in the value read as a
+  tree; repeated long texts and deep spines become bindings. The result
+  depends on the value, not on how it was built.
 - **Sealed games.** `GameV` is an id in the engine's `GameArena`, which interns
   each canonical form once and keeps order, sum, and negation memos for the
   thread's lifetime. Options are sorted by birthday and then recursively by
@@ -86,7 +91,8 @@ All limits fail with typed errors; no partial value escapes.
 | call depth | 4096 frames (`E_StackDepth`, distinct from fuel) |
 | game depth | `Game` and `Form` literals and every `Game` result are born by day 2¹⁴ (`E_StackDepth`): game algorithms recurse on depth |
 | canonical games | one per-thread `ogdoad::games::GameArena`; its steps are charged to fuel, so values met before are free |
-| display | one fuel unit per atom written (`E_Fuel`) |
+| value depth | data, closures, recursive groups, and generics nest at most 2¹⁴ levels (`E_StackDepth`); lists and tuples record their depth when built, so the check is constant time |
+| display | one fuel unit per atom written (`E_Fuel`); shared and deep subvalues are bound, so displays are linear in the value |
 | fuel | default 2²²: closure calls, produced list elements, generated option and sum-state components, term-count products of growing algebra values, game-literal sizes (`E_Fuel`) |
 | exact coefficients | an exact backend's i128 overflow fails the statement with `E_Overflow`; only those documented engine panics are contained |
 | node budget | default 2¹⁶: distinct positions, sum-states, graph nodes, misère memo entries (`E_GraphBudget`) |

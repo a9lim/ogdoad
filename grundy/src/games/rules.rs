@@ -53,6 +53,16 @@ impl RulesV {
     pub fn impartial(&self) -> bool {
         matches!(self.kind, RulesKind::Impartial(_) | RulesKind::Octal(_))
     }
+
+    /// How deeply the ruleset nests through its move functions.
+    pub fn depth(&self) -> u32 {
+        let inner = match &self.kind {
+            RulesKind::Impartial(f) => f.depth(),
+            RulesKind::Partizan(l, r) => l.depth().max(r.depth()),
+            RulesKind::Octal(_) => 0,
+        };
+        inner.saturating_add(1)
+    }
 }
 
 /// A hashable structural key for a `Key` value.

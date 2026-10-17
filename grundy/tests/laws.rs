@@ -419,6 +419,8 @@ fn loopy_displays_rebuild_equivalent_values() {
 
 #[test]
 fn every_value_display_is_a_fixed_point() {
+    // (setup, expression): the expression's display must re-read, in a fresh
+    // session holding only the setup's data declarations, to itself.
     let programs: &[(&[&str], &str)] = &[
         (&[], "[(1, true), (2, false)]"),
         (&[], "{0 | 1} + *1"),
@@ -429,6 +431,12 @@ fn every_value_display_is_a_fixed_point() {
         (&[], "(*ω : Ordinal) + (*3 : Ordinal)"),
         (&[], "3⋅ω↑2 - ω + 1/2"),
         (&["k := 3"], "x ↦ x + k"),
+        (&["k := (1 : F2)"], "x ↦ k + k = 0"),
+        (&["z := abs", "abs := x ↦ 42"], "x ↦ z(x) + abs(x)"),
+        (
+            &["a := len", "b := sum", "len := b", "sum := a"],
+            "xs ↦ len(xs) + 10⋅sum(xs)",
+        ),
         (
             &["fact =: n ↦ if n = 0 then 1 else n ⋅ fact(n - 1)"],
             "fact",
@@ -438,8 +446,23 @@ fn every_value_display_is_a_fixed_point() {
             "Node(Leaf, Node(Leaf, Leaf))",
         ),
         (
+            &[
+                "data Tree = Leaf | Node(Tree, Tree)",
+                "grow =: n ↦ if n = 0 then Leaf else (v := grow(n - 1); Node(v, v))",
+            ],
+            "grow(12)",
+        ),
+        (&[], "fold((acc, k) ↦ (y ↦ acc(y) + 1), (y ↦ y), 0..700)"),
+        (&[], "[x : F8, (x + 1 : F8)]"),
+        (&[], "(*6 : Form) + (*6 : Form)"),
+        (&[], "{*1, 0 | *1, 0} : Form"),
+        (
             &["alg := clifford([1, 2])", "[e0, e1] := basis(alg)"],
             "3⋅e0∧e1 + e1",
+        ),
+        (
+            &["alg := clifford([1, 2])", "[e0, e1] := basis(alg)"],
+            "e0⋅e0",
         ),
         (
             &["gr := grassmann(2) : Algebra(F5)", "[e0, e1] := basis(gr)"],
@@ -456,6 +479,7 @@ fn every_value_display_is_a_fixed_point() {
             "certify_sg(g, 8)",
         ),
         (&[], "periodic(octal([7, 7]), 71, 12)"),
+        (&[], "-170141183460469231731687303715884105727 - 1"),
     ];
     for (setup, expression) in programs {
         let mut session = GrundySession::new();
@@ -464,8 +488,8 @@ fn every_value_display_is_a_fixed_point() {
         }
         let shown = eval(&mut session, expression);
         let mut fresh = GrundySession::new();
-        if expression.contains("Node") {
-            eval(&mut fresh, setup[0]);
+        for statement in setup.iter().filter(|s| s.starts_with("data ")) {
+            eval(&mut fresh, statement);
         }
         let again = eval(&mut fresh, &shown);
         assert_eq!(again, shown, "`{expression}` display is not a fixed point");

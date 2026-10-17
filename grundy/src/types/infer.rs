@@ -316,11 +316,7 @@ impl<'a> Checker<'a> {
                 .zip(cores)
                 .map(|(binding, core)| match core {
                     Core::Lambda(lam) => lam,
-                    _ => Rc::new(Lam {
-                        params: Vec::new(),
-                        body: core,
-                        source: binding.expr.clone(),
-                    }),
+                    _ => Rc::new(Lam::new(Vec::new(), core, binding.expr.clone())),
                 })
                 .collect();
             Ok((
@@ -519,11 +515,7 @@ impl<'a> Checker<'a> {
                     }
                     let (body_core, body_ty) = self.infer(body)?;
                     Ok((
-                        Core::Lambda(Rc::new(Lam {
-                            params: cpats,
-                            body: body_core,
-                            source: expr.clone(),
-                        })),
+                        Core::Lambda(Rc::new(Lam::new(cpats, body_core, expr.clone()))),
                         Ty::Fun(param_tys, Box::new(body_ty)),
                     ))
                 })();

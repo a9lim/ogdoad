@@ -70,6 +70,31 @@ pub struct Lam {
     pub body: Core,
     /// The surface source, for display.
     pub source: Expr,
+    /// Every variable name the body mentions: a superset of what a closure
+    /// over it must capture.
+    pub mentions: Vec<String>,
+}
+
+impl Lam {
+    /// A lambda, recording the names its body mentions.
+    pub fn new(params: Vec<CPat>, body: Core, source: Expr) -> Lam {
+        let mentions = mentioned(&body);
+        Lam {
+            params,
+            body,
+            source,
+            mentions,
+        }
+    }
+}
+
+/// The variable names an expression mentions, sorted and deduplicated.
+pub fn mentioned(core: &Core) -> Vec<String> {
+    let mut names = std::collections::BTreeSet::new();
+    visit_vars(core, &mut |name| {
+        names.insert(name.to_string());
+    });
+    names.into_iter().collect()
 }
 
 /// One elaborated binding in a sequence.
@@ -165,4 +190,74 @@ pub enum Core {
     Let(Vec<CBind>, Box<Core>),
     /// Bind a type's named generator (`t` or `x`) over a body.
     Gen(String, Ty, Box<Core>),
+}
+
+/// Visit every variable reference in an expression.
+pub fn visit_vars(core: &Core, f: &mut dyn FnMut(&str)) {
+    let item = |item: &CItem, f: &mut dyn FnMut(&str)| match item {
+        CItem::One(core) | CItem::Splice(core) => visit_vars(core, f),
+    };
+    match core {
+        Core::Var(name, _) | Core::Inst(name, _, _) => f(name),
+        Core::Int(..)
+        | Core::Frac(..)
+        | Core::Star(..)
+        | Core::Omega(_)
+        | Core::Up(..)
+        | Core::Bool(_)
+        | Core::Builtin(..)
+        | Core::Ctor(..) => {}
+        Core::Tuple(items) => items.iter().for_each(|i| visit_vars(i, f)),
+        Core::List(items) => items.iter().for_each(|i| item(i, f)),
+        Core::Comp(head, clauses) => {
+            visit_vars(head, f);
+            for clause in clauses {
+                match clause {
+                    CClause::For(_, source) => visit_vars(source, f),
+                    CClause::If(guard) => visit_vars(guard, f),
+                }
+            }
+        }
+        Core::Range(a, b, ..)
+        | Core::Subst(a, b, _)
+        | Core::Index(a, b, _)
+        | Core::Binary(_, a, b, _)
+        | Core::Rel(_, a, b, _)
+        | Core::And(a, b)
+        | Core::Or(a, b) => {
+            visit_vars(a, f);
+            visit_vars(b, f);
+        }
+        Core::Form(left, right, ..) => {
+            left.iter().chain(right).for_each(|i| item(i, f));
+        }
+        Core::Call(callee, args, _) => {
+            visit_vars(callee, f);
+            args.iter().for_each(|a| visit_vars(a, f));
+        }
+        Core::Lambda(lam) => visit_vars(&lam.body, f),
+        Core::Unary(_, a, _) => visit_vars(a, f),
+        Core::If(c, a, b) => {
+            visit_vars(c, f);
+            visit_vars(a, f);
+            visit_vars(b, f);
+        }
+        Core::Match(scrutinee, arms, _) => {
+            visit_vars(scrutinee, f);
+            arms.iter().for_each(|(_, body)| visit_vars(body, f));
+        }
+        Core::Let(binds, body) => {
+            for bind in binds {
+                match bind {
+                    CBind::Let { expr, .. } => visit_vars(expr, f),
+                    CBind::RecFns { lams, .. } => {
+                        lams.iter().for_each(|lam| visit_vars(&lam.body, f))
+                    }
+                    CBind::RecForms { exprs, .. } => exprs.iter().for_each(|e| visit_vars(e, f)),
+                }
+            }
+            visit_vars(body, f);
+        }
+        Core::Gen(_, _, body) => visit_vars(body, f),
+    }
 }

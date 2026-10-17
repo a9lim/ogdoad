@@ -229,10 +229,10 @@
 > [e0, e1] := basis(alg)
 
 > e0 ⋅ e0
-= *1 : Mv(Nimber)
+= (alg := clifford([*1, *1]); [e0, e1] := basis(alg); *1 + (e0 - e0))
 
 > e0 ∧ e0
-= *0 : Mv(Nimber)
+= (alg := clifford([*1, *1]); [e0, e1] := basis(alg); e0 - e0)
 
 > e0 ∧ e1
 = (alg := clifford([*1, *1]); [e0, e1] := basis(alg); e0∧e1)
@@ -244,7 +244,7 @@
 = (alg := clifford([*1, *1]); [e0, e1] := basis(alg); e0∧e1)
 
 > e0 ⋅ e1 + e1 ⋅ e0
-= *0 : Mv(Nimber)
+= (alg := clifford([*1, *1]); [e0, e1] := basis(alg); e0 - e0)
 
 > e0 ^ e1
 ! E_Type: exponents are Int
@@ -261,7 +261,7 @@
 > [p0, p1] := basis(polar)
 
 > p0 ⋅ p1 + p1 ⋅ p0
-= *1 : Mv(Nimber)
+= (alg := clifford_metric([*1, *1], [((0, 1), *1)], []); [e0, e1] := basis(alg); *1 + (e0 - e0))
 
 > e0 + p0
 ! E_AlgebraMismatch: different Clifford algebras
@@ -276,10 +276,10 @@
 > [h0, h1] := basis(hyp)
 
 > h1 ⋅ h1
-= -1 : Mv(Surreal)
+= (alg := clifford([1, -1]); [e0, e1] := basis(alg); -1 + (e0 - e0)) : Mv(Surreal)
 
 > vector(hyp, [1, 1]) ⋅ vector(hyp, [1, 1])
-= 0 : Mv(Surreal)
+= (alg := clifford([1, -1]); [e0, e1] := basis(alg); e0 - e0) : Mv(Surreal)
 
 > gr := grassmann(2) : Algebra(Int)
 
@@ -992,3 +992,87 @@
 
 > f(1)
 = 2
+
+// ================================================================ display as a program
+@reset
+> (k := (1 : F2); x ↦ k + k = 0)
+~ (k := 1 : F2; x ↦ k + k = 0)
+= (k := 1 : F2; x ↦ k + k = 0)
+
+> (k := (1 : F2); () ↦ k)
+~ (k := 1 : F2; () ↦ k)
+= (k := 1 : F2; () ↦ k)
+
+> z := abs
+
+> abs := x ↦ 42
+
+> f := x ↦ z(x) + abs(x)
+
+> f
+= (z := abs; abs := x ↦ 42; x ↦ z(x) + abs(x))
+
+@reset
+> (z := abs; abs := x ↦ 42; x ↦ z(x) + abs(x))(-2)
+= 44
+
+@reset
+> a := len
+
+> b := sum
+
+> len := b
+
+> sum := a
+
+> mixed := xs ↦ len(xs) + 10⋅sum(xs)
+
+> mixed
+= (v1 := len; len := sum; sum := v1; xs ↦ len(xs) + 10⋅sum(xs))
+
+@reset
+> (v1 := len; len := sum; sum := v1; xs ↦ len(xs) + 10⋅sum(xs))([1, 2, 3])
+= 36
+
+@reset
+> [x : F8]
+= [(x : F8)]
+
+> [t : F5[t]]
+= [(t : F5[t])]
+
+> (x ↦ 1) : Int → Game
+= (x ↦ 1) : Int → Game
+
+> (a := (g =: {g |}; g); b := (g =: {| g}; g); {a | b})
+= (g =: {g |}; g1 =: {| g1}; {g | g1})
+
+> data D = Z | B(D, D)
+
+> grow =: n ↦ if n = 0 then Z else (v := grow(n - 1); B(v, v))
+
+> grow(4)
+= (v1 := B(B(B(Z, Z), B(Z, Z)), B(B(Z, Z), B(Z, Z))); B(v1, v1))
+
+> regrow =: n ↦ if n = 0 then Z else B(regrow(n - 1), regrow(n - 1))
+
+> regrow(4)
+= (v1 := B(B(B(Z, Z), B(Z, Z)), B(B(Z, Z), B(Z, Z))); B(v1, v1))
+
+> -170141183460469231731687303715884105727 - 1
+= -170141183460469231731687303715884105728
+
+> -170141183460469231731687303715884105728
+= -170141183460469231731687303715884105728
+
+> basis(clifford([1]))[0]↑2
+= (alg := clifford([1]); [e0] := basis(alg); 1 + (e0 - e0))
+
+@fuel 100000000
+> data Nat = N0 | S(Nat)
+
+> fold((a, i) ↦ S(a), N0, 0..20000)
+! E_StackDepth: past the host guard of 16384
+
+> fold((acc, k) ↦ (y ↦ acc(y) + 1), (y ↦ y), 0..20000)
+! E_StackDepth: past the host guard of 16384

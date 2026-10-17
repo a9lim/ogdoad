@@ -7,7 +7,7 @@ use ogdoad::games::Game;
 use ogdoad::scalar::{Rational, Surreal};
 
 use super::super::algebra::scalar::{AddOp, DivOp, MulOp, RemOp, ScalarV, SubOp};
-use super::super::core::{CBind, CClause, CItem, CPat, Core, CtorRef};
+use super::super::core::{mentioned, visit_vars, CBind, CClause, CItem, CPat, Core, CtorRef, Lam};
 use super::super::error::{err, GrundyError, GrundyErrorKind, GrundyResult, Span};
 use super::super::games::form::{
     add_game_elements, build_game_form, form_outcome_cell, form_value_relation,
@@ -136,16 +136,17 @@ impl<'a> Interp<'a> {
                     let CPat::Var(name) = pat else {
                         unreachable!("only variables generalize")
                     };
-                    return Ok(vec![(
-                        name.clone(),
+                    return Ok(vec![(name.clone(), {
+                        let (env, depth) = capture(&scope.env, &mentioned(expr))?;
                         Value::Generic(Rc::new(GenericV {
                             tparams: tparams.clone(),
                             body: PolyBody::Expr(expr.clone()),
-                            env: scope.env.clone(),
+                            env,
                             globals: scope.globals.clone(),
                             tenv: scope.tenv.clone(),
-                        })),
-                    )]);
+                            depth,
+                        }))
+                    })]);
                 }
                 let value = self.eval(expr, scope)?;
                 let mut out = Vec::new();
@@ -163,6 +164,7 @@ impl<'a> Interp<'a> {
                 lams,
                 tparams,
             } => {
+                let (env, depth) = capture(&scope.env, &group_mentions(names, lams))?;
                 if !tparams.is_empty() {
                     return Ok(names
                         .iter()
@@ -177,9 +179,10 @@ impl<'a> Interp<'a> {
                                         lams: lams.clone(),
                                         index,
                                     },
-                                    env: scope.env.clone(),
+                                    env: env.clone(),
                                     globals: scope.globals.clone(),
                                     tenv: scope.tenv.clone(),
+                                    depth,
                                 })),
                             )
                         })
@@ -188,9 +191,10 @@ impl<'a> Interp<'a> {
                 let group = Rc::new(RecGroup {
                     names: names.clone(),
                     lams: lams.clone(),
-                    env: scope.env.clone(),
+                    env,
                     globals: scope.globals.clone(),
                     tenv: scope.tenv.clone(),
+                    depth,
                 });
                 Ok(group_members(&group))
             }
@@ -347,7 +351,7 @@ impl<'a> Interp<'a> {
                     .into(),
             )),
             Core::Ctor(ctor, arity) => Ok(if *arity == 0 {
-                construct(ctor, Vec::new())
+                construct(ctor, Vec::new())?
             } else {
                 Value::CtorFn(ctor.clone())
             }),
@@ -433,13 +437,31 @@ impl<'a> Interp<'a> {
                         )
                     })
             }
-            Core::Lambda(lam) => Ok(Value::Closure(Rc::new(Closure {
-                lam: lam.clone(),
-                env: scope.env.clone(),
-                globals: scope.globals.clone(),
-                tenv: scope.tenv.clone(),
-                rec: None,
-            }))),
+            Core::Lambda(lam) => {
+                let (env, depth) = capture(&scope.env, &lam.mentions)?;
+                Ok(Value::Closure(Rc::new(Closure {
+                    lam: lam.clone(),
+                    env,
+                    globals: scope.globals.clone(),
+                    tenv: scope.tenv.clone(),
+                    rec: None,
+                    depth,
+                })))
+            }
+            Core::Unary(UnaryOp::Neg, inner, span) if matches!(**inner, Core::Int(n, _) if n == 1 << 127) =>
+            {
+                // `-2¹²⁷` is representable though `2¹²⁷` is not: read it as
+                // `-(2¹²⁷ - 1) - 1`, so the least Int displays and re-reads.
+                let Core::Int(n, ty) = &**inner else {
+                    unreachable!("matched a literal")
+                };
+                let ty = self.resolve(ty, &scope.tenv);
+                let magnitude = self.int_literal(n - 1, &ty)?;
+                let negated = self.unary(UnaryOp::Neg, magnitude)?;
+                let one = self.int_literal(1, &ty)?;
+                self.binary(BinaryOp::Sub, negated, one)
+                    .map_err(|e| e.at(*span))
+            }
             Core::Unary(op, inner, span) => {
                 let value = self.eval(inner, scope)?;
                 self.unary(*op, value).map_err(|e| e.at(*span))
@@ -588,6 +610,7 @@ impl<'a> Interp<'a> {
                     env: generic.env.clone(),
                     globals: generic.globals.clone(),
                     tenv,
+                    depth: generic.depth,
                 });
                 Ok(group_members(&group).swap_remove(*index).1)
             }
@@ -639,7 +662,7 @@ impl<'a> Interp<'a> {
                 result
             }
             Value::Builtin(builtin, tys) => call_builtin(self, *builtin, tys, args),
-            Value::CtorFn(ctor) => Ok(construct(ctor, args)),
+            Value::CtorFn(ctor) => construct(ctor, args),
             other => Err(internal(format!("applied a {}", other.kind_name()))),
         }
     }
@@ -1007,6 +1030,7 @@ pub fn group_members(group: &Rc<RecGroup>) -> Vec<(String, Value)> {
                     globals: group.globals.clone(),
                     tenv: group.tenv.clone(),
                     rec: Some((group.clone(), index)),
+                    depth: group.depth.saturating_add(1),
                 })),
             )
         })
@@ -1014,16 +1038,60 @@ pub fn group_members(group: &Rc<RecGroup>) -> Vec<(String, Value)> {
 }
 
 /// Build a constructor value.
-pub fn construct(ctor: &CtorRef, mut args: Vec<Value>) -> Value {
-    match ctor {
+pub fn construct(ctor: &CtorRef, mut args: Vec<Value>) -> GrundyResult<Value> {
+    Ok(match ctor {
         CtorRef::Winner(w) => Value::Winner(*w),
         CtorRef::None => Value::Option(None),
         CtorRef::Some => Value::Option(Some(Rc::new(args.pop().expect("one field")))),
-        CtorRef::Data(..) => Value::Data(Rc::new(DataV {
-            ctor: ctor.clone(),
-            fields: args,
-        })),
+        CtorRef::Data(..) => {
+            let depth = guard_depth(args.iter().map(Value::depth).max().unwrap_or(0))?;
+            Value::Data(Rc::new(DataV {
+                ctor: ctor.clone(),
+                fields: args,
+                depth,
+            }))
+        }
+    })
+}
+
+/// One level above `depth`, refused past the host guard.
+fn guard_depth(depth: u32) -> GrundyResult<u32> {
+    let depth = depth.saturating_add(1);
+    if depth > MAX_VALUE_DEPTH {
+        return Err(err(
+            GrundyErrorKind::StackDepth,
+            format!("the value would nest {depth} levels deep, past the host guard of {MAX_VALUE_DEPTH}"),
+        )
+        .with_hint("value depth is a host resource, distinct from fuel"));
     }
+    Ok(depth)
+}
+
+/// The bindings of `env` a function body mentions, and the depth of a
+/// function capturing them. Capturing only these keeps closures from holding
+/// unrelated values and makes the captured environment what display shows.
+fn capture(env: &Env, names: &[String]) -> GrundyResult<(Env, u32)> {
+    let mut captured = Env::new();
+    let mut depth = 0;
+    for name in names {
+        if let Some(value) = env.get(name) {
+            depth = depth.max(value.depth());
+            captured = captured.bind(name.clone(), value.clone());
+        }
+    }
+    Ok((captured, guard_depth(depth)?))
+}
+
+/// What a recursive group's members mention, less the members themselves.
+fn group_mentions(names: &[String], lams: &[Rc<Lam>]) -> Vec<String> {
+    let mut all: BTreeSet<&str> = lams
+        .iter()
+        .flat_map(|lam| lam.mentions.iter().map(String::as_str))
+        .collect();
+    for name in names {
+        all.remove(name.as_str());
+    }
+    all.into_iter().map(String::from).collect()
 }
 
 /// Read a Game value.
@@ -1048,76 +1116,6 @@ pub fn mentions(core: &Core, names: &BTreeSet<&str>) -> bool {
     let mut found = false;
     visit_vars(core, &mut |name| found |= names.contains(name));
     found
-}
-
-/// Visit every variable reference in an expression.
-pub fn visit_vars(core: &Core, f: &mut dyn FnMut(&str)) {
-    let item = |item: &CItem, f: &mut dyn FnMut(&str)| match item {
-        CItem::One(core) | CItem::Splice(core) => visit_vars(core, f),
-    };
-    match core {
-        Core::Var(name, _) | Core::Inst(name, _, _) => f(name),
-        Core::Int(..)
-        | Core::Frac(..)
-        | Core::Star(..)
-        | Core::Omega(_)
-        | Core::Up(..)
-        | Core::Bool(_)
-        | Core::Builtin(..)
-        | Core::Ctor(..) => {}
-        Core::Tuple(items) => items.iter().for_each(|i| visit_vars(i, f)),
-        Core::List(items) => items.iter().for_each(|i| item(i, f)),
-        Core::Comp(head, clauses) => {
-            visit_vars(head, f);
-            for clause in clauses {
-                match clause {
-                    CClause::For(_, source) => visit_vars(source, f),
-                    CClause::If(guard) => visit_vars(guard, f),
-                }
-            }
-        }
-        Core::Range(a, b, ..)
-        | Core::Subst(a, b, _)
-        | Core::Index(a, b, _)
-        | Core::Binary(_, a, b, _)
-        | Core::Rel(_, a, b, _)
-        | Core::And(a, b)
-        | Core::Or(a, b) => {
-            visit_vars(a, f);
-            visit_vars(b, f);
-        }
-        Core::Form(left, right, ..) => {
-            left.iter().chain(right).for_each(|i| item(i, f));
-        }
-        Core::Call(callee, args, _) => {
-            visit_vars(callee, f);
-            args.iter().for_each(|a| visit_vars(a, f));
-        }
-        Core::Lambda(lam) => visit_vars(&lam.body, f),
-        Core::Unary(_, a, _) => visit_vars(a, f),
-        Core::If(c, a, b) => {
-            visit_vars(c, f);
-            visit_vars(a, f);
-            visit_vars(b, f);
-        }
-        Core::Match(scrutinee, arms, _) => {
-            visit_vars(scrutinee, f);
-            arms.iter().for_each(|(_, body)| visit_vars(body, f));
-        }
-        Core::Let(binds, body) => {
-            for bind in binds {
-                match bind {
-                    CBind::Let { expr, .. } => visit_vars(expr, f),
-                    CBind::RecFns { lams, .. } => {
-                        lams.iter().for_each(|lam| visit_vars(&lam.body, f))
-                    }
-                    CBind::RecForms { exprs, .. } => exprs.iter().for_each(|e| visit_vars(e, f)),
-                }
-            }
-            visit_vars(body, f);
-        }
-        Core::Gen(_, _, body) => visit_vars(body, f),
-    }
 }
 
 fn unfounded(equation: &str, name: &str) -> GrundyError {

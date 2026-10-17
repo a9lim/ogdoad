@@ -529,9 +529,19 @@ Builtins live in the outermost scope; any binding may shadow one.
 
 ## 13. Display
 
-A value displays as a program that rebuilds it. The REPL appends ` : T`
-**exactly when** re-reading the text alone would not recover the type `T`.
-This is the minimal-annotation rule.
+A value displays as a closed program that rebuilds it in a fresh session
+with the same data declarations; builtin names in it mean the builtins. The
+REPL appends ` : T` **exactly when** re-reading the text alone would not
+recover the type `T`, parenthesizing a lambda or conditional:
+`(x ↦ 1) : Int → Game`. This is the minimal-annotation rule, and it applies
+to every binding a display introduces as well.
+
+A display is linear in the value and depends only on the value:
+
+- a subvalue whose text repeats and is longer than 40 characters is bound
+  once, `(v1 := B(B(Z, Z), B(Z, Z)); B(v1, v1))`, however the value was built;
+- a spine nested more than 256 levels is cut into such bindings, so every
+  display re-reads within the nesting limit.
 
 - **Numbers and nimbers:** `7`, `*15 : Nimber`, `*6` (a game), `2 : Game`,
   `1/2`, `3⋅ω↑2 - ω + 5`.
@@ -547,12 +557,18 @@ This is the minimal-annotation rule.
   - a system, or any nested display, names its root:
     `(a =: {b |}; b =: {| a}; a)`.
 - **Polynomials and fields:** `t↑2 + 1 : F5[t]` and `x↑2 : F8` (the
-  annotation binds the generator); rational functions show as `(num)/(den)`.
-- **Multivectors:** `(alg := clifford([*1, *1]); [e0, e1] := basis(alg); e0∧e1)`;
-  a grade-0 multivector shows as its scalar with its type.
+  annotation binds the generator); nested inside a larger value, an element
+  that mentions its generator carries its own annotation: `[(x : F8)]`.
+  Rational functions show as `(num)/(den)`.
+- **Multivectors:** `(alg := clifford([*1, *1]); [e0, e1] := basis(alg); e0∧e1)`.
+  A multivector that has met an algebra keeps it at every grade:
+  `(alg := clifford([1]); [e0] := basis(alg); 1 + (e0 - e0))`. Coefficients
+  that mention the generator bind it first: `(x := (x : F8); alg := …; …)`.
 - **Closures:** a sequence binding their captured free variables, then the
-  lambda: `(k := 10; x ↦ x + k)`. Recursive groups render as their system:
-  `(fact =: n ↦ …; fact)`.
+  lambda: `(k := 1 : F2; x ↦ k + k = 0)`. A capture holding a builtin is
+  bound before any capture that shadows the builtin's name; a cycle of such
+  shadowings reads the builtin into a fresh name first. Recursive groups
+  render as their system: `(fact =: n ↦ …; fact)`.
 - **Rulesets, evidence, and samples:** rulesets as `impartial(…)`,
   `partizan(…, …)`, or `octal([…])`; claims as `verify(…) /* claim: … */`;
   bounded answers as `bounded(…, n)`; quotients as `quotient(…)`.

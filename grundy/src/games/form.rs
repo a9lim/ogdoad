@@ -983,6 +983,16 @@ pub fn display_composite_graph(reference: &GraphRef, env: &FormNames) -> String 
             preferred[index] = validated_anchor_name(reference, env, true);
         }
     }
+    // Distinct anchors may prefer the same source name; the first keeps it.
+    let mut taken = HashSet::new();
+    for slot in preferred.iter_mut() {
+        if slot
+            .as_ref()
+            .is_some_and(|name| !taken.insert(name.clone()))
+        {
+            *slot = None;
+        }
+    }
     for name in preferred.iter().flatten() {
         collision.insert(name.clone());
     }

@@ -209,7 +209,10 @@ fn algebra_worlds() {
     assert_eq!(out[3], "2");
     assert!(out[4].ends_with(": F5[t]"), "{}", out[4]);
     assert_eq!(out[6], "false");
-    assert_eq!(out[11], "*1 : Mv(Nimber)");
+    assert_eq!(
+        out[11],
+        "(alg := clifford([*1, *1]); [e0, e1] := basis(alg); *1 + (e0 - e0))"
+    );
     assert_eq!(
         out[12],
         "(alg := clifford([*1, *1]); [e0, e1] := basis(alg); e0∧e1)"

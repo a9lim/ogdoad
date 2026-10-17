@@ -258,43 +258,4 @@ impl GameV {
     pub fn as_nimber(&self) -> Option<u128> {
         with(|arena| arena.nimber_value(self.id))
     }
-
-    /// Canonical display: integers, dyadics, nimbers, `up`/`down`, and braces
-    /// otherwise. `budget` bounds the atoms written; `None` means it ran out.
-    pub fn display(&self, budget: &mut u128) -> Option<String> {
-        *budget = budget.checked_sub(1)?;
-        if let Some(surreal) = self.number() {
-            if let Some((num, k)) = surreal.as_dyadic() {
-                return Some(if k == 0 {
-                    num.to_string()
-                } else {
-                    format!("{num}/{}", 1u128 << k)
-                });
-            }
-        }
-        if let Some(n) = self.as_nimber() {
-            return Some(format!("*{n}"));
-        }
-        if self.same(&GameV::up(false)) {
-            return Some("up".to_string());
-        }
-        if self.same(&GameV::up(true)) {
-            return Some("down".to_string());
-        }
-        let mut side = |options: Vec<GameV>| -> Option<String> {
-            let shown = options
-                .iter()
-                .map(|option| option.display(budget))
-                .collect::<Option<Vec<_>>>()?;
-            Some(shown.join(", "))
-        };
-        let left = side(self.lefts())?;
-        let right = side(self.rights())?;
-        Some(match (left.is_empty(), right.is_empty()) {
-            (true, true) => "{|}".to_string(),
-            (false, true) => format!("{{{left} |}}"),
-            (true, false) => format!("{{| {right}}}"),
-            (false, false) => format!("{{{left} | {right}}}"),
-        })
-    }
 }

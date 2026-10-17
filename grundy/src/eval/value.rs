@@ -26,9 +26,9 @@ pub enum Value {
     /// A Boolean.
     Bool(bool),
     /// A tuple.
-    Tuple(Rc<[Value]>),
+    Tuple(Rc<Seq>),
     /// A list.
-    List(Rc<[Value]>),
+    List(Rc<Seq>),
     /// A user data value.
     Data(Rc<DataV>),
     /// `Left` (0), `Right` (1), or `Draw` (2).
@@ -69,12 +69,47 @@ pub enum Value {
     Quotient(Rc<QuotientV>),
 }
 
+/// How deeply data, closures, and recursive groups may nest: every walk
+/// over a value recurses on this depth.
+pub const MAX_VALUE_DEPTH: u32 = 1 << 14;
+
+/// The elements of a tuple or list, with their nesting depth.
+pub struct Seq {
+    items: Box<[Value]>,
+    depth: u32,
+}
+
+impl Seq {
+    fn new(items: Vec<Value>) -> Seq {
+        let depth = items
+            .iter()
+            .map(Value::depth)
+            .max()
+            .unwrap_or(0)
+            .saturating_add(1);
+        Seq {
+            items: items.into_boxed_slice(),
+            depth,
+        }
+    }
+}
+
+impl std::ops::Deref for Seq {
+    type Target = [Value];
+
+    fn deref(&self) -> &[Value] {
+        &self.items
+    }
+}
+
 /// A constructed user data value.
 pub struct DataV {
     /// Its constructor.
     pub ctor: CtorRef,
     /// Its fields.
     pub fields: Vec<Value>,
+    /// Its nesting depth.
+    pub depth: u32,
 }
 
 /// A closure: a lambda with its captured environment.
@@ -89,6 +124,8 @@ pub struct Closure {
     pub tenv: TEnv,
     /// For a member of a recursive group: the group and the member index.
     pub rec: Option<(Rc<RecGroup>, usize)>,
+    /// Its nesting depth through captured values.
+    pub depth: u32,
 }
 
 /// A recursive function group, holding its environment but never itself.
@@ -103,6 +140,8 @@ pub struct RecGroup {
     pub globals: Globals,
     /// The instantiation of its type parameters.
     pub tenv: TEnv,
+    /// Its nesting depth through captured values.
+    pub depth: u32,
 }
 
 /// A generalized binding: its right-hand side is re-evaluated at each
@@ -118,6 +157,8 @@ pub struct GenericV {
     pub globals: Globals,
     /// The enclosing instantiation.
     pub tenv: TEnv,
+    /// Its nesting depth through captured values.
+    pub depth: u32,
 }
 
 /// The two generalized forms.
@@ -220,12 +261,38 @@ impl Value {
 
     /// A list from a vector.
     pub fn list(items: Vec<Value>) -> Value {
-        Value::List(items.into())
+        Value::List(Rc::new(Seq::new(items)))
     }
 
     /// A tuple from a vector.
     pub fn tuple(items: Vec<Value>) -> Value {
-        Value::Tuple(items.into())
+        Value::Tuple(Rc::new(Seq::new(items)))
+    }
+
+    /// How deeply the value nests: data, closures, and containers record
+    /// theirs when built, so this is constant time for them.
+    pub fn depth(&self) -> u32 {
+        match self {
+            Value::Data(d) => d.depth,
+            Value::Closure(c) => c.depth,
+            Value::Generic(g) => g.depth,
+            Value::Tuple(s) | Value::List(s) => s.depth,
+            Value::Option(Some(inner)) => inner.depth().saturating_add(1),
+            Value::Rules(rules) => rules.depth(),
+            Value::Bounded(b) => b.value.depth().saturating_add(1),
+            Value::Witness(w) => w.depth(),
+            Value::Claim(c) => c.witness.depth().saturating_add(1),
+            Value::Quotient(q) => q
+                .classes
+                .iter()
+                .flatten()
+                .flatten()
+                .map(Value::depth)
+                .max()
+                .unwrap_or(0)
+                .saturating_add(1),
+            _ => 0,
+        }
     }
 
     /// The elements of a list value.

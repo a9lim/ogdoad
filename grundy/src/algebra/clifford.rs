@@ -432,6 +432,20 @@ macro_rules! clifford_enums {
                 }
             }
 
+            /// The coefficient type.
+            pub fn con(&self) -> TyCon {
+                match self {
+                    $(MvV::$variant(_) => <$ty as CScalar>::CON,)*
+                }
+            }
+
+            /// Whether the value is zero.
+            pub fn is_zero(&self) -> bool {
+                match self {
+                    $(MvV::$variant(a) => a.v.is_zero(),)*
+                }
+            }
+
             /// The algebra-free unit of this backend.
             pub fn one_like(&self) -> MvV {
                 match self {
@@ -506,6 +520,13 @@ macro_rules! clifford_enums {
             pub fn dim(&self) -> usize {
                 match self {
                     $(AlgebraV::$variant(alg) => alg.dim(),)*
+                }
+            }
+
+            /// The coefficient type.
+            pub fn con(&self) -> TyCon {
+                match self {
+                    $(AlgebraV::$variant(_) => <$ty as CScalar>::CON,)*
                 }
             }
 

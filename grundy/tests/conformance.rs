@@ -26,7 +26,8 @@ struct Block {
     hint: Option<String>,
 }
 
-fn run(session: &mut GrundySession, block: &Block) {
+/// Check one block; a mismatch is reported, not raised, so a run lists them all.
+fn run(session: &mut GrundySession, block: &Block) -> Result<(), String> {
     let result = session.eval_line(&block.input);
     let where_ = format!("line {}: `{}`", block.line, block.input);
     match (&block.error, result) {
@@ -39,26 +40,43 @@ fn run(session: &mut GrundySession, block: &Block) {
                 ..
             }),
         ) => {
-            assert_eq!(actual.code(), kind, "{where_}: error kind ({message})");
-            assert!(
-                message.contains(text.as_str()),
-                "{where_}: message `{message}` lacks `{text}`"
-            );
+            if actual.code() != kind {
+                return Err(format!(
+                    "{where_}: expected {kind}, got {} ({message})",
+                    actual.code()
+                ));
+            }
+            if !message.contains(text.as_str()) {
+                return Err(format!("{where_}: message `{message}` lacks `{text}`"));
+            }
             if let Some(want) = &block.hint {
                 let hint = hint.unwrap_or_default();
-                assert!(
-                    hint.contains(want.as_str()),
-                    "{where_}: hint `{hint}` lacks `{want}`"
-                );
+                if !hint.contains(want.as_str()) {
+                    return Err(format!("{where_}: hint `{hint}` lacks `{want}`"));
+                }
             }
+            Ok(())
         }
-        (Some((kind, _)), Ok(out)) => panic!("{where_}: expected {kind}, got {:?}", out.value),
-        (None, Err(err)) => panic!("{where_}: unexpected error {err}"),
+        (Some((kind, _)), Ok(out)) => {
+            Err(format!("{where_}: expected {kind}, got {:?}", out.value))
+        }
+        (None, Err(err)) => Err(format!("{where_}: unexpected error {err}")),
         (None, Ok(out)) => {
             if let Some(canonical) = &block.canonical {
-                assert_eq!(&out.canonical, canonical, "{where_}: canonical echo");
+                if &out.canonical != canonical {
+                    return Err(format!(
+                        "{where_}: canonical echo\n  got:  {}\n  want: {canonical}",
+                        out.canonical
+                    ));
+                }
             }
-            assert_eq!(out.value, block.value, "{where_}: value");
+            if out.value != block.value {
+                return Err(format!(
+                    "{where_}: value\n  got:  {:?}\n  want: {:?}",
+                    out.value, block.value
+                ));
+            }
+            Ok(())
         }
     }
 }
@@ -69,9 +87,12 @@ fn conformance_corpus() {
     let mut session = GrundySession::new();
     let mut block: Option<Block> = None;
     let mut count = 0;
-    let flush = |session: &mut GrundySession, block: &mut Option<Block>, count: &mut usize| {
+    let mut failures: Vec<String> = Vec::new();
+    let mut flush = |session: &mut GrundySession, block: &mut Option<Block>, count: &mut usize| {
         if let Some(b) = block.take() {
-            run(session, &b);
+            if let Err(failure) = run(session, &b) {
+                failures.push(failure);
+            }
             *count += 1;
         }
     };
@@ -122,5 +143,11 @@ fn conformance_corpus() {
         }
     }
     flush(&mut session, &mut block, &mut count);
+    assert!(
+        failures.is_empty(),
+        "{} of {count} vectors fail:\n{}",
+        failures.len(),
+        failures.join("\n")
+    );
     assert!(count >= 300, "the corpus has {count} vectors");
 }

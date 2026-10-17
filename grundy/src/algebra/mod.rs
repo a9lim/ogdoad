@@ -165,13 +165,7 @@ pub fn unary(op: UnaryOp, value: &Value) -> GrundyResult<Value> {
 }
 
 fn poly_con(p: &PolyV) -> TyCon {
-    match p {
-        PolyV::F2(_) => TyCon::Fp(2),
-        PolyV::F3(_) => TyCon::Fp(3),
-        PolyV::F5(_) => TyCon::Fp(5),
-        PolyV::F7(_) => TyCon::Fp(7),
-        PolyV::Int(_) => TyCon::Int,
-    }
+    p.coefficient_con()
 }
 
 /// A binary operator on algebra values.

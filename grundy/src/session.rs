@@ -198,7 +198,8 @@ impl Session {
                 (name.clone(), graph)
             })
             .collect();
-        let show = Show::new(&self.data, names, budget);
+        let reads = |text: &str, ty: &Ty| self.reads_as(text, ty);
+        let show = Show::new(&self.data, names, budget, Some(&reads));
         let text = show.top(value);
         if show.exhausted.get() {
             return Err(GrundyError::new(
@@ -211,10 +212,12 @@ impl Session {
         Ok(if self.reads_as(&text, ty) {
             text
         } else {
-            format!(
-                "{text} : {}",
-                show_ty(ty, &self.data, &mut VarNames::default())
-            )
+            let ty = show_ty(ty, &self.data, &mut VarNames::default());
+            if super::display::starts_open(&text) {
+                format!("({text}) : {ty}")
+            } else {
+                format!("{text} : {ty}")
+            }
         })
     }
 
@@ -239,7 +242,8 @@ impl Session {
                 _ => return false,
             },
         };
-        let mut ts = self.ts.clone();
+        // Displays are closed, so a fresh unifier suffices.
+        let mut ts = TypeState::default();
         let empty = TypeGlobals {
             values: BTreeMap::new(),
             types: self.types.types.clone(),

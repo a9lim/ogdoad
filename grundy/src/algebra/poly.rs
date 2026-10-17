@@ -82,6 +82,17 @@ fn division_by_zero() -> super::super::error::GrundyError {
 }
 
 impl PolyV {
+    /// The coefficient type.
+    pub fn coefficient_con(&self) -> TyCon {
+        match self {
+            PolyV::F2(_) => TyCon::Fp(2),
+            PolyV::F3(_) => TyCon::Fp(3),
+            PolyV::F5(_) => TyCon::Fp(5),
+            PolyV::F7(_) => TyCon::Fp(7),
+            PolyV::Int(_) => TyCon::Int,
+        }
+    }
+
     /// The constant polynomial of a coefficient at a ring.
     pub fn constant(scalar: TyCon, n: u128) -> GrundyResult<PolyV> {
         Ok(match scalar {
@@ -370,6 +381,16 @@ impl fmt::Display for PolyV {
 }
 
 impl RatFuncV {
+    /// The coefficient type.
+    pub fn coefficient_con(&self) -> TyCon {
+        match self {
+            RatFuncV::F2(_) => TyCon::Fp(2),
+            RatFuncV::F3(_) => TyCon::Fp(3),
+            RatFuncV::F5(_) => TyCon::Fp(5),
+            RatFuncV::F7(_) => TyCon::Fp(7),
+        }
+    }
+
     /// The constant at a field from an integer literal.
     pub fn constant(scalar: TyCon, n: u128) -> GrundyResult<RatFuncV> {
         Ok(match scalar {
