@@ -20791,6 +20791,11 @@ class Ordinal:
         returns `None` at the first unsupported carry or outside that ordinal
         range.
         """
+    def nim_pow(self, *args: Any, **kwargs: Any) -> Any:
+        """Checked nim-power by square-and-multiply over `nim_mul`. `x.nim_pow(0)`
+        is `*1`; `None` reports the first intermediate product past the same
+        Kummer boundary.
+        """
     @staticmethod
     def omega(*args: Any, **kwargs: Any) -> Any:
         """`ω`, the first infinite ordinal nimber."""

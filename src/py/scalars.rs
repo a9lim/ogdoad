@@ -6044,6 +6044,12 @@ impl PyOrdinal {
             .nim_mul(&other.inner)
             .map(|o| PyOrdinal { inner: o })
     }
+    /// Checked nim-power by square-and-multiply over `nim_mul`. `x.nim_pow(0)`
+    /// is `*1`; `None` reports the first intermediate product past the same
+    /// Kummer boundary.
+    fn nim_pow(&self, k: u128) -> Option<PyOrdinal> {
+        self.inner.nim_pow(k).map(|inner| PyOrdinal { inner })
+    }
     /// The multiplicative inverse in the detected represented finite subfield;
     /// `None` for zero or outside the detector's boundary.
     fn checked_inv(&self) -> Option<PyOrdinal> {

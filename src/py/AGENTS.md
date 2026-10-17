@@ -36,8 +36,8 @@ monomorphizations of the pure-Rust core behind the optional `python` feature.
 - `*`: geometric product; `&`: wedge; `<<`/`>>`: contractions; `~`: reverse;
   `**`: multivector power; `/`: supported scalar/versor division.
 - Scalar power follows each scalar wrapper's documented API. `Ordinal` exposes
-  checked `nim_mul`, `checked_inv`, and `checked_sqrt`, which return `None` at
-  the Kummer boundary, and has no Python power method.
+  checked `nim_mul`, `nim_pow`, `checked_inv`, and `checked_sqrt`, which
+  return `None` at the Kummer boundary, and has no `**` operator.
 - Panics inside a guarded scalar boundary become `ValueError`; an unguarded
   panic surfaces as `pyo3_runtime.PanicException`.
 - A scalar `__mul__` must return `NotImplemented` for a multivector so Python

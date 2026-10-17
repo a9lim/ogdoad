@@ -347,6 +347,7 @@ print("  2 ⊗ 2 = *3   :", pl.Ordinal(2).nim_mul(pl.Ordinal(2)))
 print("  ω ⊗ ω        =", omega.nim_mul(omega), "  (just polynomial mult)")
 omega_sq = omega.nim_mul(omega)
 print("  ω ⊗ ω ⊗ ω    =", omega_sq.nim_mul(omega), "  (the headline: ω³ = 2)")
+assert omega.nim_pow(3) == pl.Ordinal(2) and omega.nim_pow(0) == pl.Ordinal(1)
 # (ω + 1)³ in characteristic 2 = ω³ + ω² + ω + 1 = 2 + ω² + ω + 1 = ω² + ω + *3
 w1 = omega.nim_add(pl.Ordinal(1))
 print("  (ω+1)³       =", w1.nim_mul(w1).nim_mul(w1), "  (= ω² + ω + nim_add(2,1))")
