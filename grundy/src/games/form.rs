@@ -1423,15 +1423,25 @@ pub fn structural_game_integer(game: &Game) -> Option<i128> {
     None
 }
 
+/// `n` when the form is presented exactly as `*n`: both sides list
+/// `*0, …, *(n-1)` in that order. Order matters because `lefts` and `rights`
+/// expose it.
 pub fn structural_game_nimber(game: &Game) -> Option<u128> {
-    if game.left().is_empty() && game.right().is_empty() {
-        return Some(0);
+    fn visit(game: &Game, memo: &mut HashMap<usize, Option<u128>>) -> Option<u128> {
+        if let Some(&known) = memo.get(&game.ptr_id()) {
+            return known;
+        }
+        let n = game.left().len();
+        let result = (game.right().len() == n
+            && (0..n).all(|k| {
+                visit(&game.left()[k], memo) == Some(k as u128)
+                    && visit(&game.right()[k], memo) == Some(k as u128)
+            }))
+        .then_some(n as u128);
+        memo.insert(game.ptr_id(), result);
+        result
     }
-    if game.left().len() != game.right().len() {
-        return None;
-    }
-    let nimber = u128::try_from(game.left().len()).ok()?;
-    game_structural_eq_multiset(game, &Game::nim_heap(nimber)).then_some(nimber)
+    visit(game, &mut HashMap::new())
 }
 
 pub fn game_structural_eq_multiset(lhs: &Game, rhs: &Game) -> bool {

@@ -85,7 +85,8 @@ pub fn octal_moves(code: &[u128], pos: &[u128]) -> Vec<Vec<u128>> {
             .filter(|&(i, _)| i != idx)
             .map(|(_, &heap)| heap)
             .collect();
-        for removed in 1..=n {
+        // Digits past the code are zero and allow no move.
+        for removed in 1..=n.min(code.len() as u128) {
             let digit = usize::try_from(removed - 1)
                 .ok()
                 .and_then(|index| code.get(index))

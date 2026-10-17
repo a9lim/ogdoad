@@ -155,15 +155,22 @@ pub fn component_moves(
             if heap == 0 {
                 return Ok(Vec::new());
             }
-            let moves = octal_moves(
-                &code
-                    .digits()
-                    .iter()
-                    .map(|d| u128::from(*d))
-                    .collect::<Vec<_>>(),
-                &[heap as u128],
-            );
-            interp.spend(moves.len() as u128)?;
+            let digits: Vec<u128> = code.digits().iter().map(|d| u128::from(*d)).collect();
+            let heap = heap as u128;
+            // Pay for the moves before generating them: splitting a heap has
+            // as many options as the heap is large.
+            let count = (1..=heap.min(digits.len() as u128)).fold(0u128, |acc, removed| {
+                let digit = digits[(removed - 1) as usize];
+                let rest = heap - removed;
+                let here = if rest == 0 {
+                    digit & 1
+                } else {
+                    ((digit >> 1) & 1) + if digit & 4 != 0 { rest / 2 } else { 0 }
+                };
+                acc.saturating_add(here)
+            });
+            interp.spend(count)?;
+            let moves = octal_moves(&digits, &[heap]);
             return Ok(moves
                 .into_iter()
                 .map(|option| option.into_iter().map(|h| Value::Int(h as i128)).collect())

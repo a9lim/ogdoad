@@ -127,29 +127,12 @@ pub fn call_builtin(
                 .collect(),
         )),
         B::Sums => {
-            let mut atoms = arg(0).as_list().to_vec();
-            atoms.sort_by(key_cmp);
-            atoms.dedup_by(|a, b| key_cmp(a, b) == Ordering::Equal);
             let k = arg(1).as_int();
             if k < 0 {
                 return Err(err(GrundyErrorKind::Domain, "a sum size is non-negative"));
             }
-            let mut out = vec![Value::list(Vec::new())];
-            let mut frontier: Vec<(usize, Vec<Value>)> = vec![(0, Vec::new())];
-            for _ in 0..k {
-                let mut next = Vec::new();
-                for (start, prefix) in &frontier {
-                    for (index, atom) in atoms.iter().enumerate().skip(*start) {
-                        interp.spend(1)?;
-                        let mut sum = prefix.clone();
-                        sum.push(atom.clone());
-                        out.push(Value::list(sum.clone()));
-                        next.push((index, sum));
-                    }
-                }
-                frontier = next;
-            }
-            Ok(Value::list(out))
+            let sums = super::super::games::claims::multisets(interp, arg(0).as_list(), k)?;
+            Ok(Value::list(sums.into_iter().map(Value::list).collect()))
         }
         B::Div => {
             let (a, b) = (arg(0).as_int(), arg(1).as_int());

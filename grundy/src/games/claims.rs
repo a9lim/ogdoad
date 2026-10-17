@@ -12,8 +12,8 @@ use std::collections::{BTreeMap, HashMap};
 use std::rc::Rc;
 
 use ogdoad::games::{
-    GuySmithCertificate, LoopyPartizanGraph, OutcomeCertificate, PlayConvention, StateLabel,
-    StateVerdict,
+    GuySmithCertificate, GuySmithError, LoopyPartizanGraph, OutcomeCertificate, PlayConvention,
+    StateLabel, StateVerdict,
 };
 
 use super::super::builtins::Builtin;
@@ -145,6 +145,11 @@ pub fn verify(interp: &mut Interp<'_>, witness: &Rc<WitnessV>) -> GrundyResult<C
             if left.is_empty() {
                 return Err(refuted("an outcome witness needs a root node"));
             }
+            if left.len() as u128 > interp.graph_budget {
+                return Err(budget_error(interp.graph_budget));
+            }
+            let edges: usize = left.iter().chain(right.iter()).map(Vec::len).sum();
+            interp.spend((left.len() + edges) as u128)?;
             let graph = LoopyPartizanGraph::new(left.clone(), right.clone())
                 .map_err(|e| refuted(format!("the witness graph is invalid: {e}")))?;
             let outcomes = graph
@@ -219,9 +224,31 @@ pub fn verify(interp: &mut Interp<'_>, witness: &Rc<WitnessV>) -> GrundyResult<C
                     "Guy–Smith periodicity applies only to rules built by `octal`",
                 ));
             };
+            // The theorem window is about 2(preperiod + period) + |code|
+            // terms; each costs one mex over the code's moves, and splitting
+            // moves cost as much as the heap. Pay before the work.
+            let terms = preperiod
+                .saturating_add(*period)
+                .saturating_mul(2)
+                .saturating_add(code.digits().len() as u128 + 1);
+            let per_term = if code.digits().iter().any(|d| d & 4 != 0) {
+                terms
+            } else {
+                code.digits().len() as u128
+            };
+            if terms <= interp.graph_budget {
+                interp.spend(terms.saturating_mul(per_term))?;
+            }
             let budget = usize::try_from(interp.graph_budget).unwrap_or(usize::MAX);
-            GuySmithCertificate::compute(code.clone(), *preperiod, *period, budget)
-                .map_err(|e| refuted(e.to_string()))?;
+            GuySmithCertificate::compute(code.clone(), *preperiod, *period, budget).map_err(
+                |e| match e {
+                    GuySmithError::TermBudgetExceeded { .. } => budget_error(interp.graph_budget),
+                    GuySmithError::IndexTooLarge { .. } | GuySmithError::ArithmeticOverflow => {
+                        err(GrundyErrorKind::Overflow, e.to_string())
+                    }
+                    other => refuted(other.to_string()),
+                },
+            )?;
             Statement::Periodic {
                 preperiod: *preperiod,
                 period: *period,
@@ -296,6 +323,8 @@ impl MisereSolver {
                 .map(|next| (state_key(&next), next))
                 .collect())
         };
+        // Every child is explored, even after a winning one, so whether a
+        // cycle is found depends on the ruleset, not on its option order.
         let mut stack = vec![Frame {
             key: root_key.clone(),
             children: expand(interp, &root)?,
@@ -307,9 +336,8 @@ impl MisereSolver {
             if frame.children.is_empty() {
                 // A player with no move wins in misère play.
                 frame.wins = true;
-                frame.next = usize::MAX;
             }
-            if frame.wins || frame.next >= frame.children.len() {
+            if frame.next >= frame.children.len() {
                 let done = stack.pop().expect("frame");
                 on_stack.remove(&done.key);
                 if self.memo.len() as u128 >= interp.graph_budget {
@@ -365,6 +393,38 @@ fn misere_outcome(interp: &mut Interp<'_>, rules: &RulesV, sum: Vec<Value>) -> G
     ]))
 }
 
+/// The multisets of at most `k` atoms (deduplicated), in size order, each
+/// paid for with one unit plus its size before it is built.
+pub fn multisets(
+    interp: &mut Interp<'_>,
+    atoms: &[Value],
+    k: i128,
+) -> GrundyResult<Vec<Vec<Value>>> {
+    let mut atoms = atoms.to_vec();
+    atoms.sort_by(key_cmp);
+    atoms.dedup_by(|a, b| key_cmp(a, b).is_eq());
+    interp.spend(1)?;
+    let mut out = vec![Vec::new()];
+    let mut frontier: Vec<(usize, Vec<Value>)> = vec![(0, Vec::new())];
+    for _ in 0..k.max(0) {
+        if frontier.is_empty() || atoms.is_empty() {
+            break;
+        }
+        let mut next = Vec::new();
+        for (start, prefix) in &frontier {
+            for (index, atom) in atoms.iter().enumerate().skip(*start) {
+                interp.spend(2 + prefix.len() as u128)?;
+                let mut sum = prefix.clone();
+                sum.push(atom.clone());
+                out.push(sum.clone());
+                next.push((index, sum));
+            }
+        }
+        frontier = next;
+    }
+    Ok(out)
+}
+
 fn quotient(
     interp: &mut Interp<'_>,
     rules: &RulesV,
@@ -372,28 +432,8 @@ fn quotient(
     elem_bound: i128,
     test_bound: i128,
 ) -> GrundyResult<(QuotientV, u128)> {
-    let multisets = |k: i128| -> Vec<Vec<Value>> {
-        let mut atoms = atoms.to_vec();
-        atoms.sort_by(key_cmp);
-        atoms.dedup_by(|a, b| key_cmp(a, b).is_eq());
-        let mut out = vec![Vec::new()];
-        let mut frontier: Vec<(usize, Vec<Value>)> = vec![(0, Vec::new())];
-        for _ in 0..k.max(0) {
-            let mut next = Vec::new();
-            for (start, prefix) in &frontier {
-                for (index, atom) in atoms.iter().enumerate().skip(*start) {
-                    let mut sum = prefix.clone();
-                    sum.push(atom.clone());
-                    out.push(sum.clone());
-                    next.push((index, sum));
-                }
-            }
-            frontier = next;
-        }
-        out
-    };
-    let elements = multisets(elem_bound);
-    let tests = multisets(test_bound);
+    let elements = multisets(interp, atoms, elem_bound)?;
+    let tests = multisets(interp, atoms, test_bound)?;
     interp.spend((elements.len() * tests.len()) as u128)?;
     let mut solver = MisereSolver::default();
     let mut signatures = Vec::new();

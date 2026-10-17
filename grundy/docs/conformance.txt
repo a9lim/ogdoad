@@ -484,6 +484,39 @@
 > (1/3 : Surreal)↑100
 ! E_Overflow: exact arithmetic exceeds its fixed-width coefficients
 
+> moves(octal([1]), [1000000000000000000000000000000], Left)
+= [] : List(List(Int))
+
+> sums([], 1000000000000000000)
+= [[]] : List(List(Int))
+
+> poly_rules := impartial((p : F2[t]) ↦ if p = 0 then [] else [[]])
+
+> value(poly_rules, t : F2[t])
+= *1
+
+> verify(sg_witness(poly_rules, t : F2[t], [(0 : F2[t], 0, 0)]))
+! E_Refuted: the root is not in the Grundy table
+
+> {*1, 0 | *1, 0} : Form
+= {*1, 0 | *1, 0} : Form
+
+> {0, *1 | 0, *1} : Form
+= *2 : Form
+
+> self_loop := impartial(n ↦ if n = 0 then [] else if n = 1 then [[]] else [[1], [2]])
+
+> verify(separation_witness(self_loop, [2], [1], []))
+! E_Loopy: the misère sum-state graph has a cycle
+
+@graph 1
+> periodic(octal([2]), 1, 2)
+! E_GraphBudget: exceeds the node budget of 1
+
+@graph 0
+> verify(outcome_witness([[]], [[]], false, [(0, 0, -1), (0, 0, -1)]))
+! E_GraphBudget: exceeds the node budget of 0
+
 @reset
 > x ↦ x(x)
 ! E_Type: infinite type
