@@ -13,7 +13,7 @@ use super::super::games::form::{
     add_game_elements, build_game_form, form_outcome_cell, form_value_relation,
     game_element_regular_eq, materialize_regular_system, negate_game_element, FormV, SymbolicGame,
 };
-use super::super::games::game::GameV;
+use super::super::games::game::{guard, GameV};
 use super::super::syntax::ast::{BinaryOp, Mover, OutcomeCell, RelOp, StarIndex, UnaryOp};
 use super::super::types::{DataRegistry, Ty, TyCon};
 use super::builtins::call_builtin;
@@ -37,6 +37,16 @@ pub struct Interp<'a> {
     /// The node budget.
     pub graph_budget: u128,
     depth: usize,
+}
+
+impl super::super::games::game::Meter for Interp<'_> {
+    fn remaining(&self) -> u128 {
+        self.fuel
+    }
+
+    fn charge(&mut self, amount: u128) -> GrundyResult<()> {
+        self.spend(amount)
+    }
 }
 
 /// A place where evaluation is happening.
@@ -373,7 +383,11 @@ impl<'a> Interp<'a> {
                     Ty::Con(TyCon::Game, _) => {
                         let games =
                             |values: &[Value]| values.iter().map(as_game).collect::<Vec<_>>();
-                        Ok(Value::Game(GameV::form(&games(&left), &games(&right))))
+                        Ok(Value::Game(GameV::form(
+                            &games(&left),
+                            &games(&right),
+                            self,
+                        )?))
                     }
                     Ty::Con(TyCon::Form, _) => {
                         let forms = |values: Vec<Value>| {
@@ -688,8 +702,9 @@ impl<'a> Interp<'a> {
     // ---------------------------------------------------------------- literals
 
     fn int_literal(&mut self, n: u128, ty: &Ty) -> GrundyResult<Value> {
-        if let Ty::Con(TyCon::Game | TyCon::Form, _) = ty {
-            // The integer game n has n positions.
+        if let Ty::Con(TyCon::Form, _) = ty {
+            // The integer form n has n positions.
+            guard(n)?;
             self.spend(n)?;
         }
         match ty {
@@ -698,7 +713,7 @@ impl<'a> Interp<'a> {
                     err(GrundyErrorKind::Overflow, "literal exceeds i128")
                 })?))
             }
-            Ty::Con(TyCon::Game, _) => Ok(Value::Game(GameV::integer(to_i128(n)?))),
+            Ty::Con(TyCon::Game, _) => Ok(Value::Game(GameV::integer(to_i128(n)?, self)?)),
             Ty::Con(TyCon::Form, _) => Ok(Value::Form(FormV::finite(Game::integer(to_i128(n)?)))),
             Ty::Con(con, _) if ScalarV::zero(*con).is_some() => {
                 Ok(Value::Scalar(ScalarV::int_literal(*con, n)?))
@@ -712,17 +727,13 @@ impl<'a> Interp<'a> {
         if den == 0 {
             return Err(err(GrundyErrorKind::DivisionByZero, "zero denominator"));
         }
-        if let Ty::Con(TyCon::Game | TyCon::Form, _) = ty {
-            // A dyadic game's form grows with its integer part and its depth.
-            self.spend(num.unsigned_abs() / den + 128)?;
-        }
         match ty {
-            Ty::Con(TyCon::Game, _) => Ok(Value::Game(GameV::dyadic(num, den)?)),
+            Ty::Con(TyCon::Game, _) => Ok(Value::Game(GameV::dyadic(num, den, self)?)),
             Ty::Con(TyCon::Form, _) => {
-                let game = GameV::dyadic(num, den)?;
-                let den = to_i128(den)?;
-                let surreal = Surreal::from_rational(Rational::new(num, den));
-                let _ = game;
+                // Validate and size the dyadic as a Game, then present it.
+                let birthday = GameV::dyadic(num, den, self)?.birthday();
+                self.spend(birthday)?;
+                let surreal = Surreal::from_rational(Rational::new(num, to_i128(den)?));
                 Ok(Value::Form(FormV::finite(
                     Game::from_surreal(&surreal).expect("dyadic checked"),
                 )))
@@ -742,8 +753,9 @@ impl<'a> Interp<'a> {
     }
 
     fn star_literal(&mut self, index: &StarIndex, ty: &Ty) -> GrundyResult<Value> {
-        if let (Ty::Con(TyCon::Game | TyCon::Form, _), StarIndex::Finite(n)) = (ty, index) {
-            // The nimber game *n has n(n+1)/2 option edges.
+        if let (Ty::Con(TyCon::Form, _), StarIndex::Finite(n)) = (ty, index) {
+            // The nimber form *n has n(n+1)/2 option edges.
+            guard(*n)?;
             self.spend(n.saturating_mul(n.saturating_add(1)) / 2)?;
         }
         let finite = || match index {
@@ -755,7 +767,7 @@ impl<'a> Interp<'a> {
             .with_hint("transfinite nimbers are Ordinal: `(*ω : Ordinal)`")),
         };
         match ty {
-            Ty::Con(TyCon::Game, _) => Ok(Value::Game(GameV::nimber(finite()?))),
+            Ty::Con(TyCon::Game, _) => Ok(Value::Game(GameV::nimber(finite()?, self)?)),
             Ty::Con(TyCon::Form, _) => Ok(Value::Form(FormV::finite(Game::nim_heap(finite()?)))),
             Ty::Con(con, _) if ScalarV::zero(*con).is_some() => {
                 Ok(Value::Scalar(ScalarV::star_literal(*con, index)?))
@@ -774,7 +786,7 @@ impl<'a> Interp<'a> {
                 .checked_neg()
                 .map(Value::Int)
                 .ok_or_else(|| err(GrundyErrorKind::Overflow, "negation overflows i128")),
-            (UnaryOp::Neg, Value::Game(g)) => Ok(Value::Game(g.neg())),
+            (UnaryOp::Neg, Value::Game(g)) => Ok(Value::Game(g.neg(self)?)),
             (UnaryOp::Neg, Value::Form(f)) => Ok(Value::Form(FormV(negate_game_element(
                 f.0,
                 self.graph_budget,
@@ -838,8 +850,8 @@ impl<'a> Interp<'a> {
                 })?;
                 a.checked_pow(k).map(Value::Int).ok_or_else(overflow)
             }
-            (BinaryOp::Add, Value::Game(a), Value::Game(b)) => Ok(Value::Game(a.add(b))),
-            (BinaryOp::Sub, Value::Game(a), Value::Game(b)) => Ok(Value::Game(a.add(&b.neg()))),
+            (BinaryOp::Add, Value::Game(a), Value::Game(b)) => Ok(Value::Game(a.add(b, self)?)),
+            (BinaryOp::Sub, Value::Game(a), Value::Game(b)) => Ok(Value::Game(a.sub(b, self)?)),
             (BinaryOp::Add | BinaryOp::Sub, Value::Form(a), Value::Form(b)) => {
                 Ok(Value::Form(FormV(add_game_elements(
                     a.0.clone(),
@@ -876,9 +888,9 @@ impl<'a> Interp<'a> {
         match (lhs, rhs) {
             (Value::Game(a), Value::Game(b)) => Ok(match op {
                 RelOp::Eq => a.same(b),
-                RelOp::Outcome(cell) => game_cell(a, b) == cell,
+                RelOp::Outcome(cell) => game_cell(a, b, self)? == cell,
                 RelOp::Equiv => unreachable!("checker restricts `≡` to Form"),
-                _ => order_relation(op, a.compare(b)),
+                _ => order_relation(op, a.compare(b, self)?),
             }),
             (Value::Form(a), Value::Form(b)) => match op {
                 RelOp::Equiv => Ok(game_element_regular_eq(&a.0, &b.0)),
@@ -949,17 +961,21 @@ fn one_like(value: &Value) -> GrundyResult<Value> {
 }
 
 /// The outcome cell of `a - b` for short games: no draws.
-pub fn game_cell(a: &GameV, b: &GameV) -> OutcomeCell {
-    let (left_first, right_first) = match a.compare(b) {
+pub fn game_cell(
+    a: &GameV,
+    b: &GameV,
+    meter: &mut impl super::super::games::game::Meter,
+) -> GrundyResult<OutcomeCell> {
+    let (left_first, right_first) = match a.compare(b, meter)? {
         Some(std::cmp::Ordering::Greater) => (Mover::Left, Mover::Left),
         Some(std::cmp::Ordering::Less) => (Mover::Right, Mover::Right),
         Some(std::cmp::Ordering::Equal) => (Mover::Right, Mover::Left),
         None => (Mover::Left, Mover::Right),
     };
-    OutcomeCell {
+    Ok(OutcomeCell {
         left_first,
         right_first,
-    }
+    })
 }
 
 fn order_relation(op: RelOp, ordering: Option<std::cmp::Ordering>) -> bool {

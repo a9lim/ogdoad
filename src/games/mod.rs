@@ -13,6 +13,7 @@
 //! group operations. Cyclic play belongs in [`loopy`], and no API treats an
 //! arbitrary partizan game as a Clifford scalar.
 
+pub mod arena;
 pub mod atomic_weight;
 pub mod brown_selector;
 pub mod coin_turning;
@@ -33,6 +34,7 @@ pub mod thermography;
 pub mod tropical_thermography;
 pub mod witt_fifo;
 
+pub use arena::{ArenaExhausted, GameArena, GameId};
 pub use atomic_weight::*;
 pub use brown_selector::*;
 pub use coin_turning::*;

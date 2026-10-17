@@ -234,6 +234,14 @@ fn structural_errors_body() {
         GrundyErrorKind::Parse
     );
     assert!(parse_statement("(a, b) =: x").is_err());
+    let flat = vec!["1"; 8000].join(" + ");
+    let err = parse_statement(&flat).unwrap_err();
+    assert!(err.message.contains("1536"), "{err}");
+    let calls = format!("f{}", "(1)".repeat(3000));
+    assert!(parse_statement(&calls)
+        .unwrap_err()
+        .message
+        .contains("1536"));
 }
 
 #[test]
@@ -249,6 +257,8 @@ fn continuation_follows_delimiters_and_trailing_operators() {
         ("f(x)", false),
         ("a := 1;", true),
         ("data T = A |", true),
+        ("*", false),
+        ("x := *", false),
     ] {
         assert_eq!(needs_continuation(src).unwrap(), expected, "`{src}`");
     }

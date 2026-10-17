@@ -397,7 +397,6 @@ pub fn needs_continuation(src: &str) -> GrundyResult<bool> {
                 | Tok::Fuzzy
                 | Tok::Equiv
                 | Tok::Outcome(_)
-                | Tok::Star
                 | Tok::Kw(
                     Keyword::If
                         | Keyword::Then

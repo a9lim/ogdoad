@@ -174,6 +174,23 @@ impl Parser<'_> {
         self.depth -= 1;
     }
 
+    /// Run a left-associative chain: each link nests the tree one level, so
+    /// it counts against the nesting limit like a delimiter.
+    fn chain(
+        &mut self,
+        body: impl FnOnce(&mut Self, &mut usize) -> PResult<Expr>,
+    ) -> PResult<Expr> {
+        let mut links = 0;
+        let result = body(self, &mut links);
+        self.depth -= links;
+        result
+    }
+
+    fn link(&mut self, links: &mut usize) -> PResult<()> {
+        *links += 1;
+        self.enter()
+    }
+
     /// Position of the token matching the open delimiter at `self.pos`.
     fn matching_close(&self, from: usize) -> Option<usize> {
         let mut depth = 0usize;
@@ -420,21 +437,27 @@ impl Parser<'_> {
     }
 
     fn or_expr(&mut self) -> PResult<Expr> {
-        let mut lhs = self.and_expr()?;
-        while self.eat(&Tok::Kw(Keyword::Or)) {
-            let rhs = self.and_expr()?;
-            lhs = binary(BinaryOp::Or, lhs, rhs);
-        }
-        Ok(lhs)
+        self.chain(|p, links| {
+            let mut lhs = p.and_expr()?;
+            while p.eat(&Tok::Kw(Keyword::Or)) {
+                p.link(links)?;
+                let rhs = p.and_expr()?;
+                lhs = binary(BinaryOp::Or, lhs, rhs);
+            }
+            Ok(lhs)
+        })
     }
 
     fn and_expr(&mut self) -> PResult<Expr> {
-        let mut lhs = self.not_expr()?;
-        while self.eat(&Tok::Kw(Keyword::And)) {
-            let rhs = self.not_expr()?;
-            lhs = binary(BinaryOp::And, lhs, rhs);
-        }
-        Ok(lhs)
+        self.chain(|p, links| {
+            let mut lhs = p.not_expr()?;
+            while p.eat(&Tok::Kw(Keyword::And)) {
+                p.link(links)?;
+                let rhs = p.not_expr()?;
+                lhs = binary(BinaryOp::And, lhs, rhs);
+            }
+            Ok(lhs)
+        })
     }
 
     fn not_expr(&mut self) -> PResult<Expr> {
@@ -509,46 +532,52 @@ impl Parser<'_> {
     }
 
     fn additive(&mut self) -> PResult<Expr> {
-        let mut lhs = self.mul_expr()?;
-        loop {
-            let op = match self.peek() {
-                Some(Tok::Plus) => BinaryOp::Add,
-                Some(Tok::Minus) => BinaryOp::Sub,
-                _ => return Ok(lhs),
-            };
-            self.pos += 1;
-            let rhs = self.mul_expr()?;
-            lhs = binary(op, lhs, rhs);
-        }
+        self.chain(|p, links| {
+            let mut lhs = p.mul_expr()?;
+            loop {
+                let op = match p.peek() {
+                    Some(Tok::Plus) => BinaryOp::Add,
+                    Some(Tok::Minus) => BinaryOp::Sub,
+                    _ => return Ok(lhs),
+                };
+                p.pos += 1;
+                p.link(links)?;
+                let rhs = p.mul_expr()?;
+                lhs = binary(op, lhs, rhs);
+            }
+        })
     }
 
     fn mul_expr(&mut self) -> PResult<Expr> {
-        let mut lhs = self.wedge()?;
-        loop {
-            let op = match self.peek() {
-                Some(Tok::Dot) => BinaryOp::Mul,
-                Some(Tok::Slash) => BinaryOp::Div,
-                Some(Tok::Percent) => BinaryOp::Rem,
-                Some(Tok::Star) => {
-                    return Err(self
-                        .error_here("unexpected `*` after a complete operand")
-                        .with_hint("`*` is the nimber prefix; the product is `⋅` (sugar `.`)"))
-                }
-                _ => return Ok(lhs),
-            };
-            self.pos += 1;
-            let rhs = self.wedge()?;
-            if op == BinaryOp::Div {
-                if let (Some(num), Some(den)) = (self.literal_int(&lhs), self.literal_int(&rhs)) {
-                    if let Some(frac) = fraction(num, den) {
-                        let span = lhs.span.join(rhs.span);
-                        lhs = Expr::new(frac, span);
-                        continue;
+        self.chain(|p, links| {
+            let mut lhs = p.wedge()?;
+            loop {
+                let op = match p.peek() {
+                    Some(Tok::Dot) => BinaryOp::Mul,
+                    Some(Tok::Slash) => BinaryOp::Div,
+                    Some(Tok::Percent) => BinaryOp::Rem,
+                    Some(Tok::Star) => {
+                        return Err(p
+                            .error_here("unexpected `*` after a complete operand")
+                            .with_hint("`*` is the nimber prefix; the product is `⋅` (sugar `.`)"))
+                    }
+                    _ => return Ok(lhs),
+                };
+                p.pos += 1;
+                p.link(links)?;
+                let rhs = p.wedge()?;
+                if op == BinaryOp::Div {
+                    if let (Some(num), Some(den)) = (p.literal_int(&lhs), p.literal_int(&rhs)) {
+                        if let Some(frac) = fraction(num, den) {
+                            let span = lhs.span.join(rhs.span);
+                            lhs = Expr::new(frac, span);
+                            continue;
+                        }
                     }
                 }
+                lhs = binary(op, lhs, rhs);
             }
-            lhs = binary(op, lhs, rhs);
-        }
+        })
     }
 
     /// A signed integer literal written without parentheses: `7` or `-7`.
@@ -572,12 +601,15 @@ impl Parser<'_> {
     }
 
     fn wedge(&mut self) -> PResult<Expr> {
-        let mut lhs = self.unary()?;
-        while self.eat(&Tok::Wedge) {
-            let rhs = self.unary()?;
-            lhs = binary(BinaryOp::Wedge, lhs, rhs);
-        }
-        Ok(lhs)
+        self.chain(|p, links| {
+            let mut lhs = p.unary()?;
+            while p.eat(&Tok::Wedge) {
+                p.link(links)?;
+                let rhs = p.unary()?;
+                lhs = binary(BinaryOp::Wedge, lhs, rhs);
+            }
+            Ok(lhs)
+        })
     }
 
     fn unary(&mut self) -> PResult<Expr> {
@@ -607,10 +639,15 @@ impl Parser<'_> {
     }
 
     fn postfix(&mut self) -> PResult<Expr> {
+        self.chain(|p, links| p.postfix_chain(links))
+    }
+
+    fn postfix_chain(&mut self, links: &mut usize) -> PResult<Expr> {
         let mut expr = self.atom()?;
         loop {
             match self.peek() {
                 Some(Tok::LParen) => {
+                    self.link(links)?;
                     self.pos += 1;
                     let mut args = Vec::new();
                     if !self.eat(&Tok::RParen) {
@@ -627,6 +664,7 @@ impl Parser<'_> {
                     expr = Expr::new(ExprKind::Call(Box::new(expr), args), span);
                 }
                 Some(Tok::LBracket) => {
+                    self.link(links)?;
                     self.pos += 1;
                     let index = self.expr()?;
                     self.expect(&Tok::RBracket, "`]` closing the index")?;
@@ -1103,6 +1141,20 @@ impl Parser<'_> {
         let start = self.span_here();
         let (args, tuple_like) = if self.peek() == Some(&Tok::LParen) {
             self.pos += 1;
+            if self.eat(&Tok::RParen) {
+                // `()` is the empty argument list of a function type.
+                if !self.eat(&Tok::Arrow) {
+                    return Err(self
+                        .error_here("`()` in a type needs `→` after it")
+                        .with_hint("a function of no arguments is `() → T`"));
+                }
+                let ret = self.ty()?;
+                let span = start.join(ret.span);
+                return Ok(TypeExpr::new(
+                    TypeKind::Fun(Vec::new(), Box::new(ret)),
+                    span,
+                ));
+            }
             let mut args = vec![self.ty()?];
             while self.eat(&Tok::Comma) {
                 args.push(self.ty()?);

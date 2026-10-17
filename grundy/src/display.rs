@@ -24,6 +24,22 @@ pub struct Show<'a> {
     pub data: &'a DataRegistry,
     /// Global names, so Form displays never capture a different binding.
     pub names: FormNames,
+    /// Atoms the display may still write.
+    pub budget: std::cell::Cell<u128>,
+    /// Whether the display ran out of budget.
+    pub exhausted: std::cell::Cell<bool>,
+}
+
+impl<'a> Show<'a> {
+    /// A display context writing at most `budget` atoms.
+    pub fn new(data: &'a DataRegistry, names: FormNames, budget: u128) -> Show<'a> {
+        Show {
+            data,
+            names,
+            budget: std::cell::Cell::new(budget),
+            exhausted: std::cell::Cell::new(false),
+        }
+    }
 }
 
 impl Show<'_> {
@@ -39,11 +55,7 @@ impl Show<'_> {
 
 /// Display a value with no names in scope.
 pub fn show_plain(value: &Value, data: &DataRegistry) -> String {
-    Show {
-        data,
-        names: FormNames::new(),
-    }
-    .value(value)
+    Show::new(data, FormNames::new(), u128::MAX).value(value)
 }
 
 fn join<T>(items: impl IntoIterator<Item = T>, f: impl FnMut(T) -> String) -> String {
@@ -53,6 +65,16 @@ fn join<T>(items: impl IntoIterator<Item = T>, f: impl FnMut(T) -> String) -> St
 impl Show<'_> {
     /// Render a value.
     pub fn value(&self, value: &Value) -> String {
+        if self.exhausted.get() {
+            return String::new();
+        }
+        match self.budget.get().checked_sub(1) {
+            Some(left) => self.budget.set(left),
+            None => {
+                self.exhausted.set(true);
+                return String::new();
+            }
+        }
         match value {
             Value::Int(n) => n.to_string(),
             Value::Bool(b) => b.to_string(),
@@ -69,7 +91,15 @@ impl Show<'_> {
             Value::Winner(w) => ["Left", "Right", "Draw"][*w as usize].to_string(),
             Value::Option(None) => "None".to_string(),
             Value::Option(Some(inner)) => format!("Some({})", self.value(inner)),
-            Value::Game(g) => g.display(),
+            Value::Game(g) => {
+                let mut budget = self.budget.get();
+                let shown = g.display(&mut budget);
+                self.budget.set(budget);
+                shown.unwrap_or_else(|| {
+                    self.exhausted.set(true);
+                    String::new()
+                })
+            }
             Value::Form(f) => {
                 let text = display_game_element_in_env(&f.0, &self.names);
                 // A bare single equation is a statement; nested, it names its root.

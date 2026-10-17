@@ -65,7 +65,13 @@ impl Session {
 
     /// Evaluate one statement.
     pub fn eval(&mut self, src: &str) -> GrundyResult<Output> {
-        contain_overflow(Span::new(0, src.len()), || self.eval_statement(src))
+        // A failed statement leaves no trace, including unifications it made.
+        let saved = self.ts.clone();
+        let result = contain_overflow(Span::new(0, src.len()), || self.eval_statement(src));
+        if result.is_err() {
+            self.ts = saved;
+        }
+        result
     }
 
     fn eval_statement(&mut self, src: &str) -> GrundyResult<Output> {
@@ -101,7 +107,7 @@ impl Session {
                             tenv: Rc::new(BTreeMap::new()),
                         };
                         let value = interp.eval(expr, &scope)?;
-                        Some(self.show_typed(&value, ty))
+                        Some(self.show_typed(&value, ty, interp.fuel)?)
                     }
                     _ => None,
                 };
@@ -180,7 +186,7 @@ impl Session {
 
     /// Display a value; annotate with its type exactly when re-reading the
     /// text alone would not recover that type.
-    pub fn show_typed(&self, value: &Value, ty: &Ty) -> String {
+    pub fn show_typed(&self, value: &Value, ty: &Ty, budget: u128) -> GrundyResult<String> {
         let names = self
             .values
             .iter()
@@ -192,19 +198,24 @@ impl Session {
                 (name.clone(), graph)
             })
             .collect();
-        let text = Show {
-            data: &self.data,
-            names,
+        let show = Show::new(&self.data, names, budget);
+        let text = show.top(value);
+        if show.exhausted.get() {
+            return Err(GrundyError::new(
+                GrundyErrorKind::Fuel,
+                Span::default(),
+                format!("the display exceeds the {budget} atoms of work left"),
+            )
+            .with_hint("raise it with `:fuel n`; budgets are never a value"));
         }
-        .top(value);
-        if self.reads_as(&text, ty) {
+        Ok(if self.reads_as(&text, ty) {
             text
         } else {
             format!(
                 "{text} : {}",
                 show_ty(ty, &self.data, &mut VarNames::default())
             )
-        }
+        })
     }
 
     fn reads_as(&self, text: &str, ty: &Ty) -> bool {

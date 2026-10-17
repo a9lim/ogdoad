@@ -193,16 +193,12 @@ pub fn call_builtin(
         }
         // ------------------------------------------------------------- games
         B::GameOf => match arg(0) {
-            Value::Int(n) => {
-                interp.spend(n.unsigned_abs())?;
-                Ok(Value::Game(GameV::integer(*n)))
-            }
+            Value::Int(n) => Ok(Value::Game(GameV::integer(*n, interp)?)),
             Value::Scalar(ScalarV::Nimber(Nimber(n))) => {
-                interp.spend(n.saturating_mul(n.saturating_add(1)) / 2)?;
-                Ok(Value::Game(GameV::nimber(*n)))
+                Ok(Value::Game(GameV::nimber(*n, interp)?))
             }
-            Value::Scalar(ScalarV::Surreal(s)) => Game::from_surreal(s)
-                .map(|game| Value::Game(GameV::seal(&game)))
+            Value::Scalar(ScalarV::Surreal(s)) => GameV::of_surreal(s, interp)?
+                .map(Value::Game)
                 .ok_or_else(|| {
                     err(
                         GrundyErrorKind::Domain,
@@ -218,7 +214,7 @@ pub fn call_builtin(
         },
         B::FormOf => Ok(Value::Form(FormV::finite(game_of(arg(0)).game()))),
         B::Canon => match &form_of(arg(0)).0 {
-            GameElement::Finite(game) => Ok(Value::Game(GameV::seal(game))),
+            GameElement::Finite(game) => Ok(Value::Game(GameV::seal(game, interp)?)),
             GameElement::Graph(_) => Err(err(
                 GrundyErrorKind::Loopy,
                 "a cyclic Form has no short canonical value",
@@ -233,7 +229,7 @@ pub fn call_builtin(
             .as_nimber()
             .map(|n| Value::Scalar(ScalarV::Nimber(Nimber(n))))
             .ok_or_else(|| err(GrundyErrorKind::Domain, "the game is not a nimber")),
-        B::IsNumber => Ok(Value::Bool(game_of(arg(0)).number().is_some())),
+        B::IsNumber => Ok(Value::Bool(game_of(arg(0)).is_number())),
         B::Lefts | B::Rights => {
             let left = builtin == B::Lefts;
             match arg(0) {
@@ -256,7 +252,7 @@ pub fn call_builtin(
             }
         }
         B::Birthday => match arg(0) {
-            Value::Game(g) => Ok(Value::Int(i128::from(g.birthday()))),
+            Value::Game(g) => Ok(Value::Int(g.birthday() as i128)),
             Value::Form(FormV(GameElement::Finite(game))) => Ok(Value::Int(
                 i128::try_from(game.birthday())
                     .map_err(|_| err(GrundyErrorKind::Overflow, "birthday exceeds i128"))?,
@@ -272,7 +268,7 @@ pub fn call_builtin(
         },
         B::Outcome => {
             let cell = match arg(0) {
-                Value::Game(g) => game_cell(g, &GameV::integer(0)),
+                Value::Game(g) => game_cell(g, &GameV::zero(), interp)?,
                 Value::Form(f) => form_outcome(&f.0, interp.graph_budget)?,
                 other => {
                     return Err(err(
@@ -304,13 +300,13 @@ pub fn call_builtin(
                 .ok_or_else(|| err(GrundyErrorKind::Domain, "the game has no thermograph"))
         }
         B::AtomicWeight => atomic_weight(&game_of(arg(0)).game())
-            .map(|g| Value::Game(GameV::seal(&g)))
             .ok_or_else(|| {
                 err(
                     GrundyErrorKind::Domain,
                     "atomic weight needs an all-small game",
                 )
-            }),
+            })
+            .and_then(|g| GameV::seal(&g, interp).map(Value::Game)),
         // ---------------------------------------------------------- algebra
         B::Deg
         | B::Coef
@@ -369,7 +365,7 @@ pub fn call_builtin(
 pub fn zero_of(ty: &Ty) -> GrundyResult<Value> {
     match ty {
         Ty::Con(TyCon::Int, _) => Ok(Value::Int(0)),
-        Ty::Con(TyCon::Game, _) => Ok(Value::Game(GameV::integer(0))),
+        Ty::Con(TyCon::Game, _) => Ok(Value::Game(GameV::zero())),
         Ty::Con(TyCon::Form, _) => Ok(Value::Form(FormV::finite(Game::zero()))),
         Ty::Con(con, _) => ScalarV::zero(*con)
             .map(Value::Scalar)

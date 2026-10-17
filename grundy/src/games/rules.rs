@@ -73,8 +73,8 @@ pub enum PosKey {
     /// A data value: constructor rank and fields.
     Data((u8, u32, u32), Vec<PosKey>),
     /// A game value by interned id.
-    Game(u32),
-    /// A scalar by canonical display.
+    Game(usize),
+    /// A scalar, polynomial, or rational function by canonical display.
     Scalar(String),
 }
 
@@ -98,7 +98,9 @@ pub fn pos_key(value: &Value) -> PosKey {
         }
         Value::Game(g) => PosKey::Game(g.id()),
         Value::Scalar(s) => PosKey::Scalar(s.to_string()),
-        other => PosKey::Scalar(format!("<{}>", other.kind_name())),
+        Value::Poly(p) => PosKey::Scalar(p.to_string()),
+        Value::RatFunc(f) => PosKey::Scalar(f.to_string()),
+        other => unreachable!("a {} is not a Key", other.kind_name()),
     }
 }
 
@@ -341,15 +343,21 @@ pub fn value(interp: &mut Interp<'_>, rules: &RulesV, root: &Value) -> GrundyRes
         .map(|p| memo.get(&pos_key(p)).cloned())
         .collect();
     for id in order {
-        let sum = |option: &[usize], values: &[Option<GameV>]| {
-            option.iter().fold(GameV::integer(0), |acc, c| {
-                acc.add(values[*c].as_ref().expect("children first"))
+        let sum = |interp: &mut Interp<'_>, option: &[usize], values: &[Option<GameV>]| {
+            option.iter().try_fold(GameV::zero(), |acc, c| {
+                acc.add(values[*c].as_ref().expect("children first"), interp)
             })
         };
-        let left: Vec<GameV> = graph.left[id].iter().map(|o| sum(o, &values)).collect();
-        let right: Vec<GameV> = graph.right[id].iter().map(|o| sum(o, &values)).collect();
+        let left = graph.left[id]
+            .iter()
+            .map(|o| sum(interp, o, &values))
+            .collect::<GrundyResult<Vec<_>>>()?;
+        let right = graph.right[id]
+            .iter()
+            .map(|o| sum(interp, o, &values))
+            .collect::<GrundyResult<Vec<_>>>()?;
         interp.spend(1 + (left.len() + right.len()) as u128)?;
-        values[id] = Some(GameV::form(&left, &right));
+        values[id] = Some(GameV::form(&left, &right, interp)?);
     }
     let mut memo = rules.values.borrow_mut();
     for (position, value) in graph.positions.iter().zip(&values) {
@@ -567,13 +575,15 @@ pub fn call(interp: &mut Interp<'_>, builtin: Builtin, args: Vec<Value>) -> Grun
                     }
                     x == 0
                 } else {
-                    let total = next.iter().try_fold(GameV::integer(0), |acc, c| {
-                        value(interp, &rules, c).map(|v| acc.add(&v))
-                    })?;
-                    let zero = GameV::integer(0);
+                    let mut total = GameV::zero();
+                    for c in &next {
+                        let v = value(interp, &rules, c)?;
+                        total = total.add(&v, interp)?;
+                    }
+                    let zero = GameV::zero();
                     match who {
-                        Player::Left => zero.le(&total),
-                        Player::Right => total.le(&zero),
+                        Player::Left => zero.le(&total, interp)?,
+                        Player::Right => total.le(&zero, interp)?,
                     }
                 };
                 if wins {

@@ -13,6 +13,7 @@ ring element.
 | `misere.rs` | bounded misere quotient machinery |
 | `loopy/` | finite cyclic impartial and partizan graphs, and certifying retrograde outcomes |
 | `partizan.rs`, `piecewise.rs` | short partizan values and piecewise dyadic data |
+| `arena.rs` | hash-consed canonical short games with persistent order, sum, and negation memos and a step budget |
 | `number_game.rs`, `nimber_game.rs` | number- and nimber-valued game subclasses |
 | `coin_turning.rs` | turning games and nim-product oracle |
 | `hackenbush.rs` | one graph with partizan, surreal, and all-green nim evaluators |
@@ -48,6 +49,9 @@ ring element.
 - Guy--Smith certificates recompute their exact finite Grundy prefix and prove
   the supplied eventual period, not period discovery or minimality. They are
   normal-play certificates and do not certify a misere quotient.
+- `GameArena` must agree with `Game::canonical`, `le`, `add`, and `neg`; its
+  tests use those as independent oracles. Memo entries are inserted only after
+  a result is complete, so budget exhaustion never leaves a wrong entry.
 - Atomic weight's integer branch compares raw option games; do not replace it
   by a maximum of rounded option weights.
 - `Pl` thermograph walls do not implement `Semiring` because they lack a

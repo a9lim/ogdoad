@@ -272,11 +272,14 @@ never becomes a value, a draw, or an equality.
   component of every generated option and sum-state. A product of
   surreals, polynomials, rational functions, or multivectors spends the
   product of its operands' term counts before the work, and their integer
-  powers are square-and-multiply chains of such products. A `Game` or `Form`
-  literal, and `game(x)`, spends the size of the canonical form it builds.
-  Metering every call closes divergence through data with function fields.
-- **The call-depth guard** (`E_StackDepth`, 4096 frames) is a host resource,
-  distinct from fuel.
+  powers are square-and-multiply chains of such products. `Game` arithmetic,
+  comparison, and construction spend one unit per canonical-form step they
+  actually perform; a value met before costs nothing. A `Form` literal spends
+  the size of the form it builds. Displaying a value spends one unit per atom
+  written. Metering every call closes divergence through data with function
+  fields.
+- **The depth guards** (`E_StackDepth`) are host resources, distinct from
+  fuel: 4096 call frames, and games born no later than day 2¹⁴.
 - **The node budget** (`E_GraphBudget`, default 2¹⁶) bounds distinct
   positions, sum-states, and graph nodes in every exploration and
   materialization.
