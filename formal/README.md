@@ -1,93 +1,102 @@
 # Lean formalization
 
 `formal/` is a standalone Lean 4 project pinned to Lean and Mathlib `v4.32.2`.
-`Ogdoad.lean` is the umbrella import. The imported development contains no
-`sorry`, `admit`, or custom `axiom` declarations.
-
-Some named finite arithmetic declarations use `native_decide`.  For those
-declarations, `#print axioms` reports Lean's generated native-decision axiom:
-they are exact replayable evaluator results, but they are not ordinary kernel
-reductions.  Ordinary theorems may still report Lean's standard logical
-dependencies (`propext`, `Classical.choice`, and `Quot.sound`); the distinction
-here is ordinary kernel-checked Lean/algebra without native evaluation versus
-the additional `_native.native_decide.ax_1_1` evaluator boundary.
+`Ogdoad.lean` is the umbrella import.
 
 ```sh
 cd formal
 lake build --wfail
 ```
 
+The development contains no `sorry`, `admit`, or custom `axiom`. Ordinary
+theorems may report Lean's standard logical dependencies (`propext`,
+`Classical.choice`, `Quot.sound`). `Excess.lean` and five FIFO route-limit
+modules (`FifoPublicSeparatorAutomaton`, `FifoCommonDummyEventBoundary`,
+`FifoPublicPrefixQueueCutBoundary`, `FifoTreeTrace`,
+`FifoPairZeroMomentSafety`) also prove named finite propositions with
+`native_decide`; for those declarations `#print axioms` adds Lean's generated
+`<decl>._native.native_decide.ax_1_1`. They are exact replayable evaluator
+results, not ordinary kernel reductions. No Misère module uses native
+evaluation.
+
 Lean checks only the declarations in this project. Rust implementations,
 finite computations, source-backed data, cited theorems, and paper-level
-compositions are separate evidence unless a theorem below explicitly connects
-them. In particular, a declaration ending in `Target` or `Theorem` may merely
-*define* a proposition; inspect whether it is followed by a proof.
+compositions are separate evidence unless a theorem below connects them. A
+`Prop`-valued definition — whether named `...Target`, `...Theorem`, or used as
+the hypothesis of a conditional reduction — is not a proof; check whether a
+theorem discharges it.
 
 ## Module architecture
 
-The formal tree has one declaration owner for each theorem and thin,
-import-only paper entry points:
+Each paper-level theorem has one owning module, and paper entry points are
+thin import-only manifests. (A few small private helpers, and the
+`TwoDivisible` predicate in `GameExterior` and `BrownGame`, are duplicated.)
 
 | layer | modules | contract |
 | --- | --- | --- |
-| shared algebra | `Algebra.ZModTwo`, `Algebra.ArtinSchreier` | Paper-independent binary-scalar facts, Artin--Schreier additivity and tower algebra, the finite-field trace exact sequence, and the trace-one irreducibility criterion. No FIFO, Gold, Witt, excess, or nim module is imported here. |
-| certificate support | `Certificate.BinaryPolynomial` | One executable bit-polynomial multiplication, powering, remainder, and gcd evaluator shared by named finite-field certificates. It supplies computation only; each consumer separately owns its modulus, irreducibility check, constants, and mathematical claim. |
-| reusable mathematical components | `Quadratic.CharTwo` (bundling `Off`, `SymplecticBasis`, `WittFrame`, and `CharTwoClassification`), `FifoMatching`, and the other theorem-bearing modules below | Each definition or theorem is proved once in the narrowest domain module that owns it. Domain bundles and paper modules import these components; they do not restate them. |
-| open-frontier bundle | `FifoFrontier` | The complete arbitrary-graph FIFO research surface used by the linking paper. Solved consumers such as Gold--Arf import only `FifoMatching`, not the whole frontier. |
-| paper entry points | `Papers.TransfiniteArf`, `Papers.GoldArf`, `Papers.WittRealization`, `Papers.LinkingAffine`, `Papers.Excess`, `Papers.NimFastMultiplication`, `Papers.SemiringStability`, `Papers.MisereNaturalRealization` | Import-only manifests matching the eight papers that currently have Lean content. These are the preferred focused build targets. |
-| project root | `Ogdoad` | Imports the paper entry points, so the full build still covers every declaration while keeping paper composition explicit. |
+| shared algebra | `Algebra.ZModTwo`, `Algebra.ArtinSchreier` | paper-independent binary-scalar facts and Artin--Schreier tower algebra; neither imports a FIFO, Gold, Witt, excess, or nim module |
+| certificate support | `Certificate.BinaryPolynomial` | one executable bit-polynomial multiplication, powering, remainder, and gcd evaluator; each consumer owns its modulus, constants, and claim |
+| reusable components | `Quadratic.CharTwo` (bundling `Off`, `SymplecticBasis`, `WittFrame`, `CharTwoClassification`), `FifoMatching`, and the theorem-bearing modules below | each theorem lives in the narrowest domain module that owns it; bundles and paper modules import rather than restate |
+| open-frontier bundle | `FifoFrontier` | the complete arbitrary-graph FIFO surface used by the linking paper; solved consumers such as Gold--Arf import only `FifoMatching` |
+| paper entry points | `Papers.TransfiniteArf`, `Papers.GoldArf`, `Papers.WittRealization`, `Papers.LinkingAffine`, `Papers.Excess`, `Papers.NimFastMultiplication`, `Papers.SemiringStability`, `Papers.MisereNaturalRealization` | import-only manifests for the eight papers with Lean content (`thermo_newton.tex` has none); the preferred focused build targets |
+| project root | `Ogdoad` | imports the eight entry points, so the full build covers every tracked module |
 
-For example, both Gold--Arf and transfinite Arf import
-`Quadratic.CharTwo`; neither paper entry point imports the other. Both
-Gold--Arf and fast nim multiplication import
-`Algebra.ArtinSchreier`; neither owns a private copy of the trace-kernel or
-trace-one polynomial facts. Witt realization, Gold--Arf, and the FIFO
-development share `Algebra.ZModTwo` rather than reaching through the FIFO
-namespace for binary-scalar lemmas. The three exact binary-field certificates
-inside `Excess` share `Certificate.BinaryPolynomial`; they do not carry private
-copies of the evaluator.
+Gold--Arf and transfinite Arf both import `Quadratic.CharTwo` and neither
+imports the other. `Papers.GoldArf` and `Papers.NimFastMultiplication` both
+import `Algebra.ArtinSchreier`, whose only current consumer inside a theorem is
+`NimFastMultiplication`. `WittTransfer` and `GoldMatchingAlgebra` reach `F2`
+through `Ogdoad.Fifo` although `Algebra.ZModTwo` suffices. The three
+binary-field certificates in `Excess` share `Certificate.BinaryPolynomial`:
+the degree-110 ordinary-23 certificate (Rabin conditions, `native_decide`),
+the degree-81 cubic countermodel (Rabin conditions, kernel `decide`), and the
+degree-32 Fermat countermodel (`native_decide`, no irreducibility check). The
+Rabin conditions are evaluated numerically; no theorem links them to Mathlib's
+`Irreducible`.
 
 ## Closed results
 
 | area | modules | kernel-checked result and boundary |
 | --- | --- | --- |
-| shared characteristic-two algebra | `Algebra.ZModTwo`, `Algebra.ArtinSchreier` | The common `F2` coefficient type and binary scalar lemmas; Artin--Schreier additivity, companions, and tower lifting; the finite-field Artin--Schreier image/absolute-trace-kernel equality; and irreducibility of `X^2 + X + a` exactly at trace one. These modules are paper-independent dependencies. |
+| shared characteristic-two algebra | `Algebra.ZModTwo`, `Algebra.ArtinSchreier` | The common `F2` coefficient type and binary scalar lemmas; Artin--Schreier additivity, companions, and tower lifting; the finite-field Artin--Schreier image/absolute-trace-kernel equality; and irreducibility of `X^2 + X + a` exactly at trace one. Both are paper-independent; the trace-kernel and irreducibility theorems are standalone results with no downstream consumer yet. |
 | characteristic-two quadratic forms | `Off`, `SymplecticBasis`, `WittFrame`, `CharTwoClassification` | Frobenius and Artin--Schreier plane reductions, a recursive orthogonal symplectic decomposition, a deterministic adapted basis, explicit canonical-form isometries, and classification by ambient, polar-radical, and quadratic-radical dimensions. A set-sized algebraically closed field is the formal proxy for each finite piece of Conway's proper-class `On_2`. |
-| game-valued obstructions and Brown selectors | `GameExterior`, `BrownGame`, `BrownSelectorPGame` | Root-divisibility forces the stated exterior/Clifford coefficients to vanish; Brown refinements split as `lift(ell) + 2Q`; one explicit finite partizan tree realizes the four Brown outcome classes. Moews's structure theorem for short games is a cited external input, not a Lean axiom. |
-| Gold sources and extensions | `Algebra.ArtinSchreier`, `GoldDiagonal`, `GoldExtraspecial`, `GoldExtraspecialTrace` | Shared Artin--Schreier lifting and trace-kernel exactness, Gold-specific quadratic-tower trace reconstruction, the universal cocycle group, the trace/Frobenius Gold specialization, and the order-eight quaternion cell over the canonical `GF(4)`. Lean's abstract finite fields are not definitionally identified with the Rust nimber backend. |
+| game-valued obstructions and Brown selectors | `GameExterior`, `BrownGame`, `BrownSelectorPGame` | Root-divisibility forces the stated exterior/Clifford coefficients to vanish; Brown refinements split as `lift(ell) + 2Q`; one parametrized finite partizan tree realizes the four Brown outcome classes. Moews's structure theorem for short games is a cited external input, not a Lean axiom. |
+| Gold sources and extensions | `GoldDiagonal`, `GoldExtraspecial`, `GoldExtraspecialTrace` | Gold-specific quadratic-tower trace reconstruction, the universal cocycle group, the trace/Frobenius Gold specialization, and the order-eight quaternion cell over the canonical `GF(4)`. Lean's abstract finite fields are not definitionally identified with the Rust nimber backend. |
 | Gold--Arf arena | `FifoMatching`, `ImpartialRealizer`, `PhysicalDeferred`, `GoldMatchingAlgebra`, `GoldArena` | Both seats force zero on matching-plus-isolates boards; the pass-free compiler has exact tempo and charge semantics; literal and deferred ledgers are conjugate with strategy trees transported both ways. `GoldArena.gold_literal_root_isP_iff` is the end-to-end literal-root theorem for every finite binary quadratic refinement, public basis, and input. It does not use arbitrary-graph FIFO linking. |
 | realization bounds and comparison surfaces | `GoldNoEvaluator`, `GoldBlockCompression`, `GoldForkPadding`, `GoldSemantics` | Transcript-span and observation-weight lower bounds, induced block refinements, an outcome-preserving fork-padding obstruction, and an independent payoff-to-normal-play compiler. These are auxiliary theorems, not alternate end-to-end arena constructions. |
-| imperfect-field Witt realization | `WittRealizationExact`, `WittRealization`, `WittTransfer`, `WittRamification`, `WittRamifiedRestriction`, `WittSingularBoundary` | The concrete parity-zero presented coordinate space has a finite sparse trace-character compiler into literal `0/*` arenas, with equality of all outcomes equivalent to equality of presented classes. The development also checks the trace-dual Scharlau Arf calculation, finite unit-jet substitution and exact Artin--Schreier normalization, one-place and fixed-finite-family obstructions, and the quasilinear absorption isometry. The Aravire--Jacob exact sequence and local decomposition, their equivalence with the actual `W_q(F_2(t))`, and the local quadratic-form interpretation of ramified generators remain the cited bridge. |
+| imperfect-field Witt realization | `WittRealizationExact`, `WittRealization`, `WittTransfer`, `WittRamification`, `WittRamifiedRestriction`, `WittSingularBoundary` | The concrete parity-zero presented coordinate space has a finite sparse trace-character compiler into literal `0/*` arenas, with equality of all outcomes equivalent to equality of presented classes. The development also checks the trace-dual Scharlau Arf calculation, finite unit-jet substitution and exact Artin--Schreier normalization, one-place and fixed-finite-family obstructions, and the quasilinear absorption isometry. The Milnor--Scharlau exact sequence, the Aravire--Jacob classification and local decomposition, their equivalence with the actual `W_q(F_2(t))`, and the local quadratic-form interpretation of ramified generators remain the cited bridge. |
 | stable semiring quadratic pairs | `SemiringQuadratic` | `hessenbergPolynomial_regular_isometric_hyperbolic` is the end-to-end finite-polynomial Hessenberg proxy: from bijectivity of the actual companion adjoint it proves Gram invertibility, proves internally that every invertible `MvPolynomial (Fin d) Nat` matrix is a permutation matrix, constructs its fixed-point-free transposition decomposition, and returns even rank plus an actual linear isometry of quadratic pairs with canonical hyperbolic planes. The module also proves that finite basis coefficients determine the entire pair, exposes Mathlib's characteristic-not-two diagonalization, and gives an explicit additive equivalence from the exact cyclic/hyperbolic/parity presentation to `ZMod 2`. The ordinal CNF--polynomial identification, connected-graph stable quotient, concrete supertropical semiring and lift presentation, and thermograph facts remain cited or paper-level bridges. |
-| canonical nim multiplication | `Algebra.ArtinSchreier`, `NimFastMultiplication` | The shared finite-field trace-one irreducibility criterion, then the nim-specific trace carry through a quadratic generator, three-variable-product quadratic split, affine Artin--Schreier generator shift, involutive two-block coordinate transform, preservation of the canonical tower equations under ring equivalence, and exact recovery of source-basis product coordinates. The concrete Conway tower, De Feo--Schost algorithms, and asymptotic bounds remain cited or paper-level inputs. |
-| finite misere quotient realization | `MisereTransition`, `MisereOctalCertificate`, `MisereNaturalUniversality`, `MisereTraceLanguage`, `MisereParityTrace`, `MisereSubtraction`, `MisereSaturation`, `MisereOctalTerminal`, `MisereOctalCompression`, `MisereGrundyObstruction` | Least-rank separation proves transition determinism; meximality and a `P`-reaching context exclude self-options. Exact quotient fibers and a finite periodic-record certificate are checked. The typed prefix/pad/unary-tail construction realizes every nontrivial valid table at the abstract heap level, with a no-go for retaining the inert pad in a verbatim octal encoding. The unary-language dictionary exposes the exact failure cells. Safe meximal saturation preserves validity with the explicit terminal parity condition, and the actual octal terminal-prefix repair returns new safe records to the original table. The actual compressed masks have length at most `3*N+2*p`, and every compressed heap record belongs to the valid saturated table. The star value is a free involution; every nontrivial valid table has the total parity trace for `0.7` and the odd-removal family. For a two-element quotient with any split bit, every positive heap trace has period two, and totality is equivalent to four candidates checked through heap `d+5`. The actual finite-subtraction mex sequence satisfies Ferguson's shift and the exact misere outcome recursion for every finite heap list. Hindman's theorem supplies a square-option heap in every finite Grundy trace, forcing unequal consecutive positive powers. The exact-quotient interpretation of compressed records and bounded periodic-complexity synthesis, the explicit binary mask classification, subtraction monoid identification and synthesis, numerical normal-form transport, grammar hardness reduction, Grundy prefix presentations, and canonical-mate obstruction remain paper-level; general octal synthesis and the full Grundy quotient remain open. |
+| canonical nim multiplication | `NimFastMultiplication` (with `Algebra.ArtinSchreier`) | Artin--Schreier additivity, then the nim-specific trace carry through a quadratic generator, three-variable-product quadratic split, affine Artin--Schreier generator shift, involutive two-block coordinate transform, preservation of the canonical tower equations under ring equivalence, and exact recovery of source-basis product coordinates. The concrete Conway tower, De Feo--Schost algorithms, and asymptotic bounds remain cited or paper-level inputs. |
+| finite misere quotient realization | `MisereTransition`, `MisereOctalCertificate`, `MisereNaturalUniversality`, `MisereTraceLanguage`, `MisereParityTrace`, `MisereSubtraction`, `MisereSaturation`, `MisereOctalTerminal`, `MisereOctalCompression`, `MisereGrundyObstruction` | Least-rank separation proves transition determinism; meximality and a `P`-reaching context exclude self-options. Exact quotient fibers and a finite periodic-record certificate are checked. The typed prefix/pad/unary-tail construction realizes every nontrivial valid table at the abstract heap level, with a no-go for retaining the inert pad in a verbatim octal encoding when the quotient has more than two elements. The unary-language dictionary exposes the exact failure cells. Safe meximal saturation preserves validity with the explicit terminal parity condition, and the actual octal terminal-prefix repair returns new safe records to the original table. The actual compressed masks have length at most `3*N+2*p`, and every compressed heap record belongs to the valid saturated table. The star value is a free involution; every nontrivial valid table has the total parity trace for `0.7` and the odd-removal family. For a two-element quotient with any split bit, every positive heap trace has period two, and totality is equivalent to four candidates checked through heap `d+5`. The actual finite-subtraction mex sequence satisfies Ferguson's shift and the exact misere outcome recursion for every finite heap list. Hindman's theorem supplies a square-option heap in every finite Grundy trace, forcing unequal consecutive positive powers. The exact-quotient interpretation of compressed records and bounded periodic-complexity synthesis, the explicit binary mask classification, subtraction monoid identification and synthesis, numerical normal-form transport, grammar hardness reduction, Grundy prefix presentations, and canonical-mate obstruction remain paper-level; general octal synthesis and the full Grundy quotient remain open. |
+
 
 ## Arbitrary-graph FIFO linking: open
 
-`Fifo.lean` defines the terminating FIFO game and proves its basic Bellman,
-rank, score-translation, queue-cut, singleton-tail, and stopped CLOSE-first
-theorems. It also defines
+`Fifo.lean` defines the terminating FIFO game and proves its win recursion and
+determinacy, rank, score-translation, queue-cut, singleton-tail, and stopped
+CLOSE-first theorems. It also defines
 
 ```lean
 FifoLinkingTheorem : Prop
 ```
 
-for arbitrary finite graphs with an isolated dummy. The proposition is not
-proved or assumed. `FifoPublicPolicyAffine` defines the graph-free target
-`UniversalPublicPolicyAffine`; `FifoPublicPolicyDuality` proves
+for arbitrary finite graphs with an isolated dummy; the proposition is neither
+proved nor assumed. `FifoPublicPolicyAffine` defines the graph-free target
+`UniversalPublicPolicyAffine`, and `FifoPublicPolicyDuality` proves
 
 ```lean
 UniversalPublicPolicyAffine ↔ FifoLinkingTheorem
 ```
 
-so the public-policy affine problem is an exact reformulation, not a weaker
-sufficient condition. `FifoMatching` proves the matching-plus-isolates case
-used by `GoldArena`.
+so the public-policy problem is an exact reformulation. `FifoMatching` proves
+the matching-plus-isolates case used by `GoldArena`.
+`FifoCongruenceOutcomeBoundary` also proves conditional reductions from the
+unproved propositions `DummyShearNormalForm`, `DummyRootShearForward`, and
+`DummyRootShearBothEvenForward` to `FifoLinkingTheorem`, alongside its
+negative result.
 
-The FIFO modules are grouped below by their current role. Modules ending in
-`Boundary`, together with the small explicit countermodel modules, prove that
-a proposed inference fails; none is a counterexample to the initial
-isolated-dummy conjecture.
+The FIFO modules are grouped by role. `Boundary` modules and the small
+countermodel modules prove that a proposed inference fails — some also carry
+positive structural lemmas — and none is a counterexample to the conjecture.
 
 | role | modules | checked content |
 | --- | --- | --- |
@@ -104,189 +113,105 @@ The remaining theorem is global and ancestry-sensitive. At a rank-minimal
 separator-one occurrence, the selected real `OPEN` enters a complete
 separator-zero fan while its separator-odd partner is trapped in the existing
 queue. A proof must relate that debt to the last charged `CLOSE` on the path
-from the initial root and select an odd family of earlier defender siblings
-whose prefixes and continuation cosets cancel the residual real-edge class.
-It must cover both FIFO orders: the debt vertex may survive behind the charged
-front or may open in the later neutral suffix. No current module supplies that
-selection. See `../docs/OPEN.md` and `../writeups/linking_affine.tex`.
+from the root and select an odd family of earlier defender siblings whose
+prefixes and continuation cosets cancel the residual real-edge class, in both
+FIFO orders. No current module supplies that selection. See
+[`../docs/OPEN.md`](../docs/OPEN.md) §1 and `../writeups/linking_affine.tex`.
 
-## Finite Lenstra excess: open
+## Finite excess: open
 
-The modules `Excess`, `ExcessOrdinaryPacking`, and `ExcessCubicPacking`
-prove algebraic ingredients of the four-arm `Z/O/C/D` reduction, including:
+`Excess`, `ExcessOrdinaryPacking`, and `ExcessCubicPacking` prove algebraic
+ingredients of the four-arm `Z/O/C/D` reduction. Kernel-checked content
+includes:
 
-- exact finite-cyclic-group and finite-field power/order criteria, including
-  norm reduction, coprime-exponent invariance, and strict-ancestor primary
-  vacuity, together with the inverse-exponent and ordinary section-degree
-  algebra used by the bottom-ancestor reduction;
-- the generic coprime-factor degree-sum lemma underlying ordinary reciprocal
-  doubling and the characteristic-two Frobenius expansion used by the affine
-  Kummer argument are kernel-checked; divisibility by a self-mirror polynomial
-  is also invariant under the padded reversal that collapses the cubic arm's
-  two surviving residue sections to one, while the opposite top-section
-  reciprocity, reciprocal-minimal-polynomial step, power-basis coefficient
-  separation, and the Conway component-field induction remain a paper-level
-  finite-field/index synthesis rather than a formalized end-to-end sieve;
-- the selected cubic power-state recurrence and its zero-state residue-class
-  saturation are kernel-checked.  The exact conditional first-jet quotient,
-  the second-Hasse cancellation for `k >= 2`, and the automatic base-`q`
-  digit-gap boundary for `d > 1` are paper-level calculations in
-  `writeups/excess.tex`;
-- the corrected characteristic-two sparse norm;
-- the exact finite-cyclic order-defect criterion: an `m`-th-power failure is
-  precisely an `m`-factor in the quotient of ambient order by selected order;
-  the division-free `rough_defect_eq_prime` lemma also checks that a positive
-  `p`-rough defect below the packing threshold `p^2` is exactly `p`;
-  `rough_congruent_defect_eq_prime_or_square_dvd` strengthens this when all
-  prime divisors lie in one residue class, leaving below `p(p+M)` only the
-  exact defect `p` or a repeated factor `p^2`. These are the arithmetic cores
-  of the ordinary and Fermat least-counterexample congruence regimes;
-- the exceptional cyclic-compression algebra: a vanishing three-block sum
-  upgrades equal blocks to literal zero, the one-third Frobenius product
-  collapses to a trinomial, and a known cubic phase converts the
-  complementary exponent `3*r` exactly to the parity-twisted exponent `r`;
-  the explicit relative-norm evaluation of that phase and the resulting
-  prime-complement nonvanishing remain paper-level calculations;
-- the exceptional Cayley coordinate is kernel-checked as the Möbius transform
-  of the selected real cubic coordinate; the polynomial cross-product behind
-  its scalar-corrected cubic coboundary, its numerator and denominator
-  three-factor products, and the conditional cyclic power-class invariances
-  are checked by the `ExceptionalCayleyCoboundary` declarations.  The
-  nonvanishing needed to divide those identities, the finite-field
-  specialization `Norm(V_k)=V_(k-1)^(-1)` for `k >= 2`, and the norm-fibre
-  Kummer-surjectivity no-go remain paper-level group/field synthesis;
-- the intermediate-field exceptional ratio-packing sieve is a paper-level
-  finite-field/UFD/entropy synthesis: its explicit `F_4` factorization,
-  persistence of quadratic irreducibility over the chosen intermediate
-  fields, and exponential-in-square-root asymptotic estimate are not
-  formalized in Lean;
-- trace, norm, Frobenius, Kummer, Dickson--Lucas, Singer, cubical-support,
-  and low-degree/phase-boundary minimal-polynomial collision identities used
-  by the paper, including the exact `conwayChild_powerSum` transport of every
-  power sum across one selected quadratic edge, and those used by the
-  selected-order reductions, including the exact two-binomial
-  fourth-power residual for an odd Fibonacci zero (which sharpens, but does
-  not close, the Conway--Fermat target), and the characteristic-two Binet
-  parametrization showing that the resulting inverse-Frobenius coordinate is
-  packet-universal rather than selector-sensitive; this also includes the
-  Singer norm-triple power factorization and the identification of the old
-  exceptional cyclic orientation with the lower Singer trace coordinate;
-- weighted two-axis Frobenius-word normalization: all multiplicative
-  reciprocity expressions in this model formed from one Kummer class remain
-  rank one, regardless of Frobenius, character, and multiplicity indices;
-- the cubic degree-three torsion action has zero norm operator and surjective
-  coboundary operator whenever its multiplier is nontrivial, checking the
-  algebraic core of the paper's marked-projective Hilbert--90 no-go; it does
-  not decide whether the literal marked class is trivial;
-- affine-Frobenius conjugacy and marked Jacobi-sum scaling: class functions on
-  one split fixed-multiplier affine coset erase its translation coordinate, while
-  additive convolution retains only the summed weight of the same Kummer
-  phase; a labeled Fourier-line pullback exposes a gauge-dependent one-step
-  coordinate, while the full affine-path holonomy is gauge invariant; a
-  separate identity identifies a closed Kummer ratio with the Euler phase.
-  Every homomorphic affine composition cocycle
-  is a coboundary with zero full-period holonomy, and every closing holonomy
-  remains possible after the proper path has been normalized; affine
-  intertwiners contribute only a scalar multiple plus a telescoping endpoint
-  term;
-- the singleton-even auxiliary-cubic and abstract pairing no-gos:
-  positive-level Fermat torsion has trivial cubic Kummer class, a perfect
-  alternating pairing may vanish on a prescribed line, and coprime adjacent
-  annihilators kill a proposed ancestry homomorphism; the selected elliptic
-  curve, divisor, Miller-function interpretation, and all-iterate
-  Artin--Schreier ramification, genus, and reduced-modulus generalized-Prym
-  saturation, fixed-five-torsion Kummer rank-one calculation, and selected
-  top-orbit rational anti-invariant divisor-lattice reduction remain
-  paper-level function-field synthesis.  In particular, Lean does not check
-  the top-orbit principal-lattice basis or the reduction of its evaluations
-  to the two named function generators `g` and `Theta`; the finite-field
-  Kummer value quotient is cyclic, so those names do not assert a
-  two-dimensional value space;
-- oriented Frobenius-prefix evaluation and its block cocycle, including the
-  faithful unit-exponent-prefix/full-orbit-trivial dichotomy; these identities
-  only re-encode a marked power-residue phase and do not evaluate it;
-- executable finite primality, factor, modular, and order screens for the rows
-  explicitly encoded in the file.  The external
-  `experiments/fermat_top_orbit_countermodel.py` exactly replays a generic
-  degree-32 point for which `g` misses the `641` coordinate while `Theta`
-  retains it, but the point violates the literal half-Frobenius Conway
-  selector; this is finite evidence against an unmarked inference, not arm
-  `Z`.  The declarations proved with
-  `native_decide` are native-decided finite evidence in the sense stated
-  above, not ordinary kernel reductions.
+- finite-cyclic-group and finite-field power and order criteria: norm
+  reduction, coprime-exponent invariance, strict-ancestor primary vacuity, and
+  the exact order-defect criterion. `rough_defect_eq_prime` shows that a
+  positive `p`-rough defect with `N < B p^2` is exactly `p`;
+  `rough_congruent_defect_eq_prime_or_square_dvd` shows that when every prime
+  divisor is `1 mod M` and `N < B p(p+M)`, the defect is `p` or divisible by
+  `p^2`;
+- the ordinary-arm algebra: the coprime-factor degree-sum lemma
+  (`polynomial_natDegree_add_le_of_isCoprime_dvd`), padded-mirror divisibility
+  (`selfMirror_dvd_paddedMirror_iff`), and the characteristic-two Frobenius
+  expansion (`affine_frobenius_product_expansion`);
+- the cubic power-sum recurrence, its first value (`cubicPowerSum_three`) and
+  zero residue classes, the pairwise-root invariants of the composition law,
+  and the degree-three torsion action whose norm operator vanishes and whose
+  coboundary is surjective (the algebraic core of the Hilbert-90 no-go);
+- the corrected characteristic-two sparse norm (`CorrectedNorm`) and the
+  exceptional cyclic-compression algebra;
+- the exceptional Cayley coordinate and its coboundary identities
+  (`exceptionalCayley_eq_traceMobius`, `exceptional_cayley_coboundary_cross`,
+  `exceptionalCayleyNum_cubic_product`, `exceptionalCayleyDen_cubic_product`,
+  `exceptional_coboundary_isPthPower_iff`,
+  `exceptional_scaled_coboundary_isPthPower_iff`);
+- trace, norm, Frobenius, Kummer, Dickson--Lucas, Singer, and minimal-polynomial
+  collision identities, including `conwayChild_powerSum` (power sums across one
+  selected quadratic edge), the two-binomial fourth-power residual for an odd
+  Fibonacci zero, and the packet-universal Binet parametrization;
+- the reciprocity calculus: weighted two-axis Frobenius-word normalization
+  (rank one), affine-Frobenius conjugacy, Jacobi-sum scaling, gauge invariance
+  of full affine-path holonomy, triviality of homomorphic cocycles, and the
+  scalar behaviour of affine intertwiners;
+- for the packing bounds, top-coefficient cancellation, injectivity of
+  normalized rational evaluations, and the cyclic-order bound
+  (`ExcessOrdinaryPacking`), and the coprime circle/real splitting, the
+  factor-of-three order identity, and transfer to the Singer coordinate
+  (`ExcessCubicPacking`);
+- executable finite primality, factor, modular, and order screens for named
+  rows, some through `native_decide`.
 
-The file defines `SelectedLogUnitTarget`, `ExceptionalColumnTarget`, and
-`DPrimeTarget`. These declarations expose universal propositions; they do not
-assume or prove them. `DPrimeTarget` is the exceptional `2 * 3^k`-column
-divisibility target, not the full universal `0/1/4` theorem. Source-assisted
-factor data and Python certificates remain external evidence.
+Paper-level, not formalized: the Conway component-field induction and the
+minimal-coefficient-field ancestry behind the packing sieves, their ball and
+shell counts and asymptotics, the opposite-section reciprocity and power-basis
+separation, the cubic first-relation and composition theorems, the first-jet
+quotient and digit-gap boundary, the relative-norm evaluation and
+norm-fibre no-go in the exceptional arm, its intermediate-field sieve, and all
+elliptic-curve, Artin--Schreier ramification, generalized-Prym, and top-orbit
+divisor-lattice synthesis. `experiments/fermat_top_orbit_countermodel.py`
+replays a generic degree-32 point that violates the literal Conway selector;
+it is evidence against an unmarked inference, not against arm `Z`.
 
-For the selected-order packing bounds, Lean checks the reusable low-degree
-minimal-polynomial collision lemma. `ExcessOrdinaryPacking` additionally
-checks top-coefficient cancellation, injectivity of normalized rational
-function evaluations through the minimal-polynomial degree boundary, and
-the resulting bound by the order of a common cyclic subgroup. The
-minimal-coefficient-field ancestry, parity-sensitive ball and shell counts,
-and ratio-star unique factorization remain paper-level.
-`ExcessCubicPacking` checks the coprime circle/real order splitting, the
-factor-of-three order identity, and transfer of a packing bound to the
-Singer coordinate. Its finite-field half-angle specialization, valuation
-input, and component-gcd equality remain paper-level.
-The cubic weighted-subset coefficient argument, the three-section
-first-relation theorem, the full symmetric cubic power-state composition law
-and its specialized projective-fibre consequence, and the entropy and cited
-Tauberian asymptotics also remain paper-level mathematics.  Lean
-checks the algebraic cubic recurrence, its first nontrivial value and two zero
-residue classes, and the pairwise-root invariants used by that composition
-law; no declaration upgrades them to a universal arm.
+`Excess.lean` defines `SelectedLogUnitTarget`, `ExceptionalColumnTarget`, and
+`DPrimeTarget := ExceptionalColumnTarget psi M`. These expose universal
+propositions; they are neither assumed nor proved, and `DPrimeTarget` is the
+exceptional-column target, not the full `0/1/4` rule. The load-bearing test in
+every arm is the Euler criterion `beta^(|F^x|/p) != 1`; `p | ord(beta)` loses
+the primary valuation when `p^2` divides the ambient order. See
+[`../docs/OPEN.md`](../docs/OPEN.md) §2 and `../writeups/excess.tex`.
 
-For a nonzero element of a finite field, the relevant obstruction is the
-exact Euler test
+## Natural misère realization: open
 
-```text
-beta^((|F^×|)/p) != 1.
-```
+The Misère modules check the results in the closed-results table with ordinary
+logical axioms only. `finite_subtraction_outcome` connects the mex-defined SG
+sequence to the literal misère recursion on arbitrary finite heap lists;
+`binary_split_total_iff_finite_candidate` connects a four-candidate check
+through heap `d+5` to every future heap record; and
+`compressed_records_mem_saturation` checks every heap record of the bounded
+compressed masks.
 
-Merely proving `p | order(beta)` loses the required primary valuation when
-the ambient order contains a higher power of `p`. The selected Conway phase
-is still the missing datum in each universal arm. See `../docs/OPEN.md` and
-`../writeups/excess.tex`.
-
-## Natural finite misere realization: open
-
-`MisereTransition`, `MisereOctalCertificate`,
-`MisereNaturalUniversality`, `MisereTraceLanguage`, `MisereParityTrace`,
-`MisereSubtraction`, `MisereSaturation`, `MisereOctalTerminal`,
-`MisereOctalCompression`, and `MisereGrundyObstruction` check the results listed
-in the closed-results table. In particular, `finite_subtraction_outcome`
-connects the actual mex-defined SG sequence to the literal misere recursion
-on arbitrary finite heap lists, and `binary_split_total_iff_finite_candidate`
-connects a finite candidate check to all future heap records. The theorem
-`compressed_records_mem_saturation` checks every heap record of the actual
-bounded compressed masks. These are
-universal proofs with ordinary logical axioms, not native-decided censuses.
-
-They do not characterize exact quotients of all finite-code octal games,
-prove automatic periodicity for general split targets, or determine whether
-the full misere Grundy quotient is finite. The paper's exact-quotient
-interpretation of compressed records and bounded synthesis algorithm, explicit binary mask
-tests, subtraction quotient presentation and synthesis algorithm, numerical
-normal-form transport, exact Grundy prefixes through heap 18, and the
-canonical-mate obstruction remain paper-level compositions. Generic kernel
-nontriviality follows from the star free action and adds no special obstruction to Grundy's game. See
-`../docs/OPEN.md` and `../writeups/misere_natural_realization.tex`.
+They do not characterize exact quotients of all finite-code octal games, prove
+automatic periodicity for general split targets, or decide whether the misère
+Grundy quotient is finite. The exact-quotient interpretation of compressed
+records and the bounded synthesis algorithm, the binary mask classification,
+the subtraction quotient presentation and synthesis algorithm, the numerical
+normal-form transport, the Grundy prefixes through heap 18, and the
+canonical-mate obstruction are paper-level. See
+[`../docs/OPEN.md`](../docs/OPEN.md) §3 and
+`../writeups/misere_natural_realization.tex`.
 
 ## Review contract
 
 - Put a reusable declaration in a paper-independent domain module; paper entry
-  points remain import-only manifests.
-- Keep each `Papers.*` entry point synchronized with its live paper and keep
-  `Ogdoad.lean` synchronized with the complete set of Lean-backed paper entry
-  points.
-- Keep the project warning-clean and placeholder-free.
+  points stay import-only manifests.
+- Keep each `Papers.*` entry point synchronized with its paper, and
+  `Ogdoad.lean` synchronized with the complete set of entry points.
+- Keep the project placeholder-free and `--wfail` clean. Nine modules disable
+  specific linters with `set_option linter.* false`; do not widen that.
 - Prefer transparent definitions and ordinary `decide` for finite proofs when
   practical; document any stronger evaluator.
-- State cited inputs as theorem parameters or paper hypotheses, never as
-  custom axioms.
+- State cited inputs as theorem parameters or paper hypotheses, never as custom
+  axioms.
 - Update this map when a theorem boundary changes. A successful build proves
   only the declarations present, not an unencoded prose synthesis.

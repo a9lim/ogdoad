@@ -12,7 +12,7 @@ ring element.
 | `octal.rs` | finite octal moves and checked Guy--Smith normal-play certificates |
 | `misere.rs` | bounded misere quotient machinery |
 | `loopy/` | finite cyclic impartial and partizan graphs, and certifying retrograde outcomes |
-| `partizan.rs`, `piecewise.rs` | short partizan values and piecewise dyadic data |
+| `partizan.rs`, `piecewise.rs` | short partizan values and `Pl` piecewise-linear thermograph walls |
 | `arena.rs` | hash-consed canonical short games with persistent order, sum, and negation memos and a step budget |
 | `number_game.rs`, `nimber_game.rs` | number- and nimber-valued game subclasses |
 | `coin_turning.rs` | turning games and nim-product oracle |
@@ -32,9 +32,10 @@ ring element.
   `LoopyPartizanGraph`; thermography is finite short-game machinery.
 - `NumberGame` and `NimberGame` expose genuine field-like subclasses with their
   own arithmetic. Do not generalize their multiplication to arbitrary games.
-- `GameClifford::with_quadratic_data` validates data on a chosen finite quotient.
-  It does not provide ambient-coherent nonzero torsion data; the paper proves
-  such data collapse on torsion under the stated coherence hypotheses.
+- `GameClifford::with_quadratic_data` validates data on a chosen finitely
+  generated subgroup: every supplied relation must be null in the game group
+  and polar-radical. It does not provide ambient-coherent nonzero torsion data;
+  the paper proves such data collapse under the stated coherence hypotheses.
 
 ## Operational conventions
 
@@ -72,10 +73,11 @@ ring element.
   especially finite-code octal games, plus the exact quotient of misère
   Grundy's game. Bounded test signatures are evidence only.
 - The intrinsic Brown selector is one partizan game, not a synchronized product
-  or terminal relabeling.
-- Thermography and valued-field Newton polygons share tropical algebra but do
-  not admit the stronger dyadic-compatible identification ruled out in the
-  thermography paper.
+  of two arenas.
+- Thermography's option folds and cooling are tropical, but freezing is not and
+  the thermograph is not a congruence for sums. The thermography paper rules
+  out a faithful Newton-style graded ring; the comparison with valued-field
+  Newton polygons is an analogy, not an identification.
 
 ## Verification
 

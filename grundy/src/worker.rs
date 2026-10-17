@@ -9,8 +9,9 @@ use super::error::GrundyResult;
 use super::session::Session;
 use super::syntax::lex::needs_continuation;
 
-/// The worker's stack: deep recursion in parsing, checking, and evaluation
-/// is guarded by explicit limits well inside it.
+/// The worker's stack. Parsing, checking, and evaluation guard their own
+/// recursion depth, but the evaluator's frame limit counts calls rather than
+/// bytes, so a deeply nested body can still exhaust this stack.
 pub const EVAL_STACK_BYTES: usize = 256 << 20;
 
 type Job = Box<dyn FnOnce(&mut Session) + Send>;

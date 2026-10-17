@@ -1,6 +1,6 @@
 """The Gold form, built entirely out of game operations.
 
-src/games.rs verifies that Conway's Turning-Corners game *is* nim-multiplication:
+src/games/coin_turning.rs verifies that Conway's Turning-Corners game *is* nim-multiplication:
 pl.nim_mul_mex(x, y) == Nimber(x) * Nimber(y). Three operations are therefore
 game-realizable:
 

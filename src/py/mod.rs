@@ -10,7 +10,7 @@
 //!   - [`engine`] — algebra/MV pairs, linear maps, divided powers, and CGA.
 //!   - [`forms`] — quadratic, bilinear, Hermitian, symplectic, and integral forms.
 //!   - [`games`] — short/transfinite games, graph kernels, and game invariants.
-//!   - [`weyl`] — selected Rational and Nimber finite-support Weyl algebras.
+//!   - [`weyl`] — selected Rational, `Fp3`, and Nimber finite-support Weyl algebras.
 //!
 //! Each submodule registers its own classes and functions through a
 //! `pub(crate) fn register`, which the `#[pymodule]` entry point chains

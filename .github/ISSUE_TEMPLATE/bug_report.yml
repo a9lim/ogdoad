@@ -10,9 +10,9 @@ body:
           test (or a short `#[test]`), that's the strongest possible report.
         - A *wrong number* is a bug. An *unimplemented theorem* usually isn't —
           check `docs/OPEN.md` and the per-pillar `AGENTS.md` for documented scope
-          boundaries first (e.g. `Ordinal` nim-multiplication panics by design
-          past the verified Kummer boundary; `Nimber` is `F_{2^128}`, not
-          algebraically closed).
+          boundaries first (e.g. `Ordinal::nim_mul` returns `None` past the
+          supported Kummer table and its `Scalar` multiplication panics there;
+          `Nimber` is `F_{2^128}`, not algebraically closed).
 
   - type: dropdown
     id: surface
@@ -34,8 +34,10 @@ body:
       options:
         - "scalar/ (coefficient worlds: Nimber, Surreal, Fp/Fpn, Zp/Qp/..., Ordinal, ...)"
         - "clifford/ (the multivector engine + GA layer)"
+        - "weyl/ (PBW Weyl algebras, centres, fibres, p-symbols)"
         - "forms/ (quadratic forms, Arf/Brauer-Wall, local-global, integral)"
         - "games/ (combinatorial game theory)"
+        - "grundy/ (the unpublished ruleset language)"
         - "py/ (PyO3 bindings)"
         - "linalg/ (shared linear algebra)"
         - not sure
@@ -44,7 +46,7 @@ body:
     id: backend
     attributes:
       label: Scalar backend
-      description: If the bug is backend-specific, which one? (e.g. `Nimber`, `Surreal`, `Fpn<2,8>`, `Qp`, `Ordinal`)
+      description: If the bug is backend-specific, which one? (e.g. `Nimber`, `Surreal`, `Fpn<2,8>`, `Qp`, `Ordinal`, `Rational`)
       placeholder: Nimber
 
   - type: textarea

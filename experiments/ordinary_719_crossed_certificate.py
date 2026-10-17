@@ -2,8 +2,8 @@
 """Verify the complete compact crossed-tower certificate for p=719.
 
 The two 438,103-byte payloads encode ``a`` and the non-leading coefficients
-of its monic minimal polynomial ``f_a`` over F_(2^179).  The optional 8,033-
-byte payloads encode the crossed norm
+of its monic minimal polynomial ``f_a`` over F_(2^179).  The two 8,033-byte
+checkpoint payloads encode the crossed norm
 
     W = v^19580 f_a(v^-1)
 

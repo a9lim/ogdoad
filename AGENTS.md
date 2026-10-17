@@ -40,7 +40,8 @@ crate-private. Their public modules re-export children shallowly.
   commutative scalar subclass or checked bridge exists.
 - `weyl/` owns finite-support PBW algebras attached to alternating commutator
   forms; it shares scalar and symplectic-form infrastructure without reusing
-  the finite Clifford blade representation.
+  the finite Clifford blade representation, which it consumes only in the
+  characteristic-two central-fibre bridge.
 - `py/` monomorphizes selected Rust backends; PyO3 is never part of the default
   build.
 - `grundy/` is an unpublished workspace crate depending only on Ogdoad's public
@@ -67,7 +68,7 @@ crate-private. Their public modules re-export children shallowly.
    boundaries must return/refuse exactly as documented; do not hide them with
    silent defaults.
 5. **Fixed-width mathematical payloads are `u128`/`i128`.** `usize` is for
-   dimensions, indices, and ABI hooks.
+   dimensions, indices, in-memory counts, and ABI hooks.
 6. **Per-backend Python types do not mix.** Do not add a runtime-tagged
    any-scalar escape hatch.
 7. **Weyl PBW exponents are not Clifford blades.** Weyl algebras are
@@ -170,14 +171,19 @@ the general PBW normalizer. Add a focused test before trusting a new operation.
 ## Documentation contract
 
 - `README.md`: public description, supported surface, sharp non-claims.
+- `docs/README.md`: the index of everything below.
 - `docs/OPEN.md`: only unresolved mathematical statements and their best
   current reductions.
-- `docs/ROADMAP.md`: unfinished engineering or new-feature work.
+- `docs/ROADMAP.md`: unfinished engineering, new-feature work, and research
+  directions not yet sharp enough for `OPEN.md`.
 - `docs/VERIFY.md`: evidence classes, generated data, experiments, and build
   commands.
 - `writeups/*.tex` + matching `.bib`: self-contained mathematical papers,
   compilable as PDF and convertible by Pandoc to standalone KaTeX HTML.
 - `formal/README.md`: theorem map and proof/non-proof boundary.
+- `grundy/docs/`: the language's normative spec, runtime contract, and stance.
+- `CONTRIBUTING.md`, `SECURITY.md`: contributor process and threat model.
+- Root and pillar `AGENTS.md`: editing contracts, not public documentation.
 
 Do not recreate completion ledgers, dated audit diaries, retired mechanisms,
 or provenance narratives in live docs. If history matters, cite a stable

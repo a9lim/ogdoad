@@ -23,11 +23,12 @@ grundy/src/
     interp.rs            the evaluator, budgets, patterns, Form equation systems
     builtins.rs          builtin implementations and dispatch
   games/
-    game.rs              sealed canonical Game: interner and structural order
+    game.rs              the sealed GameV handle over the engine's GameArena, birthday guard, fuel metering
     form.rs              presented Forms: loopy graphs, display, bisimilarity
     rules.rs             rulesets, component exploration, sum-state graphs
     claims.rs            witnesses, verify, claims, Bounded, misère
   algebra/
+    mod.rs               dispatch of algebra literals, operators, and builtins to the backends
     scalar.rs            the scalar backends as one ScalarV
     poly.rs              polynomial rings and rational-function fields
     clifford.rs          Clifford algebras and multivectors
@@ -36,12 +37,13 @@ grundy/src/
 
 Reusable game mathematics belongs in Ogdoad's `src/games/` pillar:
 
-- the certifying retrograde solver (`games::loopy::certificate`);
-- the Guy–Smith checker;
-- graph sums and stopper witnesses.
+- canonical games and their memos (`games::arena::GameArena`);
+- the certifying retrograde solver and its checker (`games::loopy::certificate`);
+- the Guy–Smith checker (`games::octal::GuySmithCertificate`) and octal moves;
+- graph sums and stopper status (`games::loopy::LoopyPartizanGraph`).
 
-The language owns ruleset exploration, guardedness, recognition, display, and
-the evidence types.
+The language owns ruleset exploration, guardedness, recognition, display, the
+evidence types, and its misère solver.
 
 ## Structural decisions
 
@@ -68,9 +70,9 @@ the evidence types.
   depends on the value, not on how it was built.
 - **Sealed games.** `GameV` is an id in the engine's `GameArena`, which interns
   each canonical form once and keeps order, sum, and negation memos for the
-  thread's lifetime. Options are sorted by birthday and then recursively by
-  children. Equality and hashing are id comparisons; the order is
-  deterministic across sessions.
+  thread's lifetime. Games are ordered by birthday, then by left and right
+  option counts, then option by option. Equality and hashing are id
+  comparisons; the order is deterministic across sessions.
 - **Positions as keys.** Ruleset positions hash through a structural
   `PosKey`. Sum-states are multisets of components, normalized by the
   structural total order on values.
@@ -82,13 +84,14 @@ the evidence types.
 
 ## Host-resource guards
 
-All limits fail with typed errors; no partial value escapes.
+Every limit except the host stack fails with a typed error, and no partial
+value escapes. The host stack is the one exception: see the call-depth row.
 
 | guard | contract |
 | --- | --- |
 | worker stack | one persistent 256 MiB worker per session |
-| source nesting | 1536 delimiters, and 1536 levels of expression nesting, checked before or inside the parser (`E_Parse`) |
-| call depth | 4096 frames (`E_StackDepth`, distinct from fuel) |
+| source nesting | 1536 delimiters, and 1536 levels of expression nesting (each operand of a flat operator chain counts as a level), checked before or inside the parser (`E_Parse`) |
+| call depth | 4096 closure frames (`E_StackDepth`, distinct from fuel). The guard counts calls, not stack bytes: a deeply nested body, or an unoptimized build (about 3480 frames of `1 + f(n - 1)`), can exhaust the worker stack first and abort the process. The roadmap's explicit-stack evaluator removes this gap |
 | game depth | `Game` and `Form` literals and every `Game` result are born by day 2¹⁴ (`E_StackDepth`): game algorithms recurse on depth |
 | canonical games | one per-thread `ogdoad::games::GameArena`; its steps are charged to fuel, so values met before are free |
 | value depth | data, closures, recursive groups, and generics nest at most 2¹⁴ levels (`E_StackDepth`); lists and tuples record their depth when built, so the check is constant time |

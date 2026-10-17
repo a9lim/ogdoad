@@ -30,7 +30,8 @@ their scope and evidence:
   different type from `a`, with one visible projection.
 
 Ogdoad's scalar, polynomial, rational-function, and Clifford worlds are types
-that coexist in one program. There is no modal world.
+that coexist in one program; every value carries its type, and there is no
+ambient mode.
 
 Two display laws govern the surface: `parse ∘ unparse = id` on parser-produced
 trees, and re-evaluating a value's display rebuilds the value (§13).
@@ -227,7 +228,8 @@ runtime failure.
   constraints.
 - Any other binding generalizes only unconstrained variables; its constrained
   variables stay monomorphic and are defaulted at the end of the statement.
-  So `three := 3` is `Int`, and `three + *1` is a type error.
+  So `three := 3` is `Int`, and `three + *1` in a later statement is a type
+  error.
 - A recursive group is monomorphic inside the group and generalized after it.
 - A generalized function receives its instantiated types at runtime, so a
   literal inside it is built at the type of each use:
@@ -444,6 +446,12 @@ witness.
 | `periodic(R, preperiod, period)` | `periodic_witness(R, preperiod, period)` | `R` was built by `octal`, and the Guy–Smith window holds. Scope: every heap. |
 | `separate(R, p, q, contexts)` | `separation_witness(R, p, q, x)` | the ruleset is impartial and the misère outcomes of `p + x` and `q + x` differ. |
 
+An outcome witness indexes labels by turn-state: label `2v` is node `v` with
+Left to move and `2v + 1` with Right to move, so a graph on `n` nodes needs
+exactly `2n` labels. The verdict is `0` for a loss, `1` for a win, and `2` for
+a draw; `chosen` is `-1` for no move; the root is node `0`, and `misère` is a
+`Bool`.
+
 The outcome checker is sound and complete for the retrograde partition: Win
 and Loss labels are sound by induction on rank. A player at a Draw state who
 keeps choosing Draw successors never reaches a Loss, and no move from a Draw
@@ -455,8 +463,9 @@ The other evidence rests on cited theorems:
 
 - **Guy–Smith.** The periodicity theorem as stated in A. N. Siegel, *Games
   of No Chance 5*, Thm. 2.4. The
-  checker recomputes the exact prefix of length `2⋅preperiod + period + k`
-  and its shift, where `k` is the last nonzero digit. It certifies the
+  checker computes `2⋅preperiod + 2⋅period + k` exact terms, where `k` is the
+  last nonzero digit, and checks `a[h] = a[h + period]` for
+  `preperiod ≤ h < 2⋅preperiod + period + k`. It certifies the
   supplied period, not its minimality.
 - **Separation.** The universe of `R` is all finite sums of its positions, so
   one finite context proves the two sums distinguishable in the whole
@@ -547,7 +556,8 @@ to every binding a display introduces as well.
 A display is linear in the value and depends only on the value:
 
 - a subvalue whose text repeats and is longer than 40 characters is bound
-  once, `(v1 := B(B(Z, Z), B(Z, Z)); B(v1, v1))`, however the value was built;
+  once, `(v1 := B(B(B(Z, Z), B(Z, Z)), B(B(Z, Z), B(Z, Z))); B(v1, v1))`,
+  however the value was built;
 - a spine nested more than 256 levels, or a sum of more than 512 terms, is
   cut into such bindings, so every display re-reads within the nesting
   limit;

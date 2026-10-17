@@ -65,9 +65,9 @@ bridges cross them where a theorem licenses the crossing:
 - `nimber(g)` reads a nimber-valued game, and fails elsewhere;
 - `sg(R, p)` is the Sprague–Grundy number of a terminating impartial ruleset.
 
-Literal types default through `Int, Game, Nimber, Surreal, Form`. The old
-per-world literal tables become a single static rule, and the `from_int`
-trap in characteristic two becomes a class fact.
+Literal types default through `Int, Game, Nimber, Surreal, Form` by one
+static rule. Nimbers and ordinals have no integer literals — `from_int` would
+collapse `3` to `1` in characteristic two — so `*3` is their literal.
 
 ## References
 

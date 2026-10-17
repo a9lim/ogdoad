@@ -7,10 +7,10 @@ monomorphizations of the pure-Rust core behind the optional `python` feature.
 
 | path | responsibility |
 | --- | --- |
-| `mod.rs` | module registration and shared Python helpers |
-| `catalog.rs` | fixed dispatch catalogue and generated backend families |
+| `mod.rs` | the `#[pymodule]` entry and `version()`; chains each submodule's `register` |
+| `catalog.rs` | backend manifest macros for the algebra/multivector/linear-map, divided-power, and CGA class families |
 | `scalars.rs` | scalar wrappers and arithmetic |
-| `engine.rs` | Clifford, multivector, divided-power, and CGA wrappers |
+| `engine.rs` | Clifford, multivector, divided-power, and CGA wrappers, and the `scalar_boundary` panic guard |
 | `forms.rs` | classifiers, local--global reports, integral forms |
 | `games.rs` | game values, evaluators, thermography, lexicodes |
 | `weyl.rs` | Rational/Fp3/Nimber Weyl algebras, elements, sparse symbols, transformations, centres, bounded fibres, and `p`-symbols |
@@ -35,12 +35,18 @@ monomorphizations of the pure-Rust core behind the optional `python` feature.
 
 - `*`: geometric product; `&`: wedge; `<<`/`>>`: contractions; `~`: reverse;
   `**`: multivector power; `/`: supported scalar/versor division.
-- Scalar power follows each scalar wrapper's documented API. Ordinal arithmetic
-  keeps an explicit checked nim-power path.
+- Scalar power follows each scalar wrapper's documented API. `Ordinal` exposes
+  checked `nim_mul`, `checked_inv`, and `checked_sqrt`, which return `None` at
+  the Kummer boundary, and has no Python power method.
+- Panics inside a guarded scalar boundary become `ValueError`; an unguarded
+  panic surfaces as `pyo3_runtime.PanicException`.
 - A scalar `__mul__` must return `NotImplemented` for a multivector so Python
-  can dispatch to the multivector's `__rmul__`.
+  can dispatch to the multivector's `__rmul__`. `Adele` does not yet, so
+  `adele * adele_mv` raises `TypeError`.
 - Python `repr`/display delegates to canonical Rust `Display` whenever a core
-  report or value exists.
+  report or value exists. `ArfInvariants`, `BrownInvariants`,
+  `RationalBrauerWallClass`, `NumberGame`, `NimberGame`, `LoopyValue`, and
+  `Surcomplex` still hand-format; converge them rather than adding more.
 
 ## Rules
 

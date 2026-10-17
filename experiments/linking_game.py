@@ -452,8 +452,9 @@ def close_first_low_rank_certificates() -> None:
 def two_bit_root_failures(k: int, edges) -> list[tuple]:
     """Failures of the proved two-bit root selector on ``G + d``.
 
-    This is an exact minimax check of a stronger *tested* statement, not the
-    proof of :ref:`lem:two-bit` in ``writeups/linking_affine.tex``.  If the odd
+    This is an exact minimax check of a stronger *tested* statement, not a
+    proof; the universal first-seat half of the root selector is proved in
+    ``formal/Ogdoad/FifoRootSelector.lean``.  If the odd
     player opens a real vertex, test every same-colour reply, where
     ``colour(v) = (deg(v), number of odd-degree neighbours) mod 2`` in the
     relevant even-order graph.  When ``k`` is even and the odd player opens the

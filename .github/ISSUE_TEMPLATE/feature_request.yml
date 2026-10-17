@@ -14,7 +14,7 @@ body:
           rings.
         - The open mathematical fronts (arbitrary-graph isolated-dummy FIFO
           linking, the universal transfinite nim-excess `0/1/4` rule, and
-          natural-ruleset realization of finite misere quotients) live in
+          natural realization of finite misère quotients) live in
           `docs/OPEN.md`. Those are research questions, not feature requests —
           open a discussion instead.
 
@@ -44,8 +44,10 @@ body:
       options:
         - New scalar backend (must be a commutative ring)
         - Clifford engine / GA layer
+        - Weyl pillar
         - Forms layer (a new invariant or classification)
         - Games layer
+        - grundy ruleset language
         - A cross-pillar bridge (ROADMAP.md)
         - Python bindings / ergonomics
         - docs only

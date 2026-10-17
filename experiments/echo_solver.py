@@ -22,11 +22,11 @@ parameter. The negative-control modes reproduce the fixed comparison values:
 16/16 at `m=4`, 255/256 at `(8,2,1)`, 228/256 at `(8,1,1)`, and 212/256 at
 `(8,1,2)`.
 
-Rule (echo-ko, goldarf SS8.2): positions are x in F_{2^m}; the coins of x (the
+Rule (echo-ko, an exploratory variant recorded by `KO_FIXTURES`): positions are x in F_{2^m}; the coins of x (the
 support bits) must each be touched twice (first touch opens, second closes);
 players alternate single touches; each touch of e_i updates a charge
 sigma ^= c(open-set, e_i), where c is the triangular cocycle of the
-extraspecial extension (Lemma extdict(ii)):
+extraspecial (Gold--Heisenberg) extension of `writeups/goldarf.tex`:
 
     c(u, v) = sum_i u_i v_i q_i  +  sum_{i>j} u_i v_j B(e_i, e_j)
 
@@ -34,7 +34,7 @@ with q_i = Q(e_i) and B the polar form; a one-move ko forbids immediately
 re-touching; the player completing the board wins iff the terminal charge is
 sigma = 1. A player with no legal move loses (normal-play stall).
 
-Rule (echo-fifo+dummy, goldarf SS8.3): the one-move ko is replaced by a FIFO
+Rule (echo-fifo+dummy, the exploratory FIFO variant): the one-move ko is replaced by a FIFO
 close-discipline (only the longest-open coin may be closed; opens are free) and
 one neutral tempo coin (q = 0, B-row = 0) is adjoined.
 
@@ -45,7 +45,7 @@ and these conventions only.
 
 Usage:
     python3 experiments/echo_solver.py selftest    # nim oracle + tree-vs-memo
-    python3 experiments/echo_solver.py pin-ko      # convention sweep vs SS8.2 table
+    python3 experiments/echo_solver.py pin-ko      # convention sweep vs the KO_FIXTURES table
     python3 experiments/echo_solver.py fifo-m4     # full m=4 family, all conventions
     python3 experiments/echo_solver.py fifo-m8     # m=8 benchmarks (surviving convs)
     python3 experiments/echo_solver.py stratified  # >=20 stratified lambda at m=8
@@ -184,8 +184,8 @@ class EchoGame:
                           coin is ko-banned is stalled and loses (normal play).
                 'soft' -- the ban yields when it is the ONLY touch available
                           (otherwise singletons can never complete).
-    win_target: completer wins iff terminal sigma == win_target.  The SS8.2
-                prose says sigma = 1; the corrected results table is only
+    win_target: completer wins iff terminal sigma == win_target.  The original
+                rule statement says sigma = 1; the corrected results table is only
                 reproducible with win_target = 0 from a zero seed, i.e. the
                 original run's charge is seeded at 1 (equivalent game).
     """
@@ -406,7 +406,7 @@ def conv_name(conv: dict) -> str:
     return "/".join(map(str, bits))
 
 
-# The corrected echo-ko results table (goldarf SS8.2), the convention-pinning
+# The corrected echo-ko results table, the convention-pinning
 # fixture.  agreement is out of 2^m; the (8,2,1) row pins the miss set exactly.
 KO_FIXTURES = [
     # (m, a, lam, expected_agreement, expected_miss_set_or_None)
@@ -430,7 +430,7 @@ def stage_selftest() -> None:
     assert not bad, f"nim_mul disagrees with mex recurrence at {bad[:5]}"
     print("   1024/1024 products agree (independent game-theoretic oracle)")
 
-    print("== Gold rank spot checks (goldarf Table 1) ==")
+    print("== Gold rank spot checks ==")
     for m, a, lam, want in [(4, 1, 1, 2), (8, 1, 1, 6), (8, 2, 1, 4), (8, 1, 2, 8)]:
         f = Form(m, a, lam)
         got = f.rank()
@@ -464,7 +464,7 @@ def stage_selftest() -> None:
 
 
 def stage_pin_ko() -> None:
-    print("== convention sweep vs the corrected echo-ko table (goldarf SS8.2) ==")
+    print("== convention sweep vs the corrected echo-ko table ==")
     for conv in KO_CONVS:
         print(f"-- {conv_name(conv)}")
         ok = True
@@ -563,7 +563,7 @@ def stage_stratified(convs, per_stratum: int = 7) -> None:
 # ----------------------------------------------------------------------------
 # The ACTUAL implemented echo-fifo+dummy rule (reconciliation phase).
 #
-# Reading the original probes (rule definition only) shows the SS8.3 prose
+# Reading the original probes (rule definition only) shows the original prose
 # misdescribes the game in three load-bearing ways:
 #   * it is a sigma-VALUED steering game: the value of a position is the
 #     terminal charge under optimal play, P1 wanting sigma = t and P2 wanting
@@ -948,7 +948,7 @@ def stage_ko2() -> None:
                 assert ko_value(f, x, t) == ko_value(f, x, t, tree=True), (lam, t, x)
                 n += 1
     print(f"   {n} solves agree with tree enumeration")
-    print("== sigma-explicit echo-ko vs the corrected SS8.2 table (value == Q) ==")
+    print("== sigma-explicit echo-ko vs the corrected echo-ko table (value == Q) ==")
     for (m, a, lam, want_agree, want_miss) in KO_FIXTURES:
         f = Form(m, a, lam)
         for t in (1, 0):

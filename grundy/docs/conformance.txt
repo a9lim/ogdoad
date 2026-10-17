@@ -1161,7 +1161,7 @@
 > reverse([1, 2, 3])
 ! E_Fuel: exhausted its work budget of 0
 
-// ================================================================ verification fixes
+// ================================================================ captures, shadowing, and budgets
 @reset
 > z := x ↦ abs(x)
 
