@@ -448,9 +448,16 @@ impl ClassifyForm for Rational {
     }
 }
 
+/// Odd prime fields. `Fp<2>` is refused with
+/// [`ClassifyError::UnsupportedFieldOrWindow`]: classify forms over `F_2`
+/// through `Fpn<2, 1>` or [`arf_char2`](crate::forms::arf_char2), whose
+/// classes carry the Arf invariant.
 impl<const P: u128> ClassifyForm for Fp<P> {
     type Class = OddCharInvariants;
     fn classify(metric: &Metric<Self>) -> Result<OddCharInvariants, ClassifyError> {
+        if P == 2 {
+            return Err(ClassifyError::UnsupportedFieldOrWindow);
+        }
         classify_finite_odd(metric).ok_or_else(|| char0_failure(metric))
     }
 }
@@ -1271,5 +1278,26 @@ mod tests {
             FiniteFieldWittDecomp::Char2(nonsingular).display(),
             nonsingular.to_string()
         );
+    }
+
+    #[test]
+    fn fp2_refuses_and_points_at_the_char2_classifiers() {
+        use crate::forms::arf_char2;
+        use crate::scalar::Fpn;
+        type F2 = Fp<2>;
+        let plane = Metric::new(vec![F2::one(), F2::one()], [((0, 1), F2::one())]);
+        assert_eq!(
+            <F2 as ClassifyForm>::classify(&plane).unwrap_err(),
+            ClassifyError::UnsupportedFieldOrWindow
+        );
+        assert_eq!(arf_char2(&plane).unwrap().arf, 1);
+        let plane = Metric::new(
+            vec![Fpn::<2, 1>::one(), Fpn::<2, 1>::one()],
+            [((0, 1), Fpn::<2, 1>::one())],
+        );
+        assert!(matches!(
+            Fpn::<2, 1>::classify(&plane),
+            Ok(FiniteFieldInvariants::Char2(inv)) if inv.arf == 1
+        ));
     }
 }
