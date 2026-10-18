@@ -53,6 +53,11 @@ ring element.
 - `GameArena` must agree with `Game::canonical`, `le`, `add`, and `neg`; its
   tests use those as independent oracles. Memo entries are inserted only after
   a result is complete, so budget exhaustion never leaves a wrong entry.
+  Metered operations charge before they recurse or scan supplied input.
+  Number values are exact dyadics with an `i128` numerator and `k <= 126`;
+  anything outside that range is `ArenaError::NumberOutOfRange`, never a panic
+  or an approximation. Its private dyadic arithmetic is checked against
+  `Rational` and `Surreal` oracles.
 - Atomic weight's integer branch compares raw option games; do not replace it
   by a maximum of rounded option weights.
 - `Pl` thermograph walls do not implement `Semiring` because they lack a

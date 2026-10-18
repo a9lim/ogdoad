@@ -12,7 +12,7 @@
 use std::cell::RefCell;
 use std::cmp::Ordering;
 
-use ogdoad::games::{ArenaExhausted, Game, GameArena, GameId};
+use ogdoad::games::{ArenaError, Game, GameArena, GameId};
 use ogdoad::scalar::{Rational, Surreal};
 
 use super::super::error::{err, GrundyError, GrundyErrorKind, GrundyResult};
@@ -46,7 +46,7 @@ pub trait Meter {
 /// Run arena work within the meter's remaining fuel, then charge what it used.
 fn metered<R>(
     meter: &mut impl Meter,
-    work: impl FnOnce(&mut GameArena) -> Result<R, ArenaExhausted>,
+    work: impl FnOnce(&mut GameArena) -> Result<R, ArenaError>,
 ) -> GrundyResult<R> {
     let remaining = meter.remaining();
     let (result, left) = with(|arena| {
@@ -61,9 +61,21 @@ fn metered<R>(
             meter.charge(remaining - left)?;
             Ok(value)
         }
-        Err(ArenaExhausted) => Err(meter
+        Err(ArenaError::BudgetExhausted) => Err(meter
             .charge(u128::MAX)
             .expect_err("an exhausted arena exceeds the remaining fuel")),
+        Err(ArenaError::NumberOutOfRange) => {
+            meter.charge(remaining - left)?;
+            Err(err(
+                GrundyErrorKind::Overflow,
+                "a number value falls outside the game arena's dyadic range",
+            )
+            .with_hint("game numbers are dyadics num/2^k with an i128 numerator and k <= 126"))
+        }
+        Err(other) => {
+            meter.charge(remaining - left)?;
+            Err(err(GrundyErrorKind::Overflow, other.to_string()))
+        }
     }
 }
 
@@ -286,7 +298,7 @@ impl GameV {
 
     /// The number value, if the game is a number.
     pub fn number(&self) -> Option<Surreal> {
-        with(|arena| arena.number_value(self.id).cloned())
+        with(|arena| arena.number_value(self.id))
     }
 
     /// `n` if the canonical form is the nimber `*n`.

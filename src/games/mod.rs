@@ -34,7 +34,7 @@ pub mod thermography;
 pub mod tropical_thermography;
 pub mod witt_fifo;
 
-pub use arena::{ArenaExhausted, GameArena, GameId};
+pub use arena::{ArenaError, GameArena, GameId};
 pub use atomic_weight::*;
 pub use brown_selector::*;
 pub use coin_turning::*;

@@ -1239,3 +1239,16 @@
 @fuel 0
 > up
 ! E_Fuel: exhausted its work budget of 0
+
+@reset
+> t := 1/85070591730234615865843651857942052864
+
+> t < 2
+= true
+
+> 2 + t
+! E_Overflow: dyadic range
+? k <= 126
+
+> {0 | t}
+! E_Overflow: dyadic range

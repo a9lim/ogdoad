@@ -11,46 +11,245 @@
 //! - a number plus a non-number uses number translation,
 //!   `G + x = {G^L + x | G^R + x}`.
 //!
-//! Every memo miss charges one step plus the options it scans against an
-//! optional budget. An operation that would exceed the budget fails with
-//! [`ArenaExhausted`], and every memo entry it recorded stays valid.
+//! # Budget
 //!
-//! Recursion depth is proportional to the birthdays involved, as it is for
-//! [`Game`]. Callers that admit arbitrary inputs bound birthdays themselves.
+//! An arena holds an optional count of remaining steps
+//! ([`set_budget`](GameArena::set_budget)). The builders,
+//! [`form`](GameArena::form), [`intern`](GameArena::intern),
+//! [`le`](GameArena::le), [`compare`](GameArena::compare),
+//! [`add`](GameArena::add), and [`neg`](GameArena::neg) charge each memo miss
+//! one step plus the options and input entries it scans, before doing that
+//! work. An operation that would exceed the budget fails with
+//! [`ArenaError::BudgetExhausted`] and leaves the budget at zero; every memo
+//! entry it recorded is complete and stays valid. Memo hits are free, so what
+//! an operation costs depends on what the arena has already computed.
+//!
+//! Accessors, [`structural_cmp`](GameArena::structural_cmp), and
+//! [`to_game`](GameArena::to_game) are unmetered: their work is bounded by the
+//! interned structure, and both cache their results for the arena's lifetime.
+//! [`positions`](GameArena::positions) is bounded by its `limit`.
+//!
+//! # Limits
+//!
+//! - Number values are dyadic rationals `num / 2^k` with an `i128` numerator
+//!   and `k <= 126` ([`GameArena::MAX_DYADIC_EXPONENT`]), the range a
+//!   [`Surreal`] coefficient holds. A builder, form, or sum whose number value
+//!   falls outside that range fails with [`ArenaError::NumberOutOfRange`];
+//!   number arithmetic is exact inside it.
+//! - A [`GameId`] is meaningful only in the arena that issued it. Ids are not
+//!   checked against their arena: a foreign id names an unrelated value or
+//!   panics.
+//! - Recursion depth is proportional to the birthdays involved, as it is for
+//!   [`Game`], and for [`intern`](GameArena::intern) to the depth of the
+//!   supplied tree. In the metered operations a finite budget also bounds it,
+//!   since every level is charged before it descends; callers that run
+//!   unbudgeted on arbitrary inputs bound birthdays themselves.
+//! - An arena holds fewer than `2^32` canonical forms; interning past that
+//!   panics.
 
 use std::cmp::Ordering;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt;
 
 use crate::games::Game;
-use crate::scalar::{Scalar, Surreal};
+use crate::scalar::{Rational, Surreal};
 
 /// A canonical game in a [`GameArena`]. Within one arena, equal ids are
 /// exactly equal values.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+///
+/// Ids carry no order: the allocation order has no mathematical meaning. Use
+/// [`GameArena::le`] for the game order and [`GameArena::structural_cmp`] for a
+/// deterministic total order.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct GameId(u32);
 
 impl GameId {
-    /// The allocation index. It depends on construction order, not on the
-    /// value; use [`GameArena::structural_cmp`] for a deterministic order.
+    /// The allocation index, for side tables indexed by id. It depends on
+    /// construction order, not on the value.
     pub fn index(self) -> usize {
         self.0 as usize
     }
 }
 
-/// An arena operation exceeded its step budget.
+/// Why an arena operation was refused.
+#[non_exhaustive]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct ArenaExhausted;
+pub enum ArenaError {
+    /// The step budget ran out. The budget is left at zero.
+    BudgetExhausted,
+    /// A number value falls outside the dyadics `num / 2^k` with an `i128`
+    /// numerator and `k <= 126`.
+    NumberOutOfRange,
+}
 
-impl fmt::Display for ArenaExhausted {
+impl fmt::Display for ArenaError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "the game arena's step budget is exhausted")
+        match self {
+            ArenaError::BudgetExhausted => write!(f, "the game arena's step budget is exhausted"),
+            ArenaError::NumberOutOfRange => write!(
+                f,
+                "a number value falls outside the arena's dyadic range (i128 numerator, exponent at most 126)"
+            ),
+        }
     }
 }
 
-impl std::error::Error for ArenaExhausted {}
+impl std::error::Error for ArenaError {}
 
-type Step<T> = Result<T, ArenaExhausted>;
+type Step<T> = Result<T, ArenaError>;
+
+/// A dyadic rational `num / 2^k` in lowest terms (`k == 0` or `num` odd), with
+/// `k <= MAX_DYADIC_EXPONENT`. Its arithmetic is exact and refuses only values
+/// outside that range.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+struct Dyadic {
+    num: i128,
+    k: u32,
+}
+
+impl Dyadic {
+    const ZERO: Dyadic = Dyadic { num: 0, k: 0 };
+
+    /// `num / 2^k` in lowest terms, in constant time.
+    fn new(num: i128, k: u128) -> Step<Dyadic> {
+        if num == 0 {
+            return Ok(Dyadic::ZERO);
+        }
+        let shift = k.min(u128::from(num.trailing_zeros()));
+        let k = k - shift;
+        if k > GameArena::MAX_DYADIC_EXPONENT {
+            return Err(ArenaError::NumberOutOfRange);
+        }
+        Ok(Dyadic {
+            num: num >> shift,
+            k: k as u32,
+        })
+    }
+
+    fn integer(n: i128) -> Dyadic {
+        Dyadic { num: n, k: 0 }
+    }
+
+    fn floor(self) -> i128 {
+        self.num >> self.k
+    }
+
+    fn neg(self) -> Step<Dyadic> {
+        let num = self.num.checked_neg().ok_or(ArenaError::NumberOutOfRange)?;
+        Ok(Dyadic { num, k: self.k })
+    }
+
+    fn add(self, other: Dyadic) -> Step<Dyadic> {
+        let overflow = ArenaError::NumberOutOfRange;
+        let (a, b) = if self.k <= other.k {
+            (self, other)
+        } else {
+            (other, self)
+        };
+        if a.k == b.k {
+            if a.k == 0 {
+                return a
+                    .num
+                    .checked_add(b.num)
+                    .map(Dyadic::integer)
+                    .ok_or(overflow);
+            }
+            // Both numerators are odd: a + b = 2 (a' + b' + 1) with a' = a >> 1.
+            let half = (a.num >> 1)
+                .checked_add(b.num >> 1)
+                .and_then(|sum| sum.checked_add(1))
+                .ok_or(overflow)?;
+            return Dyadic::new(half, u128::from(a.k) - 1);
+        }
+        // `b.num` is odd and the scaled `a.num` even, so the sum stays reduced.
+        let scaled = a.num.checked_mul(1 << (b.k - a.k)).ok_or(overflow)?;
+        let num = scaled.checked_add(b.num).ok_or(overflow)?;
+        Ok(Dyadic { num, k: b.k })
+    }
+
+    /// The simplest number greater than `self`: `{self | }`.
+    fn simplest_above(self) -> Step<Dyadic> {
+        if self < Dyadic::ZERO {
+            return Ok(Dyadic::ZERO);
+        }
+        let n = self
+            .floor()
+            .checked_add(1)
+            .ok_or(ArenaError::NumberOutOfRange)?;
+        Ok(Dyadic::integer(n))
+    }
+
+    /// The simplest number less than `self`: `{ | self}`.
+    fn simplest_below(self) -> Step<Dyadic> {
+        self.neg()?.simplest_above()?.neg()
+    }
+
+    /// The simplest number strictly between `l < r`.
+    fn simplest_between(l: Dyadic, r: Dyadic) -> Step<Dyadic> {
+        if l < Dyadic::ZERO && Dyadic::ZERO < r {
+            return Ok(Dyadic::ZERO);
+        }
+        if r <= Dyadic::ZERO {
+            return Dyadic::simplest_between(r.neg()?, l.neg()?)?.neg();
+        }
+        // 0 <= l < r: the least integer above `l`, if it lies below `r`.
+        let next = l.simplest_above()?;
+        if next < r {
+            return Ok(next);
+        }
+        // Otherwise both lie in one unit interval, and the simplest number
+        // between them is the one of least denominator.
+        let overflow = ArenaError::NumberOutOfRange;
+        for d in 1..=GameArena::MAX_DYADIC_EXPONENT {
+            let lk = u128::from(l.k);
+            let floor = if lk >= d {
+                l.num >> (lk - d)
+            } else {
+                l.num.checked_mul(1 << (d - lk)).ok_or(overflow)?
+            };
+            let candidate = Dyadic::new(floor.checked_add(1).ok_or(overflow)?, d)?;
+            if candidate < r {
+                return Ok(candidate);
+            }
+        }
+        Err(overflow)
+    }
+
+    fn to_surreal(self) -> Surreal {
+        Surreal::from_rational(Rational::new(self.num, 1 << self.k))
+    }
+}
+
+impl Ord for Dyadic {
+    fn cmp(&self, other: &Self) -> Ordering {
+        if self.k == other.k {
+            return self.num.cmp(&other.num);
+        }
+        let (a, b, flipped) = if self.k < other.k {
+            (self, other, false)
+        } else {
+            (other, self, true)
+        };
+        // Compare a * 2^(b.k - a.k) with b.num; on overflow the scaled side
+        // exceeds every i128 in magnitude.
+        let ordering = match a.num.checked_mul(1 << (b.k - a.k)) {
+            Some(scaled) => scaled.cmp(&b.num),
+            None if a.num > 0 => Ordering::Greater,
+            None => Ordering::Less,
+        };
+        if flipped {
+            ordering.reverse()
+        } else {
+            ordering
+        }
+    }
+}
+
+impl PartialOrd for Dyadic {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
 
 /// Sorted Left and Right option ids of a canonical node.
 type Children = (Box<[GameId]>, Box<[GameId]>);
@@ -59,7 +258,7 @@ struct Node {
     left: Box<[GameId]>,
     right: Box<[GameId]>,
     birthday: u128,
-    number: Option<Surreal>,
+    number: Option<Dyadic>,
     nimber: Option<u128>,
 }
 
@@ -71,10 +270,52 @@ struct Pending<'a> {
 
 /// Canonical short games, interned once, with persistent order, sum, and
 /// negation memos.
+///
+/// See the [module documentation](self) for the budget and the limits.
+///
+/// # Examples
+///
+/// Sums and comparisons of standard values:
+///
+/// ```
+/// use ogdoad::games::{ArenaError, GameArena};
+///
+/// # fn main() -> Result<(), ArenaError> {
+/// let mut arena = GameArena::new();
+/// let (star, up) = (arena.nimber(1)?, arena.up()?);
+/// // * + * = 0, and *3 + *5 = *6 by nim-addition.
+/// assert_eq!(arena.add(star, star)?, arena.zero());
+/// let (s3, s5) = (arena.nimber(3)?, arena.nimber(5)?);
+/// assert_eq!(arena.add(s3, s5)?, arena.nimber(6)?);
+/// // ↑ + * is confused with 0, while ↑ + ↑ + * is positive.
+/// let up_star = arena.add(up, star)?;
+/// assert_eq!(arena.compare(up_star, arena.zero())?, None);
+/// let up_up_star = arena.add(up_star, up)?;
+/// assert_eq!(arena.compare(up_up_star, arena.zero())?, Some(std::cmp::Ordering::Greater));
+/// // 1/2 + 1/2 = 1: equal values share one id.
+/// let half = arena.dyadic(1, 1)?;
+/// assert_eq!(arena.add(half, half)?, arena.integer(1)?);
+/// # Ok(())
+/// # }
+/// ```
+///
+/// Budgets and the number range are refusals, not panics:
+///
+/// ```
+/// use ogdoad::games::{ArenaError, GameArena};
+///
+/// let mut arena = GameArena::new();
+/// arena.set_budget(Some(10));
+/// assert_eq!(arena.nimber(40), Err(ArenaError::BudgetExhausted));
+/// assert_eq!(arena.budget(), Some(0));
+/// arena.set_budget(None);
+/// assert!(arena.dyadic(1, 126).is_ok());
+/// assert_eq!(arena.dyadic(1, 127), Err(ArenaError::NumberOutOfRange));
+/// ```
 pub struct GameArena {
     nodes: Vec<Node>,
     by_children: HashMap<Children, GameId>,
-    dyadics: HashMap<(i128, u128), GameId>,
+    dyadics: HashMap<Dyadic, GameId>,
     /// Every integer in `integers.0 ..= integers.1` is interned.
     integers: (i128, i128),
     nimbers: Vec<GameId>,
@@ -93,6 +334,9 @@ impl Default for GameArena {
 }
 
 impl GameArena {
+    /// The largest `k` of a number value `num / 2^k` the arena represents.
+    pub const MAX_DYADIC_EXPONENT: u128 = 126;
+
     /// An arena holding only `0`, with no step budget.
     pub fn new() -> GameArena {
         let mut arena = GameArena {
@@ -108,8 +352,10 @@ impl GameArena {
             games: Vec::new(),
             budget: None,
         };
-        let zero = arena.intern_node(Vec::new(), Vec::new());
-        arena.dyadics.insert((0, 0), zero);
+        let zero = arena
+            .intern_node(Vec::new(), Vec::new())
+            .expect("0 is a number in range");
+        arena.dyadics.insert(Dyadic::ZERO, zero);
         arena.nimbers.push(zero);
         arena
     }
@@ -129,7 +375,7 @@ impl GameArena {
             let steps = steps as u128;
             if *budget < steps {
                 *budget = 0;
-                return Err(ArenaExhausted);
+                return Err(ArenaError::BudgetExhausted);
             }
             *budget -= steps;
         }
@@ -171,8 +417,8 @@ impl GameArena {
     }
 
     /// The number the game equals, if it is a number.
-    pub fn number_value(&self, g: GameId) -> Option<&Surreal> {
-        self.node(g).number.as_ref()
+    pub fn number_value(&self, g: GameId) -> Option<Surreal> {
+        self.node(g).number.map(Dyadic::to_surreal)
     }
 
     /// `n` if the game is the nimber `*n`.
@@ -182,6 +428,7 @@ impl GameArena {
 
     /// A deterministic total order on canonical forms, independent of
     /// construction order: birthday, then option counts, then options in order.
+    /// Unmetered and memoized.
     pub fn structural_cmp(&mut self, a: GameId, b: GameId) -> Ordering {
         if a == b {
             return Ordering::Equal;
@@ -213,16 +460,18 @@ impl GameArena {
     }
 
     /// Intern `{left | right}`, whose options must be canonical and which must
-    /// have no dominated or reversible option.
-    fn intern_node(&mut self, mut left: Vec<GameId>, mut right: Vec<GameId>) -> GameId {
+    /// have no dominated or reversible option. Fails only when the form is a
+    /// number outside the dyadic range.
+    fn intern_node(&mut self, mut left: Vec<GameId>, mut right: Vec<GameId>) -> Step<GameId> {
         left.sort_by(|a, b| self.structural_cmp(*a, *b));
         left.dedup();
         right.sort_by(|a, b| self.structural_cmp(*a, *b));
         right.dedup();
         let key = (left.into_boxed_slice(), right.into_boxed_slice());
         if let Some(&id) = self.by_children.get(&key) {
-            return id;
+            return Ok(id);
         }
+        let number = self.number_of(&key.0, &key.1)?;
         let birthday = key
             .0
             .iter()
@@ -230,7 +479,6 @@ impl GameArena {
             .map(|child| self.node(*child).birthday + 1)
             .max()
             .unwrap_or(0);
-        let number = self.number_of(&key.0, &key.1);
         let nimber = (key.0 == key.1
             && key
                 .0
@@ -248,57 +496,60 @@ impl GameArena {
         });
         self.games.push(None);
         self.by_children.insert(key, id);
-        id
+        Ok(id)
     }
 
     /// The simplicity theorem on options whose values are known.
-    fn number_of(&self, left: &[GameId], right: &[GameId]) -> Option<Surreal> {
-        let values = |side: &[GameId]| -> Option<Vec<Surreal>> {
-            side.iter()
-                .map(|child| self.node(*child).number.clone())
-                .collect()
+    fn number_of(&self, left: &[GameId], right: &[GameId]) -> Step<Option<Dyadic>> {
+        let values = |side: &[GameId]| -> Option<Vec<Dyadic>> {
+            side.iter().map(|child| self.node(*child).number).collect()
         };
-        let (lvals, rvals) = (values(left)?, values(right)?);
-        let lmax = lvals.into_iter().max();
-        let rmin = rvals.into_iter().min();
-        match (lmax, rmin) {
-            (None, None) => Some(Surreal::zero()),
-            (Some(l), None) => l.simplest_above(),
-            (None, Some(r)) => r.simplest_below(),
-            (Some(l), Some(r)) => Surreal::simplest_between(&l, &r),
+        let (Some(lvals), Some(rvals)) = (values(left), values(right)) else {
+            return Ok(None);
+        };
+        match (lvals.into_iter().max(), rvals.into_iter().min()) {
+            (None, None) => Ok(Some(Dyadic::ZERO)),
+            (Some(l), None) => l.simplest_above().map(Some),
+            (None, Some(r)) => r.simplest_below().map(Some),
+            (Some(l), Some(r)) if l < r => Dyadic::simplest_between(l, r).map(Some),
+            _ => Ok(None),
         }
     }
 
     // -------------------------------------------------------------- builders
 
-    /// The integer `n`.
+    /// The integer `n`. Building it costs one step for each integer not yet
+    /// interned between `0` and `n`.
     pub fn integer(&mut self, n: i128) -> Step<GameId> {
-        self.dyadic(n, 0)
+        self.number(Dyadic::integer(n))
     }
 
-    /// The dyadic `num / 2^k`.
+    /// The dyadic `num / 2^k`, refused when its lowest terms need `k > 126`.
     pub fn dyadic(&mut self, num: i128, k: u128) -> Step<GameId> {
-        let (num, k) = reduce_dyadic(num, k);
-        if let Some(&id) = self.dyadics.get(&(num, k)) {
+        self.number(Dyadic::new(num, k)?)
+    }
+
+    fn number(&mut self, d: Dyadic) -> Step<GameId> {
+        if let Some(&id) = self.dyadics.get(&d) {
             return Ok(id);
         }
-        let id = if k == 0 {
+        let id = if d.k == 0 {
             // Extend the integer chain outward from its built end.
-            let (step, mut current): (i128, i128) = if num > 0 {
+            let (step, mut current): (i128, i128) = if d.num > 0 {
                 (1, self.integers.1)
             } else {
                 (-1, self.integers.0)
             };
-            let mut id = self.dyadics[&(current, 0)];
-            while current != num {
+            let mut id = self.dyadics[&Dyadic::integer(current)];
+            while current != d.num {
                 self.charge(1)?;
                 current += step;
                 id = if step > 0 {
-                    self.intern_node(vec![id], Vec::new())
+                    self.intern_node(vec![id], Vec::new())?
                 } else {
-                    self.intern_node(Vec::new(), vec![id])
+                    self.intern_node(Vec::new(), vec![id])?
                 };
-                self.dyadics.insert((current, 0), id);
+                self.dyadics.insert(Dyadic::integer(current), id);
                 if step > 0 {
                     self.integers.1 = current;
                 } else {
@@ -307,20 +558,15 @@ impl GameArena {
             }
             id
         } else {
-            let below = num
-                .checked_sub(1)
-                .expect("dyadic numerator overflowed i128");
-            let above = num
-                .checked_add(1)
-                .expect("dyadic numerator overflowed i128");
-            let (ln, lk) = reduce_dyadic(below, k);
-            let (rn, rk) = reduce_dyadic(above, k);
-            let left = self.dyadic(ln, lk)?;
-            let right = self.dyadic(rn, rk)?;
+            // num / 2^k = {(num - 1) / 2^k | (num + 1) / 2^k} for odd num.
             self.charge(1)?;
-            self.intern_node(vec![left], vec![right])
+            let half = d.num >> 1;
+            let k = u128::from(d.k) - 1;
+            let left = self.number(Dyadic::new(half, k)?)?;
+            let right = self.number(Dyadic::new(half + 1, k)?)?;
+            self.intern_node(vec![left], vec![right])?
         };
-        self.dyadics.insert((num, k), id);
+        self.dyadics.insert(d, id);
         Ok(id)
     }
 
@@ -332,12 +578,13 @@ impl GameArena {
         }
     }
 
-    /// The nimber `*n`.
+    /// The nimber `*n`. Building it costs `m + 1` steps for each `*m` not yet
+    /// interned with `m <= n`.
     pub fn nimber(&mut self, n: u128) -> Step<GameId> {
         while self.nimbers.len() as u128 <= n {
+            self.charge(self.nimbers.len() + 1)?;
             let options = self.nimbers.clone();
-            self.charge(options.len() + 1)?;
-            let id = self.intern_node(options.clone(), options);
+            let id = self.intern_node(options.clone(), options)?;
             self.nimbers.push(id);
         }
         Ok(self.nimbers[n as usize])
@@ -347,34 +594,33 @@ impl GameArena {
     pub fn up(&mut self) -> Step<GameId> {
         self.charge(2)?;
         let zero = self.zero();
-        let star = self.intern_node(vec![zero], vec![zero]);
-        Ok(self.intern_node(vec![zero], vec![star]))
+        let star = self.intern_node(vec![zero], vec![zero])?;
+        self.intern_node(vec![zero], vec![star])
     }
 
     /// `↓ = {* | 0}`.
     pub fn down(&mut self) -> Step<GameId> {
         self.charge(2)?;
         let zero = self.zero();
-        let star = self.intern_node(vec![zero], vec![zero]);
-        Ok(self.intern_node(vec![star], vec![zero]))
+        let star = self.intern_node(vec![zero], vec![zero])?;
+        self.intern_node(vec![star], vec![zero])
     }
 
-    /// The number of distinct positions reachable from `g`, counting at
-    /// most `limit + 1`.
+    /// The number of distinct positions reachable from `g`, `g` included,
+    /// counting at most `limit + 1`.
     pub fn positions(&self, g: GameId, limit: usize) -> usize {
-        let mut seen = std::collections::HashSet::from([g]);
+        let mut seen = HashSet::from([g]);
+        if seen.len() > limit {
+            return seen.len();
+        }
         let mut stack = vec![g];
         while let Some(node) = stack.pop() {
-            if seen.len() > limit {
-                break;
-            }
-            for &child in self
-                .node(node)
-                .left
-                .iter()
-                .chain(self.node(node).right.iter())
-            {
+            let node = self.node(node);
+            for &child in node.left.iter().chain(node.right.iter()) {
                 if seen.insert(child) {
+                    if seen.len() > limit {
+                        return seen.len();
+                    }
                     stack.push(child);
                 }
             }
@@ -383,8 +629,15 @@ impl GameArena {
     }
 
     /// The canonical form of `{left | right}` for canonical options: dominated
-    /// options are removed and reversible ones bypassed until stable.
+    /// options are removed and reversible ones bypassed until stable. The
+    /// supplied entries are charged before they are scanned.
     pub fn form(&mut self, left: &[GameId], right: &[GameId]) -> Step<GameId> {
+        self.charge(left.len() + right.len())?;
+        self.reduce(left, right)
+    }
+
+    /// [`form`](Self::form) for option lists built by charged arena work.
+    fn reduce(&mut self, left: &[GameId], right: &[GameId]) -> Step<GameId> {
         let mut left = dedup(left);
         let mut right = dedup(right);
         loop {
@@ -440,9 +693,8 @@ impl GameArena {
             right = dedup(&new_right);
         }
         self.charge(1)?;
-        Ok(self.intern_node(left, right))
+        self.intern_node(left, right)
     }
-
     /// The order-maximal (Left) or order-minimal (Right) options.
     fn extremal(&mut self, options: Vec<GameId>, maximal: bool) -> Step<Vec<GameId>> {
         let mut kept: Vec<GameId> = Vec::new();
@@ -547,7 +799,7 @@ impl GameArena {
         if a == b {
             return Ok(true);
         }
-        if let (Some(x), Some(y)) = (&self.node(a).number, &self.node(b).number) {
+        if let (Some(x), Some(y)) = (self.node(a).number, self.node(b).number) {
             return Ok(x <= y);
         }
         if let Some(&answer) = self.le_memo.get(&(a, b)) {
@@ -597,18 +849,12 @@ impl GameArena {
         if b == zero {
             return Ok(a);
         }
-        let key = if a <= b { (a, b) } else { (b, a) };
+        let key = if a.0 <= b.0 { (a, b) } else { (b, a) };
         if let Some(&sum) = self.sums.get(&key) {
             return Ok(sum);
         }
-        let numbers = (self.node(a).number.clone(), self.node(b).number.clone());
-        let sum = match numbers {
-            (Some(x), Some(y)) => {
-                let (num, k) = Scalar::add(&x, &y)
-                    .as_dyadic()
-                    .expect("a sum of dyadics is dyadic");
-                self.dyadic(num, k)?
-            }
+        let sum = match (self.node(a).number, self.node(b).number) {
+            (Some(x), Some(y)) => self.number(x.add(y)?)?,
             (Some(_), None) => self.translate(b, a)?,
             (None, Some(_)) => self.translate(a, b)?,
             (None, None) => {
@@ -632,7 +878,7 @@ impl GameArena {
                     let br = self.node(b).right[i];
                     right.push(self.add(a, br)?);
                 }
-                self.form(&left, &right)?
+                self.reduce(&left, &right)?
             }
         };
         self.sums.insert(key, sum);
@@ -652,7 +898,7 @@ impl GameArena {
             let gr = self.node(g).right[i];
             right.push(self.add(gr, x)?);
         }
-        self.form(&left, &right)
+        self.reduce(&left, &right)
     }
 
     /// The negative. Negation preserves canonical form.
@@ -660,9 +906,8 @@ impl GameArena {
         if let Some(&negated) = self.negs.get(&a) {
             return Ok(negated);
         }
-        let negated = if let Some(x) = self.node(a).number.clone() {
-            let (num, k) = x.neg().as_dyadic().expect("a negated dyadic is dyadic");
-            self.dyadic(num, k)?
+        let negated = if let Some(x) = self.node(a).number {
+            self.number(x.neg()?)?
         } else {
             self.charge(1 + self.node(a).left.len() + self.node(a).right.len())?;
             let mut left = Vec::new();
@@ -675,14 +920,15 @@ impl GameArena {
                 let al = self.node(a).left[i];
                 right.push(self.neg(al)?);
             }
-            self.intern_node(left, right)
+            self.intern_node(left, right)?
         };
         self.negs.insert(a, negated);
         self.negs.insert(negated, a);
         Ok(negated)
     }
 
-    /// Canonicalize and intern an engine game.
+    /// Canonicalize and intern an engine game. Each distinct subtree is charged
+    /// before it is visited, then reduced as by [`form`](Self::form).
     pub fn intern(&mut self, game: &Game) -> Step<GameId> {
         fn visit(
             arena: &mut GameArena,
@@ -692,6 +938,7 @@ impl GameArena {
             if let Some(&id) = memo.get(&game.ptr_id()) {
                 return Ok(id);
             }
+            arena.charge(1 + game.left().len() + game.right().len())?;
             let left = game
                 .left()
                 .iter()
@@ -702,7 +949,7 @@ impl GameArena {
                 .iter()
                 .map(|option| visit(arena, option, memo))
                 .collect::<Step<Vec<_>>>()?;
-            let id = arena.form(&left, &right)?;
+            let id = arena.reduce(&left, &right)?;
             memo.insert(game.ptr_id(), id);
             Ok(id)
         }
@@ -710,6 +957,7 @@ impl GameArena {
     }
 
     /// The canonical form as an engine game, sharing common subgames.
+    /// Unmetered; each node is exported once per arena.
     pub fn to_game(&mut self, g: GameId) -> Game {
         if let Some(game) = &self.games[g.index()] {
             return game.clone();
@@ -732,19 +980,8 @@ impl GameArena {
     }
 }
 
-fn reduce_dyadic(mut num: i128, mut k: u128) -> (i128, u128) {
-    while k > 0 && num % 2 == 0 {
-        num /= 2;
-        k -= 1;
-    }
-    if num == 0 {
-        k = 0;
-    }
-    (num, k)
-}
-
 fn dedup(ids: &[GameId]) -> Vec<GameId> {
-    let mut seen = std::collections::HashSet::new();
+    let mut seen = HashSet::new();
     ids.iter().copied().filter(|id| seen.insert(*id)).collect()
 }
 
@@ -803,7 +1040,7 @@ mod tests {
             let s = Surreal::from_rational(Rational::new(num, den));
             let id = arena.from_surreal(&s).unwrap().unwrap();
             assert!(same(&mut arena, id, &Game::from_surreal(&s).unwrap()));
-            assert_eq!(arena.number_value(id), Some(&s));
+            assert_eq!(arena.number_value(id), Some(s.clone()));
         }
         for n in 0..9 {
             let id = arena.nimber(n).unwrap();
@@ -824,10 +1061,7 @@ mod tests {
         for game in &games {
             let id = arena.intern(game).unwrap();
             assert!(same(&mut arena, id, game), "{game}");
-            assert_eq!(
-                arena.number_value(id).cloned(),
-                game.canonical().number_value()
-            );
+            assert_eq!(arena.number_value(id), game.canonical().number_value());
             assert_eq!(arena.birthday(id), game.canonical().birthday());
         }
     }
@@ -869,7 +1103,7 @@ mod tests {
         let a = arena.integer(1000).unwrap();
         let star = arena.nimber(1).unwrap();
         let sum = arena.add(a, a).unwrap();
-        assert_eq!(arena.number_value(sum), Some(&Surreal::from(2000)));
+        assert_eq!(arena.number_value(sum), Some(Surreal::from(2000)));
         let a_star = arena.add(a, star).unwrap();
         let twice = arena.add(a_star, a).unwrap();
         let expected = arena.integer(2000).unwrap();
@@ -881,7 +1115,7 @@ mod tests {
     fn exhaustion_fails_and_leaves_the_arena_consistent() {
         let mut arena = GameArena::new();
         arena.set_budget(Some(10));
-        assert_eq!(arena.nimber(40), Err(ArenaExhausted));
+        assert_eq!(arena.nimber(40), Err(ArenaError::BudgetExhausted));
         assert_eq!(arena.budget(), Some(0));
         arena.set_budget(None);
         let games = random_games(7, 40);
@@ -896,5 +1130,114 @@ mod tests {
                 assert!(same(&mut arena, sum, &g.add(h)));
             }
         }
+    }
+
+    /// Every reduced dyadic `num / 2^k` with `|num| < 2^(k + 2)` and `k <= 3`.
+    fn small_dyadics() -> Vec<Dyadic> {
+        let mut out = Vec::new();
+        for k in 0..=3u128 {
+            let bound = 1i128 << (k + 2);
+            for num in -bound..=bound {
+                let d = Dyadic::new(num, k).unwrap();
+                if !out.contains(&d) {
+                    out.push(d);
+                }
+            }
+        }
+        out
+    }
+
+    fn rational(d: Dyadic) -> Rational {
+        Rational::new(d.num, 1 << d.k)
+    }
+
+    #[test]
+    fn dyadic_arithmetic_matches_rational_and_surreal_oracles() {
+        let values = small_dyadics();
+        for &x in &values {
+            assert_eq!(rational(x.neg().unwrap()), -rational(x));
+            let above = x.to_surreal().simplest_above().unwrap();
+            assert_eq!(x.simplest_above().unwrap().to_surreal(), above);
+            let below = x.to_surreal().simplest_below().unwrap();
+            assert_eq!(x.simplest_below().unwrap().to_surreal(), below);
+            for &y in &values {
+                assert_eq!(x.cmp(&y), rational(x).cmp(&rational(y)), "{x:?} vs {y:?}");
+                assert_eq!(rational(x.add(y).unwrap()), rational(x) + rational(y));
+                if x < y {
+                    let expected = Surreal::simplest_between(&x.to_surreal(), &y.to_surreal());
+                    assert_eq!(
+                        Some(Dyadic::simplest_between(x, y).unwrap().to_surreal()),
+                        expected,
+                        "simplest between {x:?} and {y:?}"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn dyadics_near_the_range_edge_are_exact_or_refused() {
+        let mut arena = GameArena::new();
+        let tiny = arena.dyadic(1, 126).unwrap();
+        let two = arena.integer(2).unwrap();
+        assert!(!arena.le(two, tiny).unwrap());
+        assert!(arena.le(tiny, two).unwrap());
+        // x = 1 + 2^-126 doubles to (2^126 + 1) / 2^125, whose unreduced
+        // numerator overflows i128.
+        let one = arena.integer(1).unwrap();
+        let x = arena.add(one, tiny).unwrap();
+        let doubled = arena.add(x, x).unwrap();
+        assert_eq!(
+            arena.number_value(doubled),
+            Some(Surreal::from_rational(Rational::new(
+                (1 << 126) + 1,
+                1 << 125
+            )))
+        );
+        assert_eq!(arena.dyadic(1, 127), Err(ArenaError::NumberOutOfRange));
+        assert_eq!(arena.dyadic(i128::MAX, 126).map(|_| ()), Ok(()));
+        // {0 | 2^-126} is the number 2^-127, outside the range.
+        let zero = arena.zero();
+        assert_eq!(
+            arena.form(&[zero], &[tiny]),
+            Err(ArenaError::NumberOutOfRange)
+        );
+        // Large exponents of zero and even numerators reduce in constant time.
+        arena.set_budget(Some(0));
+        assert_eq!(arena.dyadic(0, u128::MAX), Ok(zero));
+        assert_eq!(arena.dyadic(1 << 100, 100), Ok(one));
+    }
+
+    #[test]
+    fn budgets_bound_work_before_it_is_done() {
+        let mut arena = GameArena::new();
+        // Each level of a dyadic is charged before it recurses.
+        arena.set_budget(Some(20));
+        assert_eq!(arena.dyadic(1, 120), Err(ArenaError::BudgetExhausted));
+        // Supplied option lists are charged before they are scanned.
+        arena.set_budget(Some(100));
+        let zero = arena.zero();
+        assert_eq!(
+            arena.form(&vec![zero; 1000], &[]),
+            Err(ArenaError::BudgetExhausted)
+        );
+        // Interning charges each subtree before descending into it.
+        let mut chain = Game::zero();
+        for _ in 0..2000 {
+            chain = Game::new(vec![chain.clone()], vec![chain]);
+        }
+        arena.set_budget(Some(100));
+        assert_eq!(arena.intern(&chain), Err(ArenaError::BudgetExhausted));
+        assert_eq!(arena.budget(), Some(0));
+    }
+
+    #[test]
+    fn positions_caps_its_count() {
+        let mut arena = GameArena::new();
+        let star10 = arena.nimber(10).unwrap();
+        assert_eq!(arena.positions(star10, 0), 1);
+        assert_eq!(arena.positions(star10, 1), 2);
+        assert_eq!(arena.positions(star10, 5), 6);
+        assert_eq!(arena.positions(star10, 100), 11);
     }
 }
