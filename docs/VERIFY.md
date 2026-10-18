@@ -143,17 +143,21 @@ Each script supports only the claims in its module docstring.
   classifier; `common.py` is its helper).
 - `ordinal_excess_probe.py`, `cyclotomic_3k_family.py`,
   `exception_column_m4.py`, `fermat_selected_screen.py`: bounded excess
-  screens; `fermat_selected_screen_results.md` records the published-factor
-  runs.
+  screens. The Fermat screen runs on Conway's tower or, with
+  `--tower wiedemann`, on Wiedemann's; `--complete-level` decides a fully
+  factored level `n <= 11`. `fermat_selected_screen_results.md` records the
+  published-factor runs for both towers.
 - `cubic_two_normal_countermodel.py`, `fermat_top_orbit_countermodel.py`:
   explicit non-Conway countermodels to overstrong lemmas, not counterexamples
   to the `0/1/4` rule.
 - `ordinary_*_certificate.py`, `ordinary_359_full_conductor.py`: exact
   named-row certificates. The python-flint verifiers state their resource
   requirements; the stdlib ones run in seconds.
-- `wiedemann_sibling.py`: the Conway--Fermat torus element beside Wiedemann's
-  tower for `n <= 5`, with the trace identity and level-two minimal
-  polynomials behind their nonconjugacy for `n >= 3`.
+- `wiedemann_sibling.py`: the exact checks behind `excess.tex`'s Wiedemann
+  subsection: the trace and norm identities and nonconjugacy for `n <= 5`,
+  the ordinary-curve realization of Wiedemann's tower, and the Frobenius
+  image on the supersingular points `P_n`, with `ord(P_n) = F_n` for
+  `2 <= n <= 6`.
 - `certificates/`: versioned binary payloads for the certificate verifiers,
   documented in its README.
 
