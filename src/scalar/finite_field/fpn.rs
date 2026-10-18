@@ -564,7 +564,7 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
 /// giant-step, while nimbers use their separate Pohlig--Hellman path.
 impl<const P: u128, const N: usize> FiniteField for Fpn<P, N> {
     fn frobenius(&self) -> Self {
-        FiniteField::pow(self, P)
+        Scalar::pow(self, P)
     }
 
     fn ext_degree() -> usize {
@@ -608,7 +608,7 @@ impl<const P: u128, const N: usize> FiniteField for Fpn<P, N> {
         }
 
         let inverse_step_exponent = (order - width % order) % order;
-        let inverse_step = FiniteField::pow(self, inverse_step_exponent);
+        let inverse_step = Scalar::pow(self, inverse_step_exponent);
         let mut giant = target;
         for giant_index in 0..=width {
             if let Some(&baby_index) = babies.get(&giant) {
@@ -951,7 +951,7 @@ mod tests {
         let g = Fpn::<2, 3>::primitive_element();
         assert_eq!(g.multiplicative_order(), Some(7));
         for e in 0..7u128 {
-            assert_eq!(g.discrete_log(FiniteField::pow(&g, e)), Some(e % 7));
+            assert_eq!(g.discrete_log(Scalar::pow(&g, e)), Some(e % 7));
         }
         // F_16's Conway generator has order 15 for x^4+x+1.
         let c = Fpn::<2, 4>::generator();

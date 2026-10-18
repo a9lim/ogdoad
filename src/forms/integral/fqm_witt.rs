@@ -1559,7 +1559,10 @@ mod tests {
         let a7 = a_n(7);
         let disc = DiscriminantForm::from_lattice(&a7).unwrap();
         assert_eq!(disc.group(), vec![8], "exponent 8 going in");
-        assert_eq!(disc.quadratic_value_mod2(&[1]), Rational::new(7, 8));
+        assert_eq!(
+            disc.quadratic_value_mod2(&[1, 0, 0, 0, 0, 0, 0]),
+            Rational::new(7, 8)
+        );
         let class = disc.fqm_witt_class().unwrap();
         assert_eq!(class.primary.len(), 1);
         let p2 = &class.primary[0];

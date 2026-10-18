@@ -75,7 +75,9 @@ pub use loopy::*;
 pub use misere::*;
 pub use nimber_game::*;
 pub use number_game::*;
-pub use octal::{GuySmithCertificate, GuySmithError, GuySmithWitness, OctalCode, OctalCodeError};
+pub use octal::{
+    octal_moves, GuySmithCertificate, GuySmithError, GuySmithWitness, OctalCode, OctalCodeError,
+};
 pub use partizan::*;
 pub use piecewise::*;
 pub use thermography::*;

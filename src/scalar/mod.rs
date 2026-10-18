@@ -404,8 +404,7 @@ pub trait Scalar: Clone + PartialEq + Debug + Display {
     /// `x.pow(0) == one()`. The same default-method precedent as
     /// [`Scalar::from_int`]: one correct implementation for every backend whose
     /// `mul` is total, with per-backend overrides only where a genuinely sharper
-    /// algorithm exists (e.g. [`Nimber`]'s Fermat-tower `nim_pow`, reached through
-    /// [`FiniteField::pow`]).
+    /// algorithm exists (e.g. [`Nimber`]'s Fermat-tower `nim_pow`).
     ///
     /// `Ordinal` implements `Scalar` with a panic-on-escape `mul` (the represented
     /// Kummer tower's honest boundary), so it inherits this default `pow` as a

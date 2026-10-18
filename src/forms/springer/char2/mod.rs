@@ -477,6 +477,22 @@ mod tests {
         springer_decompose_local_char2(&Char2QuadForm::from_blocks(blocks.to_vec()), &place_t())
     }
 
+    #[test]
+    fn blocks_with_positive_valuation_product_are_locally_hyperbolic() {
+        // [1, t^2] at t and [1, 1/t^3] at infinity: v(ab) > 0, so ab lies in
+        // the Artin-Schreier image and the block contributes nothing.
+        let hyperbolic = |blocks: Vec<(R2, R2)>, place: FunctionFieldPlace<F2>| {
+            let d = springer_decompose_local_char2(&Char2QuadForm::from_blocks(blocks), &place);
+            assert_eq!((d.phi0, d.phi1), (0, 0));
+            assert!(d.psi.is_empty());
+        };
+        hyperbolic(vec![(r2(&[1], &[1]), r2(&[0, 0, 1], &[1]))], place_t());
+        hyperbolic(
+            vec![(r2(&[1], &[1]), r2(&[1], &[0, 0, 0, 1]))],
+            FunctionFieldPlace::Infinite,
+        );
+    }
+
     // Aravire--Jacob decomposition examples.
     // (π = t; "π⁻¹" ↦ R_π map {1: 1}, "1" in φ₀/φ₁ ↦ the bit 1.)
 

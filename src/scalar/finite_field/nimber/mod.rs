@@ -89,6 +89,12 @@ impl Scalar for Nimber {
     fn mul(&self, rhs: &Self) -> Self {
         Nimber(nim_mul(self.0, rhs.0))
     }
+
+    /// Square-and-multiply would cost `O(log e)` nim products; the Fermat-tower
+    /// `nim_pow` is the sharper algorithm.
+    fn pow(&self, exp: u128) -> Self {
+        Nimber(nim_pow(self.0, exp))
+    }
     fn characteristic() -> u128 {
         2
     }

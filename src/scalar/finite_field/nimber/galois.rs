@@ -210,10 +210,6 @@ impl FiniteField for Nimber {
         Nimber(nim_square(self.0))
     }
 
-    fn pow(&self, e: u128) -> Self {
-        Nimber(nim_pow(self.0, e))
-    }
-
     fn ext_degree() -> usize {
         128
     }

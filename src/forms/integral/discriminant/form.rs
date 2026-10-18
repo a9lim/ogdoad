@@ -25,7 +25,13 @@ fn rational_to_f64(x: &Rational) -> f64 {
 }
 
 fn dot_inv(v: &[i128], inv: &[Vec<Rational>], w: &[i128]) -> Rational {
-    let n = v.len();
+    let n = inv.len();
+    assert!(
+        v.len() == n && w.len() == n,
+        "discriminant-form vectors must have the lattice rank {n} (got {} and {})",
+        v.len(),
+        w.len()
+    );
     let mut acc = Rational::zero();
     for i in 0..n {
         if v[i] == 0 {
@@ -688,12 +694,6 @@ impl DiscriminantCore {
 }
 
 /// The finite discriminant quadratic module of an even lattice.
-#[derive(Clone, Debug, PartialEq)]
-pub struct DiscriminantForm {
-    core: DiscriminantCore,
-}
-
-/// The finite discriminant quadratic object attached to an odd integral lattice.
 ///
 /// # Examples
 ///
@@ -717,6 +717,12 @@ pub struct DiscriminantForm {
 /// assert!(q.verify_weil_relations());
 /// assert!(DiscriminantForm::from_lattice(&IntegralForm::diagonal(&[1])).is_none());
 /// ```
+#[derive(Clone, Debug, PartialEq)]
+pub struct DiscriminantForm {
+    core: DiscriminantCore,
+}
+
+/// The finite discriminant quadratic object attached to an odd integral lattice.
 ///
 /// For odd lattices the even-lattice value `x^2 mod 2Z` is not well-defined on
 /// `L#/L`. The canonical odd replacement used here is `x^2 mod Z`, represented by
@@ -802,11 +808,15 @@ impl DiscriminantForm {
     }
 
     /// `q_L(y) = y^T G^{-1} y mod 2Z`, represented in `[0, 2)`.
+    ///
+    /// Panics unless every vector has the lattice rank.
     pub fn quadratic_value_mod2(&self, y: &[i128]) -> Rational {
         rational_mod_int(dot_inv(y, &self.core.gram_inv, y), 2)
     }
 
     /// `b_L(y,z) = y^T G^{-1} z mod Z`, represented in `[0, 1)`.
+    ///
+    /// Panics unless every vector has the lattice rank.
     pub fn bilinear_value_mod1(&self, y: &[i128], z: &[i128]) -> Rational {
         self.core.bilinear_value_mod1(y, z)
     }
@@ -1033,16 +1043,6 @@ impl DiscriminantForm {
     /// (group larger than `ISO_GROUP_CAP`, or the search exceeding the node budget)
     /// and does not silently guess. This is an FQM isomorphism search, not a
     /// p-adic-symbol reimplementation.
-    pub fn is_isomorphic(&self, other: &Self) -> Option<bool> {
-        self.is_isomorphic_bounded(other, ISO_NODE_BUDGET)
-    }
-
-    /// [`is_isomorphic`](Self::is_isomorphic) with an explicit node budget.
-    pub fn is_isomorphic_bounded(&self, other: &Self, node_budget: u128) -> Option<bool> {
-        if self.core.reps.len() != other.core.reps.len() {
-            return Some(false);
-        }
-        let mut g1 = self.core.group.clone();
     ///
     /// # Examples
     ///
@@ -1065,6 +1065,16 @@ impl DiscriminantForm {
     /// assert_eq!(a1.is_isomorphic(&a1), Some(true));
     /// assert_eq!(a1.is_isomorphic_bounded(&a1, 0), None);
     /// ```
+    pub fn is_isomorphic(&self, other: &Self) -> Option<bool> {
+        self.is_isomorphic_bounded(other, ISO_NODE_BUDGET)
+    }
+
+    /// [`is_isomorphic`](Self::is_isomorphic) with an explicit node budget.
+    pub fn is_isomorphic_bounded(&self, other: &Self, node_budget: u128) -> Option<bool> {
+        if self.core.reps.len() != other.core.reps.len() {
+            return Some(false);
+        }
+        let mut g1 = self.core.group.clone();
         let mut g2 = other.core.group.clone();
         g1.sort_unstable();
         g2.sort_unstable();
@@ -1243,11 +1253,15 @@ impl OddDiscriminantForm {
     }
 
     /// `q_L(y) = y^T G^{-1} y mod Z`, represented in `[0, 1)`.
+    ///
+    /// Panics unless every vector has the lattice rank.
     pub fn quadratic_value_mod1(&self, y: &[i128]) -> Rational {
         rational_mod_int(dot_inv(y, &self.core.gram_inv, y), 1)
     }
 
     /// The discriminant bilinear pairing `b_L(y,z) = y^T G^{-1} z mod Z`.
+    ///
+    /// Panics unless every vector has the lattice rank.
     pub fn bilinear_value_mod1(&self, y: &[i128], z: &[i128]) -> Rational {
         self.core.bilinear_value_mod1(y, z)
     }
@@ -1301,20 +1315,6 @@ pub fn verify_milgram(lattice: &IntegralForm) -> Option<bool> {
 }
 
 /// Report the odd-lattice Milgram/van der Blij signature congruence.
-pub fn odd_milgram_report(lattice: &IntegralForm) -> Option<OddMilgramInvariants> {
-    let _disc = OddDiscriminantForm::from_lattice(lattice)?;
-    let (pos, neg) = lattice.signature();
-    let signature_mod8 = (pos as i128 - neg as i128).rem_euclid(8);
-    let (oddity_mod8, p_excess_mod8) = genus_oddity_and_p_excess_mod8(lattice)?;
-    let corrected_signature_mod8 = (oddity_mod8 - p_excess_mod8).rem_euclid(8);
-    Some(OddMilgramInvariants {
-        signature_mod8,
-        oddity_mod8,
-        p_excess_mod8,
-        corrected_signature_mod8,
-        genus_signature_mod8: genus_signature_mod8(lattice)?,
-    })
-}
 ///
 /// # Examples
 ///
@@ -1332,6 +1332,20 @@ pub fn odd_milgram_report(lattice: &IntegralForm) -> Option<OddMilgramInvariants
 /// assert!(report.verified());
 /// assert!(odd_milgram_report(&a_n(2).unwrap()).is_none());
 /// ```
+pub fn odd_milgram_report(lattice: &IntegralForm) -> Option<OddMilgramInvariants> {
+    let _disc = OddDiscriminantForm::from_lattice(lattice)?;
+    let (pos, neg) = lattice.signature();
+    let signature_mod8 = (pos as i128 - neg as i128).rem_euclid(8);
+    let (oddity_mod8, p_excess_mod8) = genus_oddity_and_p_excess_mod8(lattice)?;
+    let corrected_signature_mod8 = (oddity_mod8 - p_excess_mod8).rem_euclid(8);
+    Some(OddMilgramInvariants {
+        signature_mod8,
+        oddity_mod8,
+        p_excess_mod8,
+        corrected_signature_mod8,
+        genus_signature_mod8: genus_signature_mod8(lattice)?,
+    })
+}
 
 /// Verify the odd-lattice Milgram/van der Blij congruence.
 pub fn verify_odd_milgram(lattice: &IntegralForm) -> Option<bool> {

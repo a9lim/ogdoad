@@ -11,9 +11,7 @@ use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::hash::Hash;
 
-// Compatibility re-export for the public move generator; normal-play sequence
-// and certificate machinery live in `games::octal`.
-pub use crate::games::octal::octal_moves;
+use crate::games::octal::octal_moves;
 
 fn misere_is_n_inner<P, F>(
     pos: &P,
@@ -70,6 +68,8 @@ where
     misere_is_n_inner(pos, moves, memo, &mut visiting)
 }
 
+/// Convenience checked wrapper: `Some(true)` iff `pos` is a misère P-position
+/// (second player wins), or `None` if the move graph has a directed cycle.
 ///
 /// # Examples
 ///
@@ -91,8 +91,6 @@ where
 /// let cycle = |n: &u8| vec![(n + 1) % 3];
 /// assert_eq!(misere_is_p(&0u8, &cycle, &mut HashMap::new()), None);
 /// ```
-/// Convenience checked wrapper: `Some(true)` iff `pos` is a misère P-position
-/// (second player wins), or `None` if the move graph has a directed cycle.
 pub fn misere_is_p<P, F>(pos: &P, moves: &F, memo: &mut HashMap<P, bool>) -> Option<bool>
 where
     P: Clone + Eq + Hash,
@@ -461,6 +459,8 @@ fn build_multiplication(
 /// distinguishing elements (sums up to `elem_bound`) by their outcomes against
 /// tests (sums up to `test_bound`). Returns `None` if any bounded element or
 /// test sum reaches a position whose move graph has a directed cycle (see
+/// [`AbstractGame::misere_outcome`]) — this is the same partial primitive
+/// `try_misere_is_n` guards, just threaded through the quotient builder.
 ///
 /// The quotient is bounded: elements are sums of at most `elem_bound` atoms and
 /// tests are sums of at most `test_bound` atoms, so the result is an
@@ -484,8 +484,6 @@ fn build_multiplication(
 /// let looping = AbstractGame { moves: vec![vec![], vec![1]] };
 /// assert!(misere_quotient(&looping, &[1], 3, 2).is_none());
 /// ```
-/// [`AbstractGame::misere_outcome`]) — this is the same partial primitive
-/// `try_misere_is_n` guards, just threaded through the quotient builder.
 pub fn misere_quotient(
     game: &AbstractGame,
     atoms: &[usize],
@@ -505,6 +503,8 @@ pub fn misere_quotient(
 /// (a heap can become two), so the position type is the heap-multiset itself.
 /// Returns `None` if the bounded search reaches a cyclic position — in practice
 /// this cannot happen for `octal_moves` (every move strictly decreases the total
+/// token count, so the induced graph is always acyclic), but the builder stays
+/// honest about the partial primitive it calls rather than asserting on it.
 ///
 /// # Examples
 ///
@@ -532,8 +532,6 @@ pub fn misere_quotient(
 /// assert_eq!(q.num_classes() as u128, (1u128 << r) + 2);
 /// assert_eq!(q.class_is_p.iter().filter(|&&p| p).count(), 2);
 /// ```
-/// token count, so the induced graph is always acyclic), but the builder stays
-/// honest about the partial primitive it calls rather than asserting on it.
 pub fn octal_misere_quotient(
     code: &[u128],
     max_heap: usize,

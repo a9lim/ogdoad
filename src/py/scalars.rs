@@ -283,9 +283,7 @@ impl PyNimber {
     /// `self` raised to the power `e` in `F_{2^128}` (fast exponentiation).
     fn pow(&self, e: u128) -> PyNimber {
         PyNimber {
-            // Qualified: `Scalar::pow` and `FiniteField::pow` are both in scope;
-            // the FiniteField path keeps Nimber's Fermat-tower `nim_pow`.
-            inner: FiniteField::pow(&self.inner, e),
+            inner: Scalar::pow(&self.inner, e),
         }
     }
     fn __pow__(&self, e: u128, modulo: Option<u128>) -> PyResult<PyNimber> {
@@ -1022,9 +1020,7 @@ macro_rules! extension_field_pyclass {
                 Ok(self.inner.discrete_log($parse(x)?))
             }
             fn pow(&self, e: u128) -> Self {
-                // Qualified: `Scalar::pow` and `FiniteField::pow` are both in
-                // scope for these extension-field backends.
-                $wrap(FiniteField::pow(&self.inner, e))
+                $wrap(Scalar::pow(&self.inner, e))
             }
             fn __pow__(&self, e: u128, modulo: Option<u128>) -> PyResult<Self> {
                 if modulo.is_some() {

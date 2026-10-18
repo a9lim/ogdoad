@@ -66,10 +66,12 @@ type GenKey = BTreeMap<u128, Vec<u128>>;
 /// `χ_u`'s own (the prime factors of `f(u) | u-1` are all `< u`), which is what makes
 /// the branching reduction descend and terminate.
 pub(super) fn alpha_ordinal(u: u128) -> Option<Ordinal> {
+    // The table lookup is constant time; refuse beyond it before reconstructing
+    // `Q(f(u))`, which is costly at large primes.
+    let excess = finite_excess(u)?;
     let f = multiplicative_order_two_mod_prime(u)?;
-    let mut val = chi_sum(&q_set(f)?)?;
-    val = val.nim_add(&Ordinal::from_u128(finite_excess(u)?));
-    Some(val)
+    let val = chi_sum(&q_set(f)?)?;
+    Some(val.nim_add(&Ordinal::from_u128(excess)))
 }
 
 /// The finite Lenstra excess `m_p` for an odd prime `p`. **OEIS A380496**

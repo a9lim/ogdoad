@@ -165,11 +165,16 @@ impl IntegralForm {
         &self.gram
     }
 
-    /// The bilinear pairing `⟨x, y⟩ = xᵀ G y`.
+    /// The bilinear pairing `⟨x, y⟩ = xᵀ G y`. Panics unless both vectors have
+    /// the lattice rank.
     pub fn inner(&self, x: &[i128], y: &[i128]) -> i128 {
         let n = self.dim();
-        debug_assert_eq!(x.len(), n);
-        debug_assert_eq!(y.len(), n);
+        assert!(
+            x.len() == n && y.len() == n,
+            "lattice vectors must have the rank {n} (got {} and {})",
+            x.len(),
+            y.len()
+        );
         let mut acc = 0i128;
         for i in 0..n {
             if x[i] == 0 {
@@ -276,11 +281,6 @@ impl IntegralForm {
 
     /// The rational Clifford metric attached to the lattice bilinear form:
     /// `e_i^2 = G_ii` and `{e_i,e_j} = 2G_ij`.
-    pub fn clifford_metric(&self) -> crate::clifford::Metric<Rational> {
-        let n = self.dim();
-        let q = (0..n)
-            .map(|i| Rational::from_int(self.gram[i][i]))
-            .collect();
     ///
     /// # Examples
     ///
@@ -295,6 +295,11 @@ impl IntegralForm {
     /// assert_eq!(m.q(), &[Rational::from_int(2), Rational::from_int(2)]);
     /// assert_eq!(m.b().get(&(0, 1)), Some(&Rational::from_int(-2)));
     /// ```
+    pub fn clifford_metric(&self) -> crate::clifford::Metric<Rational> {
+        let n = self.dim();
+        let q = (0..n)
+            .map(|i| Rational::from_int(self.gram[i][i]))
+            .collect();
         let mut b = BTreeMap::new();
         for i in 0..n {
             for j in (i + 1)..n {
@@ -312,11 +317,6 @@ impl IntegralForm {
     /// The characteristic-2 quadratic refinement of an even lattice, reduced
     /// modulo 2 from `Q/2`: `q_i = G_ii/2 (mod 2)` and `b_ij = G_ij (mod 2)`.
     /// Returns `None` for odd lattices, where `Q/2` is not integral.
-    pub fn clifford_metric_f2(&self) -> Option<crate::clifford::Metric<Nimber>> {
-        if !self.is_even() {
-            return None;
-        }
-        let n = self.dim();
     ///
     /// # Examples
     ///
@@ -332,6 +332,11 @@ impl IntegralForm {
     /// assert_eq!(m.b().get(&(0, 1)), Some(&Nimber(1)));
     /// assert!(IntegralForm::diagonal(&[1]).clifford_metric_f2().is_none());
     /// ```
+    pub fn clifford_metric_f2(&self) -> Option<crate::clifford::Metric<Nimber>> {
+        if !self.is_even() {
+            return None;
+        }
+        let n = self.dim();
         let q = (0..n)
             .map(|i| Nimber((self.gram[i][i] / 2).rem_euclid(2) as u128))
             .collect();
