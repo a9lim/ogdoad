@@ -358,3 +358,27 @@ fn primitive_element_generates_full_group() {
     assert!(nim_is_primitive(g));
     assert_eq!(nim_multiplicative_order(g), Some(u128::MAX)); // order 2^128 − 1
 }
+
+#[test]
+fn scalar_pow_matches_square_and_multiply() {
+    // `Scalar::pow` dispatches to the Fermat-tower `nim_pow`; square-and-multiply
+    // over `nim_mul` is the independent oracle.
+    use crate::scalar::Scalar;
+    let oracle = |x: u128, mut e: u128| {
+        let (mut acc, mut base) = (1u128, x);
+        while e > 0 {
+            if e & 1 == 1 {
+                acc = nim_mul(acc, base);
+            }
+            base = nim_mul(base, base);
+            e >>= 1;
+        }
+        acc
+    };
+    for x in [0u128, 1, 2, 3, 7, 255, 0x1234_5678_9abc_def0, u128::MAX] {
+        for e in [0u128, 1, 2, 3, 17, 255, 65_537, u128::MAX - 1, u128::MAX] {
+            assert_eq!(Scalar::pow(&Nimber(x), e), Nimber(oracle(x, e)), "{x}^{e}");
+            assert_eq!(Nimber(x) ^ e, Nimber(oracle(x, e)));
+        }
+    }
+}
