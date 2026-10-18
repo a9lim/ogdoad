@@ -44,6 +44,29 @@ impl<S: Scalar> CliffordAlgebra<S> {
     ///   `Integer`, `q_i = 2` is nonzero but not a unit, so it cannot serve as the
     ///   pivot; this case returns `None` rather than silently producing a
     ///   non-isomorphic smaller algebra.
+    ///
+    /// # Examples
+    ///
+    /// The even subalgebra of `Cl(3,0)` is the quaternion algebra: two
+    /// generators `f₀`, `f₁` with `f₀² = f₁² = -1` that anticommute.
+    ///
+    /// ```
+    /// use ogdoad::clifford::{CliffordAlgebra, Metric};
+    /// use ogdoad::scalar::{Integer, Rational, Scalar};
+    ///
+    /// let r = Rational::from_int;
+    /// let alg = CliffordAlgebra::new(3, Metric::diagonal(vec![r(1); 3]));
+    /// let even = alg.even_subalgebra().unwrap();
+    /// let (f0, f1) = (even.e(0), even.e(1));
+    /// assert_eq!(even.dim(), 2);
+    /// assert_eq!(even.mul(&f0, &f0), even.scalar(r(-1)));
+    /// assert_eq!(even.mul(&f1, &f1), even.scalar(r(-1)));
+    /// assert_eq!(even.mul(&f0, &f1), -even.mul(&f1, &f0));
+    ///
+    /// // Over the integers a pivot square of 2 is not a unit: no presentation.
+    /// let z = CliffordAlgebra::new(2, Metric::diagonal(vec![Integer(2), Integer(4)]));
+    /// assert!(z.even_subalgebra().is_none());
+    /// ```
     pub fn even_subalgebra(&self) -> Option<CliffordAlgebra<S>> {
         if !self.metric.b.is_empty() || self.metric.has_upper() {
             return None; // only the orthogonal case has this clean presentation
@@ -103,6 +126,26 @@ impl<S: Scalar> CliffordAlgebra<S> {
     /// The inverse formula `v⁻¹ = ṽ / (v ṽ)`, returned when
     /// `v * reverse(v)` is a pure invertible scalar. Every invertible versor
     /// satisfies this gate, but the gate alone does not prove versor membership.
+    ///
+    /// # Examples
+    ///
+    /// For the vector `v = e₀ + e₁` in the Euclidean plane, `v ṽ = 2` and
+    /// `v⁻¹ = v/2`. A null vector has `v ṽ = 0`, so the gate returns `None`.
+    ///
+    /// ```
+    /// use ogdoad::clifford::{CliffordAlgebra, Metric};
+    /// use ogdoad::scalar::{Rational, Scalar};
+    ///
+    /// let r = Rational::from_int;
+    /// let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![r(1), r(1)]));
+    /// let v = alg.add(&alg.e(0), &alg.e(1));
+    /// let inv = alg.versor_inverse(&v).unwrap();
+    /// assert_eq!(inv, alg.scalar_mul(&Rational::new(1, 2), &v));
+    /// assert_eq!(alg.mul(&v, &inv), alg.scalar(r(1)));
+    ///
+    /// let degenerate = CliffordAlgebra::new(1, Metric::<Rational>::grassmann(1));
+    /// assert!(degenerate.versor_inverse(&degenerate.e(0)).is_none());
+    /// ```
     pub fn versor_inverse(&self, v: &Multivector<S>) -> Option<Multivector<S>> {
         let (reverse, _norm, norm_inv) = self.reverse_norm_data(v)?;
         Some(self.scalar_mul(&norm_inv, &reverse))
@@ -112,6 +155,23 @@ impl<S: Scalar> CliffordAlgebra<S> {
     /// versor this is the rotor action; for an odd versor use
     /// [`twisted_sandwich`](Self::twisted_sandwich). Returns `None` when the
     /// reverse-norm inverse gate fails.
+    ///
+    /// # Examples
+    ///
+    /// The rotor `R = 1 + e₁e₀` is a quarter turn in the `e₀e₁` plane: it
+    /// sends `e₀` to `e₁` and `e₁` to `-e₀`, exactly, with no trigonometry.
+    ///
+    /// ```
+    /// use ogdoad::clifford::{CliffordAlgebra, Metric};
+    /// use ogdoad::scalar::{Rational, Scalar};
+    ///
+    /// let r = Rational::from_int;
+    /// let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![r(1), r(1)]));
+    /// let (e0, e1) = (alg.e(0), alg.e(1));
+    /// let rotor = alg.add(&alg.scalar(r(1)), &alg.mul(&e1, &e0));
+    /// assert_eq!(alg.sandwich(&rotor, &e0), Some(e1.clone()));
+    /// assert_eq!(alg.sandwich(&rotor, &e1), Some(-e0));
+    /// ```
     pub fn sandwich(&self, v: &Multivector<S>, x: &Multivector<S>) -> Option<Multivector<S>> {
         let vinv = self.versor_inverse(v)?;
         Some(self.mul(&self.mul(v, x), &vinv))
@@ -136,11 +196,46 @@ impl<S: Scalar> CliffordAlgebra<S> {
     /// The twisted-adjoint expression by `n`. When `n` is an invertible
     /// grade-one vector, this is reflection in the hyperplane orthogonal to
     /// `n`. The method checks the reverse-norm inverse gate but not grade one.
+    ///
+    /// # Examples
+    ///
+    /// Reflecting in the line orthogonal to `n = e₀ + e₁` swaps the axes up to
+    /// sign, sending `e₀` to `-e₁`.
+    ///
+    /// ```
+    /// use ogdoad::clifford::{CliffordAlgebra, Metric};
+    /// use ogdoad::scalar::{Rational, Scalar};
+    ///
+    /// let r = Rational::from_int;
+    /// let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![r(1), r(1)]));
+    /// let n = alg.add(&alg.e(0), &alg.e(1));
+    /// assert_eq!(alg.reflect(&n, &alg.e(0)), Some(-alg.e(1)));
+    /// assert_eq!(alg.reflect(&n, &n), Some(-n.clone()));
+    /// ```
     pub fn reflect(&self, n: &Multivector<S>, x: &Multivector<S>) -> Option<Multivector<S>> {
         self.twisted_sandwich(n, x)
     }
 
     /// Left contraction a ⌟ b = Σ_{r≤s} ⟨⟨a⟩_r ⟨b⟩_s⟩_{s−r}.
+    ///
+    /// # Examples
+    ///
+    /// Contracting a vector into a bivector lowers the grade:
+    /// `e₀ ⌟ (e₀∧e₁) = e₁`. Two orthogonal vectors contract to zero, and a unit
+    /// vector contracted with itself gives `1`.
+    ///
+    /// ```
+    /// use ogdoad::clifford::{CliffordAlgebra, Metric};
+    /// use ogdoad::scalar::{Rational, Scalar};
+    ///
+    /// let r = Rational::from_int;
+    /// let alg = CliffordAlgebra::new(3, Metric::diagonal(vec![r(1); 3]));
+    /// let (e0, e1) = (alg.e(0), alg.e(1));
+    /// let e01 = alg.wedge(&e0, &e1);
+    /// assert_eq!(alg.left_contract(&e0, &e01), e1);
+    /// assert_eq!(alg.left_contract(&e0, &e1), alg.zero());
+    /// assert_eq!(alg.left_contract(&e0, &e0), alg.scalar(r(1)));
+    /// ```
     pub fn left_contract(&self, a: &Multivector<S>, b: &Multivector<S>) -> Multivector<S> {
         let mut out = self.zero();
         let d = self.dim();
@@ -196,6 +291,27 @@ impl<S: Scalar> CliffordAlgebra<S> {
 
     /// Hodge-style dual v ↦ v I⁻¹. `None` if the pseudoscalar isn't invertible
     /// (a degenerate metric).
+    ///
+    /// # Examples
+    ///
+    /// In `Cl(3,0)` the dual of `e₀` is the bivector `-e₁∧e₂`, and
+    /// [`undual`](Self::undual) inverts it. With a null generator the
+    /// pseudoscalar is not invertible and the dual is refused.
+    ///
+    /// ```
+    /// use ogdoad::clifford::{pga, CliffordAlgebra, Metric};
+    /// use ogdoad::scalar::{Rational, Scalar};
+    ///
+    /// let r = Rational::from_int;
+    /// let alg = CliffordAlgebra::new(3, Metric::diagonal(vec![r(1); 3]));
+    /// let e0 = alg.e(0);
+    /// let d = alg.dual(&e0).unwrap();
+    /// assert_eq!(d, -alg.wedge(&alg.e(1), &alg.e(2)));
+    /// assert_eq!(alg.undual(&d), e0);
+    ///
+    /// let projective = pga::<Rational>(2);
+    /// assert!(projective.dual(&projective.e(1)).is_none());
+    /// ```
     pub fn dual(&self, v: &Multivector<S>) -> Option<Multivector<S>> {
         let i_inv = self.versor_inverse(&self.pseudoscalar())?;
         Some(self.mul(v, &i_inv))

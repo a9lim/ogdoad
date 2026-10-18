@@ -105,6 +105,27 @@ fn bernoulli_abs(k: u128) -> Option<(i128, i128)> {
 /// `n`. `n` must be a positive multiple of 8 (otherwise no such lattice exists).
 /// Returns the exact reduced fraction `(numerator, denominator)`, or `None` if the
 /// value overflows the `i128` rational model (beyond `n = 24`).
+///
+/// # Examples
+///
+/// The mass is the sum of `1/|Aut|` over the classes of the genus. In rank 8 the
+/// only class is `E8`; in rank 16 the classes are `E8 + E8` and `D16+`. The two
+/// `None` cases differ in meaning: rank 12 admits no even unimodular lattice,
+/// while rank 32 is merely beyond the `i128` model (such lattices exist).
+///
+/// ```
+/// use ogdoad::forms::{mass_even_unimodular, D16_PLUS_AUT_ORDER, E8_WEYL_GROUP_ORDER};
+/// use ogdoad::scalar::{Rational, Scalar};
+///
+/// assert_eq!(mass_even_unimodular(8), Some((1, E8_WEYL_GROUP_ORDER as i128)));
+///
+/// let e8e8 = 2 * E8_WEYL_GROUP_ORDER * E8_WEYL_GROUP_ORDER; // |Aut(E8 + E8)|
+/// let sum = Rational::new(1, e8e8 as i128).add(&Rational::new(1, D16_PLUS_AUT_ORDER as i128));
+/// assert_eq!(mass_even_unimodular(16), Some((sum.numer(), sum.denom())));
+///
+/// assert_eq!(mass_even_unimodular(12), None);
+/// assert_eq!(mass_even_unimodular(32), None);
+/// ```
 pub fn mass_even_unimodular(n: u128) -> Option<(i128, i128)> {
     if n == 0 || !n.is_multiple_of(8) || n > 24 {
         return None;
@@ -144,6 +165,27 @@ fn leech_spanning_set() -> Vec<Vec<i128>> {
 /// The Leech lattice `Λ₂₄`: the unique even unimodular rank-24 lattice with no
 /// roots, scaled to minimum 4. Built from the Golay spanning set reduced to a basis
 /// `B` by Hermite normal form, with `Gram = B·Bᵀ / 8`.
+///
+/// # Examples
+///
+/// The lattice is even, unimodular, and rootless: no vector has norm 2, so the
+/// minimum is at least 4. (The minimum 4 and the 196560 minimal vectors are
+/// standard; enumerating them in rank 24 takes longer than a doctest should.
+/// The catalogue's Leech row predicts 196560 through Venkov's formula, see
+/// [`NiemeierRecord::theta_series`](crate::forms::NiemeierRecord::theta_series).)
+///
+/// ```
+/// use ogdoad::forms::{leech, niemeier_classes, qexp_from_int, LEECH_AUT_ORDER};
+///
+/// let l = leech();
+/// assert_eq!(l.dim(), 24);
+/// assert!(l.is_even() && l.is_unimodular());
+/// assert!(l.short_vectors(2).unwrap().is_empty());
+///
+/// assert_eq!(LEECH_AUT_ORDER, 8_315_553_613_086_720_000); // |Co_0|
+/// let theta = niemeier_classes()[0].theta_series(3);
+/// assert_eq!(theta, qexp_from_int(&[1, 0, 196_560]));
+/// ```
 pub fn leech() -> IntegralForm {
     let basis = normalize_relation_rows(leech_spanning_set());
     assert_eq!(basis.len(), 24, "Leech spanning set must have rank 24");

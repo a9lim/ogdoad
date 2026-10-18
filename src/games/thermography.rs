@@ -188,6 +188,29 @@ fn walls(g: &Game) -> Option<(Pl, Pl, Rational, Rational)> {
 
 /// The thermograph of `g`, or `None` for the (rare, post-canonicalization)
 /// degenerate positions outside temperature theory's domain.
+///
+/// # Examples
+///
+/// The switch `{3|-1}` has temperature `(3 - (-1))/2 = 2` and mean value
+/// `(3 + (-1))/2 = 1`. Its walls fall at slope `-1` and `+1` and meet at the
+/// mast; numbers report temperature `-1` by convention.
+///
+/// ```
+/// use ogdoad::games::{mean_value, temperature, thermograph, Game};
+/// use ogdoad::scalar::Rational;
+///
+/// let r = |n: i128| Rational::new(n, 1);
+/// let t = thermograph(&Game::switch(3, -1)).unwrap();
+/// assert_eq!((t.mean(), t.temperature.clone()), (r(1), r(2)));
+/// assert_eq!((t.left_stop(), t.right_stop()), (r(3), r(-1)));
+/// assert_eq!(t.cooled_stops(&r(1)), (r(2), r(0)));
+/// assert_eq!(t.left_wall.points(), &[(r(0), r(3)), (r(2), r(1))]);
+///
+/// // The mean value is additive: mean({4|-4} + {2|0}) = 0 + 1.
+/// let sum = Game::switch(4, -4).add(&Game::switch(2, 0));
+/// assert_eq!(mean_value(&sum), Some(r(1)));
+/// assert_eq!(temperature(&Game::integer(2)), Some(r(-1)));
+/// ```
 pub fn thermograph(g: &Game) -> Option<Thermograph> {
     let (left_wall, right_wall, mast, temperature) = walls(g)?;
     Some(Thermograph {

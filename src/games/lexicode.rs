@@ -467,6 +467,39 @@ pub fn lexicode_naive(n: usize, d: usize) -> Option<BinaryCode> {
 /// `dist < d` never revives, since `dist` only decreases — so the total scan is a
 /// single sweep. Budgeted by [`LEXICODE_NODE_BUDGET`] (`None` past it). `None` for
 /// `n = 0` or `n > 26` (the `2ⁿ`-byte distance array).
+///
+/// # Examples
+///
+/// Conway and Sloane prove that `L(n,d)` is linear and is the set of
+/// `P`-positions of a turning game. For `L(7,3)`, the `[7,4,3]` Hamming code,
+/// the example checks on this one finite instance that the literal greedy scan,
+/// the turning game's `P`-positions, and [`lexicode`] agree in size, and that
+/// the scanned words are closed under XOR.
+///
+/// ```
+/// use ogdoad::games::{lexicode, lexicode_turning_game, LEXICODE_TURNING_GAME_NODE_BUDGET};
+///
+/// let code = lexicode(7, 3).unwrap();
+/// assert_eq!((code.len(), code.dim(), code.minimum_distance()), (7, 4, Some(3)));
+///
+/// // The greedy scan: keep each word at distance >= 3 from the words kept so far.
+/// let mut greedy: Vec<u32> = Vec::new();
+/// for word in 0..1u32 << 7 {
+///     if greedy.iter().all(|&kept| (word ^ kept).count_ones() >= 3) {
+///         greedy.push(word);
+///     }
+/// }
+/// assert_eq!(greedy.len(), 1 << code.dim());
+/// assert!(greedy.iter().all(|&a| greedy.iter().all(|&b| greedy.contains(&(a ^ b)))));
+///
+/// // The explicit turning game has exactly these words as its P-positions.
+/// let game = lexicode_turning_game(7, 3).unwrap();
+/// let p = game.p_positions_bounded(LEXICODE_TURNING_GAME_NODE_BUDGET).unwrap();
+/// assert_eq!(p, greedy);
+///
+/// // The explicit witness has an explicit budget; exhaustion is None, not a negative result.
+/// assert!(game.turning_masks_bounded(1).is_none());
+/// ```
 pub fn lexicode(n: usize, d: usize) -> Option<BinaryCode> {
     lexicode_bounded(n, d, LEXICODE_NODE_BUDGET)
 }
@@ -515,6 +548,24 @@ pub fn lexicode_bounded(n: usize, d: usize, node_budget: u128) -> Option<BinaryC
 /// every kept word, then verify closure under coordinatewise nim-addition. A closure
 /// failure returns `None` rather than being papered over. The stronger field-linearity
 /// check is exposed by [`NimLexicode::is_closed_under_nim_scalars`].
+///
+/// # Examples
+///
+/// Over the alphabet `{0,1,2,3}` (a Fermat-power nimber field) the length-2,
+/// distance-2 lexicode is closed under nim scalars; over the 8-letter alphabet
+/// nim multiplication leaves the alphabet, so scalar closure fails.
+///
+/// ```
+/// use ogdoad::games::nim_lexicode_naive;
+///
+/// let base4 = nim_lexicode_naive(2, 2, 2).unwrap();
+/// assert_eq!(base4.words(), (0..4).map(|a| vec![a, a]).collect::<Vec<_>>());
+/// assert!(base4.has_nim_field_base() && base4.is_closed_under_nim_scalars());
+///
+/// let base8 = nim_lexicode_naive(3, 2, 2).unwrap();
+/// assert!(base8.is_closed_under_nim_add());
+/// assert!(!base8.has_nim_field_base() && !base8.is_closed_under_nim_scalars());
+/// ```
 pub fn nim_lexicode_naive(base_exp: usize, n: usize, d: usize) -> Option<NimLexicode> {
     nim_lexicode_naive_bounded(base_exp, n, d, NIM_LEXICODE_NODE_BUDGET)
 }

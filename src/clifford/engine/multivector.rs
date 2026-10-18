@@ -19,19 +19,29 @@ use std::ops::{Add, BitAnd, Neg, Sub};
 ///
 /// `Multivector` implements `+`, `-`, unary `-`, and `&` (wedge / exterior
 /// product) as *context-free* operators — no metric needed, so they live on
-/// the type. The geometric product (`*`) and all metric-dependent operations
-/// (`mul`, `wedge`, `reverse`, `grade_part`, …) live as methods on
-/// [`super::algebra::CliffordAlgebra`] and require an algebra context:
+/// the type. The geometric product and the metric-dependent operations
+/// (`mul`, `reverse`, contractions, …) live as methods on
+/// [`super::algebra::CliffordAlgebra`] and require an algebra context; the
+/// metric-free `wedge` and `grade_part` are available there as well:
 ///
-/// ```text
-/// // correct: metric-free additive ops use operators
-/// let sum = a + b;
-/// let w   = a & b;   // exterior/wedge product (metric-independent)
-///                    // grundy ∧; `^` is reserved for power
+/// ```
+/// use ogdoad::clifford::{CliffordAlgebra, Metric};
+/// use ogdoad::scalar::{Rational, Scalar};
 ///
-/// // correct: metric-dependent ops use the algebra context
-/// let prod = alg.mul(&a, &b);
-/// let rev  = alg.reverse(&a);
+/// let r = Rational::from_int;
+/// let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![r(1), r(1)]));
+/// let (a, b) = (alg.e(0), alg.e(1));
+///
+/// // metric-free operators need no algebra: `+` and `&` (wedge)
+/// let sum = a.clone() + b.clone();
+/// let w = a.clone() & b.clone();
+/// assert_eq!(sum.to_string(), "e0 + e1");
+/// assert_eq!(w.to_string(), "e0∧e1");
+/// assert!((sum.clone() & sum.clone()).is_zero());
+///
+/// // metric-dependent operations go through the algebra context
+/// assert_eq!(alg.mul(&sum, &sum), alg.scalar(r(2)));
+/// assert_eq!(alg.reverse(&w), -w);
 /// ```
 ///
 /// **Why `&` and not `^` for wedge?** In grundy, `∧`/`&` is the wedge and

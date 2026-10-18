@@ -91,6 +91,23 @@ impl std::fmt::Display for AdelicIsotropy {
 /// (out of domain, see above — not a claim about isotropy), or a relevant prime's
 /// local computation itself returning `None` (bounded `i128` square-class
 /// overflow in `square_class` / [`try_is_isotropic_at_p`](crate::forms)).
+///
+/// # Examples
+///
+/// The sum of four squares is the norm form of the Hamilton quaternions, which
+/// ramify at `2` and `∞`; correspondingly it is anisotropic over `R` and `Q_2`
+/// and so over `Q`. Rank two is outside this function's domain:
+///
+/// ```
+/// use ogdoad::forms::isotropy_over_adeles;
+///
+/// let four_squares = isotropy_over_adeles(&[1, 1, 1, 1]).unwrap();
+/// assert!(!four_squares.real);
+/// assert!(!four_squares.local[&2]);
+/// assert!(!four_squares.is_global());
+///
+/// assert!(isotropy_over_adeles(&[1, 1]).is_none());
+/// ```
 pub fn isotropy_over_adeles(entries: &[i128]) -> Option<AdelicIsotropy> {
     if entries.len() < 3 {
         return None;

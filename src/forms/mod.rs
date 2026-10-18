@@ -17,6 +17,33 @@
 //! field extensions.
 //!
 //! Public items from each child module are re-exported here.
+//!
+//! # Examples
+//!
+//! One call, [`ClassifyForm::classify`], dispatches on the scalar field and
+//! returns that characteristic's invariant: the signature (with Hasse data)
+//! over `Q`, dimension and discriminant class over `F_7`, and the Arf invariant
+//! of the full `(q, b)` metric over nimbers.
+//!
+//! ```
+//! use ogdoad::clifford::Metric;
+//! use ogdoad::forms::ClassifyForm;
+//! use ogdoad::scalar::{Fp, Nimber, Rational, Scalar};
+//!
+//! // x^2 + y^2 - z^2 over Q has real signature (2, 1).
+//! let q = Metric::diagonal([1, 1, -1].map(Rational::from_int).to_vec());
+//! assert_eq!(Rational::classify(&q).unwrap().signature, (2, 1));
+//!
+//! // x^2 + 3y^2 over F_7: 3 is a nonsquare mod 7, so the discriminant class is nontrivial.
+//! let f7 = Metric::diagonal([1, 3].map(Fp::<7>::from_int).to_vec());
+//! let odd = Fp::<7>::classify(&f7).unwrap();
+//! assert_eq!((odd.dim, odd.disc_is_square), (2, false));
+//!
+//! // x^2 + xy + y^2 over F_2 is the anisotropic plane: Arf invariant 1.
+//! let plane = Metric::new(vec![Nimber(1), Nimber(1)], [((0, 1), Nimber(1))]);
+//! let arf = Nimber::classify(&plane).unwrap();
+//! assert_eq!((arf.arf, arf.rank, arf.radical_dim), (1, 2, 0));
+//! ```
 
 pub mod char0;
 pub mod char2;

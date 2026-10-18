@@ -74,6 +74,30 @@ impl IntegralForm {
     /// Returns `None` unless the lattice is positive definite and even. The
     /// constant term is the zero vector; [`IntegralForm::short_vectors`] supplies
     /// the nonzero terms.
+    ///
+    /// # Examples
+    ///
+    /// `D_4` has 24 roots. The theta series of `E8` starts
+    /// `1 + 240 q + 2160 q^2 + ...`; as an exact `q`-expansion its first six
+    /// coefficients are the weight-4 Eisenstein series `E_4`, the generator of
+    /// `M_4` (the classical identity `theta_E8 = E_4`; the check here is
+    /// finite). An odd lattice has no integer-exponent series in `Q/2`.
+    ///
+    /// ```
+    /// use ogdoad::forms::{as_modular_form, d_n, e_8, qexp_from_int, IntegralForm};
+    /// use ogdoad::scalar::{Rational, Scalar};
+    ///
+    /// assert_eq!(d_n(4).unwrap().theta_series(3), Some(vec![1, 24, 24]));
+    ///
+    /// let theta = e_8().theta_series(6).unwrap();
+    /// assert_eq!(theta, vec![1, 240, 2160, 6720, 17520, 30240]);
+    /// assert_eq!(
+    ///     as_modular_form(&qexp_from_int(&theta), 4, 6),
+    ///     Some(vec![Rational::from_int(1)]) // 1 * E_4
+    /// );
+    ///
+    /// assert_eq!(IntegralForm::diagonal(&[1, 1]).theta_series(3), None);
+    /// ```
     pub fn theta_series(&self, terms: usize) -> Option<Vec<i128>> {
         if terms == 0 {
             return Some(Vec::new());
@@ -114,6 +138,18 @@ impl IntegralForm {
     /// lattices, whose usual theta series is a level-4 modular form rather than
     /// an `SL_2(Z)` form. It also works for even lattices, but the full-level
     /// even-lattice modular-form helper remains [`theta_series`](Self::theta_series).
+    ///
+    /// # Examples
+    ///
+    /// For `Z^2` the coefficients count representations as a sum of two
+    /// squares: `1, 4, 4, 0, 4, 8, ...`.
+    ///
+    /// ```
+    /// use ogdoad::forms::IntegralForm;
+    ///
+    /// let z2 = IntegralForm::diagonal(&[1, 1]);
+    /// assert_eq!(z2.theta_series_level4(6), Some(vec![1, 4, 4, 0, 4, 8]));
+    /// ```
     pub fn theta_series_level4(&self, terms: usize) -> Option<Vec<i128>> {
         if terms == 0 {
             return Some(Vec::new());

@@ -141,6 +141,21 @@ pub fn clifford_barnes_wall_16() -> IntegralForm {
 
 /// Build the Clifford-side `BW16` and compare it with the Reed-Muller
 /// Construction-D route.
+///
+/// # Examples
+///
+/// The report keeps both lattices as witnesses and compares their Gram
+/// matrices exactly; the group orders are recorded constants, not computed.
+///
+/// ```
+/// use ogdoad::forms::{barnes_wall_16, clifford_barnes_wall_16_report};
+///
+/// let report = clifford_barnes_wall_16_report();
+/// assert!(report.matches_construction_d);
+/// assert_eq!(report.lattice, barnes_wall_16());
+/// assert_eq!(report.determinant(), 256);
+/// assert!(report.recorded_group_orders_are_consistent());
+/// ```
 pub fn clifford_barnes_wall_16_report() -> CliffordBarnesWall16Invariants {
     let rows = clifford_barnes_wall_16_numerator_rows();
     let lattice = divided_lattice_from_rows(

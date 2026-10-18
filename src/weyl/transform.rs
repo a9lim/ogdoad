@@ -15,6 +15,30 @@ use std::collections::{BTreeMap, BTreeSet};
 ///
 /// Construction checks every defining commutator. Applying the map substitutes
 /// generator images in PBW order under one shared expansion budget.
+///
+/// # Examples
+///
+/// Rescaling `x` alone would give `[d, 2x] = 2`, so it is rejected; rescaling
+/// `x` by 2 and `d` by 1/2 preserves `[d, x] = 1` and is accepted. Matrix
+/// columns are images of the source generators `(x, d)`:
+///
+/// ```
+/// use ogdoad::scalar::{Rational, Scalar};
+/// use ogdoad::weyl::{WeylAlgebra, WeylError, WeylHomomorphism};
+///
+/// let r = Rational::from_int;
+/// let weyl = WeylAlgebra::<Rational>::standard(1);
+/// let zero = vec![r(0), r(0)];
+/// let lopsided = vec![vec![r(2), r(0)], vec![r(0), r(1)]];
+/// assert_eq!(
+///     WeylHomomorphism::try_new(weyl.clone(), weyl.clone(), lopsided, zero.clone()),
+///     Err(WeylError::CommutatorNotPreserved { left: 0, right: 1 })
+/// );
+/// let balanced = vec![vec![r(2), r(0)], vec![r(0), Rational::new(1, 2)]];
+/// let phi = WeylHomomorphism::try_new(weyl.clone(), weyl.clone(), balanced, zero).unwrap();
+/// assert_eq!(phi.apply(&weyl.x(0)), Ok(weyl.monomial(&[1, 0], r(2))));
+/// assert_eq!(phi.inverse().unwrap().apply(&phi.apply(&weyl.d(0)).unwrap()), Ok(weyl.d(0)));
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 pub struct WeylHomomorphism<S: Scalar> {
     source: WeylAlgebra<S>,
@@ -248,6 +272,31 @@ impl<S: Scalar> WeylHomomorphism<S> {
 ///
 /// The wrapper stores a checked inverse, making automorphisms a distinct public
 /// type from general homomorphisms.
+///
+/// # Examples
+///
+/// The Fourier automorphism sends `x -> d`, `d -> -x`, so it preserves
+/// `[d, x] = 1` (`[-x, d] = 1`), multiplies, and squares to parity. A momentum
+/// shear `d -> d + 3x` is a canonical transformation with a checked inverse:
+///
+/// ```
+/// use ogdoad::scalar::{Rational, Scalar};
+/// use ogdoad::weyl::WeylAlgebra;
+///
+/// let r = Rational::from_int;
+/// let weyl = WeylAlgebra::<Rational>::standard(1);
+/// let (x, d) = (weyl.x(0), weyl.d(0));
+/// let fourier = weyl.fourier_automorphism().unwrap();
+/// assert_eq!(fourier.apply(&x), Ok(d.clone()));
+/// assert_eq!(fourier.apply(&d), Ok(-x.clone()));
+/// let dx = weyl.mul(&d, &x);
+/// assert_eq!(fourier.apply(&dx), Ok(weyl.mul(&-x.clone(), &d)));
+/// assert_eq!(fourier.compose(&fourier), weyl.parity_automorphism());
+///
+/// let shear = weyl.shear_automorphism(&[vec![r(3)]]).unwrap();
+/// assert_eq!(shear.apply(&d), Ok(d.clone() + weyl.monomial(&[1, 0], r(3))));
+/// assert_eq!(shear.apply_inverse(&shear.apply(&dx).unwrap()), Ok(dx));
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 pub struct WeylAutomorphism<S: Scalar> {
     forward: WeylHomomorphism<S>,
@@ -316,6 +365,27 @@ impl<S: Scalar> WeylAutomorphism<S> {
 ///
 /// It reverses products: `a(uv) = a(v)a(u)`. Construction checks the reversed
 /// commutator relation separately from [`WeylAutomorphism`].
+///
+/// # Examples
+///
+/// The formal adjoint fixes `x` and negates `d` and reverses products, so
+/// `(d x)^* = x^* d^* = -x d`. Substituting the same images without reversing
+/// would give `-d x = -x d - 1`; that is why this is a separate type rather
+/// than a [`WeylHomomorphism`]. Applying it twice is the identity:
+///
+/// ```
+/// use ogdoad::scalar::Rational;
+/// use ogdoad::weyl::WeylAlgebra;
+///
+/// let weyl = WeylAlgebra::<Rational>::standard(1);
+/// let (x, d) = (weyl.x(0), weyl.d(0));
+/// let adjoint = weyl.formal_adjoint().unwrap();
+/// let dx = weyl.mul(&d, &x);
+/// assert_eq!(adjoint.apply(&dx), Ok(-weyl.mul(&x, &d)));
+/// assert_ne!(adjoint.apply(&dx), Ok(-dx.clone()));
+/// let twice = adjoint.compose_anti(&adjoint).unwrap();
+/// assert_eq!(twice.apply(&dx), Ok(dx));
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 pub struct WeylAntiAutomorphism<S: Scalar> {
     algebra: WeylAlgebra<S>,

@@ -695,6 +695,29 @@ pub struct DiscriminantForm {
 
 /// The finite discriminant quadratic object attached to an odd integral lattice.
 ///
+/// # Examples
+///
+/// The discriminant group of `D_4` is `(Z/2)^2`, and `q` takes the value 1 (mod
+/// 2) on each of its three nonzero classes. Milgram's formula recovers the
+/// signature 4 (mod 8) from the Gauss sum of `q`; that route and the Weil
+/// relations use floating point with a tolerance, while `q` itself is exact. An
+/// odd lattice has no `Q/2Z`-valued form.
+///
+/// ```
+/// use ogdoad::forms::{d_n, verify_milgram, DiscriminantForm, IntegralForm};
+/// use ogdoad::scalar::{Rational, Scalar};
+///
+/// let d4 = d_n(4).unwrap();
+/// let q = DiscriminantForm::from_lattice(&d4).unwrap();
+/// assert_eq!(q.group(), &[2, 2]);
+/// let values: Vec<Rational> = q.reps().iter().map(|y| q.quadratic_value_mod2(y)).collect();
+/// assert_eq!(values, [0, 1, 1, 1].map(Rational::from_int));
+/// assert_eq!(q.milgram_signature_mod8(), Some(4));
+/// assert_eq!(verify_milgram(&d4), Some(true));
+/// assert!(q.verify_weil_relations());
+/// assert!(DiscriminantForm::from_lattice(&IntegralForm::diagonal(&[1])).is_none());
+/// ```
+///
 /// For odd lattices the even-lattice value `x^2 mod 2Z` is not well-defined on
 /// `L#/L`. The canonical odd replacement used here is `x^2 mod Z`, represented by
 /// `q_L(y) = y^T G^{-1} y mod Z` on `Z^n / GZ^n`.
@@ -1020,6 +1043,28 @@ impl DiscriminantForm {
             return Some(false);
         }
         let mut g1 = self.core.group.clone();
+    ///
+    /// # Examples
+    ///
+    /// `A_1` and `E_7` both have discriminant group `Z/2`, but `q` of the
+    /// generator is `1/2` for one and `3/2` for the other, so the forms are
+    /// not isomorphic. A budget too small to decide the search returns `None`,
+    /// not `false`.
+    ///
+    /// ```
+    /// use ogdoad::forms::{a_n, e_7, DiscriminantForm};
+    /// use ogdoad::scalar::{Rational, Scalar};
+    ///
+    /// let a1 = DiscriminantForm::from_lattice(&a_n(1).unwrap()).unwrap();
+    /// let e7 = DiscriminantForm::from_lattice(&e_7()).unwrap();
+    /// assert_eq!(a1.group(), e7.group());
+    /// assert_eq!(a1.quadratic_value_mod2(&[1]), Rational::new(1, 2));
+    /// let values: Vec<Rational> = e7.reps().iter().map(|y| e7.quadratic_value_mod2(y)).collect();
+    /// assert_eq!(values, vec![Rational::from_int(0), Rational::new(3, 2)]);
+    /// assert_eq!(a1.is_isomorphic(&e7), Some(false));
+    /// assert_eq!(a1.is_isomorphic(&a1), Some(true));
+    /// assert_eq!(a1.is_isomorphic_bounded(&a1, 0), None);
+    /// ```
         let mut g2 = other.core.group.clone();
         g1.sort_unstable();
         g2.sort_unstable();
@@ -1270,6 +1315,23 @@ pub fn odd_milgram_report(lattice: &IntegralForm) -> Option<OddMilgramInvariants
         genus_signature_mod8: genus_signature_mod8(lattice)?,
     })
 }
+///
+/// # Examples
+///
+/// For the odd lattice `<1> + <3>` the two-adic oddity is 4 and the 3-excess is
+/// 2, so `oddity - p_excess = 2` recovers the signature 2. Even lattices use
+/// [`verify_milgram`] instead and return `None` here.
+///
+/// ```
+/// use ogdoad::forms::{a_n, odd_milgram_report, IntegralForm};
+///
+/// let report = odd_milgram_report(&IntegralForm::diagonal(&[1, 3])).unwrap();
+/// assert_eq!(report.oddity_mod8, 4);
+/// assert_eq!(report.p_excess_mod8, 2);
+/// assert_eq!(report.corrected_signature_mod8, report.signature_mod8);
+/// assert!(report.verified());
+/// assert!(odd_milgram_report(&a_n(2).unwrap()).is_none());
+/// ```
 
 /// Verify the odd-lattice Milgram/van der Blij congruence.
 pub fn verify_odd_milgram(lattice: &IntegralForm) -> Option<bool> {

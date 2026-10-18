@@ -103,6 +103,25 @@ fn bareiss_positive_definite(mut a: Vec<Vec<i128>>) -> bool {
 /// Gram matrix `G`. Construct with [`IntegralForm::new`] (validates square +
 /// symmetric) or [`IntegralForm::diagonal`]; the Gram is kept private so the
 /// symmetry invariant cannot be broken by a bare struct literal.
+///
+/// # Examples
+///
+/// The `A_2` root lattice (the hexagonal lattice) from its Cartan matrix is
+/// even and positive definite with determinant 3 and discriminant group `Z/3`.
+/// A matrix that is not symmetric is rejected at construction.
+///
+/// ```
+/// use ogdoad::forms::IntegralForm;
+///
+/// let a2 = IntegralForm::new(vec![vec![2, -1], vec![-1, 2]]).unwrap();
+/// assert_eq!(a2.determinant(), 3);
+/// assert!(a2.is_even() && a2.is_positive_definite() && !a2.is_unimodular());
+/// assert_eq!(a2.signature(), (2, 0));
+/// assert_eq!(a2.invariant_factors(), vec![1, 3]); // L#/L = Z/3
+/// assert_eq!(a2.level(), Some(3));
+/// assert_eq!(a2.norm(&[1, 1]), 2); // e0 + e1 is a root
+/// assert!(IntegralForm::new(vec![vec![1, 2], vec![3, 4]]).is_none());
+/// ```
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct IntegralForm {
     pub(super) gram: Vec<Vec<i128>>,
@@ -213,7 +232,9 @@ impl IntegralForm {
 
     /// The invariant factors `d₀ | d₁ | …` of the discriminant group (Smith
     /// normal form of `G`): `L# / L ≅ ⨁ ℤ/dᵢ`. For a nonsingular lattice the
-    /// nonzero factors multiply to `|det G|`.
+    /// nonzero factors multiply to `|det G|`. All `rank` factors are returned,
+    /// trivial `1`s included (`A_2` gives `[1, 3]`); `DiscriminantForm::group`
+    /// lists only the nontrivial ones.
     pub fn invariant_factors(&self) -> Vec<i128> {
         smith_normal_form(self.gram.clone())
     }
@@ -260,6 +281,20 @@ impl IntegralForm {
         let q = (0..n)
             .map(|i| Rational::from_int(self.gram[i][i]))
             .collect();
+    ///
+    /// # Examples
+    ///
+    /// For the `A_2` Cartan matrix, each simple root squares to 2 and
+    /// `e_0 e_1 + e_1 e_0 = -2`.
+    ///
+    /// ```
+    /// use ogdoad::forms::a_n;
+    /// use ogdoad::scalar::{Rational, Scalar};
+    ///
+    /// let m = a_n(2).unwrap().clifford_metric();
+    /// assert_eq!(m.q(), &[Rational::from_int(2), Rational::from_int(2)]);
+    /// assert_eq!(m.b().get(&(0, 1)), Some(&Rational::from_int(-2)));
+    /// ```
         let mut b = BTreeMap::new();
         for i in 0..n {
             for j in (i + 1)..n {
@@ -282,6 +317,21 @@ impl IntegralForm {
             return None;
         }
         let n = self.dim();
+    ///
+    /// # Examples
+    ///
+    /// Each root of `A_2` has `Q/2 = 1`, and the off-diagonal `-1` reduces to 1
+    /// mod 2. An odd lattice has no such refinement.
+    ///
+    /// ```
+    /// use ogdoad::forms::{a_n, IntegralForm};
+    /// use ogdoad::scalar::Nimber;
+    ///
+    /// let m = a_n(2).unwrap().clifford_metric_f2().unwrap();
+    /// assert_eq!(m.q(), &[Nimber(1), Nimber(1)]);
+    /// assert_eq!(m.b().get(&(0, 1)), Some(&Nimber(1)));
+    /// assert!(IntegralForm::diagonal(&[1]).clifford_metric_f2().is_none());
+    /// ```
         let q = (0..n)
             .map(|i| Nimber((self.gram[i][i] / 2).rem_euclid(2) as u128))
             .collect();

@@ -51,6 +51,30 @@ impl<S: Scalar> WeylAlgebra<S> {
     /// Standard rank-`n` polynomial action under one explicit expansion
     /// budget. In positive characteristic this representation is deliberately
     /// not claimed faithful.
+    ///
+    /// # Examples
+    ///
+    /// In rank two, `d_0 x_1` sends `t_0^2 t_1^3 + 2 t_0` to
+    /// `2 t_0 t_1^4 + 2 t_1`; a budget smaller than the two-term polynomial
+    /// is refused with an error:
+    ///
+    /// ```
+    /// use ogdoad::scalar::{Rational, Scalar};
+    /// use ogdoad::weyl::{SparsePolynomial, WeylAlgebra, WeylError, WeylExpansionBudget};
+    ///
+    /// let r = Rational::from_int;
+    /// let weyl = WeylAlgebra::<Rational>::standard(2);
+    /// let operator = weyl.mul(&weyl.d(0), &weyl.x(1));
+    /// let term = |exponents: &[u128], c| SparsePolynomial::monomial(exponents, r(c));
+    /// let f = term(&[2, 3], 1) + term(&[1, 0], 2);
+    /// let expected = term(&[1, 4], 2) + term(&[0, 1], 2);
+    /// let budget = WeylExpansionBudget::new(32, 1_000);
+    /// assert_eq!(weyl.act_on_sparse_poly_with_budget(&operator, &f, budget), Ok(expected));
+    /// assert_eq!(
+    ///     weyl.act_on_sparse_poly_with_budget(&operator, &f, WeylExpansionBudget::new(1, 1_000)),
+    ///     Err(WeylError::TermBudgetExceeded { limit: 1 })
+    /// );
+    /// ```
     pub fn act_on_sparse_poly_with_budget(
         &self,
         operator: &WeylElement<S>,
@@ -119,6 +143,42 @@ impl<S: Scalar> WeylAlgebra<S> {
     /// action. It respects multiplication over every scalar backend, but is not
     /// faithful in positive characteristic: `d^p` acts as zero in
     /// characteristic `p` while remaining a nonzero central Weyl element.
+    ///
+    /// # Examples
+    ///
+    /// `x` multiplies by `t` and `d` differentiates, so `x d` is the Euler
+    /// operator `t d/dt` and `[d, x]` acts as the identity:
+    ///
+    /// ```
+    /// use ogdoad::scalar::{Poly, Rational, Scalar};
+    /// use ogdoad::weyl::WeylAlgebra;
+    ///
+    /// let r = Rational::from_int;
+    /// let weyl = WeylAlgebra::<Rational>::standard(1);
+    /// let f = Poly::new(vec![r(1), r(2), r(3)]); // 1 + 2t + 3t^2
+    /// let euler = weyl.mul(&weyl.x(0), &weyl.d(0));
+    /// assert_eq!(weyl.act_on_poly(&euler, &f).unwrap(), Poly::new(vec![r(0), r(2), r(6)]));
+    /// let identity = weyl.commutator(&weyl.d(0), &weyl.x(0));
+    /// assert_eq!(weyl.act_on_poly(&identity, &f).unwrap(), f);
+    /// ```
+    ///
+    /// Over `F_3` the action is not faithful: `d^3` is a nonzero central
+    /// element, yet `d^3 t^k = k(k-1)(k-2) t^(k-3)` vanishes because three
+    /// consecutive integers include a multiple of 3 (spot-checked here for
+    /// `k < 9`):
+    ///
+    /// ```
+    /// use ogdoad::scalar::{Fp, Poly, Scalar};
+    /// use ogdoad::weyl::WeylAlgebra;
+    ///
+    /// let weyl = WeylAlgebra::<Fp<3>>::standard(1);
+    /// let d3 = weyl.pow(&weyl.d(0), 3);
+    /// assert!(!d3.is_zero() && weyl.is_central(&d3).unwrap());
+    /// for k in 0..9 {
+    ///     let t_k = Poly::monomial(k, Fp::<3>::one());
+    ///     assert!(weyl.act_on_poly(&d3, &t_k).unwrap().is_zero());
+    /// }
+    /// ```
     pub fn act_on_poly(
         &self,
         operator: &WeylElement<S>,

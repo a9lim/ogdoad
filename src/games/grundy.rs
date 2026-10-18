@@ -21,6 +21,17 @@ use std::hash::Hash;
 
 /// The minimal excludant of a set of nimbers: the least non-negative integer not
 /// present.
+///
+/// # Examples
+///
+/// ```
+/// use ogdoad::games::mex;
+///
+/// assert_eq!(mex([]), 0);
+/// assert_eq!(mex([0, 1, 3]), 2);
+/// assert_eq!(mex([1, 2, 3]), 0);
+/// assert_eq!(mex([0, 0, 1, u128::MAX]), 2); // duplicates and huge values are harmless
+/// ```
 pub fn mex<I: IntoIterator<Item = u128>>(values: I) -> u128 {
     let values: Vec<u128> = values.into_iter().collect();
     // For n supplied values, mex is at most n. Values outside that interval
@@ -61,6 +72,18 @@ fn grundy_dfs(succ: &[Vec<usize>], v: usize, state: &mut [u8], g: &mut [u128]) -
 /// the Win/Loss/Draw analysis of loopy games.
 ///
 /// Position `v` is a P-position (Loss) iff `result[v] == 0`.
+///
+/// # Examples
+///
+/// ```
+/// use ogdoad::games::grundy_graph;
+///
+/// // 0 -> {1, 2}, 1 -> {2}, 2 terminal: g(2) = 0, g(1) = mex{0} = 1, g(0) = mex{1, 0} = 2.
+/// let succ = vec![vec![1, 2], vec![2], vec![]];
+/// assert_eq!(grundy_graph(&succ), Some(vec![2, 1, 0]));
+/// // A cycle has no Grundy value: the checked API returns None.
+/// assert_eq!(grundy_graph(&[vec![1], vec![0]]), None);
+/// ```
 pub fn grundy_graph(succ: &[Vec<usize>]) -> Option<Vec<u128>> {
     let n = succ.len();
     let mut state = vec![0u8; n];
@@ -77,6 +100,23 @@ pub fn grundy_graph(succ: &[Vec<usize>]) -> Option<Vec<u128>> {
 /// [`try_misere_is_n`](crate::games::try_misere_is_n). This is the way to compute
 /// Grundy values of games defined by a rule (Nim, octal games, …) without
 /// materialising the whole graph.
+///
+/// # Examples
+///
+/// Positions can be any hashable type with a move generator. In the subtraction
+/// game with moves `{1, 2}` a heap `n` moves to `n - 1` or `n - 2`, and the
+/// Grundy value is `n mod 3`:
+///
+/// ```
+/// use ogdoad::games::grundy;
+/// use std::collections::HashMap;
+///
+/// let moves = |n: &u32| (1..=2).filter(|&k| k <= *n).map(|k| n - k).collect::<Vec<u32>>();
+/// let mut memo = HashMap::new();
+/// for n in 0..12 {
+///     assert_eq!(grundy(&n, &moves, &mut memo), u128::from(n % 3));
+/// }
+/// ```
 pub fn grundy<P, F>(pos: &P, moves: &F, memo: &mut HashMap<P, u128>) -> u128
 where
     P: Eq + Hash + Clone,

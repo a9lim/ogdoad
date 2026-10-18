@@ -270,6 +270,34 @@ impl<S: ExactFieldScalar> SymplecticForm<S> {
     /// pairing. The generic [`Self::classify`] method remains available over
     /// rings when unit-pivot elimination happens to suffice, but it does not
     /// promise coordinate witnesses there.
+    ///
+    /// # Examples
+    ///
+    /// An alternating form on `Q^3` of rank 2 splits as one hyperbolic plane
+    /// plus a one-dimensional radical, and the returned basis is checked
+    /// against the original Gram matrix. In characteristic two a merely
+    /// symmetric matrix (nonzero diagonal) is not an alternating form and is
+    /// refused at construction:
+    ///
+    /// ```
+    /// use ogdoad::forms::SymplecticForm;
+    /// use ogdoad::scalar::{Fp, Rational, Scalar};
+    ///
+    /// let r = Rational::from_int;
+    /// let form = SymplecticForm::from_gram(vec![
+    ///     vec![r(0), r(2), r(0)],
+    ///     vec![r(-2), r(0), r(0)],
+    ///     vec![r(0), r(0), r(0)],
+    /// ])
+    /// .unwrap();
+    /// let darboux = form.darboux_decomposition().unwrap();
+    /// assert_eq!((darboux.planes(), darboux.radical_dim()), (1, 1));
+    /// assert!(darboux.verifies(&form));
+    ///
+    /// let (zero, one) = (Fp::<2>::zero(), Fp::<2>::one());
+    /// assert!(SymplecticForm::from_gram(vec![vec![zero, one], vec![one, zero]]).is_some());
+    /// assert!(SymplecticForm::from_gram(vec![vec![one, zero], vec![zero, one]]).is_none());
+    /// ```
     pub fn darboux_decomposition(&self) -> Result<DarbouxDecomposition<S>, DarbouxError> {
         let dim = self.dim();
         let mut active = identity_columns::<S>(dim);

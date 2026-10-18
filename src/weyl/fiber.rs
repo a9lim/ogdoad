@@ -37,7 +37,7 @@ impl WeylRepresentationBudget {
 pub enum WeylFiberError {
     /// A checked operation in the ambient PBW algebra failed.
     Weyl(WeylError),
-    /// The construction requires the standard `x_0,...,x_n,d_0,...,d_n`
+    /// The construction requires the standard `x_0,...,x_(n-1),d_0,...,d_(n-1)`
     /// presentation.
     RequiresStandard,
     /// The construction requires a field of positive characteristic.
@@ -281,6 +281,36 @@ impl<S: ExactFieldScalar> WeylCentralFiberElement<S> {
 ///
 /// represented on the PBW basis `0 <= exponent_i < p`. Construction is
 /// field-gated and requires the standard nondegenerate presentation.
+///
+/// # Examples
+///
+/// Fix `x^3 = 2` and `d^3 = 1` over `F_3`. The fibre has dimension
+/// `3^2 = 9`, fibre multiplication enforces both relations and `d x = x d + 1`,
+/// and a basis cap below `p^(2n)` is refused:
+///
+/// ```
+/// use ogdoad::scalar::{Fp, Scalar};
+/// use ogdoad::weyl::{WeylAlgebra, WeylFiberError, WeylRepresentationBudget};
+///
+/// let f3 = Fp::<3>::from_int;
+/// let weyl = WeylAlgebra::<Fp<3>>::standard(1);
+/// let budget = WeylRepresentationBudget::new(9, 0, 0);
+/// let fiber = weyl.central_fiber(vec![f3(2), f3(1)], budget).unwrap();
+/// assert_eq!(fiber.basis_dimension(), 9);
+/// let (x, d) = (fiber.generator(0).unwrap(), fiber.generator(1).unwrap());
+/// let x3 = fiber.checked_mul(&fiber.checked_mul(&x, &x).unwrap(), &x).unwrap();
+/// assert_eq!(Ok(x3), fiber.reduce(&weyl.scalar(f3(2))));
+/// let d3 = fiber.checked_mul(&fiber.checked_mul(&d, &d).unwrap(), &d).unwrap();
+/// assert_eq!(d3, fiber.one());
+/// let dx_expected = fiber.reduce(&(weyl.mul(&weyl.x(0), &weyl.d(0)) + weyl.one()));
+/// assert_eq!(fiber.checked_mul(&d, &x), dx_expected);
+///
+/// let too_small = WeylRepresentationBudget::new(8, 0, 0);
+/// assert_eq!(
+///     weyl.central_fiber(vec![f3(2), f3(1)], too_small),
+///     Err(WeylFiberError::BasisDimensionLimit { required: Some(9), limit: 8 })
+/// );
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 pub struct WeylCentralFiber<S: ExactFieldScalar> {
     algebra: WeylAlgebra<S>,
@@ -492,6 +522,33 @@ impl<S: ExactFieldScalar> WeylCentralFiber<S> {
 /// Supplied roots `alpha_i`, `beta_i` are verified against the advertised
 /// central values. Then `x_i = alpha_i + t_i` and
 /// `d_i = beta_i + partial_i`, giving a `p^n`-dimensional representation.
+///
+/// # Examples
+///
+/// Frobenius is the identity on `F_3`, so the central values `(2, 1)` are
+/// their own verified roots. The module is 3-dimensional, `[d, x]` acts as the
+/// identity matrix, and a wrong root is rejected before any matrix is built:
+///
+/// ```
+/// use ogdoad::scalar::{Fp, Scalar};
+/// use ogdoad::weyl::{WeylAlgebra, WeylFiberError, WeylRepresentationBudget};
+///
+/// let f3 = Fp::<3>::from_int;
+/// let weyl = WeylAlgebra::<Fp<3>>::standard(1);
+/// let budget = WeylRepresentationBudget::new(16, 1_000, 100_000);
+/// let values = vec![f3(2), f3(1)];
+/// let module = weyl
+///     .split_central_character_module(values.clone(), values.clone(), budget)
+///     .unwrap();
+/// assert_eq!(module.basis_dimension(), 3);
+/// assert_eq!(module.verifies_defining_relations(budget), Ok(true));
+/// let bracket = weyl.commutator(&weyl.d(0), &weyl.x(0));
+/// assert_eq!(module.action_matrix(&bracket, budget), module.action_matrix(&weyl.one(), budget));
+/// assert_eq!(
+///     weyl.split_central_character_module(values, vec![f3(1), f3(1)], budget),
+///     Err(WeylFiberError::RootMismatch { generator: 0 })
+/// );
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 pub struct WeylCentralCharacterModule<S: ExactFieldScalar> {
     algebra: WeylAlgebra<S>,

@@ -91,6 +91,24 @@ impl fmt::Display for ScaleSymbol {
 /// The genus of a nondegenerate integral lattice: signature, determinant, and the
 /// p-adic symbol at every prime that can carry a nontrivial local invariant
 /// (`p | 2·det`).
+///
+/// # Examples
+///
+/// The genus of `E8` is carried entirely by the 2-adic symbol: a single even
+/// unimodular constituent of dimension 8. `A_2` also has a 3-adic part from its
+/// determinant 3. A singular Gram matrix has no genus.
+///
+/// ```
+/// use ogdoad::forms::{a_n, e_8, Genus, IntegralForm};
+///
+/// let g = Genus::from_lattice(&e_8()).unwrap();
+/// assert_eq!(g.primes(), vec![2]);
+/// assert_eq!(g.to_string(), "Genus(dim=8, signature=(8, 0), det=1, 2: [1_II^+8])");
+///
+/// let a2 = Genus::from_lattice(&a_n(2).unwrap()).unwrap();
+/// assert_eq!(a2.primes(), vec![2, 3]);
+/// assert!(Genus::from_lattice(&IntegralForm::diagonal(&[1, 0])).is_none());
+/// ```
 #[derive(Clone, Debug)]
 pub struct Genus {
     /// Lattice dimension.
@@ -617,6 +635,20 @@ impl IntegralForm {
     /// Hilbert/Hasse data directly from rational congruence pivots.  A successful
     /// report therefore joins the integral and local-field implementations
     /// without sharing their diagonalization path.
+    ///
+    /// # Examples
+    ///
+    /// For `D_4` the report has one entry per recorded prime (here only 2, since
+    /// `det = 4`), and the two computations agree on determinant class, Hasse
+    /// invariant, and isotropy.
+    ///
+    /// ```
+    /// use ogdoad::forms::d_n;
+    ///
+    /// let reports = d_n(4).unwrap().genus_hasse_coherence().unwrap();
+    /// assert_eq!(reports.len(), 1);
+    /// assert!(reports.iter().all(|r| r.verified()));
+    /// ```
     pub fn genus_hasse_coherence(&self) -> Option<Vec<GenusHasseCoherence>> {
         let genus = Genus::from_lattice(self)?;
         let lattice_entries =
@@ -797,6 +829,25 @@ fn canonical_2adic_symbol(syms: &[ScaleSymbol]) -> Vec<ScaleSymbol> {
 /// Exact for the signature, determinant, and every odd-prime symbol. At `p = 2`
 /// the comparison uses oddity fusion plus train sign-walking before matching the
 /// carried Conway–Sloane symbols.
+///
+/// # Examples
+///
+/// `E8 + E8` and `D16+` are in the same genus (equal signature and isomorphic,
+/// here trivial, discriminant forms) but are not isometric:
+/// [`is_root_lattice`](crate::forms::is_root_lattice) separates them. A genus
+/// also separates lattices by parity.
+///
+/// ```
+/// use ogdoad::forms::{are_in_same_genus, d16_plus, e_8, is_root_lattice, IntegralForm};
+///
+/// let e8e8 = e_8().direct_sum(&e_8());
+/// let d16 = d16_plus();
+/// assert!(are_in_same_genus(&e8e8, &d16));
+/// assert!(is_root_lattice(&e8e8) && !is_root_lattice(&d16));
+///
+/// // E8 is even; Z^8 is odd, so the 2-adic symbols differ.
+/// assert!(!are_in_same_genus(&e_8(), &IntegralForm::diagonal(&[1; 8])));
+/// ```
 pub fn are_in_same_genus(a: &IntegralForm, b: &IntegralForm) -> bool {
     let (Some(ga), Some(gb)) = (Genus::from_lattice(a), Genus::from_lattice(b)) else {
         return false;

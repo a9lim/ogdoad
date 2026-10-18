@@ -57,6 +57,37 @@ impl From<WeylError> for WeylDarbouxError {
 /// all `x_i`, all `d_i`, then the central radical generators `c_j`. Its PBW
 /// monomial therefore reads literally as a tensor monomial. `to_normal` and
 /// `from_normal` are checked inverse linear Weyl homomorphisms.
+///
+/// # Examples
+///
+/// This degenerate presentation has one standard pair plus a one-dimensional
+/// radical, spanned by `2 z_0 - z_1 + z_2`; that central vector becomes the
+/// coordinate `c_0`, and transport to Darboux coordinates multiplies:
+///
+/// ```
+/// use ogdoad::scalar::{Rational, Scalar};
+/// use ogdoad::weyl::WeylAlgebra;
+///
+/// let r = Rational::from_int;
+/// let omega = vec![
+///     vec![r(0), r(1), r(1)],
+///     vec![r(-1), r(0), r(2)],
+///     vec![r(-1), r(-2), r(0)],
+/// ];
+/// let weyl = WeylAlgebra::from_commutator(omega).unwrap();
+/// let darboux = weyl.darboux_decomposition().unwrap();
+/// assert_eq!((darboux.weyl_rank(), darboux.central_rank()), (1, 1));
+///
+/// let radical = weyl.generator(0) + weyl.generator(0) - weyl.generator(1) + weyl.generator(2);
+/// assert!(weyl.is_central(&radical).unwrap());
+/// assert_eq!(darboux.to_normal(&radical), darboux.central_generator(0));
+///
+/// let (a, b) = (weyl.generator(0), weyl.generator(1));
+/// let (na, nb) = (darboux.to_normal(&a).unwrap(), darboux.to_normal(&b).unwrap());
+/// let product = darboux.to_normal(&weyl.mul(&a, &b)).unwrap();
+/// assert_eq!(product, darboux.normal_algebra().mul(&na, &nb));
+/// assert_eq!(darboux.from_normal(&product), Ok(weyl.mul(&a, &b)));
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 pub struct WeylDarbouxDecomposition<S: ExactFieldScalar> {
     source: WeylAlgebra<S>,

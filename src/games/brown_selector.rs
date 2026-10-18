@@ -5,6 +5,37 @@
 //! partizan root `{ A_(Q+ell)(x) | A_Q(x) }`, where both followers are the full
 //! weighted-source Witt--FIFO arenas. Its outcomes decode as
 //! `N, R, P, L -> 0, 1, 2, 3`.
+//!
+//! # Examples
+//!
+//! `goldarf.tex` proves that this single partizan game decodes every
+//! `Z/4`-valued Brown refinement through its four outcome classes. The example
+//! checks the decoding on all four one-generator refinements and on a
+//! two-generator form with a nonzero polar, evaluating the actual finite game;
+//! it is a finite instance check, not the theorem, and says nothing about the
+//! separate Clifford boundary in [`game_exterior`](crate::games::game_exterior).
+//!
+//! ```
+//! use ogdoad::games::{BrownSelector, PartizanOutcome::*};
+//!
+//! // One generator with q(e) = r: the root is N, R, P, L for r = 0, 1, 2, 3.
+//! for (r, expected) in [N, R, P, L].into_iter().enumerate() {
+//!     let selector = BrownSelector::try_new(&[r as u128], &[0], 1).unwrap();
+//!     assert_eq!(selector.residue(), r as u128);
+//!     assert_eq!(selector.outcome_class(100_000), Ok(expected));
+//!     assert_eq!(BrownSelector::decode_outcome(expected), Some(r as u128));
+//! }
+//!
+//! // Two generators with q = [1, 3] and off-diagonal polar b01 = 1 (residues 0, 1, 3, 2).
+//! for x in 0..4u128 {
+//!     let selector = BrownSelector::try_new(&[1, 3], &[0b10, 0b01], x).unwrap();
+//!     let outcome = selector.outcome_class(100_000).unwrap();
+//!     assert_eq!(BrownSelector::decode_outcome(outcome), Some(selector.residue()));
+//! }
+//!
+//! // Values outside Z/4 are refused.
+//! assert!(BrownSelector::try_new(&[4], &[0], 0).is_err());
+//! ```
 
 use crate::games::{Game, PartizanOutcome, WittFifoArena, WittFifoError};
 use std::fmt;

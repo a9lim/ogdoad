@@ -138,7 +138,9 @@ certificate upgrades it to split.
   budgets; exhaustion is distinct from exponent overflow and from a
   mathematical zero. The unbudgeted convenience methods (products, actions,
   map application, fibre products, and the dense rank-one action) are for
-  trusted inputs; Python's operators use them.
+  trusted inputs; Python's operators use them. Budgets bound terms and steps,
+  not coefficient size: a fixed-width coefficient backend such as `Rational`
+  still panics on overflow exactly as that backend documents.
 - Precision backends inherit their reassociation boundary. Tests over exact
   backends are not a proof for represented truncation models.
 - No analytic exponential or metaplectic implementer as a finite PBW element;

@@ -11,6 +11,27 @@
 use crate::scalar::Scalar;
 
 /// An element `re + im·i` of `S[i]`, with `i² = −1`.
+///
+/// # Examples
+///
+/// Over `Rational` this is the Gaussian rationals. Over `F_5`, where `-1` is a
+/// square, `S[i]` splits and has zero divisors; in characteristic two,
+/// `(1 + i)² = 0`, so it is not even reduced.
+///
+/// ```
+/// use ogdoad::scalar::{Fp, Nimber, Rational, Scalar, Surcomplex};
+///
+/// let z = Surcomplex::new(Rational::one(), Rational::one()); // 1 + i
+/// assert_eq!(z.mul(&z), Surcomplex::new(Rational::zero(), Rational::from_int(2))); // 2i
+/// let half = Rational::new(1, 2);
+/// assert_eq!(z.inv(), Some(Surcomplex::new(half.clone(), half.neg()))); // (1 - i)/2
+///
+/// let w = Surcomplex::new(Fp::<5>::from_int(2), Fp::<5>::one()); // (2+i)(2-i) = 5 = 0
+/// assert!(!w.is_zero() && w.mul(&w.conj()).is_zero() && w.inv().is_none());
+///
+/// let n = Surcomplex::new(Nimber(1), Nimber(1)); // (1+i)^2 = 0
+/// assert!(!n.is_zero() && n.mul(&n).is_zero());
+/// ```
 #[derive(Clone, PartialEq)]
 pub struct Surcomplex<S: Scalar> {
     /// Real coefficient.

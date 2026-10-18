@@ -39,6 +39,26 @@ pub const D16_PLUS_AUT_ORDER: u128 = 685_597_979_049_984_000;
 pub const CODEWORD_ENUMERATION_BUDGET: usize = 2_000_000;
 
 /// A binary linear code, stored as a row-reduced F2 generator matrix.
+///
+/// # Examples
+///
+/// The Hamming `[7,4,3]` code contains its dual, the `[7,3,4]` simplex code.
+/// Its extended `[8,4,4]` cousin is self-dual and doubly even (Type II), and
+/// its weight enumerator is fixed by the MacWilliams transform.
+///
+/// ```
+/// use ogdoad::forms::{extended_hamming_code, hamming_code};
+///
+/// let h = hamming_code();
+/// assert_eq!((h.len(), h.dim(), h.minimum_distance()), (7, 4, Some(3)));
+/// assert_eq!(h.weight_enumerator(), vec![1, 0, 0, 7, 7, 0, 0, 1]);
+/// assert!(h.contains(&h.dual()));
+///
+/// let e = extended_hamming_code();
+/// assert!(e.is_self_dual() && e.is_doubly_even());
+/// assert_eq!(e.weight_enumerator(), vec![1, 0, 0, 0, 14, 0, 0, 0, 1]);
+/// assert_eq!(e.macwilliams_transform(), e.weight_enumerator());
+/// ```
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BinaryCode {
     n: usize,
@@ -561,6 +581,22 @@ impl BinaryCode {
 
     /// Construction A with the standard `1/sqrt(2)` scaling. Returns `None`
     /// exactly when the scaled Gram matrix is not integral.
+    ///
+    /// # Examples
+    ///
+    /// The extended Hamming `[8,4,4]` code gives an even unimodular rank-8
+    /// lattice with 240 roots, namely `E8`. The Hamming `[7,4,3]` code has words
+    /// of odd weight, so the scaled Gram matrix is not integral and the
+    /// constructor returns `None` instead of rounding.
+    ///
+    /// ```
+    /// use ogdoad::forms::{extended_hamming_code, hamming_code};
+    ///
+    /// let e8 = extended_hamming_code().construction_a().unwrap();
+    /// assert!(e8.is_even() && e8.is_unimodular());
+    /// assert_eq!(e8.kissing_number(), Some(240));
+    /// assert!(hamming_code().construction_a().is_none());
+    /// ```
     pub fn construction_a(&self) -> Option<IntegralForm> {
         let mut rows: Vec<Vec<i128>> = self
             .generators
@@ -952,6 +988,24 @@ impl<const P: u128> PrimeCode<P> {
 /// The one-level tower is exactly [`BinaryCode::construction_a`]. The function
 /// returns `None` for an empty, unequal-length, non-nested, too-deep, or
 /// non-integral tower.
+///
+/// # Examples
+///
+/// A one-level tower is Construction A. The tower must be increasing, so
+/// reversing `RM(0,4) <= RM(2,4)` returns `None`.
+///
+/// ```
+/// use ogdoad::forms::{construction_d, extended_hamming_code, reed_muller_code};
+///
+/// let c = extended_hamming_code();
+/// assert_eq!(construction_d(&[c.clone()]), c.construction_a());
+///
+/// let rm0 = reed_muller_code(0, 4).unwrap();
+/// let rm2 = reed_muller_code(2, 4).unwrap();
+/// assert!(construction_d(&[rm0.clone(), rm2.clone()]).is_some());
+/// assert!(construction_d(&[rm2, rm0]).is_none());
+/// assert!(construction_d(&[]).is_none());
+/// ```
 pub fn construction_d(codes: &[BinaryCode]) -> Option<IntegralForm> {
     let first = codes.first()?;
     let n = first.n;
@@ -987,6 +1041,20 @@ pub fn construction_d(codes: &[BinaryCode]) -> Option<IntegralForm> {
 /// Generator rows are evaluations of all squarefree monomials of degree at
 /// most `order` on `F_2^variables`. Returns `None` when `order > variables` or
 /// the explicit generator matrix cannot be allocated.
+///
+/// # Examples
+///
+/// `RM(1,3)` is the extended Hamming `[8,4,4]` code; an order above the number
+/// of variables is out of domain.
+///
+/// ```
+/// use ogdoad::forms::{extended_hamming_code, reed_muller_code};
+///
+/// let rm = reed_muller_code(1, 3).unwrap();
+/// assert_eq!((rm.len(), rm.dim(), rm.minimum_distance()), (8, 4, Some(4)));
+/// assert_eq!(rm, extended_hamming_code());
+/// assert!(reed_muller_code(4, 3).is_none());
+/// ```
 pub fn reed_muller_code(order: usize, variables: usize) -> Option<BinaryCode> {
     if order > variables {
         return None;
@@ -1022,6 +1090,20 @@ pub fn reed_muller_code(order: usize, variables: usize) -> Option<BinaryCode> {
 /// With this crate's scaled Construction-D convention the adjacent tower
 /// `RM(1,4) <= RM(2,4)` gives the even unimodular rank-16 normalization
 /// instead.
+///
+/// # Examples
+///
+/// `BW16` has determinant 256, minimum norm 4, and 4320 minimal vectors.
+///
+/// ```
+/// use ogdoad::forms::barnes_wall_16;
+///
+/// let bw = barnes_wall_16();
+/// assert_eq!(bw.dim(), 16);
+/// assert_eq!(bw.determinant(), 256);
+/// assert_eq!(bw.minimum(), Some(4));
+/// assert_eq!(bw.kissing_number(), Some(4320));
+/// ```
 pub fn barnes_wall_16() -> IntegralForm {
     let rm0 = reed_muller_code(0, 4).expect("RM(0,4) exists");
     let rm2 = reed_muller_code(2, 4).expect("RM(2,4) exists");
@@ -1047,6 +1129,23 @@ pub fn repetition_code(n: usize) -> Option<BinaryCode> {
 
 /// The Type I self-dual `[2,1,2]` code; Construction A gives an odd unimodular
 /// rank-2 lattice isometric to `Z^2`.
+///
+/// # Examples
+///
+/// The Construction A lattice is odd and unimodular, with the theta head and
+/// genus of `Z^2` (classically `Z^2` is the only odd unimodular lattice of
+/// rank 2).
+///
+/// ```
+/// use ogdoad::forms::{are_in_same_genus, type_i_z2_code, IntegralForm};
+///
+/// let l = type_i_z2_code().construction_a().unwrap();
+/// assert!(l.is_unimodular() && !l.is_even());
+///
+/// let z2 = IntegralForm::diagonal(&[1, 1]);
+/// assert_eq!(l.theta_series_level4(5), z2.theta_series_level4(5));
+/// assert!(are_in_same_genus(&l, &z2));
+/// ```
 pub fn type_i_z2_code() -> BinaryCode {
     repetition_code(2).expect("length-2 repetition code exists")
 }
@@ -1112,6 +1211,25 @@ pub fn d16_plus() -> IntegralForm {
 }
 
 /// The extended ternary Golay `[12,6,6]` code.
+///
+/// # Examples
+///
+/// Its `p`-ary Construction A (`p = 3`) is an odd unimodular rank-12 lattice
+/// with 264 vectors of norm 2, the root count of `D_12`. (Classically it is the
+/// lattice `D12+`; the check here is the matching root count, not an
+/// isometry.)
+///
+/// ```
+/// use ogdoad::forms::{d_n, ternary_golay_code};
+///
+/// let golay = ternary_golay_code();
+/// assert_eq!((golay.len(), golay.dim(), golay.minimum_distance()), (12, 6, Some(6)));
+/// assert!(golay.is_self_dual());
+///
+/// let l = golay.construction_a().unwrap();
+/// assert!(l.is_unimodular() && !l.is_even());
+/// assert_eq!(l.kissing_number(), d_n(12).unwrap().kissing_number());
+/// ```
 pub fn ternary_golay_code() -> TernaryCode {
     TernaryCode::new(
         12,
@@ -1128,6 +1246,34 @@ pub fn ternary_golay_code() -> TernaryCode {
 }
 
 /// The extended binary Golay `[24,12,8]` code.
+///
+/// # Examples
+///
+/// Construction A on the Golay code is an even unimodular rank-24 lattice with
+/// 48 roots (the vectors `+-sqrt(2) e_i`) and the theta series
+/// `1 + 48 q + 195408 q^2`, which are the root count and theta series Venkov's
+/// formula assigns to the `A_1^24` row of the Niemeier catalogue. (That it is
+/// the `A_1^24` Niemeier lattice follows from Niemeier's uniqueness theorem;
+/// the check here is these invariants.) It is not the Leech lattice, which has
+/// no roots; see [`leech`](crate::forms::leech).
+///
+/// ```
+/// use ogdoad::forms::{golay_code, niemeier_classes, qexp_from_int};
+///
+/// let golay = golay_code();
+/// assert_eq!((golay.len(), golay.dim(), golay.minimum_distance()), (24, 12, Some(8)));
+/// assert!(golay.is_self_dual() && golay.is_doubly_even());
+///
+/// let n = golay.construction_a().unwrap();
+/// assert!(n.is_even() && n.is_unimodular());
+/// assert_eq!(n.kissing_number(), Some(48));
+///
+/// let a1_24 = &niemeier_classes()[1];
+/// assert_eq!(a1_24.label(), "A_1^24");
+/// let theta = golay.theta_series_via_weight_enumerator(3).unwrap();
+/// assert_eq!(theta, vec![1, 48, 195_408]);
+/// assert_eq!(a1_24.theta_series(3), qexp_from_int(&theta));
+/// ```
 pub fn golay_code() -> BinaryCode {
     BinaryCode::new(24, extended_golay_generator_rows()).expect("Golay generator is binary")
 }

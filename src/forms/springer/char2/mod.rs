@@ -228,6 +228,49 @@ fn block_contribution<S: FiniteChar2Field>(
 /// The Aravire–Jacob local decomposition `(φ₀, ψ, φ₁)` of `form`'s nonsingular part
 /// at `place`, in `W_q(K_v)`. Hyperbolic blocks (`a = 0`, `b = 0`) drop out; the
 /// totally-singular part is *not* part of this Witt-group invariant.
+///
+/// # Examples
+///
+/// `writeups/witt_realization.tex` coordinatizes `W_q(F_2(t))` by the unramified
+/// bit `φ₀` at `∞`, the odd-pole residues `ψ_v`, and the ramified Arf bits
+/// `φ₁,v`, subject to the single relation `Σ_v φ₁,v = 0`; this function computes
+/// the local triple `(φ₀, ψ, φ₁)` at one place with the canonical uniformizer.
+/// For the form `t·x² + xy + y²/(t+1)`, the ramified bit is `1` at `∞` and at
+/// `t+1` (where there is also a pole `ψ = 1/π`) and `0` at `t`, so the parity
+/// relation holds. This checks one instance of the relation against the cited
+/// Aravire--Jacob local decomposition; it neither proves the global theorem nor
+/// builds the paper's game-valued family.
+///
+/// ```
+/// use ogdoad::forms::{
+///     artin_schreier_form_places, springer_decompose_local_char2, Char2QuadForm,
+///     FunctionFieldPlace,
+/// };
+/// use ogdoad::scalar::{Fp, Poly, RationalFunction, Scalar};
+///
+/// type F2 = Fp<2>;
+/// let rf = |num: &[i128], den: &[i128]| {
+///     RationalFunction::new(
+///         num.iter().map(|&n| F2::from_int(n)).collect(),
+///         den.iter().map(|&n| F2::from_int(n)).collect(),
+///     )
+/// };
+/// let form = Char2QuadForm::from_blocks(vec![(rf(&[0, 1], &[1]), rf(&[1], &[1, 1]))]);
+///
+/// let at_infinity = springer_decompose_local_char2(&form, &FunctionFieldPlace::Infinite);
+/// assert_eq!((at_infinity.phi0, at_infinity.phi1, at_infinity.psi.len()), (0, 1, 0));
+///
+/// let t_plus_1 = FunctionFieldPlace::Finite(Poly::new(vec![F2::one(), F2::one()]));
+/// let local = springer_decompose_local_char2(&form, &t_plus_1);
+/// assert_eq!((local.phi0, local.phi1), (0, 1));
+/// assert_eq!(local.psi[&1], Poly::one());
+///
+/// // Summing the ramified bits over every place where a coefficient is not a unit:
+/// let parity = artin_schreier_form_places(&form)
+///     .iter()
+///     .fold(0, |acc, place| acc ^ springer_decompose_local_char2(&form, place).phi1);
+/// assert_eq!(parity, 0);
+/// ```
 pub fn springer_decompose_local_char2<S: FiniteChar2Field>(
     form: &Char2QuadForm<S>,
     place: &FunctionFieldPlace<S>,

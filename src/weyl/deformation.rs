@@ -13,6 +13,25 @@ use crate::scalar::{Poly, Scalar};
 /// generators; specialization at `hbar = 1` recovers the original Weyl
 /// presentation. This is a polynomial deformation, not an analytic or formal
 /// power-series completion.
+///
+/// # Examples
+///
+/// In the family `[d, x] = hbar`; specializing at `hbar = 1` recovers the Weyl
+/// relation and at `hbar = 0` everything commutes:
+///
+/// ```
+/// use ogdoad::scalar::Rational;
+/// use ogdoad::weyl::WeylAlgebra;
+///
+/// let weyl = WeylAlgebra::<Rational>::standard(1);
+/// let family = weyl.hbar_deformation();
+/// let x = family.lift_element(&weyl.x(0)).unwrap();
+/// let d = family.lift_element(&weyl.d(0)).unwrap();
+/// let bracket = family.deformation_algebra().commutator(&d, &x);
+/// assert_eq!(family.specialize_one(&bracket), Ok(weyl.one()));
+/// assert!(family.specialize_zero(&bracket).unwrap().is_zero());
+/// assert_eq!(family.specialize_one_algebra(), weyl);
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 pub struct HbarWeylAlgebra<S: Scalar> {
     base: WeylAlgebra<S>,

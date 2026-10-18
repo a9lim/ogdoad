@@ -365,6 +365,25 @@ impl IntegralForm {
     /// All nonzero lattice vectors `x` with `0 < Q(x) ≤ bound`, in lattice
     /// coordinates and including both signs. `None` if the lattice is not
     /// positive definite (the count would be infinite).
+    ///
+    /// # Examples
+    ///
+    /// The six roots of `A_2`, both signs included; the same enumeration gives
+    /// the minimum and kissing number. An indefinite lattice has infinitely
+    /// many vectors below any bound, so it returns `None`.
+    ///
+    /// ```
+    /// use ogdoad::forms::{a_n, IntegralForm};
+    ///
+    /// let a2 = a_n(2).unwrap();
+    /// let roots = a2.short_vectors(2).unwrap();
+    /// assert_eq!(roots.len(), 6);
+    /// assert!(roots.iter().all(|v| a2.norm(v) == 2));
+    /// assert_eq!((a2.minimum(), a2.kissing_number()), (Some(2), Some(6)));
+    ///
+    /// let hyperbolic = IntegralForm::new(vec![vec![0, 1], vec![1, 0]]).unwrap();
+    /// assert_eq!(hyperbolic.short_vectors(2), None);
+    /// ```
     pub fn short_vectors(&self, bound: i128) -> Option<Vec<Vec<i128>>> {
         if !self.is_positive_definite() {
             return None;
@@ -664,6 +683,27 @@ impl IntegralForm {
     /// vectors of each basis norm) and backtracks on the Gram constraints; each
     /// complete assignment is an automorphism, so the count is exact. Returns
     /// `None` if more than `node_budget` candidate-nodes are visited.
+    ///
+    /// The budget counts backtracking nodes only. The candidate images are
+    /// enumerated first, by short-vector search, and that work is outside the
+    /// budget, so a small budget does not bound the running time on lattices
+    /// with many short vectors.
+    ///
+    /// # Examples
+    ///
+    /// `Z^2` written in the non-diagonal basis `(1,0), (1,1)` is not one of the
+    /// recognized closed-form families, so the backtracking search runs. It
+    /// returns the exact order 8 of the square's symmetry group, or `None` when
+    /// the node budget is too small; it never returns a truncated count.
+    ///
+    /// ```
+    /// use ogdoad::forms::IntegralForm;
+    ///
+    /// let z2 = IntegralForm::new(vec![vec![1, 1], vec![1, 2]]).unwrap();
+    /// assert_eq!(z2.automorphism_group_order(), Some(8));
+    /// assert_eq!(z2.automorphism_group_order_bounded(5), None);
+    /// assert_eq!(z2.automorphism_group_order_bounded(50), Some(8));
+    /// ```
     pub fn automorphism_group_order_bounded(&self, node_budget: u128) -> Option<u128> {
         let n = self.dim();
         if n == 0 {

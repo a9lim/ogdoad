@@ -338,6 +338,34 @@ impl fmt::Display for NikulinExistenceInvariants {
 /// for factors `[d0, d1, ...]`, index `((x0*d1 + x1)*d2 + ...)` stores
 /// `q(x0, x1, ...)` as a rational in `Q/2Z`. The constructor validates
 /// nonsingularity and the quadratic law up to `FQM_WITT_GROUP_CAP`.
+///
+/// # Examples
+///
+/// The discriminant forms of `A_1` and `E_7` are `Z/2` with `q = 1/2` and
+/// `q = 3/2` on the generator. Their orthogonal sum has the isotropic element
+/// `(1,1)` (`q = 2 = 0 mod 2`), so it is Witt-trivial; quotienting by it is
+/// the gluing `A_1 + E_7 -> E_8`. Nikulin's criterion then accepts signature
+/// `(8,0)` and rejects `(7,1)`, whose signature is wrong modulo 8. The
+/// constructors refuse modules of order above 512 with `None`.
+///
+/// ```
+/// use ogdoad::forms::{FiniteQuadraticModule, NikulinExistenceObstruction};
+/// use ogdoad::scalar::Rational;
+///
+/// let a1 = FiniteQuadraticModule::cyclic(2, Rational::new(1, 2)).unwrap();
+/// let e7 = FiniteQuadraticModule::cyclic(2, Rational::new(3, 2)).unwrap();
+/// assert!(!a1.witt_class().unwrap().is_trivial());
+/// let glued = a1.direct_sum(&e7).unwrap();
+/// assert!(glued.witt_class().unwrap().is_trivial());
+///
+/// assert_eq!(glued.nikulin_even_lattice_exists((8, 0)), Some(true));
+/// let report = glued.nikulin_existence_report((7, 1)).unwrap();
+/// assert!(matches!(
+///     report.obstruction,
+///     Some(NikulinExistenceObstruction::SignatureCongruence { .. })
+/// ));
+/// assert!(FiniteQuadraticModule::cyclic(1009, Rational::new(2, 1009)).is_none());
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 pub struct FiniteQuadraticModule {
     cyclic_factors: Vec<u128>,
@@ -602,6 +630,31 @@ impl DiscriminantForm {
     /// pair `(signature, q)` is realized by some even lattice. The implementation
     /// follows Nikulin theorem 1.10.1 and returns `None` only past the bounded
     /// finite-table surface (`|A| <= 512` here).
+    ///
+    /// # Examples
+    ///
+    /// The discriminant form of `A_2` (`Z/3` with `q = 2/3`) has phase 2 mod 8,
+    /// so a lattice realizing it needs signature `t_+ - t_- = 2` mod 8.
+    /// `(2,0)` exists (it is `A_2`), `(3,1)` exists (for instance `A_2` plus the
+    /// hyperbolic plane), and `(1,0)` fails the signature congruence.
+    ///
+    /// ```
+    /// use ogdoad::forms::{a_n, DiscriminantForm, NikulinExistenceObstruction};
+    ///
+    /// let q = DiscriminantForm::from_lattice(&a_n(2).unwrap()).unwrap();
+    /// assert_eq!(q.nikulin_even_lattice_exists((2, 0)), Some(true));
+    /// assert_eq!(q.nikulin_even_lattice_exists((3, 1)), Some(true));
+    ///
+    /// let report = q.nikulin_existence_report((1, 0)).unwrap();
+    /// assert!(!report.exists());
+    /// match report.obstruction {
+    ///     Some(NikulinExistenceObstruction::SignatureCongruence {
+    ///         required_mod8,
+    ///         module_phase_mod8,
+    ///     }) => assert_eq!((required_mod8, module_phase_mod8), (1, 2)),
+    ///     other => panic!("unexpected obstruction: {other:?}"),
+    /// }
+    /// ```
     pub fn nikulin_existence_report(
         &self,
         signature: (usize, usize),

@@ -30,6 +30,36 @@ use std::fmt;
 
 /// An ordinal below `ε₀`, represented by a finite Cantor normal form
 /// `Σ ω^{exp}·coeff` with descending exponents and nonzero `u128` coefficients.
+///
+/// # Examples
+///
+/// Conway's first Kummer relations `ω³ = 2`, `(ω^ω)⁵ = 4`, and
+/// `(ω^(ω²))⁷ = ω + 1` (Conway, *ONAG* ch. 6; Lenstra; DiMuro) are computed by
+/// [`nim_pow`](Ordinal::nim_pow). The paper `writeups/excess.tex` (*Finite Excess
+/// in Ordinal Nim Multiplication*) concerns the finite excess `m_p` in Lenstra's
+/// element `α_p`; these three rows have `m_p = 0, 0, 1`, and the third is the
+/// first nonzero excess. The example checks those table-backed rows and the
+/// checked boundary; it says nothing about the open universal `0/1/4` excess rule.
+///
+/// ```
+/// use ogdoad::scalar::Ordinal;
+///
+/// let n = Ordinal::from_u128;
+/// let w = Ordinal::omega();
+/// assert_eq!(w.nim_pow(3), Some(n(2))); // ω^3 = 2
+/// assert_eq!(Ordinal::omega_pow(w.clone()).nim_pow(5), Some(n(4))); // (ω^ω)^5 = 4
+/// let chi7 = Ordinal::omega_pow(Ordinal::omega_pow(n(2)));
+/// assert_eq!(chi7.nim_pow(7), Some(w.nim_add(&n(1)))); // (ω^(ω^2))^7 = ω + 1
+///
+/// // ω + 1 lies in a finite field, so it has a checked inverse.
+/// let x = w.nim_add(&n(1));
+/// assert_eq!(x.nim_mul(&x.checked_inv().unwrap()), Some(n(1)));
+///
+/// // Past ω^(ω^ω) every checked operation reports the boundary.
+/// let beyond = Ordinal::omega_pow(Ordinal::omega_pow(w));
+/// assert_eq!(beyond.nim_mul(&beyond), None);
+/// assert_eq!((beyond.checked_inv(), beyond.checked_sqrt()), (None, None));
+/// ```
 #[derive(Clone, PartialEq, Eq)]
 pub struct Ordinal {
     terms: Vec<(Ordinal, u128)>,

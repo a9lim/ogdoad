@@ -29,6 +29,30 @@ use super::local::{springer_decompose_local, LocalSpringerDecomp};
 /// Decompose a `Q_p` diagonal quadratic form by p-adic valuation. `None` if `p` is
 /// not an odd prime, or the metric is non-diagonal. A thin wrapper over
 /// [`springer_decompose_local`] (residue field `F_p`).
+///
+/// # Examples
+///
+/// `<1, 2, 5, 10>` over `Q_5` is `<1, 2> ⊥ 5<1, 2>`: two residue layers, one per
+/// valuation parity, each with `F_5` discriminant `2`, a nonsquare mod 5. Residue
+/// characteristic 2 is outside this engine and is refused:
+///
+/// ```
+/// use ogdoad::clifford::Metric;
+/// use ogdoad::forms::springer_decompose_qp;
+/// use ogdoad::scalar::{Qp, Scalar};
+///
+/// let form = Metric::diagonal([1, 2, 5, 10].map(Qp::<5, 4>::from_int).to_vec());
+/// let layers = springer_decompose_qp(&form).unwrap();
+/// let shape: Vec<_> = layers
+///     .graded
+///     .iter()
+///     .map(|g| (g.valuation, g.dim, g.disc_is_square))
+///     .collect();
+/// assert_eq!(shape, [(1, 2, false), (0, 2, false)]);
+///
+/// let two_adic = Metric::diagonal(vec![Qp::<2, 4>::from_int(1)]);
+/// assert!(springer_decompose_qp(&two_adic).is_none());
+/// ```
 pub fn springer_decompose_qp<const P: u128, const K: u128>(
     metric: &Metric<Qp<P, K>>,
 ) -> Option<LocalSpringerDecomp> {

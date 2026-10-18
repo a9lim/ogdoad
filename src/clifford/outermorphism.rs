@@ -28,6 +28,23 @@ use std::collections::BTreeMap;
 /// image `f(e_i)` as a length-`n` coefficient vector over `e_0..e_{n-1}` (so
 /// `cols()[i][j]` is the coefficient of `e_j` in `f(e_i)`, i.e. the matrix
 /// entry `M[j][i]`).
+///
+/// # Examples
+///
+/// Columns are the images of the generators, so `f(e₀) = e₀ + 2e₁` and
+/// `f(e₁) = 3e₀ + 4e₁` for the matrix with rows `(1, 3)` and `(2, 4)`.
+///
+/// ```
+/// use ogdoad::clifford::{CliffordAlgebra, LinearMap, Metric};
+/// use ogdoad::scalar::{Rational, Scalar};
+///
+/// let r = Rational::from_int;
+/// let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![r(1), r(1)]));
+/// let f = LinearMap::from_columns(vec![vec![r(1), r(2)], vec![r(3), r(4)]]);
+/// let expected = alg.add(&alg.e(0), &alg.scalar_mul(&r(2), &alg.e(1)));
+/// assert_eq!(f.image(&alg, 0), expected);
+/// assert_eq!(f.compose(&LinearMap::identity(2)), f);
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 pub struct LinearMap<S: Scalar> {
     cols: Vec<Vec<S>>,
@@ -108,6 +125,23 @@ impl<S: Scalar> LinearMap<S> {
 /// Apply the outermorphism of `f` to a multivector: every blade `e_{i_0..i_k}`
 /// maps to `f(e_{i_0}) ∧ … ∧ f(e_{i_k})` (grade 0 passes through, since the empty
 /// wedge is the unit scalar).
+///
+/// # Examples
+///
+/// The outermorphism scales the top blade by the determinant:
+/// `f(e₀∧e₁) = det(f) e₀∧e₁`, here with `det f = 1·4 - 3·2 = -2`.
+///
+/// ```
+/// use ogdoad::clifford::{apply_outermorphism, CliffordAlgebra, LinearMap, Metric};
+/// use ogdoad::scalar::{Rational, Scalar};
+///
+/// let r = Rational::from_int;
+/// let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![r(1), r(1)]));
+/// let f = LinearMap::from_columns(vec![vec![r(1), r(2)], vec![r(3), r(4)]]);
+/// let e01 = alg.wedge(&alg.e(0), &alg.e(1));
+/// let image = apply_outermorphism(&alg, &f, &e01);
+/// assert_eq!(image, alg.scalar_mul(&r(-2), &e01));
+/// ```
 pub fn apply_outermorphism<S: Scalar>(
     alg: &CliffordAlgebra<S>,
     f: &LinearMap<S>,
@@ -186,6 +220,31 @@ fn berkowitz_char_poly<S: Scalar>(matrix: &[Vec<S>]) -> Vec<S> {
 
 /// The determinant of `f`: the scalar by which its outermorphism scales the unit
 /// pseudoscalar, `f(I) = det(f)·I`, computed division-free by Berkowitz.
+///
+/// # Examples
+///
+/// Over the integers the determinant needs no division, and it is
+/// multiplicative under composition. Over the nimbers (characteristic two)
+/// signs collapse and products are nim-products: the matrix with rows
+/// `(*2, *1)` and `(*1, *2)` has determinant `*2⊗*2 + *1⊗*1 = *3 + *1 = *2`.
+///
+/// ```
+/// use ogdoad::clifford::{determinant, CliffordAlgebra, LinearMap, Metric};
+/// use ogdoad::scalar::{Integer, Nimber};
+///
+/// let z = |n| Integer(n);
+/// let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![z(1), z(1)]));
+/// let f = LinearMap::from_columns(vec![vec![z(1), z(2)], vec![z(3), z(4)]]);
+/// let g = LinearMap::from_columns(vec![vec![z(0), z(1)], vec![z(1), z(1)]]);
+/// assert_eq!(determinant(&alg, &f), z(-2));
+/// assert_eq!(determinant(&alg, &g), z(-1));
+/// assert_eq!(determinant(&alg, &f.compose(&g)), z(2));
+///
+/// let n = Nimber;
+/// let alg2 = CliffordAlgebra::new(2, Metric::diagonal(vec![n(1), n(1)]));
+/// let h = LinearMap::from_columns(vec![vec![n(2), n(1)], vec![n(1), n(2)]]);
+/// assert_eq!(determinant(&alg2, &h), n(2));
+/// ```
 pub fn determinant<S: Scalar>(alg: &CliffordAlgebra<S>, f: &LinearMap<S>) -> S {
     debug_assert_eq!(
         alg.dim(),
@@ -279,6 +338,21 @@ pub fn char_poly<S: Scalar>(alg: &CliffordAlgebra<S>, f: &LinearMap<S>) -> Vec<S
 /// `LinearMap` of `f⁻¹` (Gauss–Jordan over the scalar). `None` if any pivot is
 /// not invertible in the backend (e.g. a non-monomial surreal), which includes
 /// the singular case.
+///
+/// # Examples
+///
+/// ```
+/// use ogdoad::clifford::{inverse_outermorphism, LinearMap};
+/// use ogdoad::scalar::{Rational, Scalar};
+///
+/// let r = Rational::from_int;
+/// let f = LinearMap::from_columns(vec![vec![r(1), r(2)], vec![r(3), r(4)]]);
+/// let inv = inverse_outermorphism(&f).unwrap();
+/// assert_eq!(f.compose(&inv), LinearMap::identity(2));
+///
+/// let singular = LinearMap::from_columns(vec![vec![r(1), r(2)], vec![r(2), r(4)]]);
+/// assert!(inverse_outermorphism(&singular).is_none());
+/// ```
 pub fn inverse_outermorphism<S: Scalar>(f: &LinearMap<S>) -> Option<LinearMap<S>> {
     let n = f.n();
     // Row-major working matrix `m[r][c] = M[r][c] = cols[c][r]`.

@@ -71,6 +71,39 @@ pub fn isometric_finite_odd<F: FiniteOddField>(m1: &Metric<F>, m2: &Metric<F>) -
 /// own minimal field degree can yield different Arf bits for isometric forms
 /// whose entries span different subfields (the trace of a fixed element differs
 /// depending on which extension it is traced from).
+///
+/// # Examples
+///
+/// `writeups/transfinite_arf.tex` classifies forms over a perfect field with
+/// surjective Artin--Schreier map by `(dim V, dim rad B, dim rad Q)`, so over the
+/// full nimber field `On_2` every nonsingular form is hyperbolic; over a finite
+/// nim-subfield the Arf bit is meaningful but dies under extension
+/// `F_{2^d} ⊂ F_{2^{2d}}`. This example checks that finite shadow: the
+/// anisotropic plane is not isometric to the hyperbolic plane over `F_2`, but is
+/// once compared inside `F_4` (the common field is the smallest nim-subfield
+/// holding every entry), and a polar radical on which `Q ≠ 0` makes the Arf bit
+/// of the complement irrelevant. It does not construct `On_2`, and is a
+/// computation in the stated finite fields, not a proof of the theorem.
+///
+/// ```
+/// use ogdoad::clifford::Metric;
+/// use ogdoad::forms::isometric_nimber;
+/// use ogdoad::scalar::Nimber;
+///
+/// let plane = |q0, q1, b| Metric::new(vec![Nimber(q0), Nimber(q1)], [((0, 1), Nimber(b))]);
+/// let anisotropic = plane(1, 1, 1); // x^2 + xy + y^2, Arf 1 over F_2
+/// let hyperbolic = plane(0, 0, 1); // xy
+/// let hyperbolic_f4 = plane(0, 0, 2); // 2xy: forces the common field up to F_4
+///
+/// assert_eq!(isometric_nimber(&anisotropic, &hyperbolic), Some(false));
+/// assert_eq!(isometric_nimber(&anisotropic, &hyperbolic_f4), Some(true));
+///
+/// // Adding a line z^2 (polar radical, Q != 0) leaves only (dim, dim rad B, dim rad Q).
+/// let with_line = |m: &Metric<Nimber>| {
+///     Metric::new([m.q(), &[Nimber(1)]].concat(), m.b().iter().map(|(k, v)| (*k, *v)))
+/// };
+/// assert_eq!(isometric_nimber(&with_line(&anisotropic), &with_line(&hyperbolic)), Some(true));
+/// ```
 pub fn isometric_nimber(m1: &Metric<Nimber>, m2: &Metric<Nimber>) -> Option<bool> {
     let maxv = nimber_metric_max_val(m1).max(nimber_metric_max_val(m2));
     let m = min_field_degree(maxv);

@@ -563,6 +563,38 @@ fn certify_with_wall_orders<S: ExactFieldScalar + Copy>(
 /// Wall form is semi-orthogonalized directly. In the alternating case, one or
 /// two auxiliary anisotropic symmetries convert it to a decomposable
 /// nonalternating case; those symmetries remain in the final exact product.
+///
+/// # Examples
+///
+/// On the hyperbolic plane `xy` over `F_4`, swapping the coordinates is one
+/// vector symmetry (Dickson invariant 1), while `diag(α, α⁻¹)` is certified as a
+/// product of two (Dickson invariant 0). A matrix that does not preserve `Q` is
+/// refused with a reason:
+///
+/// ```
+/// use ogdoad::clifford::Metric;
+/// use ogdoad::forms::{factor_char2_isometry, Char2FactorizationError};
+/// use ogdoad::scalar::{Fpn, Scalar};
+///
+/// type F4 = Fpn<2, 2>;
+/// let (zero, one, alpha) = (F4::zero(), F4::one(), F4::generator());
+/// let plane = Metric::new(vec![zero, zero], [((0, 1), one)]);
+///
+/// let swap = vec![vec![zero, one], vec![one, zero]];
+/// let cert = factor_char2_isometry(&plane, &swap).unwrap();
+/// assert_eq!((cert.factor_count(), cert.dickson()), (1, 1));
+///
+/// let rotation = vec![vec![alpha, zero], vec![zero, alpha.inv().unwrap()]];
+/// let cert = factor_char2_isometry(&plane, &rotation).unwrap();
+/// assert_eq!((cert.factor_count(), cert.dickson()), (2, 0));
+/// assert!(cert.verifies_clifford_action());
+///
+/// let shear = vec![vec![one, one], vec![zero, one]];
+/// assert_eq!(
+///     factor_char2_isometry(&plane, &shear),
+///     Err(Char2FactorizationError::NotIsometry)
+/// );
+/// ```
 pub fn factor_char2_isometry<S: FiniteChar2Field>(
     metric: &Metric<S>,
     matrix: &[Vec<S>],

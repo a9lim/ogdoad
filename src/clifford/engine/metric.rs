@@ -20,6 +20,29 @@ pub type MetricParts<S> = (
 /// `B(e_i,e_i) = q[i]`, `B(e_i,e_j) = a[(i,j)]`, and
 /// `B(e_j,e_i) = b[(i,j)] - a[(i,j)]`. Thus `b` is the polar or
 /// anticommutator form and `a` selects a general bilinear representative.
+///
+/// # Examples
+///
+/// Build a metric with [`diagonal`](Self::diagonal),
+/// [`grassmann`](Self::grassmann), [`new`](Self::new), or
+/// [`general`](Self::general), never a struct literal. In characteristic two
+/// the squares `q` and the polar entries `b` are independent stored data.
+///
+/// ```
+/// use ogdoad::clifford::Metric;
+/// use ogdoad::scalar::{Nimber, Rational, Scalar};
+///
+/// let r = Rational::from_int;
+/// let euclid = Metric::diagonal(vec![r(1), r(1), r(1)]); // e_i^2 = 1, b = 0
+/// let exterior = Metric::<Rational>::grassmann(3); // q = b = a = 0
+/// assert_eq!(euclid.dim(), exterior.dim());
+/// assert!(exterior.q().iter().all(|x| x.is_zero()));
+///
+/// let m = Metric::new(vec![Nimber(2), Nimber(3)], [((0, 1), Nimber(1))]);
+/// assert_eq!(m.q(), &[Nimber(2), Nimber(3)]);
+/// assert_eq!(m.b().get(&(0, 1)), Some(&Nimber(1)));
+/// assert!(m.a().is_empty());
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 pub struct Metric<S: Scalar> {
     pub(crate) q: Vec<S>,
@@ -51,6 +74,36 @@ impl<S: Scalar> Metric<S> {
     ///
     /// `b` may be any `IntoIterator` of `((i, j), value)` pairs (a `BTreeMap`,
     /// a `Vec`, a slice, …) so call sites need not build the map explicitly.
+    ///
+    /// # Panics
+    ///
+    /// Panics unless every `b` key satisfies `i < j < q.len()` and the
+    /// dimension is at most [`MAX_BASIS_DIM`].
+    ///
+    /// # Examples
+    ///
+    /// Here `b₀₁ = 1`, so two unit generators satisfy `e₀e₁ + e₁e₀ = 1`
+    /// instead of anticommuting. Keys are ordered pairs `(i, j)` with `i < j`.
+    ///
+    /// ```
+    /// use ogdoad::clifford::{CliffordAlgebra, Metric};
+    /// use ogdoad::scalar::{Rational, Scalar};
+    ///
+    /// let r = Rational::from_int;
+    /// let metric = Metric::new(vec![r(1), r(1)], [((0, 1), r(1))]);
+    /// let alg = CliffordAlgebra::new(2, metric);
+    /// let (e0, e1) = (alg.e(0), alg.e(1));
+    /// assert_eq!(alg.anticommutator(&e0, &e1), alg.scalar(r(1)));
+    /// ```
+    ///
+    /// A reversed key is rejected rather than reinterpreted:
+    ///
+    /// ```should_panic
+    /// use ogdoad::clifford::Metric;
+    /// use ogdoad::scalar::Nimber;
+    ///
+    /// let _ = Metric::new(vec![Nimber(1), Nimber(1)], [((1, 0), Nimber(1))]);
+    /// ```
     pub fn new(q: Vec<S>, b: impl IntoIterator<Item = ((usize, usize), S)>) -> Self {
         let metric = Metric {
             q,
@@ -65,6 +118,28 @@ impl<S: Scalar> Metric<S> {
     /// in-order contraction `a` (i<j). See the struct docs.
     ///
     /// Both `b` and `a` may be any `IntoIterator` of `((i, j), value)` pairs.
+    ///
+    /// # Panics
+    ///
+    /// Panics unless every key of `b` and `a` satisfies `i < j < q.len()`.
+    ///
+    /// # Examples
+    ///
+    /// With `b = 0` and `a₀₁ = 5` the generators still anticommute, but the
+    /// in-order product carries the contraction: `e₀e₁ = e₀∧e₁ + 5`.
+    ///
+    /// ```
+    /// use ogdoad::clifford::{CliffordAlgebra, Metric};
+    /// use ogdoad::scalar::{Rational, Scalar};
+    ///
+    /// let r = Rational::from_int;
+    /// let metric = Metric::general(vec![r(1), r(1)], [], [((0, 1), r(5))]);
+    /// let alg = CliffordAlgebra::new(2, metric);
+    /// let (e0, e1) = (alg.e(0), alg.e(1));
+    /// let in_order = alg.add(&alg.wedge(&e0, &e1), &alg.scalar(r(5)));
+    /// assert_eq!(alg.mul(&e0, &e1), in_order);
+    /// assert!(alg.anticommutator(&e0, &e1).is_zero());
+    /// ```
     pub fn general(
         q: Vec<S>,
         b: impl IntoIterator<Item = ((usize, usize), S)>,
@@ -141,6 +216,19 @@ impl<S: Scalar> Metric<S> {
 
     /// Orthogonal direct sum `M ⟂ M'`: a block-diagonal metric on the disjoint
     /// union of the two generator sets.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ogdoad::clifford::Metric;
+    /// use ogdoad::scalar::{Rational, Scalar};
+    ///
+    /// let r = Rational::from_int;
+    /// let plane = Metric::diagonal(vec![r(1), r(1)]);
+    /// let line = Metric::diagonal(vec![r(-1)]);
+    /// let sum = plane.direct_sum(&line);
+    /// assert_eq!(sum.q(), &[r(1), r(1), r(-1)]);
+    /// ```
     pub fn direct_sum(&self, other: &Metric<S>) -> Metric<S> {
         let n = self.q.len();
         let mut q = self.q.clone();

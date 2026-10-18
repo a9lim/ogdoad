@@ -73,6 +73,28 @@ impl<S: Scalar> CliffordAlgebra<S> {
     /// classifying invariant and has no valid "modulo ℘" reduction — see the
     /// module docs for why, and [`versor_grade_parity`] for the char-2 invariant
     /// that IS trustworthy (Dickson).
+    ///
+    /// # Examples
+    ///
+    /// With `q = (4, -1)` over ℚ, the norm of a vector is its quadratic form
+    /// value and the norm of a product of orthogonal vectors is the product of
+    /// their `q`-values. A null vector has `v ṽ = 0`, which is not invertible,
+    /// so no norm is returned.
+    ///
+    /// ```
+    /// use ogdoad::clifford::{CliffordAlgebra, Metric};
+    /// use ogdoad::scalar::{Rational, Scalar};
+    ///
+    /// let r = Rational::from_int;
+    /// let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![r(4), r(-1)]));
+    /// let (e0, e1) = (alg.e(0), alg.e(1));
+    /// let v = alg.add(&e0, &e1); // q(v) = 4 - 1
+    /// assert_eq!(alg.spinor_norm(&v), Some(r(3)));
+    /// assert_eq!(alg.spinor_norm(&alg.mul(&e0, &e1)), Some(r(-4)));
+    ///
+    /// let null = alg.add(&e0, &alg.scalar_mul(&r(2), &e1)); // 4 - 4 = 0
+    /// assert_eq!(alg.spinor_norm(&null), None);
+    /// ```
     pub fn spinor_norm(&self, v: &Multivector<S>) -> Option<S> {
         self.pure_scalar_norm(v)
     }
@@ -80,6 +102,26 @@ impl<S: Scalar> CliffordAlgebra<S> {
     /// Bundles raw norm and grade parity for a versor candidate. Returns `None`
     /// for mixed parity or when `v ṽ` is not a pure invertible scalar. Success
     /// does not independently prove that `v` normalizes the vector space.
+    ///
+    /// # Examples
+    ///
+    /// A product of two reflecting vectors is even (`dickson = 0`) with raw
+    /// norm `q(e₀) q(e₁)`; a single vector is odd. A mixed-parity element is
+    /// refused.
+    ///
+    /// ```
+    /// use ogdoad::clifford::{CliffordAlgebra, Metric};
+    /// use ogdoad::scalar::{Rational, Scalar};
+    ///
+    /// let r = Rational::from_int;
+    /// let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![r(2), r(-3)]));
+    /// let (e0, e1) = (alg.e(0), alg.e(1));
+    /// let even = alg.classify_versor(&alg.mul(&e0, &e1)).unwrap();
+    /// assert_eq!((even.spinor_norm, even.dickson), (r(-6), 0));
+    /// let odd = alg.classify_versor(&e0).unwrap();
+    /// assert_eq!((odd.spinor_norm, odd.dickson), (r(2), 1));
+    /// assert!(alg.classify_versor(&alg.add(&alg.scalar(r(1)), &e0)).is_none());
+    /// ```
     pub fn classify_versor(&self, v: &Multivector<S>) -> Option<VersorInvariants<S>> {
         let dickson = versor_grade_parity(v)?;
         let spinor_norm = self.spinor_norm(v)?;

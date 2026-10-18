@@ -26,6 +26,27 @@ use std::fmt;
 /// partiality contract: they return `None` for an out-of-domain `A`/`D` rank
 /// (`A(0)`, `D(0)`, `D(1)`) rather than panicking, since the public type accepts any
 /// `usize`. [`rank`](Self::rank) is total.
+///
+/// # Examples
+///
+/// ```
+/// use ogdoad::forms::NiemeierComponentKind;
+///
+/// let a2 = NiemeierComponentKind::A(2);
+/// assert_eq!(a2.to_string(), "A_2");
+/// assert_eq!(a2.rank(), 2);
+/// assert_eq!(a2.coxeter_number(), Some(3));
+/// assert_eq!(a2.root_count(), Some(6));
+/// assert_eq!(a2.weyl_group_order(), Some(6)); // |S_3|
+///
+/// // `E8`: 240 roots, and a Weyl group of order 696729600.
+/// assert_eq!(NiemeierComponentKind::E8.root_count(), Some(240));
+/// assert_eq!(NiemeierComponentKind::E8.weyl_group_order(), Some(696_729_600));
+///
+/// // Out-of-domain ranks are `None`, not a panic.
+/// assert_eq!(NiemeierComponentKind::D(1).coxeter_number(), None);
+/// assert!(NiemeierComponentKind::A(0).root_lattice().is_none());
+/// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum NiemeierComponentKind {
     /// Root system `A_n`.
@@ -248,6 +269,27 @@ impl NiemeierRecord {
 
     /// The scalar theta series of the rank-24 Niemeier lattice, using Venkov's
     /// weight-12 formula `theta_N = E4^3 + (#roots - 720) Delta`.
+    ///
+    /// # Examples
+    ///
+    /// The Leech row has no roots, so its series is `E4^3 - 720 Delta`, with
+    /// 196560 vectors of norm 4. The `E_8^3` row is cross-checked here against a
+    /// direct short-vector enumeration of the actual lattice `E8 + E8 + E8`
+    /// (which is its own Niemeier lattice, with glue index 1).
+    ///
+    /// ```
+    /// use ogdoad::forms::{e_8, niemeier_classes, qexp_from_int};
+    ///
+    /// let classes = niemeier_classes();
+    /// assert_eq!(classes[0].label(), "Leech");
+    /// assert_eq!(classes[0].theta_series(3), qexp_from_int(&[1, 0, 196_560]));
+    ///
+    /// let e8_cubed = classes.iter().find(|c| c.label() == "E_8^3").unwrap();
+    /// let lattice = e_8().direct_sum(&e_8()).direct_sum(&e_8());
+    /// let enumerated = lattice.theta_series(3).unwrap();
+    /// assert_eq!(enumerated, vec![1, 720, 179_280]);
+    /// assert_eq!(e8_cubed.theta_series(3), qexp_from_int(&enumerated));
+    /// ```
     pub fn theta_series(&self, terms: usize) -> Vec<Rational> {
         let e4 = eisenstein_e4(terms);
         let e4_cubed = modular_qexp_mul(&modular_qexp_mul(&e4, &e4, terms), &e4, terms);
@@ -509,6 +551,30 @@ pub const NIEMEIER_CLASSES: [NiemeierRecord; 24] = [
 ];
 
 /// The 24 Niemeier catalogue records, including the Leech class.
+///
+/// These are standard catalogue data (Conway--Sloane, *SPLAG*, Ch. 16), not
+/// 24 generated Gram matrices: a rooted class constructs only its root
+/// sublattice ([`NiemeierRecord::root_lattice`]), and the Leech lattice has its
+/// own constructor, [`leech`](crate::forms::leech). Each rooted class has `24 h`
+/// roots for its Coxeter number `h`, and the catalogue's automorphism orders sum
+/// to the Smith--Minkowski--Siegel mass, a consistency check on the data rather
+/// than a proof that the list is complete.
+///
+/// # Examples
+///
+/// ```
+/// use ogdoad::forms::{mass_even_unimodular, niemeier_classes, niemeier_mass_sum};
+///
+/// let classes = niemeier_classes();
+/// assert_eq!(classes.len(), 24);
+/// for c in classes.iter().filter(|c| c.label() != "Leech") {
+///     assert_eq!(c.root_rank(), 24);
+///     assert_eq!(c.root_count(), 24 * c.coxeter_number());
+/// }
+///
+/// let mass = niemeier_mass_sum().unwrap();
+/// assert_eq!((mass.numer(), mass.denom()), mass_even_unimodular(24).unwrap());
+/// ```
 pub fn niemeier_classes() -> &'static [NiemeierRecord] {
     &NIEMEIER_CLASSES
 }

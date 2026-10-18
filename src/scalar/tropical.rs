@@ -100,6 +100,32 @@ enum TropVal {
 ///
 /// The unused `C` is carried by a [`PhantomData`] (a bare enum with an unused
 /// type parameter would not compile).
+///
+/// # Examples
+///
+/// `Tropical<MaxPlus>` is the semiring `(ℚ ∪ {−∞}, max, +)`: ⊕ is idempotent, so
+/// no finite element has an additive inverse, yet every finite element is a
+/// ⊗-unit. The paper `writeups/semiring_stability.tex` (*Quadratic Stability
+/// without Subtraction*) works over idempotent semifields of this shape. Its
+/// Hessenberg and supertropical semirings are not implemented in this crate, and
+/// its thermograph-wall semifields have piecewise-linear values rather than
+/// rational ones; the example checks only the rational max-plus and min-plus
+/// identities.
+///
+/// ```
+/// use ogdoad::scalar::{MaxPlus, MinPlus, Tropical};
+///
+/// type T = Tropical<MaxPlus>;
+/// let (two, five) = (T::int(2), T::int(5));
+/// assert_eq!(two.add(&five), five); // ⊕ = max
+/// assert_eq!(two.mul(&five), T::int(7)); // ⊗ = +
+/// assert_eq!(two.add(&two), two); // idempotent
+/// assert_eq!(two.mul(&T::int(-2)), T::one()); // a finite element is a ⊗-unit
+/// assert!(T::zero().mul(&two).is_zero()); // -∞ absorbs
+///
+/// type D = Tropical<MinPlus>; // the dual convention is a distinct type
+/// assert_eq!(D::int(2).add(&D::int(5)), D::int(2)); // ⊕ = min
+/// ```
 #[derive(Clone, PartialEq)]
 pub struct Tropical<C: TropicalConvention = MaxPlus> {
     inner: TropVal,

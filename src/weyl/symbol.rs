@@ -6,6 +6,27 @@ use crate::scalar::Scalar;
 use std::collections::BTreeMap;
 
 /// A standard filtration on a PBW Weyl algebra.
+///
+/// # Examples
+///
+/// For `P = x d^2 + x^3` the Bernstein degree is 3 (both terms count) while the
+/// differential order is 2 (`x^3` has order 0), so the two principal symbols
+/// differ:
+///
+/// ```
+/// use ogdoad::scalar::{Rational, Scalar};
+/// use ogdoad::weyl::{SparsePolynomial, WeylAlgebra, WeylFiltration};
+///
+/// let r = Rational::from_int;
+/// let weyl = WeylAlgebra::<Rational>::standard(1);
+/// let p = weyl.mul(&weyl.x(0), &weyl.pow(&weyl.d(0), 2)) + weyl.pow(&weyl.x(0), 3);
+/// assert_eq!(weyl.bernstein_degree(&p), Ok(Some(3)));
+/// assert_eq!(weyl.differential_order(&p), Ok(Some(2)));
+/// let x_d2 = SparsePolynomial::monomial(&[1, 2], r(1));
+/// let x3 = SparsePolynomial::monomial(&[3, 0], r(1));
+/// assert_eq!(weyl.principal_symbol(&p, WeylFiltration::Bernstein), Ok(x_d2.clone() + x3));
+/// assert_eq!(weyl.principal_symbol(&p, WeylFiltration::DifferentialOrder), Ok(x_d2));
+/// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum WeylFiltration {
@@ -79,6 +100,29 @@ impl<S: Scalar> WeylAlgebra<S> {
 
     /// Constant Poisson bracket associated with this algebra's alternating
     /// commutator form.
+    ///
+    /// # Examples
+    ///
+    /// The convention is `{d, x} = 1`. For `[d^2, x^2] = 4 x d + 2`, the
+    /// degree-`2 + 2 - 2` Bernstein symbol of the commutator equals the bracket
+    /// of the two symbols (one instance of the leading-commutator rule, not a
+    /// proof of it):
+    ///
+    /// ```
+    /// use ogdoad::scalar::{Rational, Scalar};
+    /// use ogdoad::weyl::{SparsePolynomial, WeylAlgebra, WeylFiltration};
+    ///
+    /// let r = Rational::from_int;
+    /// let weyl = WeylAlgebra::<Rational>::standard(1);
+    /// let t = |i| SparsePolynomial::<Rational>::try_variable(2, i).unwrap();
+    /// assert_eq!(weyl.poisson_bracket(&t(1), &t(0)), Ok(SparsePolynomial::scalar(2, r(1))));
+    ///
+    /// let (d2, x2) = (weyl.pow(&weyl.d(0), 2), weyl.pow(&weyl.x(0), 2));
+    /// let sigma = |e| weyl.principal_symbol(e, WeylFiltration::Bernstein).unwrap();
+    /// let commutator = weyl.commutator(&d2, &x2);
+    /// assert_eq!(sigma(&commutator), SparsePolynomial::monomial(&[1, 1], r(4)));
+    /// assert_eq!(weyl.poisson_bracket(&sigma(&d2), &sigma(&x2)), Ok(sigma(&commutator)));
+    /// ```
     pub fn poisson_bracket(
         &self,
         left: &SparsePolynomial<S>,

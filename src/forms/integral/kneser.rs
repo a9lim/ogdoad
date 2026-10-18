@@ -423,6 +423,22 @@ fn enumerate_projective_lines_rec(
 /// The enumeration stops after `max_lines` isotropic lines; pass a large bound
 /// for small finite searches. Returns `None` when `p` is unsupported, divides the
 /// determinant, or `p=2` is requested for an odd lattice.
+///
+/// # Examples
+///
+/// Modulo 2 the even lattice `E8` carries a nondegenerate quadratic form of
+/// plus type on `F_2^8`, whose singular projective points number
+/// `(2^4 - 1)(2^3 + 1) = 135`. The prime 3 divides `det A_2 = 3`, so no
+/// neighbor lines are defined there.
+///
+/// ```
+/// use ogdoad::forms::{a_n, e_8, isotropic_lines_mod_p};
+///
+/// let lines = isotropic_lines_mod_p(&e_8(), 2, 1_000).unwrap();
+/// assert_eq!(lines.len(), 135);
+/// assert_eq!(lines[0].len(), 8);
+/// assert!(isotropic_lines_mod_p(&a_n(2).unwrap(), 3, 10).is_none());
+/// ```
 pub fn isotropic_lines_mod_p(
     lattice: &IntegralForm,
     p: u128,
@@ -452,6 +468,24 @@ fn isotropic_lines_prepared(
 }
 
 /// Kneser neighbors from the first `max_lines` isotropic projective lines.
+///
+/// # Examples
+///
+/// Each 2-neighbor of `E8` stays in the genus, so it is again even and
+/// unimodular, and is `E8` itself because that genus has a single class. Each
+/// [`KneserNeighbor`] records the prime and the projective line that produced
+/// it.
+///
+/// ```
+/// use ogdoad::forms::{e_8, kneser_neighbors};
+///
+/// let neighbors = kneser_neighbors(&e_8(), 2, 3).unwrap();
+/// assert_eq!(neighbors.len(), 3);
+/// for n in &neighbors {
+///     assert_eq!(n.prime, 2);
+///     assert!(n.lattice.is_even() && n.lattice.is_unimodular());
+/// }
+/// ```
 pub fn kneser_neighbors(
     lattice: &IntegralForm,
     p: u128,
@@ -549,6 +583,22 @@ fn generated_rank_labels(
 /// Rank 24 is intentionally not included here: the crate carries the Niemeier
 /// catalogue and the Leech Gram, not explicit glued Gram representatives for the
 /// other 23 classes.
+///
+/// # Examples
+///
+/// In rank 8 the 2-neighbors of `E8` produce only `E8`, and its single class
+/// accounts for the whole Smith--Minkowski--Siegel mass `1/|Aut(E8)|`. Ranks
+/// without an explicit class list return `None`.
+///
+/// ```
+/// use ogdoad::forms::even_unimodular_kneser_report;
+///
+/// let report = even_unimodular_kneser_report(8).unwrap();
+/// assert_eq!(report.generated_class_labels(), vec!["E8"]);
+/// assert_eq!(report.mass, (1, 696_729_600));
+/// assert!(report.mass_closed);
+/// assert!(even_unimodular_kneser_report(24).is_none());
+/// ```
 pub fn even_unimodular_kneser_report(rank: usize) -> Option<KneserMassInvariants> {
     let prime = 2;
     let (seed_label, seed, classes) = match rank {

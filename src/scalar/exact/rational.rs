@@ -10,6 +10,24 @@ use std::fmt;
 ///
 /// Trait arithmetic panics when an intermediate or result leaves the fixed-width
 /// carrier; the `checked_*` methods expose the same boundary as `Option`.
+///
+/// # Examples
+///
+/// Fractions are kept in lowest terms and arithmetic is exact inside the `i128`
+/// carrier; leaving it is reported by `None`, not by wrapping.
+///
+/// ```
+/// use ogdoad::scalar::Rational;
+///
+/// assert_eq!(Rational::new(2, 4), Rational::new(1, 2));
+/// assert_eq!(Rational::new(1, 2) + Rational::new(1, 3), Rational::new(5, 6));
+/// assert_eq!(Rational::new(9, 4).sqrt(), Some(Rational::new(3, 2)));
+/// assert_eq!(Rational::new(2, 1).sqrt(), None); // sqrt(2) is not rational
+/// assert_eq!(Rational::try_new(1, 0), None); // zero denominator
+///
+/// let huge = Rational::new(i128::MAX, 1);
+/// assert_eq!(huge.checked_mul(&Rational::new(2, 1)), None); // `Scalar::mul` would panic
+/// ```
 #[derive(Clone)]
 pub struct Rational {
     num: i128,

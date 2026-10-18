@@ -319,6 +319,31 @@ impl std::error::Error for WeylError {}
 /// work across the whole public operation. The unbounded value preserves the
 /// original checked API; callers handling untrusted exponents should supply a
 /// finite budget.
+///
+/// # Examples
+///
+/// Over `F_7` the product `d^N x^N` with `N = 10^27` is refused by a small
+/// budget with a budget error; running out of budget is distinct from
+/// overflowing the `u128` exponent payload, which has its own error:
+///
+/// ```
+/// use ogdoad::scalar::{Fp, Scalar};
+/// use ogdoad::weyl::{WeylAlgebra, WeylError, WeylExpansionBudget};
+///
+/// let weyl = WeylAlgebra::<Fp<7>>::standard(1);
+/// let one = Fp::<7>::one();
+/// let n = 1_000_000_000_000_000_000_000_000_000u128;
+/// let (dn, xn) = (weyl.monomial(&[0, n], one), weyl.monomial(&[n, 0], one));
+/// let refused = weyl
+///     .checked_mul_with_budget(&dn, &xn, WeylExpansionBudget::new(4, 1_000))
+///     .unwrap_err();
+/// assert!(matches!(
+///     refused,
+///     WeylError::TermBudgetExceeded { .. } | WeylError::StepBudgetExceeded { .. }
+/// ));
+/// let top = weyl.monomial(&[u128::MAX, 0], one);
+/// assert_eq!(weyl.checked_mul(&top, &weyl.x(0)), Err(WeylError::ExponentOverflow));
+/// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct WeylExpansionBudget {
     /// Maximum simultaneous sparse terms in an intermediate or output value.
@@ -379,6 +404,46 @@ impl ExpansionTracker {
 /// The context stores the alternating matrix `omega[i][j] = [z_i,z_j]`.
 /// `standard_pairs` is only an optimization/layout marker; algebra equality is
 /// determined by the commutator form itself.
+///
+/// # Examples
+///
+/// The standard rank-`n` algebra orders its generators `x_0,...,x_(n-1),
+/// d_0,...,d_(n-1)` with `[d_i, x_j] = delta_ij`:
+///
+/// ```
+/// use ogdoad::scalar::Rational;
+/// use ogdoad::weyl::WeylAlgebra;
+///
+/// let weyl = WeylAlgebra::<Rational>::standard(2);
+/// assert_eq!((weyl.dim(), weyl.standard_pairs()), (4, Some(2)));
+/// assert_eq!(weyl.commutator(&weyl.d(1), &weyl.x(1)), weyl.one());
+/// assert!(weyl.commutator(&weyl.d(0), &weyl.x(1)).is_zero());
+/// ```
+///
+/// Any alternating matrix `omega[i][j] = [z_i, z_j]` is a valid presentation,
+/// degenerate ones included. Standard-only accessors then refuse, and
+/// malformed matrices are rejected at construction:
+///
+/// ```
+/// use ogdoad::scalar::{Rational, Scalar};
+/// use ogdoad::weyl::{WeylAlgebra, WeylError};
+///
+/// let r = Rational::from_int;
+/// let weyl = WeylAlgebra::from_commutator(vec![
+///     vec![r(0), r(2), r(0)],
+///     vec![r(-2), r(0), r(0)],
+///     vec![r(0), r(0), r(0)],
+/// ])
+/// .unwrap();
+/// assert_eq!(weyl.commutator(&weyl.generator(0), &weyl.generator(1)), weyl.scalar(r(2)));
+/// assert!(weyl.is_central(&weyl.generator(2)).unwrap());
+/// assert_eq!(weyl.try_x(0), Err(WeylError::RequiresStandard));
+/// let symmetric = vec![vec![r(0), r(1)], vec![r(1), r(0)]];
+/// assert_eq!(
+///     WeylAlgebra::from_commutator(symmetric),
+///     Err(WeylError::NotSkewSymmetric { left: 0, right: 1 })
+/// );
+/// ```
 #[derive(Clone, Debug)]
 pub struct WeylAlgebra<S: Scalar> {
     pub(crate) commutator: Vec<Vec<S>>,

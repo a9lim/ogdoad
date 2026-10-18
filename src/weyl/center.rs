@@ -144,6 +144,29 @@ impl<S: Scalar> WeylCenterGenerator<S> {
 /// are little-endian base `p` in the paired generator order. The exact rank is
 /// `p^(2r)` when that integer fits `u128`; individual `u128` indices remain
 /// usable even when the mathematical rank is larger.
+///
+/// # Examples
+///
+/// Over `F_3` the rank-one algebra has the nine basis monomials `x^i d^j` with
+/// `0 <= i, j < 3`, indexed by `i + 3j`; full materialization needs a cap at
+/// least as large as the rank:
+///
+/// ```
+/// use ogdoad::scalar::{Fp, Scalar};
+/// use ogdoad::weyl::{WeylAlgebra, WeylCenterError, WeylExpansionBudget};
+///
+/// let weyl = WeylAlgebra::<Fp<3>>::standard(1);
+/// let basis = weyl.positive_characteristic_center().unwrap().basis_over_center().clone();
+/// assert_eq!(basis.rank_over_center(), Some(9));
+/// let x2_d = weyl.monomial(&[2, 1], Fp::<3>::one());
+/// assert_eq!(basis.source_element_at(5), Ok(x2_d)); // 5 = 2 + 3 * 1
+/// assert_eq!(
+///     basis.materialize_source_with_budget(8, WeylExpansionBudget::unbounded()),
+///     Err(WeylCenterError::BasisMaterializationLimit { required: Some(9), limit: 8 })
+/// );
+/// let all = basis.materialize_source_with_budget(9, WeylExpansionBudget::unbounded());
+/// assert_eq!(all.unwrap().len(), 9);
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 pub struct WeylCenterBasis<S: ExactFieldScalar> {
     decomposition: WeylDarbouxDecomposition<S>,
@@ -242,6 +265,33 @@ impl<S: ExactFieldScalar> WeylCenterBasis<S> {
 
 /// Certified characteristic-`p` centre data in both Darboux and original
 /// coordinates.
+///
+/// # Examples
+///
+/// Over `F_3`, `x^3` and `d^3` are central in the rank-one algebra even though
+/// `x` is not; the description lists them and re-checks each against the
+/// algebra generators. Over `Q` the request is refused, and `x^3` is not
+/// central (`[d, x^3] = 3 x^2`):
+///
+/// ```
+/// use ogdoad::scalar::{Fp, Rational};
+/// use ogdoad::weyl::{WeylAlgebra, WeylCenterError};
+///
+/// let weyl = WeylAlgebra::<Fp<3>>::standard(1);
+/// let centre = weyl.positive_characteristic_center().unwrap();
+/// assert_eq!((centre.characteristic(), centre.generators().len()), (3, 2));
+/// assert!(!weyl.is_central(&weyl.x(0)).unwrap());
+/// let x3 = weyl.pow(&weyl.x(0), 3);
+/// assert_eq!(centre.generators()[0].source_element(), &x3);
+/// assert!(centre.generators().iter().all(|g| weyl.is_central(g.source_element()).unwrap()));
+///
+/// let q = WeylAlgebra::<Rational>::standard(1);
+/// assert!(!q.is_central(&q.pow(&q.x(0), 3)).unwrap());
+/// assert!(matches!(
+///     q.positive_characteristic_center(),
+///     Err(WeylCenterError::RequiresPositiveCharacteristic)
+/// ));
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 pub struct WeylCenterDescription<S: ExactFieldScalar> {
     decomposition: WeylDarbouxDecomposition<S>,

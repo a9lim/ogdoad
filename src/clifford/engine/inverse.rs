@@ -14,6 +14,28 @@ use std::collections::BTreeMap;
 
 impl<S: Scalar> CliffordAlgebra<S> {
     /// The **general multivector inverse** `v⁻¹` (two-sided), for any element.
+    ///
+    /// # Examples
+    ///
+    /// `1 + e₀` with `e₀² = -1` is not a versor, yet it is invertible:
+    /// `(1 + e₀)⁻¹ = (1 - e₀)/2`. A nilpotent element such as a Grassmann
+    /// generator has no inverse, and the result is `None`.
+    ///
+    /// ```
+    /// use ogdoad::clifford::{CliffordAlgebra, Metric};
+    /// use ogdoad::scalar::{Rational, Scalar};
+    ///
+    /// let r = Rational::from_int;
+    /// let alg = CliffordAlgebra::new(1, Metric::diagonal(vec![r(-1)]));
+    /// let x = alg.add(&alg.scalar(r(1)), &alg.e(0));
+    /// let inv = alg.multivector_inverse(&x).unwrap();
+    /// assert_eq!(alg.mul(&x, &inv), alg.scalar(r(1)));
+    /// let half = Rational::new(1, 2);
+    /// assert_eq!(inv, alg.scalar_mul(&half, &(alg.scalar(r(1)) - alg.e(0))));
+    ///
+    /// let exterior = CliffordAlgebra::new(1, Metric::<Rational>::grassmann(1));
+    /// assert!(exterior.multivector_inverse(&exterior.e(0)).is_none());
+    /// ```
     pub fn multivector_inverse(&self, v: &Multivector<S>) -> Option<Multivector<S>> {
         if v.is_zero() {
             return None;

@@ -242,6 +242,25 @@ pub fn mk_basis(weight: usize, terms: usize) -> Vec<Vec<Rational>> {
 /// Identify a q-expansion as a modular form of the given weight in the
 /// `E4`/`E6` basis. The first `dim M_k` coefficients solve for the coordinates;
 /// all supplied coefficients through `terms` are then checked exactly.
+///
+/// The check is a finite, exact comparison of the supplied coefficients with
+/// the `E4`/`E6` monomial basis (see [`mk_basis`]). `None` means a coefficient
+/// disagreed, `terms` is smaller than `dim M_k`, or the slice is shorter than
+/// `terms`.
+///
+/// # Examples
+///
+/// `Delta = (E4^3 - E6^2) / 1728` in the basis `{E4^3, E6^2}` of `M_12`, while
+/// `E4` is not a weight-12 form.
+///
+/// ```
+/// use ogdoad::forms::{as_modular_form, delta, eisenstein_e4};
+/// use ogdoad::scalar::Rational;
+///
+/// let coords = as_modular_form(&delta(6), 12, 6).unwrap();
+/// assert_eq!(coords, vec![Rational::new(1, 1728), Rational::new(-1, 1728)]);
+/// assert_eq!(as_modular_form(&eisenstein_e4(6), 12, 6), None);
+/// ```
 pub fn as_modular_form(
     q_expansion: &[Rational],
     weight: usize,

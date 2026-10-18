@@ -27,6 +27,19 @@ pub enum Outcome {
 /// Normal-play outcomes of a finite game graph given as adjacency lists
 /// (`succ[v]` = the positions reachable from `v` in one move). Retrograde
 /// analysis: O(V + E).
+///
+/// # Examples
+///
+/// ```
+/// use ogdoad::games::{outcomes, Outcome};
+///
+/// // 0 -> 1 -> 2 is a path to a terminal position; 3 <-> 4 is a cycle with no exit.
+/// let succ = vec![vec![1], vec![2], vec![], vec![4], vec![3]];
+/// assert_eq!(
+///     outcomes(&succ),
+///     [Outcome::Loss, Outcome::Win, Outcome::Loss, Outcome::Draw, Outcome::Draw]
+/// );
+/// ```
 pub fn outcomes(succ: &[Vec<usize>]) -> Vec<Outcome> {
     let n = succ.len();
     let mut pred = vec![Vec::new(); n];

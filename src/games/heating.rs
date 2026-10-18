@@ -50,6 +50,31 @@ pub fn integer_game_value(g: &Game) -> Option<i128> {
 /// `u*tau + a` for `tau >= 0`.  The cold-number branch is strictly lower than `a`; see
 /// [`numeric_norton_mean_temperature`] for its exact formula.  Returns `None`
 /// for nonnumeric or nonpositive units.
+///
+/// # Examples
+///
+/// `thermo_newton.tex` proves the regrading formula for every nonnumeric short
+/// game. The example checks one instance: Norton multiplication by `2` sends the
+/// switch `{1|-1}` (mean `0`, temperature `1`) to temperature `2*1 + 1 = 3`,
+/// both from the formula and from the literal Norton product.
+///
+/// ```
+/// use ogdoad::games::{
+///     norton_multiply, numeric_norton_mean_temperature, numeric_norton_regrade, thermograph, Game,
+/// };
+/// use ogdoad::scalar::Rational;
+///
+/// let r = |n: i128| Rational::new(n, 1);
+/// let (unit, switch) = (Game::integer(2), Game::switch(1, -1));
+/// assert_eq!(numeric_norton_regrade(&unit), Some((r(2), r(1)))); // (u, a = u - 1)
+///
+/// let product = thermograph(&norton_multiply(&switch, &unit).unwrap()).unwrap();
+/// assert_eq!((product.mean(), product.temperature.clone()), (r(0), r(3)));
+/// assert_eq!(numeric_norton_mean_temperature(&switch, &unit), Some((r(0), r(3))));
+///
+/// // Units must be positive numbers: * has no numeric regrade.
+/// assert_eq!(numeric_norton_regrade(&Game::star()), None);
+/// ```
 pub fn numeric_norton_regrade(unit: &Game) -> Option<(Rational, Rational)> {
     if !is_positive_game(unit) {
         return None;
@@ -83,6 +108,30 @@ pub fn numeric_norton_regrade(unit: &Game) -> Option<(Rational, Rational)> {
 /// cannot be the scalar action of an associative graded algebra whose dyadic
 /// coefficients multiply ordinarily.  Returns `None` when either unit is not a
 /// positive short-game number.
+///
+/// # Examples
+///
+/// The example realizes the paper's counterexample to a multiplicative action:
+/// Norton multiplication of `*` by `1/2` and then by `2` gives temperature `1`,
+/// whereas multiplication by `1/2 * 2 = 1` leaves `*` at temperature `0`. It
+/// checks this one pair, not the classification of the zero set of the defect.
+///
+/// ```
+/// use ogdoad::games::{norton_multiply, numeric_norton_composition_defect, temperature, Game};
+/// use ogdoad::scalar::Rational;
+///
+/// let r = |n: i128| Rational::new(n, 1);
+/// let half = Game::new(vec![Game::zero()], vec![Game::integer(1)]);
+/// let (two, star) = (Game::integer(2), Game::star());
+/// let once = norton_multiply(&star, &half).unwrap();
+/// assert!(once.eq(&star));
+/// let twice = norton_multiply(&once, &two).unwrap();
+/// assert_eq!(temperature(&twice), Some(r(1)));
+/// assert_eq!(temperature(&norton_multiply(&star, &Game::integer(1)).unwrap()), Some(r(0)));
+///
+/// assert_eq!(numeric_norton_composition_defect(&half, &two), Some(r(1)));
+/// assert_eq!(numeric_norton_composition_defect(&two, &two), Some(r(0)));
+/// ```
 pub fn numeric_norton_composition_defect(
     first_unit: &Game,
     second_unit: &Game,
@@ -142,6 +191,21 @@ pub fn numeric_norton_mean_temperature(g: &Game, unit: &Game) -> Option<(Rationa
 /// Numbers are fixed; non-number options are recursively shifted as
 /// `{ heat(G^L,t) + t | heat(G^R,t) - t }`.  Returns `None` when `t` is not
 /// dyadic, because arbitrary rationals are not short games.
+///
+/// # Examples
+///
+/// Heating `*` by `1` gives the switch `{1|-1}`, of temperature `1`; a
+/// non-dyadic temperature is refused.
+///
+/// ```
+/// use ogdoad::games::{heat, temperature, Game};
+/// use ogdoad::scalar::Rational;
+///
+/// let hot = heat(&Game::star(), &Rational::new(1, 1)).unwrap();
+/// assert!(hot.eq(&Game::switch(1, -1)));
+/// assert_eq!(temperature(&hot), Some(Rational::new(1, 1)));
+/// assert!(heat(&Game::star(), &Rational::new(1, 3)).is_none());
+/// ```
 pub fn heat(g: &Game, t: &Rational) -> Option<Game> {
     let shift = Game::from_surreal(&Surreal::from_rational(t.clone()))?;
     let neg_shift = shift.neg();

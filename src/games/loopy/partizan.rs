@@ -129,6 +129,25 @@ impl std::error::Error for LoopyPartizanGraphError {}
 
 /// A finite loopy partizan game graph. `left[v]` are Left's legal moves from
 /// position `v`; `right[v]` are Right's legal moves. Cycles are allowed.
+///
+/// # Examples
+///
+/// ```
+/// use ogdoad::games::{LoopyPartizanGraph, PartizanOutcome};
+///
+/// // on = {on|}: one node where Left can move to itself forever and Right has no move.
+/// let on = LoopyPartizanGraph::new(vec![vec![0]], vec![vec![]]).unwrap();
+/// assert_eq!(on.classify(0), Some(PartizanOutcome::L));
+/// assert!(on.is_stopper(0).unwrap());
+///
+/// // on + off is a draw: neither player can force a finite win.
+/// let sum = on.sum(0, &on.neg(), 0, 100).unwrap();
+/// assert_eq!(sum.classify(0), Some(PartizanOutcome::Draw));
+///
+/// // Out-of-range edges and over-budget sums are errors, not panics.
+/// assert!(LoopyPartizanGraph::new(vec![vec![1]], vec![vec![]]).is_err());
+/// assert!(on.sum(0, &on.neg(), 0, 0).is_err());
+/// ```
 #[derive(Debug)]
 pub struct LoopyPartizanGraph {
     left: Vec<Vec<usize>>,

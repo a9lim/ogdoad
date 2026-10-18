@@ -241,28 +241,7 @@ impl std::fmt::Display for ClassifyError {
     }
 }
 
-/// Classify the quadratic form data attached to a [`Metric`] over `Self`,
-/// dispatched on the scalar field. For real/complex-style legs this is also the
-/// implemented Clifford-algebra closure type; for `Rational` it is the complete
-/// Hasse-Minkowski quadratic-form invariant, not a full rational Brauer-Wall
-/// class. The [`Class`](ClassifyForm::Class) associated type is the leg-specific
-/// datum:
-///
-/// | scalar | `Class` | leg |
-/// |---|---|---|
-/// | [`Surreal`] | [`CliffordInvariants`] | exact-square char 0 subdomain (8-fold) |
-/// | [`Surcomplex<Surreal>`](Surcomplex) | [`CliffordInvariants`] | exact-square char 0 subdomain (2-fold) |
-/// | [`Rational`] | [`RationalCliffordInvariants`] | char 0, full Hasse-Minkowski form invariant |
-/// | [`Fp<P>`](Fp) | [`OddCharInvariants`] | odd characteristic |
-/// | [`Fpn<P,N>`](Fpn) | [`FiniteFieldInvariants`] | finite extension fields, odd or char 2 |
-/// | [`Nimber`] | [`ArfInvariants`] | characteristic 2 (Arf) |
-/// | [`Ordinal`] | [`ArfInvariants`] | detected finite ordinal-nimber windows only |
-///
-/// `Err` means the metric is outside the classifier's domain (e.g. an `Ordinal`
-/// metric with coefficients outside the detected finite-subfield windows, or a
-/// metric the diagonalizer can't reduce); see [`ClassifyError`]. A non-diagonal
-/// char-2 form is *not* such an example — the char-2 legs classify directly off
-/// the full `(q, b)` metric via Arf reduction, with no diagonalization step.
+/// A failed Witt-class construction is reported as the matching façade error.
 impl From<crate::forms::WittClassError> for ClassifyError {
     fn from(e: crate::forms::WittClassError) -> Self {
         match e {
@@ -329,7 +308,51 @@ fn two_metric_failure<S: crate::scalar::Scalar>(
     }
 }
 
-/// Scalar capability for classifying the quadratic data of a metric.
+/// Classify the quadratic form data attached to a [`Metric`] over `Self`,
+/// dispatched on the scalar field. For real/complex-style legs this is also the
+/// implemented Clifford-algebra closure type; for `Rational` it is the complete
+/// Hasse-Minkowski quadratic-form invariant, not a full rational Brauer-Wall
+/// class. The [`Class`](ClassifyForm::Class) associated type is the leg-specific
+/// datum:
+///
+/// | scalar | `Class` | leg |
+/// |---|---|---|
+/// | [`Surreal`] | [`CliffordInvariants`] | exact-square char 0 subdomain (8-fold) |
+/// | [`Surcomplex<Surreal>`](Surcomplex) | [`CliffordInvariants`] | exact-square char 0 subdomain (2-fold) |
+/// | [`Rational`] | [`RationalCliffordInvariants`] | char 0, full Hasse-Minkowski form invariant |
+/// | [`Fp<P>`](Fp) | [`OddCharInvariants`] | odd characteristic |
+/// | [`Fpn<P,N>`](Fpn) | [`FiniteFieldInvariants`] | finite extension fields, odd or char 2 |
+/// | [`Nimber`] | [`ArfInvariants`] | characteristic 2 (Arf) |
+/// | [`Ordinal`] | [`ArfInvariants`] | detected finite ordinal-nimber windows only |
+///
+/// `Err` means the metric is outside the classifier's domain (e.g. an `Ordinal`
+/// metric with coefficients outside the detected finite-subfield windows, or a
+/// metric the diagonalizer can't reduce); see [`ClassifyError`]. A non-diagonal
+/// char-2 form is *not* such an example — the char-2 legs classify directly off
+/// the full `(q, b)` metric via Arf reduction, with no diagonalization step.
+///
+/// # Examples
+///
+/// The façade returns the leg-specific invariant, or a [`ClassifyError`] saying
+/// why the metric is outside that leg's domain. Here `x^2 - y^2 + z^2` over the
+/// surreals (two positive squares, one negative) has Clifford algebra
+/// `M_2(R) ⊕ M_2(R)`, while `<2>` would need `sqrt 2`, which the finite-support
+/// surreal backend does not represent, so it is refused rather than
+/// misclassified:
+///
+/// ```
+/// use ogdoad::clifford::Metric;
+/// use ogdoad::forms::{ClassifyError, ClassifyForm};
+/// use ogdoad::scalar::{Scalar, Surreal};
+///
+/// let cl21 = Metric::diagonal([1, -1, 1].map(Surreal::from_int).to_vec());
+/// let invariants = Surreal::classify(&cl21).unwrap();
+/// assert_eq!(invariants.signature, (2, 1));
+/// assert_eq!(invariants.to_string(), "M_2(R) ⊕ M_2(R)");
+///
+/// let two = Metric::diagonal(vec![Surreal::from_int(2)]);
+/// assert_eq!(Surreal::classify(&two), Err(ClassifyError::UnsupportedFieldOrWindow));
+/// ```
 pub trait ClassifyForm: Scalar {
     /// The classification datum produced for this field's characteristic leg.
     type Class;

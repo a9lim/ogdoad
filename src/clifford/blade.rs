@@ -157,6 +157,25 @@ pub fn blade_subspace<S: Scalar>(
 /// vectors, and top-grade homogeneous multivectors always are; intermediate
 /// grades are checked by the Plücker relations over the scalar ring. Zero and
 /// mixed-grade multivectors are not blades.
+///
+/// # Examples
+///
+/// In four dimensions `e₀∧e₁ + e₂∧e₃` is a bivector that is not a wedge of two
+/// vectors, while `(e₀ + e₂)∧(e₁ + e₃)` is. The test uses only the wedge, so it
+/// does not depend on the metric.
+///
+/// ```
+/// use ogdoad::clifford::{is_blade, CliffordAlgebra, Metric};
+/// use ogdoad::scalar::{Rational, Scalar};
+///
+/// let r = Rational::from_int;
+/// let alg = CliffordAlgebra::new(4, Metric::diagonal(vec![r(1); 4]));
+/// let e = |i| alg.e(i);
+/// let non_blade = alg.add(&alg.wedge(&e(0), &e(1)), &alg.wedge(&e(2), &e(3)));
+/// let blade = alg.wedge(&alg.add(&e(0), &e(2)), &alg.add(&e(1), &e(3)));
+/// assert!(!is_blade(&alg, &non_blade));
+/// assert!(is_blade(&alg, &blade));
+/// ```
 pub fn is_blade<S: Scalar>(alg: &CliffordAlgebra<S>, a: &Multivector<S>) -> bool {
     match homogeneous_grade(a) {
         Some(0) => true,
@@ -189,6 +208,27 @@ fn monomial_factor<S: Scalar>(
 /// Factor a blade into grade-1 vectors whose wedge is exactly `A`. `None` if `A`
 /// is not a blade. A scalar returns itself as the single factor; a grade-`k`
 /// blade returns `k` vectors.
+///
+/// # Examples
+///
+/// A decomposable bivector factors into two vectors whose wedge is exactly the
+/// input; a non-blade is refused with `None`.
+///
+/// ```
+/// use ogdoad::clifford::{factor_blade, CliffordAlgebra, Metric};
+/// use ogdoad::scalar::{Rational, Scalar};
+///
+/// let r = Rational::from_int;
+/// let alg = CliffordAlgebra::new(4, Metric::diagonal(vec![r(1); 4]));
+/// let e = |i| alg.e(i);
+/// let blade = alg.wedge(&alg.add(&e(0), &e(2)), &alg.add(&e(1), &e(3)));
+/// let factors = factor_blade(&alg, &blade).unwrap();
+/// assert_eq!(factors.len(), 2);
+/// assert_eq!(alg.wedge(&factors[0], &factors[1]), blade);
+///
+/// let non_blade = alg.add(&alg.wedge(&e(0), &e(1)), &alg.wedge(&e(2), &e(3)));
+/// assert!(factor_blade(&alg, &non_blade).is_none());
+/// ```
 pub fn factor_blade<S: Scalar>(
     alg: &CliffordAlgebra<S>,
     a: &Multivector<S>,

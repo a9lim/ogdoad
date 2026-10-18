@@ -170,6 +170,32 @@ impl<S: ExactFieldScalar> WeylPSymbolPair<S> {
 /// The fibre remains the sole multiplication engine. This wrapper records its
 /// tensor factors and adds theorem-shaped operations whose results are checked
 /// against that engine.
+///
+/// # Examples
+///
+/// Over the nimbers with `x^2 = *2` and `d^2 = *3`, the residue of `x d` is its
+/// top reduced PBW coefficient `1`, and the residue does not see the
+/// commutator `[d, x] = 1`. The factor converts to the cyclic presentation
+/// `(b, c]` with `b = d^2 = *3` and `c = a b = *2 * *3 = *1` (nimber product),
+/// after the relations `zeta^2 = b`, `eta^2 = eta + c`, `zeta eta = (eta + 1) zeta`
+/// are rechecked:
+///
+/// ```
+/// use ogdoad::scalar::Nimber;
+/// use ogdoad::weyl::{WeylAlgebra, WeylExpansionBudget, WeylRepresentationBudget};
+///
+/// let weyl = WeylAlgebra::<Nimber>::standard(1);
+/// let rep = WeylRepresentationBudget::new(4, 0, 0);
+/// let psymbol = weyl.psymbol_presentation(vec![Nimber(2), Nimber(3)], rep).unwrap();
+/// let reduce = |e| psymbol.fiber().reduce(e).unwrap();
+/// let (xd, dx) = (weyl.mul(&weyl.x(0), &weyl.d(0)), weyl.mul(&weyl.d(0), &weyl.x(0)));
+/// assert_eq!(psymbol.p_residue(&reduce(&xd)), Ok(Nimber(1)));
+/// assert_eq!(psymbol.p_residue(&reduce(&dx)), psymbol.p_residue(&reduce(&xd)));
+///
+/// let cyclic = psymbol.cyclic_factor(0, rep, WeylExpansionBudget::new(32, 1_000)).unwrap();
+/// assert_eq!(cyclic.momentum_power(), &Nimber(3));
+/// assert_eq!(cyclic.artin_schreier_parameter(), &Nimber(1));
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 pub struct WeylPSymbolPresentation<S: ExactFieldScalar> {
     fiber: WeylCentralFiber<S>,
@@ -228,6 +254,33 @@ impl<S: ExactFieldScalar> WeylPSymbolPresentation<S> {
     /// Brauer-theoretic report for this tensor presentation. Without a matrix
     /// certificate this records only the cited `p`-symbol interpretation; it
     /// does not assert that the represented fibre splits over `S`.
+    ///
+    /// # Examples
+    ///
+    /// A presentation alone leaves the split question uncomputed (`None`, not
+    /// `Some(false)`); an exact full-rank matrix certificate for the same fibre
+    /// upgrades the report to `Some(true)`:
+    ///
+    /// ```
+    /// use ogdoad::scalar::{Fp, Scalar};
+    /// use ogdoad::weyl::{WeylAlgebra, WeylFiberBrauerEvidence, WeylRepresentationBudget};
+    ///
+    /// let f3 = Fp::<3>::from_int;
+    /// let weyl = WeylAlgebra::<Fp<3>>::standard(1);
+    /// let budget = WeylRepresentationBudget::new(256, 100_000, 20_000_000);
+    /// let values = vec![f3(2), f3(1)]; // x^3 = 2, d^3 = 1; Frobenius is the identity on F_3
+    /// let psymbol = weyl.psymbol_presentation(values.clone(), budget).unwrap();
+    /// assert_eq!(psymbol.brauer_report().is_split(), None);
+    ///
+    /// let roots = values.clone();
+    /// let certificate = weyl.odd_matrix_fiber_certificate(values, roots, budget).unwrap();
+    /// let report = psymbol.brauer_report_with_matrix_certificate(&certificate).unwrap();
+    /// assert_eq!(report.is_split(), Some(true));
+    /// assert!(matches!(
+    ///     report.evidence(),
+    ///     WeylFiberBrauerEvidence::SplitMatrixCertificate { matrix_dimension: 3, image_rank: 9 }
+    /// ));
+    /// ```
     pub fn brauer_report(&self) -> WeylFiberBrauerReport<S> {
         WeylFiberBrauerReport {
             characteristic: self.characteristic(),
@@ -269,6 +322,31 @@ impl<S: ExactFieldScalar> WeylPSymbolPresentation<S> {
 
     /// Compare the tensor `p`-residue with exact matrix trace on a verified
     /// split module. With the source convention, `residue = (-1)^n trace`.
+    ///
+    /// # Examples
+    ///
+    /// In rank one over `F_3` the top monomial `x^2 d^2` has residue `1`, and
+    /// its matrix on the 3-dimensional split module has trace `-1`:
+    ///
+    /// ```
+    /// use ogdoad::scalar::{Fp, Scalar};
+    /// use ogdoad::weyl::{WeylAlgebra, WeylRepresentationBudget};
+    ///
+    /// let f3 = Fp::<3>::from_int;
+    /// let weyl = WeylAlgebra::<Fp<3>>::standard(1);
+    /// let budget = WeylRepresentationBudget::new(256, 100_000, 20_000_000);
+    /// let values = vec![f3(2), f3(1)];
+    /// let psymbol = weyl.psymbol_presentation(values.clone(), budget).unwrap();
+    /// let module = weyl.split_central_character_module(values.clone(), values, budget).unwrap();
+    ///
+    /// let top = weyl.monomial(&[2, 2], f3(1));
+    /// let reduced = psymbol.fiber().reduce(&top).unwrap();
+    /// assert_eq!(psymbol.p_residue(&reduced), Ok(f3(1)));
+    /// let matrix = module.action_matrix(&top, budget).unwrap();
+    /// let trace = (0..3).fold(f3(0), |sum, i| sum.add(&matrix[i][i]));
+    /// assert_eq!(trace, f3(-1));
+    /// assert_eq!(psymbol.split_matrix_trace_matches_residue(&module, &reduced, budget), Ok(true));
+    /// ```
     pub fn split_matrix_trace_matches_residue(
         &self,
         module: &WeylCentralCharacterModule<S>,
@@ -490,6 +568,28 @@ impl<S: ExactFieldScalar> WeylAutomorphism<S> {
     ///
     /// Computing in the Weyl algebra automatically retains the characteristic-
     /// two quadratic correction for mixed symplectic coordinates.
+    ///
+    /// # Examples
+    ///
+    /// The Fourier automorphism sends `x -> d` and `d -> -x`, so it pulls the
+    /// central character `(x^3, d^3) = (a, b)` back to `(b, -a)`:
+    ///
+    /// ```
+    /// use ogdoad::scalar::{Fp, Scalar};
+    /// use ogdoad::weyl::{WeylAlgebra, WeylExpansionBudget, WeylRepresentationBudget};
+    ///
+    /// let f3 = Fp::<3>::from_int;
+    /// let weyl = WeylAlgebra::<Fp<3>>::standard(1);
+    /// let fourier = weyl.fourier_automorphism().unwrap();
+    /// let pulled = fourier
+    ///     .pullback_central_character(
+    ///         vec![f3(1), f3(0)], // a = 1, b = 0
+    ///         WeylRepresentationBudget::new(9, 0, 0),
+    ///         WeylExpansionBudget::new(100, 10_000),
+    ///     )
+    ///     .unwrap();
+    /// assert_eq!(pulled.pulled_back_values(), &[f3(0), f3(-1)]);
+    /// ```
     pub fn pullback_central_character(
         &self,
         central_values: Vec<S>,
@@ -552,6 +652,36 @@ impl<S: ExactFieldScalar> WeylTransportedCentralFiberElement<S> {
 /// central radical-polynomial factor. `paired_values` fix the `p`-th powers of
 /// the `2r` paired generators; `radical_values` fix the central radical
 /// generators themselves. The finite basis therefore has dimension `p^(2r)`.
+///
+/// # Examples
+///
+/// Over `F_3`, a degenerate rank-two presentation (one Darboux pair plus one
+/// radical direction) has a 9-dimensional fibre whatever the radical value.
+/// The radical generator reduces to its assigned value, and multiplication in
+/// the paired `p`-symbol engine agrees with multiplication in the source
+/// presentation:
+///
+/// ```
+/// use ogdoad::scalar::{Fp, Scalar};
+/// use ogdoad::weyl::{WeylAlgebra, WeylExpansionBudget, WeylRepresentationBudget};
+///
+/// let f3 = Fp::<3>::from_int;
+/// let omega = vec![
+///     vec![f3(0), f3(1), f3(1)],
+///     vec![f3(-1), f3(0), f3(2)],
+///     vec![f3(-1), f3(-2), f3(0)],
+/// ];
+/// let weyl = WeylAlgebra::from_commutator(omega).unwrap();
+/// let rep = WeylRepresentationBudget::new(9, 0, 0);
+/// let fiber = weyl.transported_central_fiber(vec![f3(2), f3(1)], vec![f3(1)], rep).unwrap();
+/// assert_eq!(fiber.basis_dimension(), 9);
+/// let radical = &weyl.radical_generators().unwrap()[0];
+/// assert_eq!(fiber.reduce(radical), fiber.reduce(&weyl.scalar(f3(1))));
+///
+/// let (u, v) = (fiber.generator(0).unwrap(), fiber.generator(1).unwrap());
+/// let budget = WeylExpansionBudget::unbounded();
+/// assert_eq!(fiber.products_agree_with_source(&u, &v, budget), Ok(true));
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 pub struct WeylTransportedCentralFiber<S: ExactFieldScalar> {
     decomposition: WeylDarbouxDecomposition<S>,

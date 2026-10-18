@@ -201,6 +201,28 @@ fn linear_map_order(map: &LinearMap<Rational>, max_order: u128) -> Option<u128> 
 }
 
 /// The order of the Coxeter versor's Pin action, bounded by `max_order`.
+///
+/// # Examples
+///
+/// In the Clifford algebra of `A_2` each simple root `e_i` (with `e_i^2 = 2`)
+/// is an invertible vector, and its twisted-adjoint action is the Cartan
+/// reflection. The Coxeter versor `e_0 e_1` acts with order 3, the Coxeter
+/// number; with `max_order = 2` the search gives up and returns `None`.
+///
+/// ```
+/// use ogdoad::forms::{
+///     a_n, weyl_coxeter_action_order, weyl_simple_reflection_map, weyl_simple_root_versors,
+///     weyl_versor_action_map,
+/// };
+///
+/// let a2 = a_n(2).unwrap();
+/// let versors = weyl_simple_root_versors(&a2);
+/// for (i, e_i) in versors.iter().enumerate() {
+///     assert_eq!(weyl_versor_action_map(&a2, e_i), weyl_simple_reflection_map(&a2, i));
+/// }
+/// assert_eq!(weyl_coxeter_action_order(&a2, 3), Some(3));
+/// assert_eq!(weyl_coxeter_action_order(&a2, 2), None);
+/// ```
 pub fn weyl_coxeter_action_order(lattice: &IntegralForm, max_order: u128) -> Option<u128> {
     let c = weyl_coxeter_versor(lattice)?;
     let action = weyl_versor_action_map(lattice, &c)?;
@@ -208,6 +230,24 @@ pub fn weyl_coxeter_action_order(lattice: &IntegralForm, max_order: u128) -> Opt
 }
 
 /// Clifford-versor report for the irreducible ADE root component `kind`.
+///
+/// # Examples
+///
+/// For `E8` the Pin action of the Coxeter versor `e_0 ... e_7` has order 30,
+/// the Coxeter number, and every simple reflection has determinant `-1`. The
+/// report is a finite check of those relations for this component, not a
+/// proof for the family.
+///
+/// ```
+/// use ogdoad::forms::{weyl_versor_report, NiemeierComponentKind};
+///
+/// let r = weyl_versor_report(NiemeierComponentKind::E8).unwrap();
+/// assert_eq!((r.rank, r.weyl_group_order), (8, 696_729_600));
+/// assert_eq!((r.coxeter_number, r.coxeter_versor_order), (30, 30));
+/// assert!(r.simple_reflections_match_cartan);
+/// assert!(r.simple_reflection_determinants_are_minus_one);
+/// assert!(r.coxeter_order_matches);
+/// ```
 pub fn weyl_versor_report(kind: NiemeierComponentKind) -> Option<WeylVersorInvariants> {
     let lattice = kind.root_lattice()?;
     let coxeter_number = kind.coxeter_number()?;

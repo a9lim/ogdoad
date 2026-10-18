@@ -82,6 +82,25 @@ fn discrete_log_linear<F: FiniteField>(base: F, target: F, order: u128) -> Optio
 
 /// An element of `F_{p^N}`: the coefficients of `c_0 + c_1 x + … + c_{N-1} x^{N-1}`,
 /// each reduced into `[0, P)`.
+///
+/// # Examples
+///
+/// `Fpn<2, 3>` is `F_8`, a characteristic-two field the nimbers cannot reach
+/// (their subfields have degree `2^k`). The reduction polynomial is a
+/// deterministic choice, so the example asserts only basis-independent facts.
+///
+/// ```
+/// use ogdoad::scalar::{FiniteField, Fpn, Scalar};
+///
+/// type F8 = Fpn<2, 3>;
+/// let x = F8::generator(); // the class of the indeterminate
+/// assert_eq!(F8::field_order(), 8);
+/// assert!(x.add(&x).is_zero()); // characteristic 2
+/// assert_eq!(x.degree(), 3); // x is not in the prime subfield F_2
+/// assert_eq!(x.frobenius_iter(3), x); // x^8 = x
+/// assert_eq!(x.multiplicative_order(), Some(7)); // |F_8^*| = 7 is prime
+/// assert!(x.is_primitive());
+/// ```
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Fpn<const P: u128, const N: usize>([u128; N]);
 

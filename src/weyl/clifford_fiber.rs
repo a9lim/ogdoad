@@ -9,10 +9,37 @@ use crate::scalar::ExactFieldScalar;
 /// with a Clifford algebra on the same ordered generators.
 ///
 /// For central values `x_i^2 = a_i`, `d_i^2 = b_i`, the Clifford quadratic
-/// diagonal is `(a_0,...,a_n,b_0,...,b_n)` and its polar form has
+/// diagonal is `(a_0,...,a_(n-1),b_0,...,b_(n-1))` and its polar form has
 /// `B(x_i,d_j) = delta_ij`. In characteristic two the Weyl commutator is the
 /// Clifford anticommutator, while the reduced PBW exponents are exactly blade
 /// bits.
+///
+/// # Examples
+///
+/// Over the nimbers (characteristic two), the fibre with `x^2 = *2`, `d^2 = *3`
+/// is the Clifford algebra with `e_x^2 = *2`, `e_d^2 = *3` and
+/// `e_x e_d + e_d e_x = 1`. There `(x + d)^2 = *2 + *3 + 1 = 0`, and both
+/// multiplication engines agree on it:
+///
+/// ```
+/// use ogdoad::scalar::Nimber;
+/// use ogdoad::weyl::{WeylAlgebra, WeylRepresentationBudget};
+///
+/// let weyl = WeylAlgebra::<Nimber>::standard(1);
+/// let budget = WeylRepresentationBudget::new(4, 0, 0);
+/// let bridge = weyl.clifford_central_fiber(vec![Nimber(2), Nimber(3)], budget).unwrap();
+/// let cl = bridge.clifford_algebra();
+/// let (ex, ed) = (cl.e(0), cl.e(1));
+/// assert_eq!(cl.mul(&ex, &ex), cl.scalar(Nimber(2)));
+/// assert_eq!(cl.add(&cl.mul(&ex, &ed), &cl.mul(&ed, &ex)), cl.scalar(Nimber(1)));
+/// assert_eq!(bridge.weyl_to_clifford(&weyl.x(0)), Ok(ex.clone()));
+///
+/// let sum = weyl.x(0) + weyl.d(0);
+/// assert!(cl.mul(&cl.add(&ex, &ed), &cl.add(&ex, &ed)).is_zero());
+/// let reduced = bridge.fiber().reduce(&sum).unwrap();
+/// assert!(bridge.fiber().checked_mul(&reduced, &reduced).unwrap().is_zero());
+/// assert_eq!(bridge.products_agree(&sum, &sum), Ok(true));
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 pub struct WeylCliffordFiber<S: ExactFieldScalar> {
     fiber: WeylCentralFiber<S>,

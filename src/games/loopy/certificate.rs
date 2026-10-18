@@ -140,6 +140,29 @@ fn successors(graph: &LoopyPartizanGraph, s: usize) -> Vec<usize> {
 
 impl LoopyPartizanGraph {
     /// Solve every turn-state under a convention, producing a certificate.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ogdoad::games::{LoopyPartizanGraph, PlayConvention, StateVerdict};
+    ///
+    /// // on = {on|}: Left can move to itself forever; Right has no move.
+    /// let on = LoopyPartizanGraph::new(vec![vec![0]], vec![vec![]]).unwrap();
+    /// let cert = on.certify_outcomes(PlayConvention::Normal);
+    /// // Turn-state 2v is node v with Left to move, 2v + 1 with Right to move.
+    /// assert_eq!(cert.labels[0].verdict, StateVerdict::Win);
+    /// assert_eq!(cert.labels[1].verdict, StateVerdict::Loss);
+    /// assert!(on.verify_outcome_certificate(&cert).is_ok());
+    ///
+    /// // The verifier checks local conditions only, so a forged label is rejected.
+    /// let mut forged = cert.clone();
+    /// forged.labels[0].verdict = StateVerdict::Loss;
+    /// assert!(on.verify_outcome_certificate(&forged).is_err());
+    ///
+    /// // Under misère play a player with no move wins, so Left moving first now loses.
+    /// let misere = on.certify_outcomes(PlayConvention::Misere);
+    /// assert_eq!(misere.labels[0].verdict, StateVerdict::Loss);
+    /// ```
     pub fn certify_outcomes(&self, convention: PlayConvention) -> OutcomeCertificate {
         let n = self.node_count();
         let states = 2 * n;
