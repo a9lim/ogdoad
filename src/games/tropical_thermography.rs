@@ -53,6 +53,29 @@ impl Pl {
 ///
 /// Returns `None` on the same degenerate positions as
 /// [`thermograph`](crate::games::thermograph).
+///
+/// # Examples
+///
+/// `thermo_newton.tex` separates this tropical shadow from a Newton-polygon
+/// graded ring: the option folds and cooling are tropical, freezing is not. The
+/// example checks only that the two routes agree on a few games.
+///
+/// ```
+/// use ogdoad::games::{thermograph, thermograph_via_tropical, Game};
+///
+/// let games = [
+///     Game::switch(3, -1),
+///     Game::new(vec![Game::integer(3)], vec![Game::switch(1, -1)]),
+///     Game::switch(4, -4).add(&Game::switch(2, 0)),
+/// ];
+/// for g in &games {
+///     let (direct, tropical) = (thermograph(g).unwrap(), thermograph_via_tropical(g).unwrap());
+///     assert_eq!(direct.mean(), tropical.mean());
+///     assert_eq!(direct.temperature, tropical.temperature);
+///     assert_eq!(direct.left_wall.points(), tropical.left_wall.points());
+///     assert_eq!(direct.right_wall.points(), tropical.right_wall.points());
+/// }
+/// ```
 pub fn thermograph_via_tropical(g: &Game) -> Option<Thermograph> {
     let (left_wall, right_wall, mast, temperature) = walls_with(g, |acc, wall, is_max| {
         if is_max {

@@ -16,11 +16,23 @@
 //! [`try_misere_is_n`](crate::games::try_misere_is_n)). Tests compare the two
 //! routes and verify the disjunctive-sum XOR law for Nim.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+use std::convert::Infallible;
 use std::hash::Hash;
 
 /// The minimal excludant of a set of nimbers: the least non-negative integer not
 /// present.
+///
+/// # Examples
+///
+/// ```
+/// use ogdoad::games::mex;
+///
+/// assert_eq!(mex([]), 0);
+/// assert_eq!(mex([0, 1, 3]), 2);
+/// assert_eq!(mex([1, 2, 3]), 0);
+/// assert_eq!(mex([0, 0, 1, u128::MAX]), 2); // duplicates and huge values are harmless
+/// ```
 pub fn mex<I: IntoIterator<Item = u128>>(values: I) -> u128 {
     let values: Vec<u128> = values.into_iter().collect();
     // For n supplied values, mex is at most n. Values outside that interval
@@ -61,6 +73,18 @@ fn grundy_dfs(succ: &[Vec<usize>], v: usize, state: &mut [u8], g: &mut [u128]) -
 /// the Win/Loss/Draw analysis of loopy games.
 ///
 /// Position `v` is a P-position (Loss) iff `result[v] == 0`.
+///
+/// # Examples
+///
+/// ```
+/// use ogdoad::games::grundy_graph;
+///
+/// // 0 -> {1, 2}, 1 -> {2}, 2 terminal: g(2) = 0, g(1) = mex{0} = 1, g(0) = mex{1, 0} = 2.
+/// let succ = vec![vec![1, 2], vec![2], vec![]];
+/// assert_eq!(grundy_graph(&succ), Some(vec![2, 1, 0]));
+/// // A cycle has no Grundy value: the checked API returns None.
+/// assert_eq!(grundy_graph(&[vec![1], vec![0]]), None);
+/// ```
 pub fn grundy_graph(succ: &[Vec<usize>]) -> Option<Vec<u128>> {
     let n = succ.len();
     let mut state = vec![0u8; n];
@@ -71,25 +95,82 @@ pub fn grundy_graph(succ: &[Vec<usize>]) -> Option<Vec<u128>> {
     Some(g)
 }
 
-/// The Grundy value of a position given a move generator, memoised. `moves(pos)`
-/// returns the positions reachable in one move; the game must be finite and
-/// acyclic (no position reachable from itself), exactly as for
-/// [`try_misere_is_n`](crate::games::try_misere_is_n). This is the way to compute
-/// Grundy values of games defined by a rule (Nim, octal games, …) without
-/// materialising the whole graph.
-pub fn grundy<P, F>(pos: &P, moves: &F, memo: &mut HashMap<P, u128>) -> u128
+/// The Grundy value of a position given a move generator, memoised, or `None`
+/// if the move graph reachable from `pos` has a directed cycle (Grundy values are
+/// then undefined), exactly as for [`grundy_graph`] and
+/// [`try_misere_is_n`](crate::games::try_misere_is_n). `moves(pos)` returns the
+/// positions reachable in one move. This is the way to compute Grundy values of
+/// games defined by a rule (Nim, octal games, …) without materialising the whole
+/// graph.
+///
+/// Evaluation is iterative, so long chains of positions need no native stack.
+/// Memo entries are recorded only for completed positions, so a refused call
+/// leaves the memo valid.
+///
+/// # Examples
+///
+/// Positions can be any hashable type with a move generator. In the subtraction
+/// game with moves `{1, 2}` a heap `n` moves to `n - 1` or `n - 2`, and the
+/// Grundy value is `n mod 3`:
+///
+/// ```
+/// use ogdoad::games::grundy;
+/// use std::collections::HashMap;
+///
+/// let moves = |n: &u32| (1..=2).filter(|&k| k <= *n).map(|k| n - k).collect::<Vec<u32>>();
+/// let mut memo = HashMap::new();
+/// for n in 0..12 {
+///     assert_eq!(grundy(&n, &moves, &mut memo), Some(u128::from(n % 3)));
+/// }
+/// // A cyclic rule has no Grundy value.
+/// assert_eq!(grundy(&0u8, &|n: &u8| vec![(n + 1) % 3], &mut HashMap::new()), None);
+/// ```
+pub fn grundy<P, F>(pos: &P, moves: &F, memo: &mut HashMap<P, u128>) -> Option<u128>
 where
     P: Eq + Hash + Clone,
     F: Fn(&P) -> Vec<P>,
 {
-    if let Some(&v) = memo.get(pos) {
-        return v;
+    match grundy_with(pos, |p| Ok::<_, Infallible>(moves(p)), memo) {
+        Ok(value) => value,
+        Err(never) => match never {},
     }
-    let options = moves(pos);
-    let values: Vec<u128> = options.iter().map(|p| grundy(p, moves, memo)).collect();
-    let g = mex(values);
-    memo.insert(pos.clone(), g);
-    g
+}
+
+/// [`grundy`] with a fallible move generator, whose first error is returned.
+/// The depth-first search keeps its own stack of positions with their pending
+/// options.
+pub(crate) fn grundy_with<P, E>(
+    pos: &P,
+    mut moves: impl FnMut(&P) -> Result<Vec<P>, E>,
+    memo: &mut HashMap<P, u128>,
+) -> Result<Option<u128>, E>
+where
+    P: Eq + Hash + Clone,
+{
+    if let Some(&value) = memo.get(pos) {
+        return Ok(Some(value));
+    }
+    let mut visiting = HashSet::from([pos.clone()]);
+    let mut stack = vec![(pos.clone(), moves(pos)?, 0usize)];
+    while let Some((_, options, next)) = stack.last_mut() {
+        if let Some(option) = options.get(*next).cloned() {
+            *next += 1;
+            if memo.contains_key(&option) {
+                continue;
+            }
+            if !visiting.insert(option.clone()) {
+                return Ok(None);
+            }
+            let option_moves = moves(&option)?;
+            stack.push((option, option_moves, 0));
+        } else {
+            let (position, options, _) = stack.pop().expect("the stack is nonempty");
+            let value = mex(options.iter().map(|option| memo[option]));
+            visiting.remove(&position);
+            memo.insert(position, value);
+        }
+    }
+    Ok(memo.get(pos).copied())
 }
 
 #[cfg(test)]
@@ -159,9 +240,45 @@ mod tests {
                     heaps.retain(|&x| x != 0);
                     heaps.sort_unstable();
                     let g = grundy(&heaps, &nim_moves, &mut memo);
-                    assert_eq!(g, a ^ b ^ c, "heaps {a},{b},{c}");
+                    assert_eq!(g, Some(a ^ b ^ c), "heaps {a},{b},{c}");
                 }
             }
         }
+    }
+
+    #[test]
+    fn grundy_is_iterative_and_refuses_cycles() {
+        // A chain of a million positions needs no native stack.
+        let chain = |n: &u32| if *n == 0 { vec![] } else { vec![n - 1] };
+        let mut memo = HashMap::new();
+        assert_eq!(grundy(&1_000_000u32, &chain, &mut memo), Some(0));
+        assert_eq!(grundy(&999_999u32, &chain, &mut memo), Some(1));
+        // A cycle below an acyclic prefix is refused, and the memo keeps only
+        // completed positions.
+        let cyclic = |n: &u32| match n {
+            0 => vec![1],
+            1 => vec![2],
+            2 => vec![1],
+            _ => vec![n - 1],
+        };
+        let mut memo = HashMap::new();
+        assert_eq!(grundy(&5u32, &cyclic, &mut memo), None);
+        assert!(memo.is_empty());
+        assert_eq!(grundy(&7u32, &|_: &u32| vec![7], &mut HashMap::new()), None);
+    }
+
+    #[test]
+    fn grundy_with_returns_the_first_move_error() {
+        let moves = |n: &u32| {
+            if *n == 3 {
+                Err("bad position")
+            } else {
+                Ok(vec![n + 1])
+            }
+        };
+        assert_eq!(
+            grundy_with(&0, moves, &mut HashMap::new()),
+            Err("bad position")
+        );
     }
 }

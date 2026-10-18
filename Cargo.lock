@@ -102,7 +102,7 @@ dependencies = [
 
 [[package]]
 name = "grundy"
-version = "0.3.6"
+version = "0.4.0"
 dependencies = [
  "ogdoad",
 ]
@@ -193,7 +193,7 @@ dependencies = [
 
 [[package]]
 name = "ogdoad"
-version = "1.0.7"
+version = "2.0.0"
 dependencies = [
  "proptest",
  "pyo3",

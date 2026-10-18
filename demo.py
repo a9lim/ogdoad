@@ -29,6 +29,87 @@ print("  e1 e0        =", e1 * e0)
 print("  {e0,e1}      =", e0 * e1 + e1 * e0, "  (the anticommutator)")
 print("  e0²          =", e0 ** 2, "  (a nimber square, not ±1)")
 
+section("Weyl — characteristic centre, bounded fibres, and Clifford join")
+W = pl.NimberWeylAlgebra(1)
+x, d = W.x(0), W.d(0)
+print("  [d,x]        =", W.commutator(d, x))
+print("  centre gens  =", W.center_generators())
+assert W.commutator(d, x) == W.one()
+assert W.center_rank_over_center() == 4
+assert W.center_basis_element(3) == x * d
+assert W.central_reduce(x ** 3, [pl.Nimber(2), pl.Nimber(3)], 4) == x.scale(pl.Nimber(2))
+assert W.clifford_fiber_products_agree(
+    d * x, x + d, [pl.Nimber(2), pl.Nimber(3)], 4,
+    max_terms=32, max_steps=1_000,
+)
+roots = [pl.Nimber(pl.nim_sqrt(2)), pl.Nimber(pl.nim_sqrt(3))]
+module_generators = W.central_character_generator_matrices(
+    [pl.Nimber(2), pl.Nimber(3)], roots,
+    max_basis_dimension=2, max_matrix_entries=8, max_steps=10_000,
+)
+print("  split module =", len(module_generators[0]), "x", len(module_generators[0]))
+
+# Sparse polynomial action, symbols, transformations, and hbar.
+t2 = pl.NimberSparsePolynomial.monomial([2], 1)
+assert W.act_on_sparse_polynomial(d, t2) == pl.NimberSparsePolynomial.monomial([1], 0)
+# d(t²)=0 in characteristic two; adding t gives a nonzero derivative.
+poly = t2 + pl.NimberSparsePolynomial.monomial([1], 1)
+assert W.act_on_sparse_polynomial(d, poly) == pl.NimberSparsePolynomial.scalar(1, 1)
+symbol = W.principal_symbol(d * x, "bernstein")
+assert symbol == pl.NimberSparsePolynomial.monomial([1, 1], 1)
+assert W.poisson_bracket(
+    pl.NimberSparsePolynomial.variable(2, 1),
+    pl.NimberSparsePolynomial.variable(2, 0),
+) == pl.NimberSparsePolynomial.scalar(2, 1)
+assert W.fourier_inverse(W.fourier(x + d)) == x + d
+assert W.hbar_commutator(d, x, 0) == W.zero()
+assert W.hbar_commutator(d, x, 1) == W.one()
+
+# p-symbol/cyclic data and characteristic transport.
+psymbol = W.psymbol([pl.Nimber(2), pl.Nimber(3)], 4)
+assert psymbol.tensor_rank() == 1 and psymbol.brauer_split() is None
+assert psymbol.p_residue(x * d) == pl.Nimber(1)
+cyclic_b, cyclic_c = psymbol.cyclic_factor(0, 4, max_terms=32, max_steps=1_000)
+assert cyclic_b == pl.Nimber(3) and cyclic_c == pl.Nimber(2) * pl.Nimber(3)
+assert W.shear_central_character(
+    [pl.Nimber(2), pl.Nimber(3)], [[pl.Nimber(1)]], 4,
+    max_terms=32, max_steps=1_000,
+) == [pl.Nimber(2), pl.Nimber(0)]
+
+# An odd finite-field backend makes the exact split/Brauer and residue/trace
+# certificates operational from Python rather than merely exposing refusal.
+W3 = pl.Fp3WeylAlgebra(1)
+x3, d3 = W3.x(0), W3.d(0)
+psymbol3 = W3.psymbol([pl.Fp3(2), pl.Fp3(1)], 9)
+top3 = W3.monomial([2, 2], pl.Fp3(1))
+assert psymbol3.certify_split(
+    [pl.Fp3(2), pl.Fp3(1)], 9, 100, 1_000_000,
+)
+assert psymbol3.split_trace_matches_residue(
+    top3, [pl.Fp3(2), pl.Fp3(1)], 9, 100, 1_000_000,
+)
+
+general_weyl = pl.NimberWeylAlgebra.from_commutator([
+    [0, 1, 1],
+    [1, 0, 2],
+    [1, 2, 0],
+])
+assert general_weyl.darboux_ranks() == (1, 1)
+general_value = general_weyl.generator(0) * general_weyl.generator(1)
+normal_algebra, normal_value = general_weyl.darboux_to_normal(general_value)
+assert normal_algebra.dim() == 3
+assert general_weyl.darboux_from_normal(normal_value) == general_value
+assert general_weyl.transported_fiber_products_agree(
+    general_weyl.generator(0), general_weyl.generator(1),
+    [pl.Nimber(2), pl.Nimber(3)], [pl.Nimber(1)], 4,
+    max_terms=128, max_steps=10_000,
+)
+print(
+    "  p-symbol      =", psymbol,
+    "cyclic parameters", (cyclic_b, cyclic_c),
+    "F3 split", psymbol3.certify_split([pl.Fp3(2), pl.Fp3(1)], 9, 100, 1_000_000),
+)
+
 section("Grassmann — fully null metric, nilpotent generators")
 G = pl.SurrealAlgebra(q=[0, 0, 0])
 g0, g1 = G.gen(0), G.gen(1)
@@ -266,6 +347,7 @@ print("  2 ⊗ 2 = *3   :", pl.Ordinal(2).nim_mul(pl.Ordinal(2)))
 print("  ω ⊗ ω        =", omega.nim_mul(omega), "  (just polynomial mult)")
 omega_sq = omega.nim_mul(omega)
 print("  ω ⊗ ω ⊗ ω    =", omega_sq.nim_mul(omega), "  (the headline: ω³ = 2)")
+assert omega.nim_pow(3) == pl.Ordinal(2) and omega.nim_pow(0) == pl.Ordinal(1)
 # (ω + 1)³ in characteristic 2 = ω³ + ω² + ω + 1 = 2 + ω² + ω + 1 = ω² + ω + *3
 w1 = omega.nim_add(pl.Ordinal(1))
 print("  (ω+1)³       =", w1.nim_mul(w1).nim_mul(w1), "  (= ω² + ω + nim_add(2,1))")
@@ -768,6 +850,8 @@ adele_pt = adele_cga.up([adelic])
 print("  adelic Cl/CGA backends        :",
       (adele_alg.gen(0) * adele_alg.gen(0)).terms[0][1] == adelic,
       adele_cga.inner(adele_pt, adele_pt).is_zero())
+# Adele.__mul__ defers to the multivector, so both orders land in AdeleMV
+assert (adelic * adele_alg.gen(0)).terms == (adele_alg.gen(0) * adelic).terms
 z8 = pl.Zp2_4(2)
 q5 = pl.Qp5_4.from_rational(1, 5)
 Q5 = pl.Qp5_4Algebra(q=[1, pl.Qp5_4.from_p_power(1)])

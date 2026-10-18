@@ -35,7 +35,21 @@ fn lower_mask(n: u128) -> u128 {
 }
 
 /// Nim-multiplication via Conway's Turning-Corners excludant recurrence — the
-/// *game* definition of the product.
+/// *game* definition of the product. It is exponential in the operands, so it
+/// serves as an oracle for small values; use [`crate::scalar::nim_mul`] to compute.
+///
+/// # Examples
+///
+/// ```
+/// use ogdoad::games::nim_mul_mex;
+/// use ogdoad::scalar::nim_mul;
+///
+/// assert_eq!(nim_mul_mex(2, 2), 3);
+/// assert_eq!(nim_mul_mex(4, 4), 6);
+/// assert_eq!(nim_mul_mex(8, 8), 13);
+/// // The game definition agrees with the algebraic Fermat-power product on these cells.
+/// assert!((0..16).all(|x| (0..16).all(|y| nim_mul_mex(x, y) == nim_mul(x, y))));
+/// ```
 pub fn nim_mul_mex(x: u128, y: u128) -> u128 {
     if x == 0 || y == 0 {
         return 0;
@@ -127,8 +141,30 @@ pub fn grundy_1d<F: Fn(u128) -> Vec<u128>>(
 }
 
 /// Single-coin Grundy value of the Tartan product of two 1-D coin-turning games
-/// at cell (x,y), computed from the 2-D excludant directly (memoised). Compare
-/// against `nim_mul` of the component 1-D Grundy values to check the theorem.
+/// at cell (x,y), computed from the 2-D excludant directly (memoised). The
+/// Tartan theorem says it equals `nim_mul` of the component 1-D Grundy values;
+/// comparing the two pins this implementation against the theorem at the cells
+/// compared, which is evidence, not a proof.
+///
+/// # Examples
+///
+/// Turning Turtles has `g(n) = n + 1` and "turn `n` and one lower coin" has
+/// `g(n) = n`; at cell `(3, 3)` the 2-D excludant is the nim-product `4 ⊗ 3`:
+///
+/// ```
+/// use ogdoad::games::{grundy_1d, singleton_companions, tartan_grundy, turtles_companions};
+/// use ogdoad::scalar::nim_mul;
+/// use std::collections::HashMap;
+///
+/// let (mut rows, mut cols, mut cells) = (HashMap::new(), HashMap::new(), HashMap::new());
+/// let g_turtles = grundy_1d(&turtles_companions, 3, &mut rows);
+/// let g_singleton = grundy_1d(&singleton_companions, 3, &mut cols);
+/// assert_eq!((g_turtles, g_singleton), (4, 3));
+///
+/// let cell = tartan_grundy(&turtles_companions, &singleton_companions, 3, 3, &mut cells);
+/// assert_eq!(cell, nim_mul(g_turtles, g_singleton));
+/// assert_eq!(cell, 12);
+/// ```
 pub fn tartan_grundy<A, B>(
     comp_a: &A,
     comp_b: &B,

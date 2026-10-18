@@ -67,6 +67,7 @@ impl std::fmt::Display for BrauerWallError {
 /// [`try_add`](Self::try_add) is the group law induced by the graded tensor product
 /// `⊗̂`; cross-leg addition is rejected because it would mix ground fields.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum BrauerWallClass {
     /// `BW(ℝ) ≅ ℤ/8`: the Bott index `s = (q − p) mod 8`.
     Real(u128),

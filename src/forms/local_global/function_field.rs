@@ -394,6 +394,7 @@ pub fn try_is_isotropic_ff<S: FiniteOddField>(entries: &[RationalFunction<S>]) -
 /// The per-place isotropy breakdown of a rank-`≥3` form — the function-field
 /// analogue of [`AdelicIsotropy`](crate::forms::AdelicIsotropy) (no real place).
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub struct FFAdelicIsotropy<S: FiniteOddField> {
     /// `(place, is_isotropic_there)` at each relevant place.
     pub local: Vec<(FunctionFieldPlace<S>, bool)>,
@@ -771,6 +772,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(debug_assertions)]
     #[should_panic(expected = "monic irreducible polynomial")]
     fn finite_place_precondition_rejects_reducible_polynomial() {
         // x² − 1 = (x−1)(x+1) over F_5 is reducible: the FunctionFieldPlace::Finite

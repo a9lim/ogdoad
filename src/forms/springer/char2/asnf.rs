@@ -82,7 +82,9 @@ fn laurent_finite<S: FiniteChar2Field>(
     n_lo: i128,
     n_hi: i128,
 ) -> Vec<Poly<S>> {
-    let len = (n_hi - n_lo + 1) as usize;
+    // An empty range (`n_hi < n_lo`) occurs when the block's coefficient product
+    // has positive valuation; it then contributes nothing.
+    let len = (n_hi - n_lo + 1).max(0) as usize;
     if num.is_zero() {
         return vec![Poly::zero(); len];
     }
@@ -123,7 +125,9 @@ fn laurent_infinite<S: FiniteChar2Field>(
     n_lo: i128,
     n_hi: i128,
 ) -> Vec<Poly<S>> {
-    let len = (n_hi - n_lo + 1) as usize;
+    // An empty range (`n_hi < n_lo`) occurs when the block's coefficient product
+    // has positive valuation; it then contributes nothing.
+    let len = (n_hi - n_lo + 1).max(0) as usize;
     if num.is_zero() {
         return vec![Poly::zero(); len];
     }

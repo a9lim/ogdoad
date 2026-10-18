@@ -34,6 +34,33 @@ struct StructuralNodeKey {
 /// A short partizan game `{ left | right }`. Reference-counted (atomically, so the
 /// PyO3 wrapper is `Send + Sync`) — options are shared cheaply across the
 /// recursive sum/negation.
+///
+/// Games form an abelian group under [`add`](Self::add), [`neg`](Self::neg) and
+/// [`times_int`](Self::times_int), and are only partially ordered, so the order
+/// is exposed as methods ([`le`](Self::le), [`eq`](Self::eq),
+/// [`fuzzy`](Self::fuzzy)) rather than through `Ord`. There is no product.
+///
+/// # Examples
+///
+/// Build `1/2 = {0|1}` and a redundant presentation of it, reduce to canonical
+/// form, compare, and add:
+///
+/// ```
+/// use ogdoad::games::Game;
+/// use ogdoad::scalar::{Rational, Surreal};
+///
+/// let half = Game::new(vec![Game::zero()], vec![Game::integer(1)]);
+/// // {-1, 0 | 1}: the Left option -1 is dominated by 0.
+/// let padded = Game::new(vec![Game::integer(-1), Game::zero()], vec![Game::integer(1)]);
+/// assert!(padded.eq(&half) && !padded.is_canonical());
+/// assert!(padded.canonical().structural_eq(&half));
+/// assert!(half.add(&half).eq(&Game::integer(1)));
+/// assert_eq!(half.number_value(), Some(Surreal::from_rational(Rational::new(1, 2))));
+///
+/// // Not every game is a number: * = {0|0} is fuzzy with 0, while up = {0|*} > 0.
+/// assert!(Game::star().fuzzy(&Game::zero()) && Game::star().number_value().is_none());
+/// assert!(Game::zero().le(&Game::up()) && !Game::up().le(&Game::zero()));
+/// ```
 #[derive(Clone)]
 pub struct Game(Arc<GameData>);
 

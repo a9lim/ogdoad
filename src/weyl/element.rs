@@ -52,6 +52,28 @@ impl WeylMonomial {
 /// Zero coefficients are never stored. The dimension is retained on the
 /// element so context-free additive operations cannot silently mix exponent
 /// vectors from different free modules.
+///
+/// Multiplication lives on [`WeylAlgebra`](super::WeylAlgebra), which knows the
+/// commutator form; elements themselves add, subtract and negate.
+///
+/// # Examples
+///
+/// The product `d x` has two PBW terms, the monomials `1` and `x d`, with
+/// exponent vectors listed in generator order `(x, d)`:
+///
+/// ```
+/// use ogdoad::scalar::Rational;
+/// use ogdoad::weyl::WeylAlgebra;
+///
+/// let weyl = WeylAlgebra::<Rational>::standard(1);
+/// let dx = weyl.mul(&weyl.d(0), &weyl.x(0));
+/// let exponents: Vec<Vec<u128>> = dx.terms().keys().map(|m| m.exponents().to_vec()).collect();
+/// assert_eq!(exponents, vec![vec![0, 0], vec![1, 1]]);
+/// assert_eq!(dx.term_count(), 2);
+/// assert_eq!(weyl.filtration_degree(&dx), Ok(Some(2)));
+/// assert_eq!(dx.display(), "1 + z0⋅z1"); // generators render as z0 = x, z1 = d
+/// assert!((dx.clone() - dx).is_zero());
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 pub struct WeylElement<S: Scalar> {
     pub(crate) dim: usize,
@@ -70,6 +92,11 @@ impl<S: Scalar> WeylElement<S> {
         &self.terms
     }
 
+    /// Number of nonzero PBW monomials.
+    pub fn term_count(&self) -> usize {
+        self.terms.len()
+    }
+
     /// Whether this element is zero.
     pub fn is_zero(&self) -> bool {
         self.terms.is_empty()
@@ -78,6 +105,22 @@ impl<S: Scalar> WeylElement<S> {
     /// The canonical human-readable PBW representation.
     pub fn display(&self) -> String {
         self.to_string()
+    }
+
+    /// Map every coefficient through a caller-supplied scalar homomorphism.
+    /// The PBW exponent vectors and generator dimension are unchanged.
+    pub fn map_coefficients<T: Scalar>(&self, f: impl Fn(&S) -> T) -> WeylElement<T> {
+        WeylElement {
+            dim: self.dim,
+            terms: self
+                .terms
+                .iter()
+                .filter_map(|(monomial, coefficient)| {
+                    let mapped = f(coefficient);
+                    (!mapped.is_zero()).then(|| (monomial.clone(), mapped))
+                })
+                .collect(),
+        }
     }
 }
 

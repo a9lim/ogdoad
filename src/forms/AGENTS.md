@@ -15,11 +15,11 @@ that axis. Read `docs/OPEN.md` before changing a claim used by a live paper.
 | `char2/arf.rs` | symplectic reduction and Arf invariants |
 | `char2/brown.rs` | `Z/4`-valued quadratic refinements and Brown invariant |
 | `char2/{dickson,extraspecial,field}.rs` | additive spinor norm and symmetry certificates, extraspecial groups, finite char-two abstraction |
-| `witt/` | Witt rings/groups, rational and function-field Brauer data, Brauer--Wall, cyclic classes, Milnor residues |
+| `witt/` | Witt rings/groups, rational and function-field Brauer data, Brauer--Wall, cyclic classes, Milnor residues, and Clifford centers as discriminant étale algebras |
 | `springer/` | valued-field residue decompositions, including characteristic two |
 | `local_global/` | rational, adelic, and function-field reciprocity/isotropy |
 | `trace_form.rs` | trace, twisted trace, Gold-form, and Scharlau-transfer bridges |
-| `symplectic.rs`, `hermitian.rs` | form-plus-involution siblings |
+| `symplectic.rs`, `hermitian.rs` | alternating Darboux certificates and form-plus-involution siblings |
 | `field_invariants.rs` | level, Pythagoras-number, and regular u-invariant reports for supported finite fields |
 | `quadric_fit.rs` | research instrument fitting Boolean P-sets to quadrics |
 | `integral/` | lattice wing; see `integral/AGENTS.md` |
@@ -48,14 +48,16 @@ crate-private; generic finite-field polynomial factorization belongs beside
 
 ## Algebraic distinctions
 
-- Brown's `Z/4` bilinear form is symmetric with diagonal `q mod 2`; it is not
-  the Clifford engine's alternating characteristic-two polar form.
+- Brown's polar form, attached to a `Z/4`-valued refinement `q`, is a symmetric
+  `F_2`-valued form with diagonal `q mod 2`; it is not the Clifford engine's
+  alternating characteristic-two polar form.
   `double_f2` is the explicit bridge.
 - `Brauer2Class` is the ungraded two-torsion Brauer class.
   `RationalBrauerWallClass` adds grading data.
   `BrauerClass` is the full `Q/Z` local invariant. Do not merge these types.
-- The tame symbol uses valuation plus angular component and assumes the
-  required roots of unity. Wild norm-residue symbols remain roadmap work.
+- The tame symbol uses valuation plus angular component and returns `None`
+  unless `n` divides the residue unit group's order. Wild norm-residue symbols
+  are deliberately deferred (`docs/ROADMAP.md`).
 - `WittClassG::try_mul` rejects the characteristic-two quadratic Witt group,
   which is a module rather than the same ring object used in odd
   characteristic.
@@ -66,7 +68,8 @@ crate-private; generic finite-field polynomial factorization belongs beside
 
 ## Reports and rendering
 
-Use suffixes consistently:
+Use these suffixes for new public types (some older report types predate the
+convention):
 
 - `Class` for an element of a classifying group/set with a law;
 - `Decomp` for a decomposition;
@@ -74,17 +77,21 @@ Use suffixes consistently:
 - `Record` for static catalogue entries;
 - `Signature` and `Isotropy` for those literal structures.
 
-Public reports implement canonical `Display`; Python `repr` delegates to the
-core. Preserve honesty markers such as incomplete searches and
-complement-dependent characteristic-two data.
+Public reports implement canonical `Display`, and Python `repr` delegates to
+it. Preserve honesty markers such as radical anisotropy,
+complement-dependent characteristic-two data, `mass_closed`, and bounded
+searches that return `None`.
 
 ## Claim boundaries
 
 - The Gold--Arf normal-play construction is a proved paper-level synthesis.
-  Lean checks its literal finite binary arena end to end; the cited short-game
-  structure theorem, the Rust finite-nimber representation bridge, and the
-  paper's broader synthesis remain outside that theorem.
-- The arbitrary-graph FIFO theorem is open and not a premise of the Gold
+  Lean checks its literal finite binary arena end to end
+  (`GoldArena.gold_literal_root_isP_iff`). Moews's short-game structure theorem
+  is a cited hypothesis of the game-exterior boundary theorems, not of the
+  arena theorem; the Rust finite-nimber bridge and the paper's broader
+  synthesis stay outside Lean.
+- The arbitrary-graph FIFO linking conjecture is open (Lean states
+  `FifoLinkingTheorem` without proving it) and is not a premise of the Gold
   construction.
 - `quadric_fit` discovers bounded Boolean structure; it is not a classifier or
   universal proof.
@@ -93,6 +100,6 @@ complement-dependent characteristic-two data.
 
 ## Verification
 
-Run tests for the affected characteristic and bridge, then the workspace gate.
+Run tests for the affected characteristic and bridge, then the core gate.
 For claim-bearing changes, also build Lean and all affected papers. Preserve
 the public `u128`/`i128` payload convention.

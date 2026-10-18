@@ -26,6 +26,7 @@ pub const HEISENBERG_WEIL_MATRIX_RANK_CAP: usize = 8;
 
 /// Error returned when a metric is outside the extraspecial 2-group boundary.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum ExtraspecialError {
     /// The bitmask model supports at most 128 `F_2` basis vectors.
     DimensionTooLarge,
@@ -541,7 +542,7 @@ impl HeisenbergWeilRepresentation {
             return false;
         };
         // The normalized Walsh matrix is real, symmetric, and self-inverse.
-        for pair in self.symplectic_basis.chunks_exact(2) {
+        for pair in self.symplectic_basis.as_chunks::<2>().0 {
             let Some(position) = self
                 .matrix(&ExtraspecialElement::new(false, pair[0]))
                 .map(|m| mat_mul(&mat_mul(&fourier, &m), &fourier))

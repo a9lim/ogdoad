@@ -37,6 +37,30 @@ pub enum Color {
 }
 
 /// A Hackenbush position: undirected coloured edges over the ground vertex `0`.
+///
+/// # Examples
+///
+/// ```
+/// use ogdoad::games::{Color::*, Game, Hackenbush};
+/// use ogdoad::scalar::{Rational, Surreal};
+///
+/// // Blue-red strings are numbers: blue, red, blue from the ground is +-+ = 3/4.
+/// let bru = Hackenbush::string(&[Blue, Red, Blue]);
+/// assert_eq!(bru.value(), Some(Surreal::from_rational(Rational::new(3, 4))));
+///
+/// // Green strings are Nim heaps; all-green positions have a Grundy value.
+/// assert_eq!(Hackenbush::string(&[Green, Green, Green]).grundy(), Some(3));
+/// assert_eq!(bru.grundy(), None); // not impartial
+///
+/// // Green cycles through the ground (fusion principle): a triangle is worth *, a square 0.
+/// let triangle = Hackenbush::new(vec![(0, 1, Green), (1, 2, Green), (2, 0, Green)]);
+/// let square = Hackenbush::new(vec![(0, 1, Green), (1, 2, Green), (2, 3, Green), (3, 0, Green)]);
+/// assert_eq!((triangle.grundy(), square.grundy()), (Some(1), Some(0)));
+///
+/// // Mixed positions need the general partizan evaluator: green under blue is up-star.
+/// let mixed = Hackenbush::string(&[Green, Blue]).to_game();
+/// assert!(mixed.eq(&Game::up().add(&Game::star())));
+/// ```
 #[derive(Clone, Debug)]
 pub struct Hackenbush {
     edges: Vec<(usize, usize, Color)>,

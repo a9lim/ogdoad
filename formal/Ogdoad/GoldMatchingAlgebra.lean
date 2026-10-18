@@ -1,4 +1,4 @@
-import Ogdoad.Fifo
+import Ogdoad.Algebra.ZModTwo
 import Mathlib.LinearAlgebra.QuadraticForm.Basis
 
 /-!

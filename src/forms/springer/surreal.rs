@@ -33,6 +33,7 @@ use std::cmp::Ordering;
 /// ω-adic valuation, recorded by its signature `(p, q)` = (#positive, #negative)
 /// residue squares.
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub struct ResidueForm {
     /// The ω-adic valuation (leading exponent) of this graded piece.
     pub valuation: Surreal,
@@ -45,6 +46,7 @@ pub struct ResidueForm {
 /// entries), and the total ordinary signature (which must equal the form's
 /// `classify_surreal` signature).
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub struct SpringerDecomp {
     /// Valuation-graded real residue forms.
     pub graded: Vec<ResidueForm>,

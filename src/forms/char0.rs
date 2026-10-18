@@ -75,6 +75,7 @@ impl BaseField {
 /// direct sum of two of them) over ℝ/ℂ/ℍ, optionally tensored with the exterior
 /// algebra of the metric's radical.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct CliffordInvariants {
     /// The division ring underlying the matrix algebra.
     pub base: BaseField,
@@ -144,6 +145,7 @@ pub struct RationalPlaceInvariant {
 /// to `R`, but it is not used as a substitute for the rational invariant. This
 /// is not a full rational Brauer/Brauer-Wall class of the Clifford algebra.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct RationalCliffordInvariants {
     /// Dimension of the full form.
     pub dim: usize,

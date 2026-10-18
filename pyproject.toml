@@ -7,7 +7,7 @@ name = "ogdoad"
 # Version is dynamic: maturin reads it from Cargo.toml, the one source of truth
 # (the release workflow's guard reads the same field).
 dynamic = ["version"]
-description = "Clifford algebras and quadratic forms over exact, finite, local, transfinite, and game-adjacent scalar backends"
+description = "Clifford and Weyl algebras, quadratic forms, and games over exact, finite, local, and transfinite scalar backends"
 readme = "README.md"
 requires-python = ">=3.9"
 license = "AGPL-3.0-or-later"

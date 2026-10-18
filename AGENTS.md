@@ -19,7 +19,7 @@ Before changing a subsystem, read its local instructions:
 | Weyl algebras | `src/weyl/AGENTS.md` |
 | Python bindings | `src/py/AGENTS.md` |
 | shared linear algebra | `src/linalg/AGENTS.md` |
-| expression language | `grundy/docs/spec.md` and `grundy/docs/implementation.md` |
+| ruleset language | `grundy/docs/spec.md` and `grundy/docs/implementation.md` |
 | Lean | `formal/README.md` |
 
 For mathematical claims, also read the relevant live paper and
@@ -40,7 +40,8 @@ crate-private. Their public modules re-export children shallowly.
   commutative scalar subclass or checked bridge exists.
 - `weyl/` owns finite-support PBW algebras attached to alternating commutator
   forms; it shares scalar and symplectic-form infrastructure without reusing
-  the finite Clifford blade representation.
+  the finite Clifford blade representation, which it consumes only in the
+  characteristic-two central-fibre bridge.
 - `py/` monomorphizes selected Rust backends; PyO3 is never part of the default
   build.
 - `grundy/` is an unpublished workspace crate depending only on Ogdoad's public
@@ -67,7 +68,7 @@ crate-private. Their public modules re-export children shallowly.
    boundaries must return/refuse exactly as documented; do not hide them with
    silent defaults.
 5. **Fixed-width mathematical payloads are `u128`/`i128`.** `usize` is for
-   dimensions, indices, and ABI hooks.
+   dimensions, indices, in-memory counts, and ABI hooks.
 6. **Per-backend Python types do not mix.** Do not add a runtime-tagged
    any-scalar escape hatch.
 7. **Weyl PBW exponents are not Clifford blades.** Weyl algebras are
@@ -116,21 +117,35 @@ measurement are engineering work in `docs/ROADMAP.md`.
   borrow-based trait methods.
 - Public rendering is deliberate. Preserve canonical `Display` forms and
   update exact-string tests when a format intentionally changes.
+- Public types grow by minor releases. Error enums, open catalogue and
+  evidence enums, and output-only report structs are `#[non_exhaustive]`.
+  Closed mathematical sets (outcomes, ADE kinds, places, `Plus`/`Minus`
+  types), value types, inputs, budgets, and certificates that an external
+  checker must be able to construct stay exhaustive.
 - Preserve unrelated work. Use focused diffs and tests that exercise the
   changed causal surface.
 
 ## Verification
 
-Minimum Rust gate:
+Minimum core Rust gate:
 
 ```sh
-cargo fmt --all --check
-cargo test --workspace
-cargo clippy --workspace --all-targets -- -D warnings
-RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --workspace
+cargo fmt -p ogdoad --check
+cargo test -p ogdoad
+cargo clippy -p ogdoad --all-targets -- -D warnings
+RUSTDOCFLAGS="-D warnings" cargo doc --no-deps -p ogdoad
 ```
 
 Additional gates:
+
+- after changing the optional `grundy/` ruleset language:
+
+  ```sh
+  cargo fmt -p grundy --check
+  cargo test -p grundy
+  cargo clippy -p grundy --all-targets -- -D warnings
+  RUSTDOCFLAGS="-D warnings" cargo doc --no-deps -p grundy
+  ```
 
 - after changing `src/py/` or a core API it calls:
 
@@ -138,6 +153,7 @@ Additional gates:
   cargo check -p ogdoad --features python
   cargo clippy -p ogdoad --features python --all-targets -- -D warnings
   python scripts/generate_stubs.py --check
+  python -m unittest discover -s tests/python
   ```
 
 - after changing Lean or a load-bearing proof claim:
@@ -161,14 +177,19 @@ the general PBW normalizer. Add a focused test before trusting a new operation.
 ## Documentation contract
 
 - `README.md`: public description, supported surface, sharp non-claims.
+- `docs/README.md`: the index of everything below.
 - `docs/OPEN.md`: only unresolved mathematical statements and their best
   current reductions.
-- `docs/ROADMAP.md`: unfinished engineering or new-feature work.
+- `docs/ROADMAP.md`: unfinished engineering, new-feature work, and research
+  directions not yet sharp enough for `OPEN.md`.
 - `docs/VERIFY.md`: evidence classes, generated data, experiments, and build
   commands.
 - `writeups/*.tex` + matching `.bib`: self-contained mathematical papers,
   compilable as PDF and convertible by Pandoc to standalone KaTeX HTML.
 - `formal/README.md`: theorem map and proof/non-proof boundary.
+- `grundy/docs/`: the language's normative spec, runtime contract, and stance.
+- `CONTRIBUTING.md`, `SECURITY.md`: contributor process and threat model.
+- Root and pillar `AGENTS.md`: editing contracts, not public documentation.
 
 Do not recreate completion ledgers, dated audit diaries, retired mechanisms,
 or provenance narratives in live docs. If history matters, cite a stable

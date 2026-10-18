@@ -1,27 +1,42 @@
-//! The grundy expression language over Ogdoad's scalar, Clifford, polynomial,
-//! and game worlds.
+//! grundy: a typed language for combinatorial games over Ogdoad.
+//!
+//! Positions are ordinary data and moves are functions; games arise by
+//! exploring a ruleset from a position. Answers state their scope and
+//! evidence: exact on finite objects, verified claims with re-checkable
+//! certificates, and sampled answers typed `Bounded`. Ogdoad's scalar,
+//! polynomial, and Clifford worlds are types that coexist in one program.
 //!
 //! `docs/spec.md` is the language contract and `docs/implementation.md`
-//! describes the runtime. This workspace crate is unpublished and depends only
-//! on Ogdoad's public Rust API.
+//! describes the runtime. This workspace crate is unpublished and depends
+//! only on Ogdoad's public Rust API.
 
 #![warn(missing_docs)]
 
-/// Parsed syntax tree types.
-pub mod ast;
-/// Structured evaluator errors and result types.
+mod algebra;
+mod builtins;
+mod core;
+mod display;
+mod eval;
+mod games;
+mod session;
+mod types;
+mod worker;
+
+/// Errors, spans, and stable error codes.
 pub mod error;
-/// Evaluation entry points and fixed world metadata.
-pub mod eval;
-/// Tokenization and statement-continuation detection.
-pub mod lex;
-/// Parsing from source text to syntax trees.
-pub mod parse;
-/// Canonical source rendering for syntax trees.
-pub mod unparse;
+/// Surface syntax: tokens, trees, parsing, and canonical rendering.
+pub mod syntax;
 
 pub use error::{GrundyError, GrundyErrorKind, GrundyResult, Span};
-pub use eval::{eval_to_string, EvalLine, GrundySession, GRUNDY_VERSION, WORLD_MENU};
-pub use lex::needs_continuation;
-pub use parse::parse_statement;
-pub use unparse::{unparse_expr, unparse_statement};
+pub use syntax::lex::needs_continuation;
+pub use syntax::parse::{parse_expr, parse_statement};
+pub use syntax::unparse::{unparse_expr, unparse_stmt};
+pub use worker::{eval_to_string, EvalLine, GrundySession};
+
+/// The language version.
+pub const GRUNDY_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+/// The builtin function names, for help screens and tooling.
+pub fn builtin_names() -> Vec<&'static str> {
+    builtins::Builtin::ALL.iter().map(|b| b.name()).collect()
+}

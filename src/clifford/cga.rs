@@ -40,6 +40,29 @@ fn s_int<S: Scalar>(k: usize) -> S {
 
 /// A conformal geometric algebra `Cl(n+1, 1)` in a null basis, with helpers for
 /// the conformal embedding and round/flat primitives.
+///
+/// # Examples
+///
+/// A Euclidean point lifts to a null vector, and the inner product of two lifted
+/// points is `-½` of their squared distance. A point lies on a sphere exactly
+/// when its inner product with the sphere vanishes.
+///
+/// ```
+/// use ogdoad::clifford::Cga;
+/// use ogdoad::scalar::{Rational, Scalar};
+///
+/// let r = Rational::from_int;
+/// let cga = Cga::<Rational>::new(2);
+/// let p = cga.up(&[r(0), r(0)]);
+/// let q = cga.up(&[r(3), r(4)]);
+/// assert!(cga.alg().mul(&q, &q).is_zero()); // up(q) is a null vector
+/// assert_eq!(cga.inner(&p, &q), Rational::new(-25, 2)); // -1/2 * 5^2
+/// assert_eq!(cga.down(&q), Some(vec![r(3), r(4)]));
+///
+/// let circle = cga.sphere(&[r(0), r(0)], &r(25)); // centre 0, radius^2 25
+/// assert!(cga.inner(&q, &circle).is_zero());
+/// assert!(!cga.inner(&cga.up(&[r(1), r(0)]), &circle).is_zero());
+/// ```
 pub struct Cga<S: Scalar> {
     alg: CliffordAlgebra<S>,
     n: usize,
@@ -192,6 +215,22 @@ impl<S: Scalar> Cga<S> {
 /// # Panics
 ///
 /// Panics when `n + 1` exceeds the 128-generator blade-mask limit.
+///
+/// # Examples
+///
+/// The generator `e₀` is null, so the pseudoscalar is not invertible and no
+/// pseudoscalar dual exists; the other generators square to `1`.
+///
+/// ```
+/// use ogdoad::clifford::pga;
+/// use ogdoad::scalar::{Rational, Scalar};
+///
+/// let alg = pga::<Rational>(2);
+/// assert_eq!(alg.dim(), 3);
+/// assert!(alg.mul(&alg.e(0), &alg.e(0)).is_zero());
+/// assert_eq!(alg.mul(&alg.e(1), &alg.e(1)), alg.scalar(Rational::one()));
+/// assert!(alg.dual(&alg.e(1)).is_none());
+/// ```
 pub fn pga<S: Scalar>(n: usize) -> CliffordAlgebra<S> {
     let mut q = vec![S::zero()]; // e_0 null (the ideal/projective direction)
     q.extend(std::iter::repeat_n(S::one(), n));
@@ -204,6 +243,25 @@ pub fn pga<S: Scalar>(n: usize) -> CliffordAlgebra<S> {
 /// backend. For the intended PGA translator/motor nilpotents the bound is ample;
 /// in large Clifford algebras, `None` is only a refusal, not proof that `B` is
 /// non-nilpotent.
+///
+/// # Examples
+///
+/// In the projective plane algebra the bivector `B = 3 e₀e₁` squares to zero, so
+/// `exp B = 1 + B` exactly. The unit vector `e₁` is not nilpotent and is
+/// refused.
+///
+/// ```
+/// use ogdoad::clifford::{exp_nilpotent, pga};
+/// use ogdoad::scalar::{Rational, Scalar};
+///
+/// let r = Rational::from_int;
+/// let alg = pga::<Rational>(2);
+/// let b = alg.scalar_mul(&r(3), &alg.mul(&alg.e(0), &alg.e(1)));
+/// assert!(alg.mul(&b, &b).is_zero());
+/// let motor = exp_nilpotent(&alg, &b).unwrap();
+/// assert_eq!(motor, alg.add(&alg.scalar(r(1)), &b));
+/// assert!(exp_nilpotent(&alg, &alg.e(1)).is_none());
+/// ```
 pub fn exp_nilpotent<S: Scalar>(
     alg: &CliffordAlgebra<S>,
     b: &Multivector<S>,

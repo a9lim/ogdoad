@@ -21,6 +21,7 @@ pub struct OctalCode {
 
 /// Invalid finite octal-code input.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum OctalCodeError {
     /// Octal digits are exactly `0..=7`.
     InvalidDigit {
@@ -45,6 +46,22 @@ impl std::error::Error for OctalCodeError {}
 
 impl OctalCode {
     /// Validate and canonicalize a finite code `0.d_1...d_k`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ogdoad::games::{OctalCode, OctalCodeError};
+    ///
+    /// // Kayles is 0.77; trailing zero digits are dropped.
+    /// let kayles = OctalCode::try_new(&[7, 7, 0]).unwrap();
+    /// assert_eq!(kayles.digits(), &[7, 7]);
+    /// assert_eq!(kayles.last_nonzero_digit(), Some(2));
+    /// // Digits are octal: 8 is refused rather than masked to its low bits.
+    /// assert!(matches!(
+    ///     OctalCode::try_new(&[7, 8]),
+    ///     Err(OctalCodeError::InvalidDigit { index: 1, value: 8 })
+    /// ));
+    /// ```
     pub fn try_new(raw: &[u128]) -> Result<Self, OctalCodeError> {
         let mut digits = Vec::with_capacity(raw.len());
         for (index, &value) in raw.iter().enumerate() {
@@ -75,6 +92,19 @@ impl OctalCode {
 /// Removing `k` tokens may leave zero, one, or two nonempty heaps according to
 /// bits `1`, `2`, and `4` of `d_k`. For compatibility, values above seven use
 /// their low three bits; [`OctalCode`] rejects them.
+///
+/// # Examples
+///
+/// In Kayles (`0.77`) a heap of 3 can lose one pin (leaving a heap of 2 or two
+/// heaps of 1) or two pins (leaving a heap of 1):
+///
+/// ```
+/// use ogdoad::games::octal_moves;
+///
+/// let mut moves = octal_moves(&[7, 7], &[3]);
+/// moves.sort();
+/// assert_eq!(moves, vec![vec![1], vec![1, 1], vec![2]]);
+/// ```
 pub fn octal_moves(code: &[u128], pos: &[u128]) -> Vec<Vec<u128>> {
     let mut out = Vec::new();
     for idx in 0..pos.len() {
@@ -85,7 +115,8 @@ pub fn octal_moves(code: &[u128], pos: &[u128]) -> Vec<Vec<u128>> {
             .filter(|&(i, _)| i != idx)
             .map(|(_, &heap)| heap)
             .collect();
-        for removed in 1..=n {
+        // Digits past the code are zero and allow no move.
+        for removed in 1..=n.min(code.len() as u128) {
             let digit = usize::try_from(removed - 1)
                 .ok()
                 .and_then(|index| code.get(index))
@@ -210,6 +241,29 @@ impl GuySmithWitness {
 }
 
 /// A checked finite witness to eventual normal-play octal periodicity.
+///
+/// # Examples
+///
+/// Kayles (`0.77`) has Grundy values that repeat with period 12 from heap 71
+/// on. The certificate recomputes the exact finite prefix and the full
+/// Guy--Smith window, then answers for every heap size:
+///
+/// ```
+/// use ogdoad::games::{GuySmithCertificate, GuySmithError, OctalCode};
+///
+/// let kayles = OctalCode::try_new(&[7, 7]).unwrap();
+/// let cert = GuySmithCertificate::compute(kayles.clone(), 71, 12, 200).unwrap();
+/// assert_eq!(&cert.checked_nim_values()[..12], &[0, 1, 2, 3, 1, 4, 3, 2, 1, 4, 2, 6]);
+/// assert_eq!(cert.heap_grundy(10u128.pow(30)), 1);
+/// // Rows of 1 and 4 pins both have value 1, so that Kayles sum is a P-position.
+/// assert!(cert.is_p_position(&[1, 4]));
+///
+/// // The budget and the claimed period are checked, never assumed.
+/// let over_budget = GuySmithCertificate::compute(kayles.clone(), 71, 12, 100);
+/// assert!(matches!(over_budget, Err(GuySmithError::TermBudgetExceeded { .. })));
+/// let wrong_period = GuySmithCertificate::compute(kayles, 71, 11, 200);
+/// assert!(matches!(wrong_period, Err(GuySmithError::PeriodMismatch { .. })));
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GuySmithCertificate {
     code: OctalCode,
@@ -307,6 +361,7 @@ impl GuySmithCertificate {
 
 /// Rejection reason for an alleged Guy--Smith certificate.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum GuySmithError {
     /// The theorem requires a nonzero finite code with a last nonzero digit.
     ZeroCode,

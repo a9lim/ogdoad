@@ -71,6 +71,24 @@ impl Ordinal {
     /// outside the algebraically-closed segment) **or** when a level-0 carry would need
     /// an `α_u` past the verified table (`α_733` and beyond, the first unsupported row)
     /// — the represented boundary.
+    ///
+    /// # Examples
+    ///
+    /// Finite factors use the total `u128` nim product. For the `m`-th odd prime
+    /// `u` (counting `3` as the `0`-th), the Kummer generator is `χ_u = ω^(ω^m)`
+    /// and `χ_u^u` is the carry that needs the excess row for `u`. The table stops
+    /// at `u = 727`; `u = 1801` is the `277`-th odd prime and is not in it, so
+    /// `χ_u^(u-1)` exists and `χ_u^u` is `None`.
+    ///
+    /// ```
+    /// use ogdoad::scalar::Ordinal;
+    ///
+    /// let n = Ordinal::from_u128;
+    /// assert_eq!(n(2).nim_mul(&n(3)), Some(n(1)));
+    /// let chi = Ordinal::omega_pow(Ordinal::omega_pow(n(277))); // chi_1801
+    /// assert!(chi.nim_pow(1800).is_some()); // no carry yet
+    /// assert_eq!(chi.nim_pow(1801), None); // would need the row for 1801
+    /// ```
     pub fn nim_mul(&self, other: &Ordinal) -> Option<Ordinal> {
         // Zero is absorbing in any field.
         if self.is_zero() || other.is_zero() {

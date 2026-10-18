@@ -11,8 +11,9 @@ ring element.
 | `grundy.rs`, `kernel.rs` | finite impartial evaluation and P/N kernels |
 | `octal.rs` | finite octal moves and checked Guy--Smith normal-play certificates |
 | `misere.rs` | bounded misere quotient machinery |
-| `loopy/` | finite cyclic impartial and partizan graphs |
-| `partizan.rs`, `piecewise.rs` | short partizan values and piecewise dyadic data |
+| `loopy/` | finite cyclic impartial and partizan graphs, and certifying retrograde outcomes |
+| `partizan.rs`, `piecewise.rs` | short partizan values and `Pl` piecewise-linear thermograph walls |
+| `arena.rs` | hash-consed canonical short games with persistent order, sum, and negation memos and a step budget |
 | `number_game.rs`, `nimber_game.rs` | number- and nimber-valued game subclasses |
 | `coin_turning.rs` | turning games and nim-product oracle |
 | `hackenbush.rs` | one graph with partizan, surreal, and all-green nim evaluators |
@@ -31,9 +32,10 @@ ring element.
   `LoopyPartizanGraph`; thermography is finite short-game machinery.
 - `NumberGame` and `NimberGame` expose genuine field-like subclasses with their
   own arithmetic. Do not generalize their multiplication to arbitrary games.
-- `GameClifford::with_quadratic_data` validates data on a chosen finite quotient.
-  It does not provide ambient-coherent nonzero torsion data; the paper proves
-  such data collapse on torsion under the stated coherence hypotheses.
+- `GameClifford::with_quadratic_data` validates data on a chosen finitely
+  generated subgroup: every supplied relation must be null in the game group
+  and polar-radical. It does not provide ambient-coherent nonzero torsion data;
+  the paper proves such data collapse under the stated coherence hypotheses.
 
 ## Operational conventions
 
@@ -42,9 +44,20 @@ ring element.
 - `nim_mul_mex` is the exponential game-definition oracle for small values.
   Use algebraic nim multiplication for computation.
 - `nim_moves(&Vec<u128>)` intentionally matches a generic `Fn(&P)` signature.
+- Outcome certificates label every turn-state with a verdict, rank, and chosen
+  move under normal or misère play; `verify_outcome_certificate` checks local
+  conditions only and must stay independent of the solver.
 - Guy--Smith certificates recompute their exact finite Grundy prefix and prove
   the supplied eventual period, not period discovery or minimality. They are
   normal-play certificates and do not certify a misere quotient.
+- `GameArena` must agree with `Game::canonical`, `le`, `add`, and `neg`; its
+  tests use those as independent oracles. Memo entries are inserted only after
+  a result is complete, so budget exhaustion never leaves a wrong entry.
+  Metered operations charge before they recurse or scan supplied input.
+  Number values are exact dyadics with an `i128` numerator and `k <= 126`;
+  anything outside that range is `ArenaError::NumberOutOfRange`, never a panic
+  or an approximation. Its private dyadic arithmetic is checked against
+  `Rational` and `Surreal` oracles.
 - Atomic weight's integer branch compares raw option games; do not replace it
   by a maximum of rounded option weights.
 - `Pl` thermograph walls do not implement `Semiring` because they lack a
@@ -65,14 +78,15 @@ ring element.
   especially finite-code octal games, plus the exact quotient of misère
   Grundy's game. Bounded test signatures are evidence only.
 - The intrinsic Brown selector is one partizan game, not a synchronized product
-  or terminal relabeling.
-- Thermography and valued-field Newton polygons share tropical algebra but do
-  not admit the stronger dyadic-compatible identification ruled out in the
-  thermography paper.
+  of two arenas.
+- Thermography's option folds and cooling are tropical, but freezing is not and
+  the thermograph is not a congruence for sums. The thermography paper rules
+  out a faithful Newton-style graded ring; the comparison with valued-field
+  Newton polygons is an analogy, not an identification.
 
 ## Verification
 
-Run focused game-law/golden tests and `cargo test --workspace`. For changes to a
+Run focused game-law/golden tests and `cargo test -p ogdoad`. For changes to a
 paper theorem, also build the relevant Lean module and paper. New bounded search
 code must expose its budget and distinguish exhaustion from a mathematical
 negative result.

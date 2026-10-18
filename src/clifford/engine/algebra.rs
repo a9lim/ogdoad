@@ -23,15 +23,37 @@ const PERSISTENT_BLADE_CACHE_LIMIT: usize = 131_072;
 ///
 /// Metric-free additive operations (`+`, `-`, unary `-`, `&` for wedge) are
 /// implemented directly on [`Multivector`] as operators. The geometric product
-/// and all metric-dependent operations are methods on this type, which provides
-/// the metric as context. Use `a + b` / `a & b` for the metric-free ops;
-/// `alg.mul(&a, &b)` / `alg.wedge(&a, &b)` for the metric-dependent ones.
+/// and the metric-dependent operations (reversion, contractions, inverses,
+/// versor actions) are methods on this type, which provides the metric as
+/// context. `alg.wedge` and `alg.grade_part` are methods too, for uniformity,
+/// though neither reads the metric. Use `a + b` / `a & b` for the operators and
+/// `alg.mul(&a, &b)` for the geometric product.
 /// This mirrors the scalar policy: operators on the concrete type require no
 /// extra context; everything that needs context goes through the algebra.
 ///
 /// **Note:** `^` is reserved for scalar power (`x ^ k: u128`); `&` is wedge
 /// (`∧` in grundy). See [`Multivector`]'s `BitAnd` impl for the precedence
 /// caveat (Rust `&` binds looser than `+` and `*`).
+///
+/// # Examples
+///
+/// The Euclidean plane `Cl(2,0)` over ℚ: orthogonal unit vectors anticommute,
+/// so their product is the unit bivector `e₀∧e₁`, which squares to `-1` and
+/// is negated by reversion.
+///
+/// ```
+/// use ogdoad::clifford::{CliffordAlgebra, Metric};
+/// use ogdoad::scalar::{Rational, Scalar};
+///
+/// let r = Rational::from_int;
+/// let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![r(1), r(1)]));
+/// let (e0, e1) = (alg.e(0), alg.e(1));
+/// let e01 = alg.mul(&e0, &e1);
+/// assert_eq!(e01, alg.wedge(&e0, &e1));
+/// assert_eq!(alg.mul(&e1, &e0), -e01.clone());
+/// assert_eq!(alg.pow(&e01, 2), alg.scalar(r(-1)));
+/// assert_eq!(alg.reverse(&e01), -e01);
+/// ```
 #[derive(Clone)]
 pub struct CliffordAlgebra<S: Scalar> {
     pub(crate) metric: Metric<S>,
@@ -55,6 +77,21 @@ impl<S: Scalar> PartialEq for CliffordAlgebra<S> {
 
 impl<S: Scalar> CliffordAlgebra<S> {
     /// Constructs an algebra after validating that `metric` has dimension `dim`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `dim` differs from `metric.dim()` or exceeds
+    /// [`MAX_BASIS_DIM`] (128 generators).
+    ///
+    /// # Examples
+    ///
+    /// ```should_panic
+    /// use ogdoad::clifford::{CliffordAlgebra, Metric};
+    /// use ogdoad::scalar::Rational;
+    ///
+    /// // A three-generator algebra cannot carry a two-generator metric.
+    /// let _ = CliffordAlgebra::new(3, Metric::<Rational>::grassmann(2));
+    /// ```
     pub fn new(dim: usize, metric: Metric<S>) -> Self {
         metric.validate_for_dim(dim);
         CliffordAlgebra {
@@ -190,6 +227,26 @@ impl<S: Scalar> CliffordAlgebra<S> {
     }
 
     /// Geometric (Clifford) product.
+    ///
+    /// # Examples
+    ///
+    /// For vectors the product splits as `uv = u·v + u∧v`: its scalar part is
+    /// the inner product and its bivector part is the wedge. Here
+    /// `u = e₀ + 2e₁` and `v = 3e₀ + e₁` in the Euclidean plane.
+    ///
+    /// ```
+    /// use ogdoad::clifford::{CliffordAlgebra, Metric};
+    /// use ogdoad::scalar::{Rational, Scalar};
+    ///
+    /// let r = Rational::from_int;
+    /// let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![r(1), r(1)]));
+    /// let u = alg.add(&alg.e(0), &alg.scalar_mul(&r(2), &alg.e(1)));
+    /// let v = alg.add(&alg.scalar_mul(&r(3), &alg.e(0)), &alg.e(1));
+    /// let uv = alg.mul(&u, &v);
+    /// assert_eq!(alg.scalar_part(&uv), r(5)); // 1*3 + 2*1
+    /// assert_eq!(alg.grade_part(&uv, 2), alg.wedge(&u, &v));
+    /// assert_eq!(uv.to_string(), "5 - 5⋅e0∧e1"); // wedge coefficient 1*1 - 2*3
+    /// ```
     pub fn mul(&self, a: &Multivector<S>, b: &Multivector<S>) -> Multivector<S> {
         let mut out: BTreeMap<u128, S> = BTreeMap::new();
         if self.metric.is_orthogonal() {
@@ -317,6 +374,24 @@ impl<S: Scalar> CliffordAlgebra<S> {
     }
 
     /// Exterior (wedge) product — metric-independent.
+    ///
+    /// # Examples
+    ///
+    /// The wedge is alternating whatever the metric: `v∧v = 0` even where the
+    /// geometric square `v²` is a nonzero scalar. The `&` operator is the same
+    /// product on [`Multivector`]s.
+    ///
+    /// ```
+    /// use ogdoad::clifford::{CliffordAlgebra, Metric};
+    /// use ogdoad::scalar::{Rational, Scalar};
+    ///
+    /// let r = Rational::from_int;
+    /// let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![r(1), r(1)]));
+    /// let v = alg.add(&alg.e(0), &alg.e(1));
+    /// assert!(alg.wedge(&v, &v).is_zero());
+    /// assert_eq!(alg.mul(&v, &v), alg.scalar(r(2)));
+    /// assert_eq!(alg.wedge(&alg.e(0), &alg.e(1)), alg.e(0) & alg.e(1));
+    /// ```
     pub fn wedge(&self, a: &Multivector<S>, b: &Multivector<S>) -> Multivector<S> {
         Multivector {
             terms: wedge_terms(&a.terms, &b.terms),
@@ -472,6 +547,23 @@ impl<S: Scalar> CliffordAlgebra<S> {
     /// Raises `v` to a nonnegative integer power under the geometric product.
     /// `pow(v, 0)` is the scalar identity. The implementation uses binary
     /// exponentiation.
+    ///
+    /// # Examples
+    ///
+    /// In `Cl(0,2)` the bivector `e₀e₁` squares to `-1`, so its powers cycle
+    /// with period four.
+    ///
+    /// ```
+    /// use ogdoad::clifford::{CliffordAlgebra, Metric};
+    /// use ogdoad::scalar::{Rational, Scalar};
+    ///
+    /// let r = Rational::from_int;
+    /// let alg = CliffordAlgebra::new(2, Metric::diagonal(vec![r(-1), r(-1)]));
+    /// let k = alg.mul(&alg.e(0), &alg.e(1));
+    /// assert_eq!(alg.pow(&k, 0), alg.scalar(r(1)));
+    /// assert_eq!(alg.pow(&k, 3), -k.clone());
+    /// assert_eq!(alg.pow(&k, 4), alg.scalar(r(1)));
+    /// ```
     pub fn pow(&self, v: &Multivector<S>, k: u128) -> Multivector<S> {
         if k == 0 {
             return self.scalar(S::one());

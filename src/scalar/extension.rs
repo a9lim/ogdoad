@@ -209,12 +209,12 @@ impl QuadraticInvolution for Fpn<2, 4> {
         if value.is_zero() {
             return Self::zero();
         }
-        let fixed_generator = FiniteField::pow(&Self::primitive_element(), 5);
+        let fixed_generator = Scalar::pow(&Self::primitive_element(), 5);
         let base_generator = Fpn::<2, 2>::primitive_element();
         let exponent = base_generator
             .discrete_log(*value)
             .expect("nonzero F_4 element has a discrete log to a primitive generator");
-        FiniteField::pow(&fixed_generator, exponent)
+        Scalar::pow(&fixed_generator, exponent)
     }
 
     fn project_fixed(value: &Self) -> Option<Self::Fixed> {

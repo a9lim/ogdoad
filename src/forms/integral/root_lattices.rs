@@ -58,6 +58,22 @@ fn gram_from_basis(b: &[Vec<i128>]) -> IntegralForm {
 /// `|Aut| = 2` for `n = 1` and `2·(n+1)!` for `n ≥ 2`. Returns `None` for `n = 0`
 /// (out of domain) — matching `niemeier.rs`'s `Option` contract for the same shape
 /// of input, rather than panicking.
+///
+/// # Examples
+///
+/// The determinant is `n + 1` and the root count is `n(n + 1)`; rank 0 is out
+/// of domain.
+///
+/// ```
+/// use ogdoad::forms::a_n;
+///
+/// for n in 1..=5 {
+///     let a = a_n(n).unwrap();
+///     assert_eq!(a.determinant(), n as i128 + 1);
+///     assert_eq!(a.kissing_number(), Some(n * (n + 1)));
+/// }
+/// assert!(a_n(0).is_none());
+/// ```
 pub fn a_n(n: usize) -> Option<IntegralForm> {
     if n < 1 {
         return None;
@@ -71,6 +87,24 @@ pub fn a_n(n: usize) -> Option<IntegralForm> {
 /// kissing number `2n(n−1)`, Coxeter number `2n−2`. Returns `None` for `n < 2`
 /// (out of domain) — matching `niemeier.rs`'s `Option` contract for the same shape
 /// of input, rather than panicking.
+///
+/// # Examples
+///
+/// `D_4` has 24 roots and Coxeter number 6. Its automorphism group has order
+/// 1152, the Weyl group `W(D_4)` of order 192 extended by the triality
+/// symmetries of the Dynkin diagram (`S_3`). Rank below 2 is out of domain.
+///
+/// ```
+/// use ogdoad::forms::{coxeter_number, d_n, is_root_lattice};
+///
+/// let d4 = d_n(4).unwrap();
+/// assert_eq!(d4.determinant(), 4);
+/// assert_eq!(d4.kissing_number(), Some(24));
+/// assert_eq!(coxeter_number(&d4), Some(6));
+/// assert!(is_root_lattice(&d4));
+/// assert_eq!(d4.automorphism_group_order(), Some(192 * 6));
+/// assert!(d_n(1).is_none());
+/// ```
 pub fn d_n(n: usize) -> Option<IntegralForm> {
     if n < 2 {
         return None;
@@ -99,16 +133,43 @@ pub fn e_7() -> IntegralForm {
 
 /// The root lattice `E_8`: the unique rank-8 even unimodular lattice. `det = 1`,
 /// kissing number 240, Coxeter number 30, `|Aut| = |W(E_8)| = 696729600`.
+///
+/// # Examples
+///
+/// The 240 roots, the Coxeter number `240 / 8 = 30`, and the automorphism
+/// order, which is returned without enumerating the group.
+///
+/// ```
+/// use ogdoad::forms::{coxeter_number, e_8, E8_WEYL_GROUP_ORDER};
+///
+/// let e8 = e_8();
+/// assert_eq!(e8.kissing_number(), Some(240));
+/// assert_eq!(coxeter_number(&e8), Some(30));
+/// assert_eq!(e8.automorphism_group_order(), Some(E8_WEYL_GROUP_ORDER));
+/// ```
 pub fn e_8() -> IntegralForm {
     // Trivalent node 4; arms of length 4, 2, 1.
     cartan(8, &[(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (4, 7)])
 }
 
-/// The Coxeter number `h = #roots / rank` of an irreducible root lattice (an
-/// irreducible root system has exactly `n·h` roots, all of norm 2). Returns
-/// `None` if the lattice has no roots, is not positive definite, or the root
-/// count is not divisible by the rank (i.e. the lattice is not an irreducible
-/// root lattice with minimum 2).
+/// The quotient `#roots / rank`, which is the Coxeter number `h` when `l` is an
+/// irreducible root lattice (an irreducible root system has exactly `n·h`
+/// roots, all of norm 2). Returns `None` if the minimum is not 2, the lattice
+/// is not positive definite, or the root count is not divisible by the rank.
+///
+/// Irreducibility and generation by roots are not checked: `E8 ⊕ E8` and
+/// `D16+` also give 30. Use [`is_root_lattice`] for generation.
+///
+/// # Examples
+///
+/// ```
+/// use ogdoad::forms::{a_n, coxeter_number, e_6, IntegralForm};
+///
+/// assert_eq!(coxeter_number(&a_n(4).unwrap()), Some(5)); // n + 1
+/// assert_eq!(coxeter_number(&e_6()), Some(12)); // 72 roots / rank 6
+/// // `Z^2` has minimum 1, so it is not a norm-2 root lattice.
+/// assert_eq!(coxeter_number(&IntegralForm::diagonal(&[1, 1])), None);
+/// ```
 pub fn coxeter_number(l: &IntegralForm) -> Option<i128> {
     if l.minimum()? != 2 {
         return None;
@@ -126,6 +187,24 @@ pub fn coxeter_number(l: &IntegralForm) -> Option<i128> {
 /// read off the Hermite normal form of the root vectors — `[L : ⟨roots⟩]` is the
 /// product of the HNF pivots, and the lattice is a root lattice exactly when that
 /// product is 1.
+///
+/// # Examples
+///
+/// `E8 + E8` and `D16+` are the two even unimodular lattices of rank 16. Each
+/// has 480 roots, but the roots of `D16+` span only the index-2 sublattice
+/// `D16`. This certifies that the two are not isometric, even though they share
+/// a genus (see [`are_in_same_genus`](crate::forms::are_in_same_genus)).
+///
+/// ```
+/// use ogdoad::forms::{d16_plus, e_8, is_root_lattice};
+///
+/// let e8e8 = e_8().direct_sum(&e_8());
+/// let d16 = d16_plus();
+/// assert_eq!(e8e8.kissing_number(), Some(480));
+/// assert_eq!(d16.kissing_number(), Some(480));
+/// assert!(is_root_lattice(&e8e8));
+/// assert!(!is_root_lattice(&d16));
+/// ```
 pub fn is_root_lattice(l: &IntegralForm) -> bool {
     if !l.is_positive_definite() {
         return false;

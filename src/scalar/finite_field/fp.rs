@@ -22,6 +22,23 @@ use crate::scalar::{is_prime_u128, Scalar};
 use std::fmt;
 
 /// An element of the prime field `F_P` (invariant: `0 ≤ value < P`).
+///
+/// # Examples
+///
+/// The prime is part of the type, so `Fp<5>` and `Fp<7>` never mix. Constructors
+/// reject a composite `P`; `modulus_is_prime` tests it without panicking.
+///
+/// ```
+/// use ogdoad::scalar::{Fp, Scalar};
+///
+/// let three = Fp::<7>::from_int(3);
+/// assert_eq!(three.inv(), Some(Fp::<7>::from_int(5))); // 3 * 5 = 15 = 1
+/// assert_eq!(three ^ 6, Fp::<7>::one()); // Fermat's little theorem
+/// assert_eq!(Fp::<7>::from_int(-1).value(), 6);
+/// assert_eq!(Fp::<7>::characteristic(), 7);
+/// assert_eq!(Fp::<7>::zero().inv(), None);
+/// assert!(!Fp::<4>::modulus_is_prime()); // `Fp::<4>::one()` would panic
+/// ```
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Fp<const P: u128>(u128);
 

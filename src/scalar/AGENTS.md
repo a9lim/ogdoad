@@ -9,7 +9,7 @@ which consumer currently uses it. `mod.rs` re-exports the public surface.
 | --- | --- |
 | `mod.rs` | borrow-based `Scalar` ring interface and public exports |
 | `exactness.rs` | exact/field marker traits used by law tests and generic algorithms |
-| `analytic.rs` | opt-in exact and series root interfaces |
+| `analytic.rs` | opt-in `ExactRoots`, `SeriesRoots`, and `Ordered` capabilities, plus shared finite-field square roots |
 | `valued.rs`, `residue.rs` | valuations, uniformizers, angular components, residue fields |
 | `integrality.rs` | field/ring-of-integers and fraction-field relationships |
 | `extension.rs` | finite and cyclic Galois extension interfaces |
@@ -26,7 +26,9 @@ which consumer currently uses it. `mod.rs` re-exports the public surface.
 
 ## Exactness boundary
 
-- Exact rings/fields participate in the full scalar law tests.
+- Exact rings/fields participate in the full scalar law tests. `Integer` and
+  `Rational` are exact inside an `i128` carrier and panic when a result leaves
+  it; `Rational::checked_add` and `checked_mul` return `None` instead.
 - `Qp`, `Qq`, `Laurent`, `Ramified`, `Gauss`, `Adele`, and runtime `LocalQp`
   are represented precision models. Do not claim exact associativity across
   truncation or cancellation boundaries.
@@ -70,8 +72,10 @@ which consumer currently uses it. `mod.rs` re-exports the public surface.
 
 - P-adic square APIs distinguish unknown from known nonsquare:
   `Option<bool>` and `Option<Option<T>>` are intentional.
-- `Surcomplex` is a field construction only over suitable characteristic-zero
-  bases; over characteristic two, adjoining `i^2=-1=1` is degenerate.
+- `Surcomplex<S>` is `S[i]/(i^2+1)`: a field when `-1` is a nonsquare in the
+  field `S`, split when `-1` is a square, and nonreduced in characteristic two,
+  where `(1+i)^2 = 0`. `FieldExtension` and `ExactRoots` are provided only over
+  `Ordered` bases.
 - `RationalFunction` is exact and global, so it is not itself `Valued`; place
   valuations are supplied separately. `Gauss` is a valued transcendental
   extension and is a precision model.
@@ -83,8 +87,8 @@ which consumer currently uses it. `mod.rs` re-exports the public surface.
 Run focused backend tests, then:
 
 ```sh
-cargo test --workspace
-cargo clippy --workspace --all-targets -- -D warnings
+cargo test -p ogdoad
+cargo clippy -p ogdoad --all-targets -- -D warnings
 ```
 
 Changes to `Scalar`, rendering, or a bound backend also require the Python

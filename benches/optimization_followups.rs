@@ -121,7 +121,7 @@ fn grade_masks_vec(n: usize, k: usize) -> Vec<u128> {
     let limit = 1u128 << n;
     loop {
         out.push(current);
-        let low = current & current.wrapping_neg();
+        let low = current.isolate_lowest_one();
         let next_high = current + low;
         let next = next_high + (((next_high ^ current) / low) >> 2);
         if next >= limit {
@@ -682,7 +682,7 @@ fn main() {
     );
 
     let log_base = Fpn::<2, 16>::primitive_element();
-    let log_target = FiniteField::pow(&log_base, 50_000);
+    let log_target = Scalar::pow(&log_base, 50_000);
     assert_eq!(
         discrete_log_reference(log_base, log_target),
         log_base.discrete_log(log_target)

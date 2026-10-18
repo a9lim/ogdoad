@@ -8,10 +8,11 @@
 
 ## Test plan
 
-- [ ] `cargo fmt --all --check`
-- [ ] `cargo test --workspace`
-- [ ] `cargo clippy --workspace --all-targets -- -D warnings`
-- [ ] `RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --workspace`
+- [ ] `cargo fmt -p ogdoad --check`
+- [ ] `cargo test -p ogdoad`
+- [ ] `cargo clippy -p ogdoad --all-targets -- -D warnings`
+- [ ] `RUSTDOCFLAGS="-D warnings" cargo doc --no-deps -p ogdoad`
+- [ ] If this touched `grundy/`: its explicit format, test, Clippy, and rustdoc gates from `docs/VERIFY.md`
 - [ ] If this touched `src/py/` or a core API used by Python: `cargo check -p ogdoad --features python`, the matching Clippy gate, and `python scripts/generate_stubs.py --check`
 - [ ] If this touched Lean or a load-bearing proof claim: `(cd formal && lake build --wfail)`
 - [ ] If this touched a paper or bibliography: `npm ci` and `python scripts/check_writeups.py`

@@ -34,20 +34,38 @@ $f(p)=\operatorname{ord}_p(2)$, but no universal proof is known.
 
 We give an exact status theorem.  The rule is equivalent to four
 full-primary-order assertions for elements selected by the literal Conway
-tower: a synchronized structural norm, a marked cyclotomic unit, a Gaussian
+tower: a synchronized structural norm, a marked cyclotomic value, a Gaussian
 period in a norm-one torus, and a corrected conductor-five norm.  These are
 lossless reductions, not hypotheses, and all four universal assertions remain
 open.  The paper then isolates the arithmetic content of each coordinate.  It
 constructs the primitive-support quotient and the Conway--Fermat packet
-recursion, identifies the ordinary Artin symbol, proves the cubic Singer
-recursion and a selected-order lower bound, and gives the exceptional Capelli
-criterion and a level-dependent translate bound.  A final reciprocity theorem
+recursion and a packet-degree defect bound, proves that the Conway--Fermat
+coordinate and Wiedemann's iterated quadratic tower select generator
+candidates of the same Fermat torus that are never conjugate from level three
+on, identifies the ordinary Artin
+symbol, proves least-counterexample one-primary regimes in the Fermat and
+ordinary arms, the cubic Singer recursion, a shared minimal-coefficient-field
+packing bound for the ordinary and cubic arms, and a partition selected-order
+bound,
+and a sharp first-relation threshold with a single reciprocal section and an
+exact power-state composition saturation theorem and transverse first-jet
+boundary,
+classifies the selected top-orbit elliptic $S$-unit lattice,
+proves an ordinary section sieve,
+and gives the exceptional Capelli
+criterion, a primitive-only palindromicity test, a one-third Frobenius
+compression, a Cayley-coordinate norm boundary, an intermediate-field packing
+sieve, and a level-dependent translate bound.  The compression proves the exceptional arm whenever its
+current cyclotomic quotient is prime, and the packing sieve proves a selected
+composite large-factor range, while the remaining composite levels stay open.
+A final reciprocity theorem
 shows that Frobenius, character, and affine-holonomy transforms of one marked
 Kummer phase can only erase or re-encode that phase; they cannot evaluate it
 without an independent ancestry input.
 
-The proof record distinguishes paper theorems, kernel-checked algebra, named
-finite certificates, source-backed data, and the still-open universal rule.
+The proof record distinguishes paper theorems, ordinary kernel-checked
+algebra, native-decided named finite certificates, source-backed data, and the
+still-open universal rule.
 \end{abstract}
 
 \section{Introduction}
@@ -92,8 +110,35 @@ The $0/1/4$ rule is equivalent to the conjunction of four selected-order
 assertions $Z,O,C,D$ stated in Theorem~\ref{thm:arms}.  Each assertion is an
 exact Euler nonpower test for one Conway-selected coordinate and retains the
 full primary valuation.  The reductions, the coordinate formulas, the
-selected Singer bound of Proposition~\ref{prop:sieve}, and the exceptional
-translate bound of Proposition~\ref{prop:d-bound} are proved here.  None of
+packet-universal Fermat residual of Proposition~\ref{prop:z-packet-universal},
+the packet-degree bound of Proposition~\ref{prop:z-packet-degree},
+the least-counterexample packet sharpening of
+Corollary~\ref{cor:z-one-packet},
+the Wiedemann-sibling comparison of Proposition~\ref{prop:z-wiedemann},
+the all-iterate ramification boundary of
+Proposition~\ref{prop:z-iterate-ramification}, the generalized-Prym
+saturation boundary of Proposition~\ref{prop:z-prym-boundary}, the selected
+top-orbit $S$-unit reduction of
+Proposition~\ref{prop:z-top-orbit-units},
+selected Singer, ratio-packing, and partition bounds of
+Propositions~\ref{prop:sieve}, \ref{prop:c-ratio-packing},
+and~\ref{prop:c-partition}, the cubic first-relation, power-state composition,
+first-jet, and marked-projective obstructions of
+Propositions~\ref{prop:c-first-relation}, \ref{prop:c-composition},
+\ref{prop:c-first-jet}, and~\ref{prop:c-projective}, and the exceptional
+compression, packing, and translate bounds of
+Propositions~\ref{prop:d-one-third}, \ref{prop:d-cayley}, \ref{prop:d-packing},
+and~\ref{prop:d-bound} are proved here.
+Corollary~\ref{cor:o-large-factor} settles the ordinary large-factor case,
+Proposition~\ref{prop:o-reciprocal} doubles its degree range whenever the
+literal bottom polynomial is not self-reciprocal, and
+Proposition~\ref{prop:o-ratio-packing} enlarges that range exponentially in
+$\sqrt{r^a}$ for fixed $r$, while Corollary~\ref{cor:o-one-primary} isolates a one-primary
+least-counterexample range; the compression settles the exceptional
+prime-complement case, and
+the intermediate-field sieve settles an exponential-in-$\sqrt{3^k}$
+composite large-factor range.
+None of
 $Z,O,C,D$ is proved universally; consequently the $0/1/4$ rule and absolute
 boundedness of the finite excess remain open.
 \end{thmA}
@@ -188,13 +233,17 @@ For $h>1$, put
 Thus $\Pi_h$ is the full primary part supported at primes first occurring at
 residue degree $h$.
 
-For an odd prime $r$, let $b_r=d(\alpha_r)$ and, for $a\geq1$, put
+For an odd prime $r$, let $b_r=d(\alpha_r)$.  Put
+$x_{r,0}=\alpha_r$, and for $a\geq1$ put
 \[
- x_{r,a}=\kappa_{r^a},\quad
- F_{r,a}=\mathbb F_{2^{r^ab_r}},\quad
+ x_{r,a}=\kappa_{r^a}.
+\]
+For every $a\geq0$, define
+\[
+ F_{r,a}=\mathbb F_{2^{r^ab_r}},\qquad
  y_{r,a}=x_{r,a}+1,
 \]
-with $F_{r,0}=\mathbb F_{2^{b_r}}$.  Define
+and for $a\geq1$ define
 \[
  G_{r,a}=F_{r,a}^{\times}/F_{r,a-1}^{\times},
  \qquad
@@ -365,9 +414,45 @@ and the $2^{n+1}$ Frobenius conjugates are distinct because $c_n$ has that
 degree.  They exhaust the tuples and preserve all relative orders.
 \end{proof}
 
-The recurrence has a deterministic packet form.  If
-$u_n=(c_n+1)/c_n$, then $\operatorname{ord}(u_n)=\delta_n$ and
-$a_{n-1}=\prod_{j<n}c_j=u_n/(u_n+1)^2$.  For each divisor $e>1$ of $F_n$,
+The quotient in Theorem~\ref{thm:fermat} is a torus.  Put
+\[
+ q=2^{2^n}=|E_{n-1}|,\qquad
+ T_n=\ker\bigl(N_{E_n/E_{n-1}}\colon E_n^{\times}\to E_{n-1}^{\times}\bigr),
+ \qquad
+ u_n=\frac{c_n+1}{c_n},
+\]
+and $a_{n-1}=\prod_{j<n}c_j$, with $a_{-1}=1$.
+
+\begin{proposition}[Fermat torus coordinate]\label{prop:z-torus}
+The group $T_n$ is cyclic of order $F_n$, and $z\mapsto z^{q-1}$ induces an
+isomorphism $E_n^{\times}/E_{n-1}^{\times}\simeq T_n$ sending
+$c_nE_{n-1}^{\times}$ to $u_n$.  Moreover
+\[
+ u_n+u_n^{-1}=a_{n-1}^{-1},
+ \qquad
+ a_{n-1}=\frac{u_n}{(u_n+1)^2}.
+\]
+Consequently $\operatorname{ord}(u_n)=\delta_n$, and the Conway--Fermat
+equality $\delta_n=F_n$ says exactly that $u_n$ generates $T_n$.
+\end{proposition}
+
+\begin{proof}
+The group $E_n^{\times}$ is cyclic of order $q^2-1$ and
+$N_{E_n/E_{n-1}}(z)=z^{q+1}$, so $T_n$ is its subgroup of order $q+1=F_n$.
+The $(q-1)$-st power map has kernel $E_{n-1}^{\times}$ and image $T_n$.  The
+generator $z\mapsto z^q$ of $\operatorname{Gal}(E_n/E_{n-1})$ fixes
+$a_{n-1}$, hence permutes the two roots $c_n$ and $c_n+1$ of
+$X^2+X+a_{n-1}$; since $c_n\notin E_{n-1}$, it exchanges them.  Thus
+$c_n^{q-1}=(c_n+1)/c_n=u_n$.  Finally
+\[
+ u_n+u_n^{-1}=\frac{(c_n+1)^2+c_n^2}{c_n(c_n+1)}
+ =\frac1{c_n^2+c_n}=\frac1{a_{n-1}},
+\]
+and $u_n/(u_n+1)^2=(u_n+u_n^{-1})^{-1}$ in characteristic two.
+\end{proof}
+
+The recurrence has a deterministic packet form.  For each divisor $e>1$ of
+$F_n$,
 the inverse pairs of primitive $e$-th roots give a squarefree packet
 polynomial
 \[
@@ -391,6 +476,281 @@ packet examples have identical full parent order but deterministic children
 of different conductor.  Consequently any induction must use the complete
 marked orbit, not only the integer conductor.
 
+The packet degree nevertheless gives an unconditional restriction on every
+possible loss of conductor.
+
+\begin{proposition}[packet-degree defect bound]
+\label{prop:z-packet-degree}
+For every $n\geq0$ one has
+\[
+ \varphi(\delta_n)\geq2^{n+1}.
+\]
+For $n\geq2$ the sharper bound is
+\[
+ \varphi(\delta_n)\geq2^{n+2}.
+\]
+If a prime $p\mid F_n$ is absent from the selected order at its full
+valuation, then
+\[
+ p\leq1+2^{2^n-n-1}.
+\]
+For $n\geq2$ this improves to
+\[
+ p\leq1+2^{2^n-n-2}.
+\]
+\end{proposition}
+
+\begin{proof}
+The packet $C_{\delta_n}$ has degree $\varphi(\delta_n)/2$, while it
+contains the selected minimal polynomial of $a_{n-1}$, of degree $2^n$.
+This proves the first inequality.  Put $H=2^{n+1}$.  If $n\geq2$, choose a
+prime $q\mid\delta_n$; such a prime exists because the first inequality
+makes $\delta_n>1$.  Since $q\mid F_n$, the order of $2$ modulo $q$ is
+exactly $H$.  Thus $q-1=kH$ for some $k$.  Moreover $q\equiv1\pmod8$, so
+the supplementary law for $2$ and Euler's criterion give
+\[
+ 1=2^{(q-1)/2}=\bigl(2^{H/2}\bigr)^k=(-1)^k\pmod q.
+\]
+Consequently $k$ is even, every prime divisor of $F_n$ is congruent to
+$1$ modulo $2H=2^{n+2}$, and
+$\varphi(\delta_n)\geq\varphi(q)=q-1\geq2^{n+2}$.
+
+Write
+$a=v_p(F_n)$ and $b=v_p(\delta_n)<a$.  Since $\delta_n\mid F_n$, the ratio
+\[
+ \frac{\varphi(F_n)}{\varphi(\delta_n)}
+\]
+is an integer.  The factor in its prime-by-prime product indexed by $p$ is
+$p^{a-1}(p-1)$ if $b=0$, and $p^{a-b}$ if $b>0$; in either case the ratio is
+at least $p-1$.  Hence
+\[
+ (p-1)2^{n+1}
+ \leq\varphi(F_n)
+ \leq F_n-1=2^{2^n},
+\]
+which is the asserted bound.
+Replacing $2^{n+1}$ by the sharper lower bound $2^{n+2}$ gives the final
+claim when $n\geq2$.
+\end{proof}
+
+There is a useful least-counterexample sharpening of this bound.  Congruence
+spacing separates a repeated missing coordinate from every genuinely
+compound defect.
+
+\begin{corollary}[minimal-counterexample Fermat congruence regimes]
+\label{cor:z-one-packet}
+Suppose that $p$ is the least odd prime at which the $0/1/4$ rule fails and
+that its putative failure lies in the Conway--Fermat part of arm~$Z$ at
+level $n\geq2$.  Put
+\[
+ M=2^{n+2},\qquad D=F_n/\delta_n,
+ \qquad
+ A_{<p}=\prod_{\substack{q<p\\q\mid F_n}}q^{v_q(F_n)},
+ \qquad G=\max\{M,\varphi(A_{<p})\}.
+\]
+Every prime divisor of $D$ is at least $p$ and is congruent to $1$ modulo
+$M$.  Moreover
+\[
+ \varphi(F_n)<G p(p-1)
+ \quad\Longrightarrow\quad
+ D=p.
+\]
+In the larger range
+\[
+ \varphi(F_n)<G(p-1)(p+M-1)
+ \quad\Longrightarrow\quad
+ D=p\quad\hbox{or}\quad p^2\mid D.
+\]
+If $v_p(F_n)=1$, the second alternative is impossible and the conclusion
+in the larger range is again $D=p$.
+\end{corollary}
+
+\begin{proof}
+Every prime $q\mid D$ is a missing coordinate at the same residue degree.
+If $q<p$, the row at $q$ would already violate the rule, contrary to
+minimality.  Hence $D$ is $p$-rough and $p\mid D$.
+
+The proof of Proposition~\ref{prop:z-packet-degree} shows that every prime
+divisor of $F_n$ is $1$ modulo $M$.  Least-prime minimality also forces the
+full $q$-primary part of $F_n$ into $\delta_n$ for every $q<p$.  Hence
+$A_{<p}\mid\delta_n$, so
+\[
+ G\leq\varphi(\delta_n).
+\]
+
+Put $t=\varphi(F_n)/\varphi(\delta_n)$.  If $D\ne p$, the prime-by-prime
+factorization of the totient quotient has either a repeated missing
+$p$-factor or a distinct missing prime $q>p$.  In the repeated case its
+local factor is at least $p(p-1)$.  In the distinct case congruence spacing
+gives $q\geq p+M$, and the two local factors give
+\[
+ t\geq(p-1)(q-1)\geq(p-1)(p+M-1)\geq p(p-1).
+\]
+Multiplication by $\varphi(\delta_n)\geq G$ proves the first implication.
+The larger strict bound excludes the distinct-prime case and leaves only
+$D=p$ or $p^2\mid D$.  The valuation-one assertion is immediate.
+
+The square survivor is a precise classical boundary: $p^2\mid F_n$ implies
+$2^{p-1}\equiv1\pmod {p^2}$, so $p$ is a base-$2$ Wieferich prime.  Thus
+the congruence sieve isolates, rather than silently assumes, the unresolved
+repeated-factor obstruction.
+\end{proof}
+
+The literal multiplication operator retains that selector in a compact
+two-block form.  At the edge $c_n^2=c_n+a_{n-1}$, let $A$ denote
+multiplication by $a_{n-1}$ on $E_{n-1}$.  Multiplication by
+$a_{n-1}c_n$ on $E_{n-1}\oplus c_nE_{n-1}$ has matrix
+\[
+ \begin{pmatrix}0&A^2\\ A&A\end{pmatrix}.
+\]
+This identity is kernel-checked.  The Lean declaration is
+\begin{center}
+\texttt{fermat\_selected\_product\_}\\
+\texttt{mul\_pair}.
+\end{center}
+If $S_r$ denotes the characteristic-two Fibonacci polynomial, the genuine
+level-$n$ target is
+\[
+ S_{F_n/\ell}(a_{n-1})\ne0\qquad(\ell\mid F_n\text{ prime}).
+\]
+Equivalently, one applies the same polynomial to multiplication by
+$a_{n-1}$ on $E_{n-1}$.  Write $M_n$ for the displayed two-block operator.
+It represents multiplication by $a_n=a_{n-1}c_n$, so it is the recursive
+interface to the \emph{next}-level target
+\[
+ S_{F_{n+1}/\ell}(M_n)\ne0
+ \qquad(\ell\mid F_{n+1}\text{ prime}).
+\]
+At the lower index one instead has the automatic exclusion
+\[
+ S_{F_n/\ell}(a_n)\ne0,
+ \quad\text{equivalently}\quad
+ S_{F_n/\ell}(M_n)\ne0
+ \qquad(\ell\mid F_n),
+\]
+because a zero would put $a_n$ in $E_{n-1}$: zero-block propagation reaches
+$S_{F_n}$, and the telescoping partial-trace identity then forces
+$a_n^{|E_{n-1}|}=a_n$, whereas its Frobenius displacement is
+$a_{n-1}\ne0$.  This wrong-index exclusion is kernel-checked as
+\begin{center}
+\texttt{fibPolyValue\_quadratic\_birth\_}\par
+\texttt{lower\_period\_ne\_zero}.
+\end{center}
+It is not the selected-order conjecture.  The block formula remains an exact
+interface to the displayed next-level nonvanishing problem; it does not prove
+that target.
+
+At the genuine index there is nevertheless a sharper exact residual.  Let
+$d=F_{n+1}/\ell=2m+1>1$ and put $x=a_n$.  Characteristic-two doubling and
+Cassini give
+\begin{align*}
+ S_m(x)^4+x^{d-2}&=S_d(x)S_{d-2}(x),\\
+ S_{m+1}(x)^4+x^d&=S_d(x)S_{d+2}(x).
+\end{align*}
+Consequently, over a field,
+\[
+ S_d(x)=0
+ \quad\Longleftrightarrow\quad
+ S_m(x)^4=x^{d-2}
+ \qquad\text{and}\qquad
+ S_{m+1}(x)^4=x^d.
+\]
+The converse is literal: squaring
+$S_d=S_{m+1}^2+xS_m^2$ makes the two displayed powers cancel.  The pair is
+strictly sharper than either equation separately.  Indeed, in
+$\mathbb F_2[X]$ its two left-hand residual polynomials have monic gcd exactly
+$S_d$.  To see the only needed coprimality, any common divisor of
+$S_{d-2}$ and $S_{d+2}$ divides $X^{d-2}S_4=X^{d-2}$ by the continuant
+determinant identity, while the positive odd-index polynomial $S_{d-2}$ has
+constant coefficient one.  Thus $S_{d-2}$ and $S_{d+2}$ are coprime, and
+the two factorizations give the stated gcd.
+
+This exact branch selector still does not close the Conway--Fermat target.
+If $d-1=2^s g$ with $g$ odd, its lower equation is
+\[
+ S_g(x)^{2^{s+1}}=x^{d-2}.
+\]
+Writing $q=|E_n|$, choose $K$ by the exact congruence
+$2^{s+1}K\equiv d-2\pmod{q-1}$.  Since $x\ne0$, $x^{q-1}=1$, and the
+$2^{s+1}$-power Frobenius is injective, the equation becomes
+$S_g(x)=x^K$.  This is precisely the existing AE4 inverse-exponent seam.
+The upper equation removes the adjacent Fibonacci branch but, after
+$S_d(x)=0$ is imposed, follows by squaring the same endpoint relation twice
+and using the lower equation; no present ancestry identity contradicts the
+resulting monomial equality.
+The two ordinary identities and the field equivalence are kernel-checked as
+\begin{center}
+\texttt{fibPolyValue\_odd\_lower\_fourth\_factor},\par
+\texttt{fibPolyValue\_odd\_upper\_fourth\_factor},\quad\text{and}\quad
+\texttt{fibPolyValue\_odd\_eq\_zero\_iff\_fourth\_residuals}.
+\end{center}
+
+In fact the inverse-exponent seam is not merely compatible with deficient
+packets: it is a universal identity on every such packet.
+
+\begin{proposition}[packet-universal Fermat residual]
+\label{prop:z-packet-universal}
+Let $s,g\geq1$, let $d=Rg+1$ with $R=2^s$, and let $u\ne0,1$ satisfy
+$u^d=1$ in a field of characteristic two.  Put
+\[
+ \phi(u)=\frac{u}{(u+1)^2},\qquad x=\phi(u),\qquad
+ f=S_g(x),\qquad h=S_{g+1}(x),\qquad
+ B=\frac{x^g}{f^2}.
+\]
+Then $f\ne0$ and
+\[
+ B=\phi(u^g),\qquad B^R=x,
+ \qquad \frac hf=T_s(B),
+\]
+where $T_s(z)=z+z^2+\cdots+z^{2^{s-1}}$.
+Consequently both fourth-power residual coordinates produced by a zero of
+$S_d$ are identities for every nontrivial $d$-th root---equivalently, on
+every packet $C_e$ with $1<e\mid d$---before the Conway parent is selected.
+\end{proposition}
+
+\begin{proof}
+The characteristic-two Binet identity is
+\[
+ S_j(\phi(u))=\frac{u^j+1}{(u+1)^j}.
+\]
+It first gives $S_d(x)=0$.  Since $\gcd(g,d)=1$ and $u\ne1$, it also gives
+$f\ne0$, and direct substitution gives
+\[
+ \frac{x^g}{f^2}=\frac{u^g}{(u^g+1)^2}=\phi(u^g).
+\]
+The map $\phi$ commutes with every binary Frobenius power and satisfies
+$\phi(v^{-1})=\phi(v)$.  Since $u^{Rg}=u^{d-1}=u^{-1}$,
+this proves $B^R=x$.
+
+Put $t=(u^g+1)^{-1}$.  Then $B=t+t^2$, so the partial Frobenius trace
+telescopes:
+\[
+ T_s(B)=t+t^R
+ =\frac1{u^g+1}+\frac{u}{u+1}.
+\]
+The last equality uses
+$(u^g+1)^R=u^{Rg}+1=u^{-1}+1$.  A second application of the Binet identity
+gives
+\[
+ \frac hf
+ =\frac{u^{g+1}+1}{(u+1)(u^g+1)}
+ =\frac1{u^g+1}+\frac{u}{u+1},
+\]
+proving the assertion.  Thus these residual coordinates characterize the
+ambient torsion packet but do not distinguish its recursively selected
+member.
+\end{proof}
+
+The Binet identity in this proof is kernel-checked as
+\texttt{fibPolyValue\_torus\_binet}.  The proposition sharpens the failure
+boundary: any successful induction must use the deterministic parent label
+in
+\[
+ u_{n+1}(u_n+1)^3=u_n(u_{n+1}+1)^2,
+\]
+not only the fourth-power residual, inverse Frobenius, trace, or norm of the
+child packet.
+
 This isolates the part not settled by the existing Conway-tower literature.
 Popovych proves lower bounds and verifies the required relative full orders
 through level eleven using the known Fermat factorizations
@@ -400,6 +760,67 @@ basis theorem for the associated tower elements
 \cite{caglierohermanszechtman2025}.  Neither result forces every relative
 factor $\delta_n$ to equal $F_n$; that all-level equality is precisely the
 remaining selected assertion here.
+
+The limitation of normality and finitely many absolute traces can be made
+unconditional, independently of the selected tower.
+
+\begin{proposition}[finite-trace order separation]
+\label{prop:z-trace-separation}
+For every finite set $S\subset\mathbb Z_{>0}$, there are arbitrarily large
+powers $d=2^s$ and normal full-degree elements
+$\alpha,\beta\in\mathbb F_{2^d}$ such that
+\[
+ \operatorname{Tr}(\alpha^j)=\operatorname{Tr}(\beta^j)
+ \quad(j\in S),
+ \qquad
+ \operatorname{ord}(\alpha)=2^d-1,
+ \quad
+ \operatorname{ord}(\beta)=\frac{2^d-1}{3}.
+\]
+Consequently no fixed finite tuple of absolute power traces, even together
+with degree and normality, distinguishes full multiplicative order from a
+missing factor three in characteristic two.
+\end{proposition}
+
+\begin{proof}
+Absolute trace is invariant under squaring, so replace every $j\in S$ by its
+odd core, remove repetitions, and adjoin the exponent one.  The resulting
+odd monomials $X^{u_1},\ldots,X^{u_r}$ are strongly linearly independent in
+the sense of Cohen: a nonconstant Artin--Schreier polynomial $H^2-H+b$ has
+even leading degree, whereas every nonzero binary linear combination of the
+chosen monomials has odd leading degree.  A rational $H$ cannot evade this
+argument, since any finite pole would survive in $H^2-H$.
+
+Apply Cohen's specified-order, specified-functional-trace theorem
+\cite[Theorem~1.1]{cohen2005specified} twice with $q=2$, first with defect
+$l=1$ and then with defect $l=3$, prescribing the same trace values and
+prescribing one for the coordinate $X$.  Its explicit degree bound holds for
+all sufficiently large $d=2^s$, and $3\mid2^d-1$ for even $d$.  This gives
+the displayed exact orders and trace equalities.
+
+For an extension of degree a power of the characteristic, an element is
+normal exactly when its absolute trace is nonzero.  By the normal-basis
+theorem the Frobenius module is free of rank one over the local algebra
+$\mathbb F_2[T]/((T-1)^d)$, and trace is $(T-1)^{d-1}$.
+Thus both elements are normal.  The primitive element has full degree.  For
+$d\ge4$, so does the element of order $(2^d-1)/3$, since this order exceeds
+$2^{d/2}-1$, the largest possible multiplicative order in a proper subfield.
+\end{proof}
+
+This proposition is not a counterexample to the Conway--Fermat assertion:
+it controls generic field elements, whereas $\delta_n$ is the order of the
+torus coordinate attached to the literal recursively selected ancestry.
+It proves, however, that a successful all-level argument must use more than
+any fixed finite absolute-trace tuple or the normal-basis theorem.  Across a
+single Conway quadratic edge the entire power-sum recursion is nevertheless
+explicit: if $y^2+xy+x^3=0$, then
+\[
+ y^m+(y+x)^m=D_m(x,x^3),
+\]
+where $D_m(S,B)$ is the signed Dickson--Lucas recurrence with initial values
+$2,S$ and step $D_{m+2}=S D_{m+1}-B D_m$.  This identity is kernel-checked as
+\texttt{conwayChild\_powerSum}; it transports trace data but does not recover
+the missing conductor coordinate.
 
 There is an exact supersingular realization of the selected ancestry.
 
@@ -472,8 +893,457 @@ $\mu_{F_n}$, whereas $g(P_n)$ has order dividing $F_{n+1}$.  Pairwise
 coprimality of the Fermat numbers and $\delta_{n+1}>1$ exclude equality.
 \end{proof}
 
-The proposition supplies exact CM annihilator control but not generator
-status.  For $n\geq3$, no elliptic endomorphism can carry $P_n$ to
+The elliptic curve is only the first stage of a recursive
+Artin--Schreier tower.  Its ramification remains completely rigid at every
+depth, but that rigidity occurs away from every finite torsion packet.
+
+\begin{proposition}[all-iterate ramification boundary]
+\label{prop:z-iterate-ramification}
+Let $\mathcal X_r$ be the smooth projective normalization of the affine
+curve over $\mathbb F_2$ with coordinates $c_0,\ldots,c_r$ and equations
+\[
+ c_{j+1}^2+c_{j+1}=c_j^3+c_j^2
+ \qquad(0\leq j<r).
+\]
+Then $\mathcal X_r$ is geometrically connected, the projection
+$\mathcal X_r\to\mathbb P^1_{c_0}$ has degree $2^r$, and it is unramified
+over the finite $c_0$-line.  There is a unique point $\infty_r$ above
+$c_0=\infty$, and
+\[
+ \operatorname{ord}_{\infty_r}(c_j)
+ =-2^{r-j}3^j\qquad(0\leq j\leq r).
+\]
+Moreover,
+\[
+ g(\mathcal X_r)=\frac{3^{r+1}-2^{r+2}+1}{2}.
+\]
+Consequently no invariant determined only by the branch locus, ramification
+indices, different, or inertia filtration of the iterated correspondence can
+distinguish the literal Conway specialization from a deficient finite
+torsion packet.
+\end{proposition}
+
+\begin{proof}
+Write $K_j=\overline{\mathbb F}_2(\mathcal X_j)$.  On
+$\mathcal X_0=\mathbb P^1$, the function $c_0$ has one pole, of order one.
+Suppose inductively that $c_j$ has a unique pole $\infty_j$, of order
+$3^j$.  The Artin--Schreier driver
+\[
+ f_j=c_j^3+c_j^2
+\]
+then has the same unique pole, of odd order $m_j=3^{j+1}$; the cubic term
+has strictly larger pole order than the quadratic term.  It cannot equal
+$w^2+w$ in $K_j$: if $w$ has a pole, the leading pole order of $w^2+w$ is
+even, and if $w$ has no pole, neither does $w^2+w$.  Thus
+$Z^2+Z=f_j$ is irreducible even after extending the constants, proving
+geometric connectedness and degree two at the next stage.
+
+The reduced Artin--Schreier ramification criterion gives a unique point
+$\infty_{j+1}$ above $\infty_j$, with ramification index two and different
+exponent
+\[
+ m_j+1=3^{j+1}+1.
+\]
+At every other place $f_j$ is integral, and the derivative of
+$Z^2+Z-f_j$ is one, so the extension is unramified there.  With the
+normalized valuation upstairs one has
+$\operatorname{ord}_{\infty_{j+1}}(f_j)=-2m_j$.  The defining equation
+therefore forces
+\[
+ \operatorname{ord}_{\infty_{j+1}}(c_{j+1})=-m_j=-3^{j+1}.
+\]
+Every later quadratic stage doubles the valuation of an earlier coordinate,
+which proves
+$\operatorname{ord}_{\infty_r}(c_j)=-2^{r-j}3^j$.
+
+Put $h_j=2g(\mathcal X_j)-2$.  Riemann--Hurwitz gives
+\[
+ h_0=-2,
+ \qquad
+ h_{j+1}=2h_j+3^{j+1}+1.
+\]
+Hence
+\begin{align*}
+ h_r
+ &= -2^{r+1}
+    +\sum_{j=0}^{r-1}2^{r-1-j}\bigl(3^{j+1}+1\bigr)\\
+ &=3^{r+1}-2^{r+2}-1,
+\end{align*}
+which is the asserted genus formula.
+
+Finally, every nontrivial torsion coordinate $u$ has
+$c=(u+1)^{-1}$ finite.  The literal place $c_0^2+c_0+1=0$ and every finite
+packet specialization therefore meet the same etale locus.  The literal
+place is totally inert through the Conway tower, but that is decomposition
+data at one marked place, not a consequence of the ramification just
+computed.  The proposition consequently supplies no generator or
+nonvanishing assertion.
+\end{proof}
+
+The anti-invariant generalized Jacobian can also be computed exactly.  It is
+large, but the Kummer function occupies only one tame boundary direction.
+
+\begin{proposition}[generalized-Prym saturation boundary]
+\label{prop:z-prym-boundary}
+For $r\geq1$, let
+\[
+ \pi_r:\mathcal X_r\longrightarrow\mathcal X_{r-1},\qquad
+ \tau_r(c_r)=c_r+1,\qquad
+ u_r=\frac{c_r+1}{c_r}.
+\]
+For $\epsilon=(\epsilon_0,\ldots,\epsilon_{r-1})\in\{0,1\}^r$ and
+$\delta\in\{0,1\}$, write $P_{\epsilon,\delta}$ for the corresponding
+binary point of $\mathcal X_r$, and put
+$z(\epsilon)=\#\{i:\epsilon_i=0\}$.  Then
+\[
+ \operatorname{div}(u_r)
+ =\sum_{\epsilon\in\{0,1\}^r}2^{z(\epsilon)}
+   \bigl([P_{\epsilon,1}]-[P_{\epsilon,0}]\bigr).
+\]
+In particular its reduced support $S_r$ consists of $2^{r+1}$
+$\mathbb F_2$-points, and $B_r=\pi_r(S_r)$ consists of $2^r$
+$\mathbb F_2$-points.
+
+Let $J(\mathcal X,S)$ denote the reduced-modulus generalized Jacobian.  The
+identity component of the generalized norm kernel
+\[
+ \ker\bigl(J(\mathcal X_r,S_r)\longrightarrow
+                 J(\mathcal X_{r-1},B_r)\bigr)
+\]
+has dimension $3^r$.  Its ordinary Prym quotient has dimension
+$3^r-2^r$, while its boundary-torus kernel has dimension $2^r$.
+
+For every odd prime $\ell$, with $U_r=\mathcal X_r\setminus S_r$, the
+Kummer class
+\[
+ \delta_\ell(u_r)\in H^1_{\mathrm{\acute et}}(U_r,\mu_\ell)
+\]
+comes from the unit term in the Kummer sequence, has tame residue vector
+given by the displayed divisor formula modulo $\ell$, and satisfies
+$\tau_r^*\delta_\ell(u_r)=-\delta_\ell(u_r)$.  This vector is nonzero for
+every odd $\ell$, but its Frobenius orbit spans only one line, up to the
+cyclotomic Tate twist.  The ray character defined by $u_r$ is nontrivial on
+the anti-invariant boundary torus and is geometrically surjective onto
+$\mathbb G_m$.
+\end{proposition}
+
+\begin{proof}
+The affine equations are triangular with derivative one in each new
+coordinate.  Hence the binary tuples are distinct smooth points.  Conversely,
+$c_r\in\{0,1\}$ forces
+\[
+ c_{r-1}^2(c_{r-1}+1)=c_r(c_r+1)=0,
+\]
+and induction forces every earlier coordinate to be binary.  At a binary
+point the same identities give
+\[
+ \operatorname{ord}(c_i-\epsilon_i)
+ =
+ \begin{cases}
+  2\operatorname{ord}(c_{i-1}),&\epsilon_{i-1}=0,\\
+  \operatorname{ord}(c_{i-1}+1),&\epsilon_{i-1}=1.
+ \end{cases}
+\]
+Starting with order one on $\mathcal X_0$ proves
+the divisor formula.  There is no contribution at infinity, since
+$u_r=1+c_r^{-1}$ there.  As a check, each of the zero and pole divisors has
+degree
+\[
+ \sum_{\epsilon\in\{0,1\}^r}2^{z(\epsilon)}=(2+1)^r=3^r,
+\]
+the pole degree of $c_r$.
+
+For a reduced modulus of $s$ geometric points, the boundary torus has
+dimension $s-1$.  The norm on the two boundary points above each point of
+$B_r$ is pairwise multiplication, so its toric kernel has dimension $2^r$.
+The ordinary Prym dimension is, by
+Proposition~\ref{prop:z-iterate-ramification},
+\[
+ g(\mathcal X_r)-g(\mathcal X_{r-1})=3^r-2^r.
+\]
+The generalized norm is surjective: its composite with pullback is
+multiplication by two, which is a finite surjective morphism of the
+semiabelian target even in characteristic two.  Subtracting dimensions now
+gives $3^r$ for the identity kernel.  On prime-to-two Tate modules, the
+toric norm kernel is exactly the $(-1)$-part of the boundary-torus module for
+$\tau_r$; this formulation avoids any false semisimplicity assertion at the
+characteristic prime.
+
+The Kummer exact sequence gives
+\[
+ 0\longrightarrow
+ \mathcal O(U_r)^\times/\mathcal O(U_r)^{\times\ell}
+ \longrightarrow H^1_{\mathrm{\acute et}}(U_r,\mu_\ell)
+ \longrightarrow \operatorname{Pic}(U_r)[\ell]
+ \longrightarrow0.
+\]
+The class of $u_r$ lies in the first term, and its tame residues are its
+valuations modulo $\ell$.  All displayed multiplicities are powers of two,
+so none vanishes modulo an odd $\ell$; in particular the reduced modulus
+loses no conductor information.  The coefficient belonging to the all-one
+prefix is one, proving nonvanishing.  Since
+$\tau_r(u_r)=u_r^{-1}$, the class is anti-invariant and its corestriction is
+zero.
+
+Every point of $S_r$ is rational over $\mathbb F_2$, so Frobenius has no
+permutation action on the residue vector.  Only the scalar cyclotomic twist
+remains, and the orbit therefore spans one line.  Finally, for a degree-zero
+divisor $D$ disjoint from $S_r$, put $\chi_{u_r}([D])=u_r(D)$.  If
+$D$ is changed by $\operatorname{div}(f)$ with $f=1$ on $S_r$, Weil
+reciprocity gives
+\[
+ u_r(\operatorname{div}(f))=f(\operatorname{div}(u_r))=1,
+\]
+so this is a character of the generalized Jacobian.  Its restriction to the
+toric norm kernel has the nonzero anti-invariant exponent vector
+displayed above; a nonzero character of a torus is geometrically
+surjective onto $\mathbb G_m$.
+\end{proof}
+
+This surjectivity concerns geometric generalized-divisor classes, not the
+literal totally inert Conway place.  It therefore supplies no full-order
+claim.  Rather, it shows sharply why the ordinary Prym and lower norm data
+cannot evaluate the selected phase: the relevant ray class is one
+Frobenius-stable line inside a $2^r$-dimensional anti-invariant boundary
+torus, and selecting its value requires decomposition data at the marked
+place.
+
+\begin{corollary}[fixed-five-torsion rank-one boundary]
+\label{cor:z-fixed-s-rank-one}
+Let $n\geq2$, put $A=2^{2^n}$, $q=A^2$, and let
+$\ell$ be an odd prime dividing $q+1=F_{n+1}$.  Set
+$L=\mathbb F_{q^2}$ and $S=\mathcal E(\mathbb F_2)$.  If $[z]_\ell$
+denotes the class of $z\in L^\times$ in
+$L^\times/L^{\times\ell}$, then
+\[
+ \operatorname{span}_{\mathbb F_\ell}
+ \bigl\{[F(P_n)]_\ell:
+ F\in\mathbb F_2(\mathcal E)^\times,\,
+ \operatorname{supp}\operatorname{div}(F)\subseteq S\bigr\}
+ =
+ \mathbb F_\ell[g(P_n)]_\ell .
+\]
+Thus no $\mathbb F_2$-rational unit supported on the fixed five-torsion
+supplies an independent Kummer detector for the selected endpoint.
+\end{corollary}
+
+\begin{proof}
+Write
+\[
+ A_0=[-T]-[T],\qquad B_0=[-2T]-[2T].
+\]
+Every anti-invariant degree-zero divisor supported on $S$ is $aA_0+bB_0$.
+Its class in $\operatorname{Pic}^0(\mathcal E)\simeq\mathcal E$ is
+$(3a+b)T$, so the principal lattice is
+$3a+b\equiv0\pmod5$.  Proposition~\ref{prop:z-elliptic} gives
+$\operatorname{div}(g)=2A_0-B_0$.  With
+\[
+ r=f_{5,T}=\frac{y^2(y+x)}{(x+1)^2},
+ \qquad s=\frac{r\circ[-1]}r,
+\]
+one has $\operatorname{div}(s)=5A_0$; these two divisor vectors have
+determinant five and hence form a basis of the principal lattice.
+
+For an $S$-unit $F$, put $R=(F\circ[-1])/F$.  Since
+$\mathbb F_2^\times=\{1\}$, the lattice calculation gives
+$R=g^m s^k$ for some integers $m,k$.  Direct substitution in the displayed
+functions gives
+\[
+ s=\frac{g^2}{g\circ\iota}.
+\]
+Now $c_n^A=c_n+1$, so $P_n^A$ and $\iota P_n$ have the same
+$x$-coordinate.  Hence $P_n^A=\epsilon\iota P_n$ for some
+$\epsilon\in\{1,-1\}$, and
+\[
+ s(P_n)=g(P_n)^{\,2-\epsilon A}.
+\]
+As $P_n^q=-P_n$, it follows that
+$F(P_n)^{q-1}=R(P_n)$, placing every displayed class on the line generated
+by $[g(P_n)]_\ell$ because $\gcd(\ell,q-1)=1$.
+
+Conversely, for $h=y/(x+1)$ one has
+$h\circ[-1]/h=g$.  Therefore
+$h(P_n)^{q-1}=g(P_n)$, and $[h(P_n)]_\ell$ spans the same line.  This proves
+the reverse inclusion.
+\end{proof}
+
+The fixed support can be enlarged to the complete top Frobenius orbit without
+losing the literal selector.  The resulting divisor lattice has two explicit
+function generators after evaluation, but the value quotient still has only
+one Kummer direction.
+
+\begin{proposition}[selected top-orbit $S$-unit reduction]
+\label{prop:z-top-orbit-units}
+Let $n\geq2$ and put
+\[
+ H=2^{n+1},\qquad A=2^{H/2}=2^{2^n},\qquad
+ q=2^H=A^2,\qquad d=2H,\qquad L=\mathbb F_{q^2}.
+\]
+Let $P=(x_P,y_P)\in\mathcal E(L)$ satisfy
+\[
+ P^q=-P,\qquad [\mathbb F_2(x_P):\mathbb F_2]=H,
+ \qquad x_P^A=x_P+1.
+\]
+These are the top-orbit and half-Frobenius properties of $P_n$.  Let
+$M\in\mathbb F_2[X]$ be the minimal polynomial of $x_P$, and define the
+pointwise translated divisors
+\[
+ D_0=\sum_{0\leq i<d}[P^{2^i}],\qquad
+ D_\pm=\sum_{0\leq i<d}[P^{2^i}\pm T],\qquad
+ C_0=D_+-D_-.
+\]
+Put
+\[
+ S'=\mathcal E(\mathbb F_2)\cup\operatorname{supp}(D_+)
+       \cup\operatorname{supp}(D_-),
+ \qquad f(Q)=M(x(Q+T)),
+ \qquad U=\frac{f\circ[-1]}f,
+\]
+and
+\[
+ \Theta_P=U(P)
+ =\frac{M(x(P-T))}{M(x(P+T))}
+ =M(x(P+T))^{q-1}.
+\]
+Then
+\[
+ \operatorname{div}(U)=C_0+dA_0,
+ \qquad A_0=[-T]-[T],\quad B_0=[-2T]-[2T].
+\]
+The $\mathbb F_2$-rational, inversion-anti-invariant, degree-zero divisors
+supported on $S'$ are exactly
+\[
+ aA_0+bB_0+kC_0\qquad(a,b,k\in\mathbb Z).
+\]
+Such a divisor is principal if and only if
+\[
+ 3a+b+2dk\equiv0\pmod5.
+\]
+In the coordinates $(A_0,B_0,C_0)$, the principal lattice has the basis
+\[
+ \operatorname{div}(g)=(2,-1,0),\qquad
+ \operatorname{div}(s)=(5,0,0),\qquad
+ \operatorname{div}(U)=(d,0,1),
+\]
+where $s$ is the fixed-support function in the proof of
+Corollary~\ref{cor:z-fixed-s-rank-one}.
+
+More precisely, if $F\in\mathbb F_2(\mathcal E)^\times$ has divisor supported
+on $S'$, there are $m,k,r\in\mathbb Z$ and
+$\epsilon\in\{1,-1\}$, with $P^A=\epsilon\iota P$, such that
+\[
+ F(P)^{q-1}=g(P)^{\,m+k(2-\epsilon A)}\Theta_P^r.
+\]
+Consequently, for every odd prime $\ell\mid q+1$,
+\[
+ \operatorname{span}_{\mathbb F_\ell}
+ \bigl\{[F(P)]_\ell:
+       F\in\mathbb F_2(\mathcal E)^\times,
+       \operatorname{supp}\operatorname{div}(F)\subseteq S'\bigr\}
+ =\operatorname{span}_{\mathbb F_\ell}
+   \{[g(P)]_\ell,[\Theta_P]_\ell\}.
+\]
+This names two function/divisor generators, not two independent value
+directions: the cyclic quotient $L^\times/L^{\times\ell}$ has
+$\mathbb F_\ell$-dimension one.
+\end{proposition}
+
+\begin{proof}
+The point $P$ has Frobenius orbit of length $d$: its $x$-coordinate has orbit
+length $H$, while $P^q=-P\ne P$.  The divisors $D_+$ and $D_-$ are single
+$\mathbb F_2$-orbits.  They are disjoint from each other, from
+$\mathcal E(\mathbb F_2)$, and from $D_0$; in particular, $P\notin S'$ and
+all evaluations below are defined.  The orbit $D_0$ is disjoint from
+$\mathcal E(\mathbb F_2)$ by its length, and the same follows for $D_\pm$
+after translating by $\mp T$.  Any remaining collision would give a nonzero
+translation of one orbit point by rational five-torsion.  Iterating the
+corresponding Frobenius shift five times would fix that point; since
+$\gcd(d,5)=1$, the original shift would already be trivial, a contradiction.
+
+The roots of $M$ are the $x$-coordinates of
+$P,P^2,\ldots,P^{2^{H-1}}$.  The two points over each root are interchanged by
+inversion and together give $D_0$.  Since $x$ has a double pole at $O$,
+\[
+ \operatorname{div}(f)=D_--d[-T],\qquad
+ \operatorname{div}(f\circ[-1])=D_+-d[T].
+\]
+Their difference proves the formula for $\operatorname{div}(U)$.  Moreover,
+$P^q=-P$ and rationality of $M,T$ give
+\[
+ M(x(P+T))^q=M(x(-P+T))=M(x(P-T)),
+\]
+which proves the formula for $\Theta_P$.
+
+Inversion swaps $T$ with $-T$, $2T$ with $-2T$, and the two rational orbits
+$D_+$ and $D_-$.  It fixes $O$, whose coefficient in an anti-invariant
+integral divisor must therefore vanish.  Frobenius invariance makes the
+coefficient constant on each of $D_+$ and $D_-$, proving the asserted
+rank-three description.  Under
+$\operatorname{Pic}^0(\mathcal E)\simeq\mathcal E$ one has
+\[
+ A_0\longmapsto3T,\qquad B_0\longmapsto T,
+ \qquad C_0\longmapsto2dT.
+\]
+This proves the congruence criterion.  The three displayed divisor vectors
+belong to its kernel and have determinant five.  Since the congruence kernel
+itself has index five in $\mathbb Z^3$, they form a basis.
+
+For an $S'$-unit $F$, set $R=(F\circ[-1])/F$.  Its divisor belongs to the
+principal anti-invariant lattice, so
+\[
+ R=g^m s^k U^r
+\]
+for some integers $m,k,r$; no scalar remains because
+$\mathbb F_2^\times=\{1\}$.  The selected half-Frobenius equation gives
+$x(P^A)=x(\iota P)$, hence $P^A=\epsilon\iota P$ for some
+$\epsilon\in\{1,-1\}$.  Using
+\[
+ s=\frac{g^2}{g\circ\iota},\qquad g(-Q)=g(Q)^{-1},
+\]
+one obtains $s(P)=g(P)^{2-\epsilon A}$.  Finally,
+\[
+ F(P)^{q-1}=\frac{F(P^q)}{F(P)}
+ =\frac{F(-P)}{F(P)}=R(P),
+\]
+which proves the explicit evaluation.  Since
+$\gcd(\ell,q-1)=1$, exponentiation by $q-1$ is invertible on
+$L^\times/L^{\times\ell}$.  This gives one inclusion in the span equality;
+the reverse follows because $g$ and $U$ are themselves $S'$-units and
+$U(P)=\Theta_P$.
+\end{proof}
+
+The half-Frobenius selector in this proposition is essential.  The exact
+finite certificate in the \texttt{experiments} directory is
+\[
+ \texttt{fermat\_top\_orbit\_countermodel.py}.
+\]
+It constructs a generic
+$H=32$ point with $P^{2^{32}}=-P$ and $x_P$ of exact degree $32$ in
+\[
+ \mathbb F_2[X]/(\mathtt{1c019c923}),\qquad
+ x_P=\mathtt{2bf5b2fb},\qquad
+ M=\mathtt{1b3e069a5}.
+\]
+For $\ell=641$ and $2^{32}+1=641\cdot6700417$, it verifies
+\[
+ \operatorname{ord}(g(P))=6700417,
+ \qquad \operatorname{ord}(\Theta_P)=2^{32}+1.
+\]
+Thus $[g(P)]_{641}=0$ while $[\Theta_P]_{641}\ne0$.  The same certificate
+finds that the fixed-support value $s(P)$ has full order $2^{32}+1$, so even
+the elimination of $s$ fails without the selector.  Crucially,
+\[
+ x_P^{2^{16}}=\mathtt{5e024149}\ne
+ \mathtt{2bf5b2fa}=x_P+1.
+\]
+This is an exact countermodel to any deduction from unmarked top-orbit
+geometry, not a Conway specialization and not evidence against arm $Z$.
+The nonzero classes of $s(P)$ and $\Theta_P$ are the same sole
+$641$-direction in the cyclic value quotient; they are not independent
+Kummer coordinates.
+
+Proposition~\ref{prop:z-elliptic} supplies exact CM annihilator control but
+not generator status.  For $n\geq3$, no elliptic endomorphism can carry $P_n$ to
 $P_{n-1}$: the image order would divide both coprime numbers $F_n$ and
 $F_{n-1}$, although $P_{n-1}\ne O$.  For $n=2$, the same conclusion follows
 from $\operatorname{ord}(P_1)=3$ and $\operatorname{ord}(P_2)\mid17$.
@@ -493,7 +1363,316 @@ statement is still exclusion of every proper-conductor packet along the
 complete resultant chain.  Trace, relative norm, irreducibility, and the
 etale Jacobian hold for proper packets as well as the full packet.
 
-\section{The ordinary arm: a marked cyclotomic unit}\label{sec:o}
+\subsection{Wiedemann's sibling tower}\label{sec:z-wiedemann}
+
+Proposition~\ref{prop:z-torus} places the Conway--Fermat assertion beside an
+older open problem.  Wiedemann's iterated quadratic tower is
+\[
+ x_{-1}=1,\qquad x_m+x_m^{-1}=x_{m-1}\qquad(m\geq0).
+\]
+Wiedemann proves that every step is quadratic, so that $E_m=E_{m-1}(x_m)$
+and $x_m^{-1}$ is the conjugate of $x_m$ over $E_{m-1}$, and that
+$x_m^{F_m}=1$ \cite[Theorem~1 and Corollary]{wiedemann1988}.  He verifies
+$\operatorname{ord}(x_m)=F_m$ for $m\leq8$, asks whether it holds for every
+$m$, and, setting his tower beside Conway's, records that no explicit
+isomorphism between the two presentations was known
+\cite[Sections~4--5]{wiedemann1988}.  Seyfarth and Ranade show that the
+conjecture is equivalent to the assertion that, for every $m$, the minimal
+polynomial of $x_{m-1}$---the $m$-fold self-reciprocal transform
+$f\mapsto X^{\deg f}f(X+X^{-1})$ of $X+1$---has Fibonacci index $F_m$
+\cite[Theorem~2]{seyfarthranade2012}.  The question remains open.  Since
+$x_{n-1}^{-1}=x_n/(x_n+1)^2$, the Binet identity in the proof of
+Proposition~\ref{prop:z-packet-universal} turns it into the residue test
+\[
+ S_{F_n/\ell}(x_{n-1}^{-1})\ne0
+ \qquad(\ell\mid F_n\text{ prime}),
+\]
+the Conway target $S_{F_n/\ell}(a_{n-1})\ne0$ evaluated at a different
+selected point.
+
+Both towers have one shape.  Call $(b_m)_{m\geq-1}$, with $b_{-1}=1$, a
+\emph{trace-compatible quadratic tower} if $b_m\in E_m\setminus E_{m-1}$ and
+\[
+ b_m^2+b_{m-1}b_m+\nu_m=0,
+ \qquad \nu_m\in E_{m-1}^{\times}\qquad(m\geq0).
+\]
+Then $\operatorname{Tr}_{E_m/E_{m-1}}(b_m)=b_{m-1}$ and
+$N_{E_m/E_{m-1}}(b_m)=\nu_m$, and with $q=|E_{m-1}|$ the norm-one coordinate
+$t_m=b_m^{q-1}$ satisfies
+\[
+ t_m+t_m^{-1}=\frac{(b_m^q+b_m)^2}{b_m^{q+1}}=\frac{b_{m-1}^2}{\nu_m},
+ \qquad\text{that is,}\qquad
+ \frac{t_m}{(t_m+1)^2}=\frac{\nu_m}{b_{m-1}^2}.
+\]
+
+\begin{proposition}[Wiedemann sibling]\label{prop:z-wiedemann}
+\begin{enumerate}
+\item[(a)] The sequences $(a_m)$ and $(x_m)$ are trace-compatible quadratic
+  towers, with $\nu_m=a_{m-1}^3$ and $\nu_m=1$, and with norm-one
+  coordinates $u_m$ and $x_m^{-2}$.  Thus $x_n\in T_n$, and Wiedemann's
+  conjecture at level $n$ says that $x_n$ generates $T_n$.
+\item[(b)] For each $m$, the compatible tuples $(x_0,\ldots,x_m)$ form one
+  absolute-Frobenius orbit.
+\item[(c)] The elements $u_n$ and $x_n$ are Frobenius-conjugate if and only
+  if $n\leq2$.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+(a) The nontrivial automorphism of $E_m/E_{m-1}$ sends $c_m$ to $c_m+1$,
+hence $a_m=a_{m-1}c_m$ to $a_{m-1}(c_m+1)$, and it sends $x_m$ to $x_m^{-1}$.
+Taking sums and products, and using $c_m(c_m+1)=a_{m-1}$, gives
+$\operatorname{Tr}(a_m)=a_{m-1}$, $N(a_m)=a_{m-1}^3$,
+$\operatorname{Tr}(x_m)=x_{m-1}$, and $N(x_m)=1$.  Moreover
+$a_m\notin E_{m-1}$, because $a_{m-1}\in E_{m-1}^{\times}$ and
+$c_m\notin E_{m-1}$.  The norm-one coordinates are
+$a_m^{q-1}=(c_m+1)/c_m=u_m$ and $x_m^{q-1}=x_m^{-2}$.
+
+(b) A compatible tuple is determined by its top entry, and there are
+$2^{m+1}$ of them.  Every proper subfield of $E_m$ lies in $E_{m-1}$, which
+does not contain $x_m$, so $x_m$ has $2^{m+1}$ distinct Frobenius conjugates.
+Frobenius preserves the defining relations, so these conjugates are the top
+entries of $2^{m+1}$ distinct compatible tuples, which are all of them.
+
+(c) The map $z\mapsto z+z^{-1}$ commutes with every field automorphism, and
+its fibres are the pairs $\{z,z^{-1}\}$; on $T_n$ one has $z^{-1}=z^q$, a
+Frobenius conjugate of $z$.  Since $u_n+u_n^{-1}=a_{n-1}^{-1}$ and
+$x_n+x_n^{-1}=x_{n-1}$, and every automorphism of $E_{n-1}$ extends to
+$E_n$, the elements $u_n$ and $x_n$ are conjugate exactly when
+$a_{n-1}^{-1}$ and $x_{n-1}$ are.  As $x_{n-1}^{-1}$ is a conjugate of
+$x_{n-1}$, this happens exactly when $a_{n-1}$ and $x_{n-1}$ are conjugate.
+
+Let $n\geq3$, and suppose that an automorphism $\sigma$ of $E_{n-1}$ sends
+$a_{n-1}$ to $x_{n-1}$.  It preserves $E_{n-2}$ and commutes with
+$N_{E_{n-1}/E_{n-2}}$, so (a) gives
+\[
+ 1=N(x_{n-1})=\sigma\bigl(N(a_{n-1})\bigr)=\sigma(a_{n-2})^3.
+\]
+Hence $a_{n-2}^3=1$ and $a_{n-2}\in\mathbb F_4\subseteq E_{n-3}$, contrary to
+$a_{n-2}\notin E_{n-3}$.
+
+For $n\leq2$: one has $a_{-1}=x_{-1}=1$; next, $a_0=c_0$ and $x_0$ are both
+roots of $X^2+X+1$; finally, $a_1$ has trace $a_0$ and norm $a_0^3=1$, so it
+is a root of $X^2+a_0X+1$, which is the Wiedemann relation for the
+compatible choice $x_0=a_0$.  By (b), $a_1$ is conjugate to $x_1$.
+\end{proof}
+
+For instance, $a_2^{17}=N(a_2)=a_1^3$ has order five, because $a_1$ is a
+root of $X^2+a_0X+1$ and hence of $X^4+X^3+X^2+X+1$, while the image of
+$a_2$ in $E_2^{\times}/E_1^{\times}$ is that of $c_2$, of order
+$\delta_2=17$.  Thus $a_2$ has order $85$, whereas $x_2$ lies in $T_2$, of
+order $17$.
+
+In the trace-compatible coordinates the two recursions therefore share their
+trace prescription and differ in their norm prescription.  On the selected
+torus elements the parent laws are
+\[
+ \frac{x_n}{(x_n+1)^2}=\frac1{x_{n-1}},
+ \qquad
+ \frac{u_n}{(u_n+1)^2}=\frac{u_{n-1}}{(u_{n-1}+1)^3}
+ \qquad(n\geq1),
+\]
+the second by Proposition~\ref{prop:z-torus} and
+$c_{n-1}=(u_{n-1}+1)^{-1}$.  The first is the genus-zero correspondence of
+iterated preimages of $z\mapsto z+z^{-1}$: every entry of a Wiedemann tuple
+is a rational function of the top entry, so the analogue of the curve
+$\mathcal X_r$ of Proposition~\ref{prop:z-iterate-ramification} is the
+projective line at every depth.  The second is birational to the
+supersingular curve of Proposition~\ref{prop:z-elliptic}, and its iterates
+have the growing genus of Proposition~\ref{prop:z-iterate-ramification}.
+Proposition~\ref{prop:z-packet-universal} is independent of the selected
+ancestry and holds equally for Wiedemann's torus elements, whereas
+Proposition~\ref{prop:z-trace-separation} concerns generic field elements
+and gives no separation theorem inside the Fermat tori or along either
+selected sequence.  The two selections differ only through their parent
+laws, and part~(c) shows that they are distinct from level three on: no
+isomorphism between Conway's and Wiedemann's presentations of $E_n$ carries
+$u_n$ to $x_n$ when $n\geq3$.
+
+\begin{remark}[ordinary realization]\label{rem:z-ordinary}
+Wiedemann's tower is an isogeny division tower, on a curve of the opposite
+type.  On the ordinary curve
+\[
+ \mathcal E'\colon\quad y^2+xy=x^3+1
+\]
+over $\mathbb F_2$, let $\pi$ be absolute Frobenius and $V$ its dual, so
+that $V\pi=[2]$ and $V=[2]\circ\pi^{-1}$ on geometric points.  Duplication
+gives $x([2]Q)=x(Q)^2+x(Q)^{-2}$, so
+\[
+ x(VQ)=x(Q)+x(Q)^{-1}\qquad(x(Q)\ne0).
+\]
+Voloch uses this identity to place Wiedemann's elements on $\mathcal E'$
+\cite[Section~4]{voloch2010}, and Ugolini studies the dynamics of
+$z\mapsto z+z^{-1}$ through the same abscissa action of the dual Frobenius
+\cite{ugolini2012}.  Since $\pi$ preserves
+orders, $\operatorname{ord}(VQ)=\operatorname{ord}(Q)/\gcd(2,\operatorname{ord}(Q))$.
+The rational points $(1,0)$ and $(1,1)$ have order four, because
+$[2](1,0)=(0,1)$ and $[2](0,1)=O$, and they are the only points with
+abscissa one.  Every point of order at least eight has nonzero abscissa, so
+$V^{n+1}$ carries a geometric point with abscissa a level-$n$ Wiedemann
+element to a point of order four, and conversely.  Hence the level-$n$
+Wiedemann elements are exactly the abscissas of the geometric points of
+exact order $2^{n+3}$ on $\mathcal E'$.  Such a point is rational over
+$E_n$: with $z=y/x_n$, its ordinate solves $z^2+z=x_n+x_n^{-2}$, whose
+absolute trace is
+$\operatorname{Tr}_{E_n/\mathbb F_2}(x_n+x_n^{-1})
+ =\operatorname{Tr}_{E_n/\mathbb F_2}(x_{n-1})=0$.
+
+Thus Wiedemann's tower is the abscissa tower of the $2$-primary torsion of
+an ordinary curve, whereas the selected points of
+Proposition~\ref{prop:z-elliptic} are annihilated by the odd number $F_n$ on
+a supersingular curve and, as shown above, do not form a division tower.
+Ordinary and supersingular curves are not isogenous, even over
+$\overline{\mathbb F}_2$.  This separates the two geometric realizations; it
+does not exclude other relations between the two multiplicative-order
+questions.
+\end{remark}
+
+The ordinary realization carries a published asymptotic lower bound for
+Wiedemann's tower.  Voloch proves $\operatorname{ord}(x_n)\geq\exp(2^{\delta n})$
+for an unspecified $\delta>0$ and all large $n$ \cite{voloch2010}, and
+Popovych proves the effective bound
+$\operatorname{ord}(x_n)\geq7\cdot2^{n+2}+1$ for $n\geq12$ together with
+$\operatorname{ord}(x_n)=F_n$ for $n\leq11$
+\cite[Theorem~3]{popovych2015}.  For the Conway--Fermat chain the published
+lower bound is the Euler--Lucas congruence bound
+$\delta_n\geq2^{n+2}+1$ for $n\geq2$
+\cite{popovych2018,caglierohermanszechtman2025}, which
+Proposition~\ref{prop:z-packet-degree} recovers.  Voloch's theorem concerns
+a fixed function $y$ on an elliptic curve evaluated at a point $P$ whose
+cyclic group is Frobenius-stable and whose order $r$ is below
+$[\mathbb F_q(P):\mathbb F_q]^{3/2-\epsilon}$
+\cite[Theorem~4.1]{voloch2010}.  Its proof chooses many small integers $k$
+in one coset $\gamma\langle a\rangle$ of the image of Frobenius in
+$(\mathbb Z/r\mathbb Z)^{\times}$; with $C=[\gamma^{-1}]P$, the values
+$y([k]C)$ are Frobenius conjugates of $y(P)$, and products of them are
+separated by the multiplicative independence of the functions $y\circ[k]$.
+On $\mathcal E'$ the image of Frobenius is everything up to sign: if $Q$ has
+exact order $2^{n+3}$ and abscissa $x_n$, the $2^{n+1}$ conjugates of $x_n$
+are abscissas of points of exact order $2^{n+3}$, and these are the
+$2^{n+1}$ abscissas $x([k]Q)$ with $k$ odd.  In this specialization the
+argument is explicit.
+
+\begin{proposition}[explicit Wiedemann bound]\label{prop:z-wiedemann-bound}
+For every $n\geq0$,
+\[
+ \operatorname{ord}(x_n)\geq2^t,
+ \qquad t=\bigl\lfloor(3\cdot2^{n-2})^{1/3}\bigr\rfloor.
+\]
+\end{proposition}
+
+\begin{proof}
+Let $Q$ be as above and put $f_k=x\circ[k]$ for odd $k\geq1$, a function of
+degree $2k^2$ on $\mathcal E'$.  Each $f_k(Q)$ is a conjugate of $x_n$, hence
+lies in $\langle x_n\rangle$.  The functions $f_k$ are multiplicatively
+independent: $\operatorname{div}(x)=2[T]-2[O]$ with $T=(0,1)$, and for the
+largest $k$ in a putative relation, a geometric point $R$ of exact order $2k$
+is a zero of $f_k$, whereas for odd $\ell<k$ the point $[\ell]R$ is neither
+$T$ nor $O$.  If two subset products of $f_1(Q),f_3(Q),\ldots,f_{2t-1}(Q)$
+coincide, the quotient of the corresponding functions minus one is a nonzero
+function over $\mathbb F_2$ vanishing at $Q$, hence at its $2^{n+1}$
+conjugates, while its degree is at most
+\[
+ 2\sum_{j=1}^{t}(2j-1)^2=\frac{8t^3-2t}{3}<2^{n+1}.
+\]
+Thus the $2^t$ subset products are distinct elements of
+$\langle x_n\rangle$.
+\end{proof}
+
+This beats Popovych's effective bound from $n=13$ on, and it is far from
+$F_n$.  The selected Conway element also has a fixed-function realization,
+$u_{n+1}=g(P_n)$ in Proposition~\ref{prop:z-elliptic}, but its Frobenius
+image is thin.
+
+\begin{proposition}[Frobenius-thin Conway torsion]
+\label{prop:z-voloch-boundary}
+Let $n\geq2$, put $h=2^{2^{n-1}}$, and let $r$ be the order of the point
+$P_n$ of Proposition~\ref{prop:z-elliptic}.  Then $r\mid F_n$, the cyclic
+group $\langle P_n\rangle$ is stable under $\iota$ and absolute Frobenius,
+$\iota$ acts on it as multiplication by $h$ or by $-h$, and Frobenius acts
+through the subgroup
+\[
+ H_n=\langle2\rangle\cup(h+1)\langle2\rangle
+ \subseteq(\mathbb Z/r\mathbb Z)^{\times},
+ \qquad |H_n|=2^{n+2}=[\mathbb F_2(P_n):\mathbb F_2].
+\]
+In particular $r>2^{n+2}$.  Suppose $r=F_n$.  Then no odd integer $k$ with
+$1<|k|<h-1$ lies in $H_n$, and for distinct odd positive integers $k,k'$
+with $kk'<h/2$ there is no congruence $k'\equiv\alpha k\pmod{F_n}$ with
+$\alpha\in H_n$; when both are units, they lie in distinct cosets of
+$H_n$.
+\end{proposition}
+
+\begin{proof}
+Proposition~\ref{prop:z-elliptic} gives $[F_n]P_n=O$.  Let
+$\sigma=\pi^{2^n}$ be the $|E_{n-1}|$-power Frobenius.  It sends $c_n$ to
+$c_n+1$, hence $a_n=a_{n-1}c_n$ to $a_n+a_{n-1}$, so it sends $c_{n+1}$ to a
+root of $Z^2+Z=a_n+a_{n-1}$, namely $c_{n+1}+c_n$ or $c_{n+1}+c_n+1$.  By the
+coordinate formula for $\iota$ and $-(x,y)=(x,y+1)$, this says
+$\sigma(P_n)=\pm\iota P_n$.  On the other hand $\pi^4=[-4]$ gives
+$\sigma=[(-4)^{2^{n-2}}]=[\pm h]$.  Hence $\iota P_n=\pm hP_n$, and since
+$\pi=\iota-[1]$, Frobenius acts on $\langle P_n\rangle$ as multiplication by
+$m=\pm h-1$.
+
+Modulo $r$ one has $h^2=2^{2^n}\equiv-1$, so $-1$ and $h$ lie in
+$\langle2\rangle$, which has order $2^{n+1}$.  Since
+$(h+1)^2\equiv2h\in\langle2\rangle$, the set $H_n$ is a subgroup of order
+at most $2^{n+2}$.  Moreover $(h+1)h=h-1$, so $\pm h-1\in(h+1)\langle2\rangle$
+and $\langle m\rangle\subseteq H_n$.  The group $\langle m\rangle$ has the
+order $2^{n+2}$ of the Frobenius orbit of $P_n$, which is the degree of
+$c_{n+1}$.  Hence $\langle m\rangle=H_n$, and $\varphi(r)\geq2^{n+2}$ gives
+$r>2^{n+2}$.
+
+Now let $r=F_n=h^2+1$, and note that
+$\langle2\rangle=\{\pm2^b:0\leq b<2^n\}$ modulo $F_n$.  Since
+$(h+1)2^{b+2^{n-1}}\equiv(h-1)2^b$, the residues of $H_n$ in $(0,F_n)$ are
+$2^b$ and $F_n-2^b$ for $0\leq b<2^n$, together with $(h\pm1)2^b$ and
+$F_n-(h\pm1)2^b$ for $0\leq b<2^{n-1}$.  The odd ones are $1$, $h\pm1$, and
+residues $F_n-y$ with $y\leq(h+1)2^{2^{n-1}-1}$, which are at least
+$2^{2^n-1}+1-h/2>h$.  Since $-1\in H_n$, the first claim follows.
+
+For the second, suppose $k'\equiv\epsilon k2^b$ or
+$k'\equiv\epsilon k(h+1)2^b$ with $\epsilon=\pm1$ and $0\leq b<2^n$.  In the
+first case, if $k2^b<F_n/2$, then $k'-\epsilon k2^b$ is a nonzero integer of
+absolute value below $F_n$: it is odd when $b\geq1$, and $k'\ne\pm k$ when
+$b=0$.  If $k2^b\geq F_n/2$, multiplication by $2^{2^n-b}<2k$ gives
+$2^{2^n-b}k'+\epsilon k\equiv0$, an odd integer of absolute value below
+$2kk'+k<F_n$.  In the second case, multiplication by $h-1$ and
+$(h+1)(h-1)\equiv-2$ give $k'(h-1)+\epsilon k2^{B}\equiv0$ with $B=b+1$.  If
+$k2^B<F_n/2$, the left side is an odd integer of absolute value below
+$k'h+F_n/2<F_n$.  Otherwise multiplication by $2^{2^n-B}<2k$ gives
+$k'(h-1)2^{2^n-B}-\epsilon k\equiv0$, where the left side has absolute value
+below $2kk'(h-1)+k<F_n$ and is nonzero: by parity if $B<2^n$, and because
+$k'(h-1)\geq h-1>k$ if $B=2^n$.  Each case contradicts $F_n$ dividing a
+nonzero integer of smaller absolute value.
+\end{proof}
+
+For $2\leq n\leq6$ a direct computation gives $r=F_n$; whether
+$\operatorname{ord}(P_n)=F_n$ for every $n$ is itself a selected-order
+question.  When $r=F_n$ and $n\geq3$, Theorem~4.1 of \cite{voloch2010} does
+not apply to $g(P_n)$, because $F_n>2^{3(n+2)/2}$.  Under $r=F_n$ the usual
+odd-multiplier argument also meets a counting obstruction.  Its standard
+degree estimate separates products when the sum of their function degrees,
+proportional to $\sum k^2$, is below the degree $d=2^{n+2}$ of $P_n$.  For
+$n\geq4$, any two distinct odd multipliers within this budget satisfy
+$kk'<d\leq h/2$, so each Frobenius coset contains at most one, and this
+sufficient budget cannot supply the growing family of multipliers that
+Voloch's argument uses.  The first nontrivial odd multiplication map
+representing Frobenius itself, $[h-1]$, has degree $(h-1)^2>2^{2^n-1}$.
+None of this excludes sharper degree estimates that exploit cancellation,
+even multipliers, other counting schemes, non-integer endomorphisms, or other
+realizations of $u_n$.  A realization satisfying Voloch's
+hypotheses would be an independent ancestry input in the sense of
+Section~\ref{sec:nim-reciprocity}; none is known.  Popovych's effective
+exclusions \cite[Theorem~2]{popovych2015}, valid for $i\geq2$, use trivial
+intersections between the cyclic groups of parent coordinates, such as
+$\langle x_{i-1}\rangle\cap\langle x_{i-2}\rangle=1$.  For the trace-compatible Conway parents
+that intersection is nontrivial when $i\geq3$: by
+Proposition~\ref{prop:z-wiedemann}(a),
+$a_{i-2}^3=N(a_{i-1})=a_{i-1}^{F_{i-1}}$ lies in
+$\langle a_{i-1}\rangle\cap\langle a_{i-2}\rangle$ and is not $1$.
+
+\section{The ordinary arm: a marked cyclotomic value}\label{sec:o}
 
 Fix an odd prime $r$, write $b=b_r$, and abbreviate
 $x_a=x_{r,a}$, $y_a=x_a+1$, and $F_a=F_{r,a}$.
@@ -525,12 +1704,542 @@ singleton rows.  The lower unit group has no $p$-part, so
 Proposition~\ref{prop:power} gives the last equivalence.
 \end{proof}
 
-Let $N_a=\operatorname{ord}(x_a)$, choose a primitive complex
-$N_a$-th root $\xi_{N_a}$, and let $\mathfrak P_a\mid2$ be the prime whose
-residue sends $\xi_{N_a}$ to $x_a$.  Put
-$\varepsilon_a=1-\xi_{N_a}$.
+The full recursive ancestry can also be retained in one binary polynomial.
+Let $P_r\in\mathbb F_2[T]$ be the minimal polynomial of
+$x_0=\alpha_r$.
 
-\begin{theorem}[selected cyclotomic-unit form]\label{thm:o-symbol}
+\begin{proposition}[bottom-ancestor divisibility]
+\label{prop:o-bottom-divisibility}
+Put $q=|F_{a-1}|$, $N=L_{r,a}$, and let $p\ne r$ divide $N$.
+Then $\gcd(p,q-1)=1$.  Write $d=N/p$, and choose $e,t\geq0$ such that
+\[
+ pe=1+t(q-1).
+\]
+Then the current $p$-coordinate of $y_aF_{a-1}^{\times}$ is deficient if
+and only if
+\[
+ P_r(T^{r^a})\mid
+ (1+T)^d+(1+T^r)^e
+ \qquad\text{in }\mathbb F_2[T].
+\]
+\end{proposition}
+
+\begin{proof}
+Indeed, $N\equiv r\pmod {q-1}$, so
+$\gcd(N,q-1)=r$.
+The polynomial $P_r(T^{r^a})$ is the minimal polynomial of $x_a$.
+The coordinate is deficient exactly when $c=(1+x_a)^d$ lies in
+$F_{a-1}^{\times}$.  In that case the norm identity gives
+\[
+ c^p=(1+x_a)^N=1+x_a^r.
+\]
+Since $c^{q-1}=1$ and $pe=1+t(q-1)$,
+$c=(c^p)^e=(1+x_a^r)^e$.  Conversely this equality puts $c$ in
+$F_{a-1}$.  In characteristic two the equality is precisely the vanishing
+at $x_a$ of the displayed binary polynomial, which is equivalent to
+divisibility by its minimal polynomial.
+\end{proof}
+
+This is a lossless selector-retaining reduction, not a proof of arm~$O$:
+the remaining assertion is that the displayed divisibility never occurs for
+the literal polynomial $P_r$ and every current factor $p$.
+
+For a polynomial $B(T)=\sum_m b_mT^m$ and $0\leq j<n$, define its
+$j$-th $n$-section by
+\[
+ \operatorname{Sec}_{n,j}(B)(U)=\sum_{k\geq0}b_{j+kn}U^k.
+\]
+
+\begin{lemma}[polynomial section criterion]
+\label{lem:o-section}
+Let $k$ be a field, let $0\ne P\in k[U]$, and let $n\geq1$.  Then
+\[
+ P(T^n)\mid B(T)
+ \quad\Longleftrightarrow\quad
+ P(U)\mid\operatorname{Sec}_{n,j}(B)(U)
+ \quad(0\leq j<n).
+\]
+\end{lemma}
+
+\begin{proof}
+Every polynomial has the unique decomposition
+$B(T)=\sum_{j<n}T^j\operatorname{Sec}_{n,j}(B)(T^n)$.
+Multiplication by $P(T^n)$ preserves each residue class of exponents modulo
+$n$.  Applying the decomposition to the quotient proves the forward
+implication, and summing the sectionwise quotients proves the converse.
+\end{proof}
+
+\begin{corollary}[Lucas-section ordinary case]
+\label{cor:o-large-factor}
+Put $n=r^a$, let $p\ne r$ divide $N=L_{r,a}$, and put $d=N/p$.
+If some $0\leq j<n$ satisfies
+\[
+ r\nmid j,\qquad \binom dj\equiv1\pmod2,
+ \qquad d-j<bn,
+\]
+then the current $p$-coordinate of $y_aF_{a-1}^{\times}$ has full primary
+order.  In particular this holds if $d\leq bn$, and hence when $N/r$ is a
+prime distinct from $r$.
+\end{corollary}
+
+\begin{proof}
+In the polynomial of Proposition~\ref{prop:o-bottom-divisibility}, the
+$j$-th section receives no term from $(1+T^r)^e$, since $r\mid n$ but
+$r\nmid j$.  Its other summand has constant coefficient one and degree at
+most $\lfloor(d-j)/n\rfloor<b$.  It is therefore a nonzero polynomial of degree
+less than $\deg P_r=b$, so Lemma~\ref{lem:o-section} rules out the required
+divisibility.  Finally, $d$ is odd, so when $d\leq bn$ one may take $j=1$.
+If $p=N/r$, then $d=r\leq br^a$.
+\end{proof}
+
+There is a selector-sensitive strengthening obtained by retaining the two
+opposite nonzero sections at the top Kummer step.  For a monic polynomial
+$H$ with constant coefficient one, write
+\[
+ H^*(U)=U^{\deg H}H(U^{-1})
+\]
+for its reciprocal.
+
+\begin{proposition}[reciprocal doubling in the ordinary arm]
+\label{prop:o-reciprocal}
+Put $n=r^a$, let $p\ne r$ divide $N=L_{r,a}$, and put $d=N/p$.
+For $0\leq j<r$ define the top $r$-sections
+\[
+ A_j(W)=\operatorname{Sec}_{r,j}((1+T)^d)(W)
+       =\sum_{k\geq0}\binom d{j+kr}W^k.
+\]
+Set $s=r^{a-1}$ and
+\[
+ M(W)=P_r(W^s),\qquad M^*(W)=P_r^*(W^s).
+\]
+Then $r\mid d$, and, writing $h=d/r$, one has the exact section reciprocity
+\[
+ A_{r-1}(W)=W^{h-1}A_1(W^{-1}).
+\]
+If the current $p$-coordinate is deficient, then both $M$ and $M^*$ divide
+$A_1$.  Consequently, if $P_r\ne P_r^*$, deficiency forces
+\[
+ d\geq 2br^a+r.
+\]
+Equivalently, when $P_r\ne P_r^*$, every current factor satisfying
+$d\leq2br^a$ has full primary order.
+
+This non-self-reciprocity condition is independent of the tower level.  More
+explicitly, if $f=\operatorname{ord}_r(2)$, then $f\mid b$, and it holds
+automatically whenever $f$ is odd or $b/f$ is even.
+\end{proposition}
+
+\begin{proof}
+The relative Kummer construction has $x_a^r=x_{a-1}$ and degree $r$; as
+above, its nonpower radicand gives $r\mid2^b-1$.  Therefore
+\[
+ N=\sum_{i=0}^{r-1}(2^b)^{ir^{a-1}}
+   \equiv r\equiv0\pmod r.
+\]
+As $p\ne r$, this gives $r\mid d$.
+
+Put $K=F_{a-1}$, $z=x_a$, and $w=z^r=x_{a-1}$.  The polynomial $M$ is the
+minimal polynomial of $w$ over $\mathbb F_2$.  If the coordinate is
+deficient, then $(1+z)^d\in K$.  Expanding in the $K$-basis
+$1,z,\ldots,z^{r-1}$ shows that
+\[
+ A_j(w)=0\qquad(1\leq j<r),
+\]
+so $M$ divides every nonzero top section.  Since $r\mid d$, also
+$z^d=w^{d/r}\in K$, and therefore
+\[
+ (1+z^{-1})^d=z^{-d}(1+z)^d\in K.
+\]
+Expansion in the inverse basis gives $A_j(w^{-1})=0$ for $1\leq j<r$.
+The minimal polynomial of $w^{-1}$ is $M^*$, so $M^*$ divides $A_1$.
+
+The displayed section reciprocity follows directly from
+$\binom d\ell=\binom d{d-\ell}$ and $d=rh$: the coefficient indexed by
+$1+kr$ is paired with the one indexed by
+$(r-1)+(h-k-1)r$.  The polynomial $P_r$ has constant coefficient one
+because $x_0\ne0$, and hence $M$ and $M^*$ are monic irreducibles.  If
+$P_r\ne P_r^*$, then
+\[
+ M^*(W)=P_r^*(W^s)\ne P_r(W^s)=M(W),
+\]
+so they are coprime.  Thus $MM^*\mid A_1$ under deficiency.  But $A_1$ is
+nonzero, since its constant coefficient is $\binom d1=1$, and
+\[
+ \deg A_1\leq h-1=\frac dr-1,
+ \qquad \deg(MM^*)=2bs.
+\]
+It follows that $d/r-1\geq2br^{a-1}$, which is the claimed lower bound.
+Because $r\mid d$, its contrapositive is equivalently $d\leq2br^a$.
+
+It remains to prove the arithmetic sufficient condition.  The first Kummer
+step shows that $x_0$ is not an $r$-th power in
+$F_0^\times$: otherwise, since $\mu_r\subset F_0$, the chosen $r$-th root
+$x_1$ would already lie in $F_0$.  Hence $r\mid\operatorname{ord}(x_0)$.
+If $P_r=P_r^*$, then $x_0^{-1}=x_0^{2^j}$ for some $0<j<b$.  Since the
+Frobenius orbit has length $b$, this forces $b$ even, $j=b/2$, and
+\[
+ 2^{b/2}\equiv-1\pmod {\operatorname{ord}(x_0)},
+ \quad\text{hence}\quad
+ 2^{b/2}\equiv-1\pmod r.
+\]
+Writing $f=\operatorname{ord}_r(2)$, the last congruence requires $f$ even
+and $b/f$ odd.  The stated alternatives are the contrapositive.
+\end{proof}
+
+The apparent self-reciprocal exception in
+Proposition~\ref{prop:o-reciprocal} cannot be the first failure of the
+$0/1/4$ rule.  The algebraic input is the following affine Kummer lemma.
+
+\begin{lemma}[affine odd-Kummer nonunitarity]
+\label{lem:o-affine-kummer}
+Let $E$ be a field of characteristic two, let $q>1$ be odd, and let
+$a,u\in E^\times$.  Suppose that $t$ has minimal polynomial $X^q-a$ over
+$E$.  Then, for every $k\geq0$,
+\[
+ (t+u)^{2^k+1}\ne1.
+\]
+\end{lemma}
+
+\begin{proof}
+Put $Q=2^k$ and write $Q=Aq+v$ with $0<v<q$; the residue is nonzero because
+$q$ is odd.  If the displayed equality held, then Frobenius additivity would
+give
+\[
+ 0=(t+u)^{Q+1}+1
+  =t^{Q+1}+u t^Q+u^Qt+u^{Q+1}+1.             \tag{\(*\)}
+\]
+Reduce this expression in the $E$-basis $1,t,\ldots,t^{q-1}$ using
+$t^q=a$.  If $v=1$, the coefficient of $t^2$ is $a^A\ne0$.  If
+$2\leq v\leq q-2$, the coefficient of $t^{v+1}$ is $a^A\ne0$.  If
+$v=q-1$, the coefficient of $t^{q-1}$ is $ua^A\ne0$.  Each contradicts
+\((*)\), and these cases exhaust the possible nonzero residues.
+\end{proof}
+
+\begin{proposition}[bottom reciprocity cannot be a first failure]
+\label{prop:o-bottom-not-first}
+Let $r\ne3$ be an odd prime.  If the $0/1/4$ rule holds at the row $r$
+itself, then the literal bottom polynomial is not self-reciprocal:
+\[
+ P_r\ne P_r^*.
+\]
+The excluded prime really is exceptional: $\alpha_3=2$ and
+$P_3(X)=X^2+X+1=P_3^*(X)$.
+\end{proposition}
+
+\begin{proof}
+Write $f=\operatorname{ord}_r(2)$ and use the Conway--Lenstra component
+decomposition
+\[
+ \alpha_r=\kappa_f+m_r,
+ \qquad
+ \kappa_f=\sum_{q\in\mathcal Q(f)}\kappa_q.
+\]
+If $P_r=P_r^*$ and $b=d(\alpha_r)$, then $b$ is even and
+\[
+ \alpha_r^{2^{b/2}+1}=1.                     \tag{\(**\)}
+\]
+
+Suppose first that $\mathcal Q(f)$ contains more than one component.  The
+rule gives $m_r=0$.  Choose the largest odd component $s^c$ and put
+$t=\kappa_{s^c}$.  Let $E$ be generated by $\alpha_s$, all the other-prime
+components, and the finite translate, all at once.  The element $\alpha_s$
+lies strictly below the $s$-component, and every other component prime is
+smaller than $s$ by the choice of the largest odd component.  Thus none of
+these generators contributes any $s$-primary field degree.  The full
+$s^c$-Kummer component therefore remains after passing to $E$, and the
+component theorem gives
+\[
+ t^{s^c}=\alpha_s,
+ \qquad [E(t):E]=s^c;
+\]
+in particular $1,t,\ldots,t^{s^c-1}$ is a power basis.  The sum $u$ of the
+remaining components is a nonzero element of $E$, by uniqueness of the
+Conway component normal form.  Lemma~\ref{lem:o-affine-kummer}, with
+$Q=2^{b/2}$, contradicts \((**)\).
+
+If $\mathcal Q(f)=\{s^c\}$ is a singleton odd prime power, the rule gives
+$m_r=1$, except when $f=2\cdot3^j$, when it gives $m_r=4$.  In the first
+case take $t=\kappa_{s^c}$ and $u=1$.  In the exceptional case take
+$t=\kappa_{3^j}$ and $u=4$; adjoining the finite field containing $4$ to
+the coefficient field leaves the odd relative degree $3^j$.  The same
+lemma again contradicts \((**)\).
+
+The remaining possibility is a singleton even component.  Then the rule
+gives $m_r=0$, and $f=2^j$.  The selected Artin--Schreier generator
+$c=\kappa_{2^j}$ has degree $2^j$ and its nontrivial conjugate over the
+half field is $c+1$.  Since $r\ne3$, one has $2^j>2$.  Equation \((**)\)
+would give $c(c+1)=1$, so $c$ would satisfy $X^2+X+1$, contradicting its
+degree.  This proves the assertion.  For $r=3$, the displayed polynomial
+is the defining quadratic and is self-reciprocal.
+\end{proof}
+
+\begin{corollary}[minimal-counterexample reciprocal sieve]
+\label{cor:o-minimal-reciprocal}
+Suppose that $p$ is the least odd prime at which the $0/1/4$ rule fails and
+that its putative failure lies in arm~$O$ at $(r,a,p)$.  Then
+$P_r\ne P_r^*$.  Consequently, with $d=L_{r,a}/p$, a failure must satisfy
+\[
+ d\geq2b_r r^a+r;
+\]
+thus no least counterexample in arm~$O$ can have $d\leq2b_r r^a$.
+\end{corollary}
+
+\begin{proof}
+The cyclotomic divisor criterion gives
+$\operatorname{ord}_p(2^{b_r})=r^a$, so $r\mid p-1$ and hence $r<p$.
+The rule therefore holds at $r$ by minimality.  Apply
+Proposition~\ref{prop:o-bottom-not-first} and then
+Proposition~\ref{prop:o-reciprocal}.
+\end{proof}
+
+The full Kummer orbit gives a second sieve which is substantially stronger
+when the tower level is large.
+
+\begin{proposition}[Kummer-ratio packing over minimal coefficient fields]
+\label{prop:o-ratio-packing}
+Let $r$ be any odd prime, $b=b_r$, and $a\ge1$, and let
+$o$ be the order of the literal selected class
+$(1+x_{r,a})F_{r,a-1}^{\times}$.  For $1\le m\le a$ put
+\[
+ t_m=\operatorname{ord}_{r^m}(2),\qquad
+ D_m=r^{m-1}(r-1),\qquad
+ R_m=\frac{br^a}{t_m}.
+\]
+These are positive integers, and $R_m\ge r$.  Write
+\[
+ \mathcal R(D,s)=\sum_{t=0}^s2^t\binom Dt\binom st
+\]
+and define the parity-sensitive bound
+\[
+ \mathcal B_r(D,R)=
+ \begin{cases}
+  \mathcal R(D,R/2),&R\text{ even},\\[2pt]
+  \displaystyle\mathcal R(D,(R-1)/2)+
+  \left\lceil\frac{
+   \mathcal R(D,(R+1)/2)-\mathcal R(D,(R-1)/2)}r\right\rceil,
+   &R\text{ odd}.
+ \end{cases}
+\]
+Then
+\[
+ B_{r,a}:=
+ \max_{1\le m\le a}\mathcal B_r(D_m,R_m)\le o.
+\]
+Consequently, a deficient current prime $p\ne r$ must satisfy
+$L_{r,a}/p\ge B_{r,a}$.
+\end{proposition}
+
+\begin{proof}
+Put $v=v_r(2^b-1)\ge1$, $K=F_{r,a-1}$, $L=F_{r,a}$,
+$x=x_{r,a}$, and $y=1+x$.  Fix $m$.  LTE gives
+\[
+ v_r(2^{br^{a-1}}-1)=v+a-1\ge a\ge m.
+\]
+Thus $t_m\mid br^{a-1}$ and the smallest finite field containing
+$\mu_{r^m}$ is
+\[
+ H_m=\mathbb F_{2^{t_m}}\subset K.
+\]
+Since $x$ generates $L$ over $\mathbb F_2$, its minimal polynomial over
+$H_m$ has degree $[L:H_m]=R_m\ge r$ and nonzero constant coefficient.
+
+Let $\sigma$ be the $|K|$-Frobenius on $L$, and put $u=\sigma(y)/y$.
+The Hilbert--90 isomorphism
+$L^\times/K^\times\longrightarrow\ker\operatorname N_{L/K}$
+gives $\operatorname{ord}(u)=o$: its kernel is $K^\times$ and both
+finite groups have order $L_{r,a}$.
+Choose representatives $\mathcal C_m$ for $\mu_{r^m}/\mu_r$.
+For $c\in\mathcal C_m$ and $\zeta\in\mu_r\setminus\{1\}$ set
+\[
+ u_{c,\zeta}=\frac{1+\zeta cx}{1+cx}.
+\]
+There are exactly $D_m$ such ratios, all with coefficients in $H_m$.
+Their numerators and denominators are nonzero: otherwise $x\in H_m$,
+contrary to $R_m>1$.
+
+Every ratio belongs to $\langle u\rangle$.  Indeed, $m\le a$ makes
+$cx$ a root of the literal irreducible polynomial $P_r(T^{r^a})$,
+so $cx=x^{2^e}$ for some $e$.  The automorphism $\sigma$ fixes $c$,
+and $\sigma(x)/x$ generates $\mu_r$.  Choose $k$ such that
+$\sigma^k(cx)=\zeta cx$.  Commutativity of absolute and relative
+Frobenius gives
+\[
+ u_{c,\zeta}
+ =u^{2^e(1+|K|+\cdots+|K|^{k-1})}.
+\]
+
+Index the ratios by $I$, with $|I|=D_m$, and evaluate integer vectors by
+$U_w=\prod_{i\in I}u_i^{w_i}$.  A signed ball
+$\sum_i|w_i|\le s$ has exactly $\mathcal R(D_m,s)$ elements:
+choose its $t$ nonzero coordinates, their signs, and their positive
+absolute values with sum at most $s$.
+
+Suppose first that $R_m$ is even.  Include the entire signed ball of
+radius $R_m/2$.  If $U_w=U_{w'}$, put $g=w-w'$ and clear denominators
+without cancelling common factors.  This gives $A(x)=B(x)$ with
+$A,B\in H_m[T]$, both constant coefficients one, and both degrees
+$\sum_i|g_i|\le R_m$.
+The minimal polynomial of $x$ divides $A-B$.  A nonzero difference
+would therefore be a scalar multiple of that minimal polynomial,
+contradicting its zero constant coefficient.  Hence $A=B$.
+
+If $R_m$ is odd, put $s=(R_m-1)/2$ and include the inner ball of
+radius $s$ together with a largest fibre, in the shell of radius $s+1$,
+of the leading-phase character
+\[
+ \chi(w)=\prod_{(c,\zeta)}\zeta^{w_{c,\zeta}}\in\mu_r.
+\]
+The chosen family has cardinality at least $\mathcal B_r(D_m,R_m)$.
+For a collision with at least one inner-ball vector, the same
+cross-product degree is at most $2s+1=R_m$.  For two shell vectors,
+it is at most $2s+2=R_m+1$, but equality of leading phases cancels
+the leading coefficient.  Thus $\deg(A-B)\le R_m$ again, and the
+same zero-constant argument gives $A=B$.
+
+In either parity, different $c$-cosets have disjoint stars of linear
+factors.  Within each star, valuation at $1+\zeta cT$ recovers the
+corresponding signed exponent.  Unique factorization makes $A=B$
+force $g=0$.  The chosen vectors therefore inject into the same cyclic
+group $\langle u\rangle$.  The normalized rational evaluation injection
+and the resulting bound by $\operatorname{ord}(u)$ are kernel-checked in
+\texttt{ExcessOrdinaryPacking}; finite-field ancestry, the disjoint-factor
+comparison, and the lattice count remain paper-level inputs.  Taking the
+maximum over $m$ proves the bound.
+Under a deficient current $p$-coordinate, $o\mid L_{r,a}/p$, proving
+the stated sieve.
+\end{proof}
+
+\begin{corollary}[intermediate-field recovery and explicit growth]
+\label{cor:o-ratio-growth}
+Put $v=v_r(2^b-1)$.  For $0\le j<a$, set
+\[
+ m_j=\min\{a,j+v\},\quad
+ D'_j=r^{m_j-1}(r-1),\quad R'_j=r^{a-j},\quad s_j=(R'_j-1)/2.
+\]
+Then $B_{r,a}$ is at least
+\[
+ \mathcal R(D'_j,s_j)+
+ \left\lceil\frac{\mathcal R(D'_j,s_j+1)-\mathcal R(D'_j,s_j)}r
+ \right\rceil
+\]
+for every $j$.  The case $j=a-1$ uses
+$D=r^{a-1}(r-1)$ and signed radius $(r-1)/2$.  Moreover,
+\[
+ \log_2 o\ge
+ (\log_2 3)(1-1/r)\sqrt{r^a}-\tfrac12\log_2 3.
+\]
+\end{corollary}
+
+\begin{proof}
+LTE puts $\mu_{r^{m_j}}$ in $F_{r,j}$, so
+$t_{m_j}\mid br^j$ and hence $R_{m_j}\ge R'_j$.
+If these degrees are equal, they are odd and the displayed term is
+exactly $\mathcal B_r(D_{m_j},R_{m_j})$.
+If they are unequal, $R_{m_j}\ge R'_j+1=2(s_j+1)$, so the larger
+degree bound contains the entire ball of radius $s_j+1$, which already
+dominates the displayed inner-ball-plus-partial-shell term.
+
+For the growth assertion choose $j=\lfloor(a-1)/2\rfloor$ and put
+$h=\min\{D'_j,s_j\}$.  The inner ball contains $\{-1,0,1\}^h$,
+so its size is at least $3^h$.  Since $v\ge1$,
+$D'_j\ge(r-1)r^j$.  If $a=2k$, then
+$h\ge(r-1)r^{k-1}$.  If $a=2k+1$, then
+$h\ge(r^{k+1}-1)/2$.  In both cases
+$h\ge(1-1/r)r^{a/2}-1/2$, already for $r\ge3$.
+\end{proof}
+
+For fixed $r$ and bottom ancestry this packing bound is exponential in
+$\sqrt{r^a}$, whereas $L_{r,a}$ is exponential in $r^a$.  To see the upper
+scale as well, put $v_0=v_r(2^{t_1}-1)$.  Order lifting gives
+$t_m=t_1r^{\max(0,m-v_0)}$, so $D_mR_m=O(r^a)$ uniformly in $m$.
+The elementary estimate
+\[
+ \mathcal R(D,s)\le\sum_{t\ge0}\frac{(2Ds)^t}{(t!)^2}
+ \le\exp(2\sqrt{2Ds})
+\]
+and $\mathcal B_r(D,R)\le\mathcal R(D,\lceil R/2\rceil)$ therefore give
+$\log B_{r,a}=O(\sqrt{r^a})$.  Thus the theorem proves a selected
+large-factor range, not universal arm~$O$.  Bounds from different coefficient
+fields cannot simply be multiplied: they count subsets of the same cyclic
+group, and a mixed collision must be tested over the largest coefficient
+field present.  The statement includes $r=3$; its cubic interpretation is
+given in Proposition~\ref{prop:c-ratio-packing}.
+
+\begin{corollary}[minimal-counterexample congruence-gap regime]
+\label{cor:o-one-primary}
+Suppose that $p$ is the least odd prime at which the $0/1/4$ rule fails and
+that its putative failure lies in arm~$O$ at $(r,a,p)$, so $r\ne3$.
+Let $N=L_{r,a}$,
+let $o$ be the selected projective order, write $N=o\Delta$, and let
+$\Delta^{(r')}$ be the prime-to-$r$ part of $\Delta$.  Let $B_{r,a}$ be the minimal-coefficient-field maximum in
+Proposition~\ref{prop:o-ratio-packing}, and put
+\[
+ M=2r^a,\qquad
+ A_{<p}=\prod_{\substack{q<p,\ q\ne r\\q\mid N}}q^{v_q(N)},
+ \qquad B_*=\max\{B_{r,a},A_{<p}\}.
+\]
+Then every prime divisor of $\Delta^{(r')}$ is at least $p$ and is
+congruent to $1$ modulo $M$, and
+\[
+ N<B_*p^2
+ \quad\Longrightarrow\quad
+ \Delta^{(r')}=p.
+\]
+In the larger range
+\[
+ N<B_*p(p+M)
+ \quad\Longrightarrow\quad
+ \Delta^{(r')}=p\quad\hbox{or}\quad p^2\mid\Delta^{(r')}.
+\]
+If $v_p(N)=1$, the second alternative is impossible.
+\end{corollary}
+
+\begin{proof}
+The deficient $p$-coordinate gives $p\mid\Delta^{(r')}$.  If a prime
+$q<p$, $q\ne r$, divided $\Delta$, then $q\mid L_{r,a}$ would be another
+eligible arm-$O$ row with deficient $q$-valuation, contradicting the
+minimality of $p$.  Thus $\Delta^{(r')}$ is $p$-rough.  For every such
+prime $q\ne r$, the cyclotomic divisor theorem gives
+$\operatorname{ord}_q(2^{b_r})=r^a$.  Since $q$ is odd and $r^a$ is odd,
+this implies $q\equiv1\pmod {2r^a}$.
+
+The unconditional part of Proposition~\ref{prop:o-ratio-packing} gives
+$B_{r,a}\le o$.  Minimality also forces the full $q$-primary part of $N$
+into $o$ for every $q<p$, $q\ne r$, so $A_{<p}\mid o$ and therefore
+$B_*\le o$.  Hence
+\[
+ B_*\Delta^{(r')}\le B_*\Delta\le o\Delta=N.
+\]
+If $\Delta^{(r')}\ne p$, its quotient by $p$ has a prime divisor at least
+$p$, proving the first implication.  If $p^2\nmid\Delta^{(r')}$, that prime
+is distinct from $p$ and congruence spacing makes it at least $p+M$; hence
+$\Delta^{(r')}\ge p(p+M)$.  This proves the second implication and the
+valuation-one conclusion.  A surviving square factor similarly makes $p$
+a base-$2^{b_r}$ Wieferich prime, since $r^a\mid p-1$ and
+$(2^{b_r})^{r^a}\equiv1\pmod {p^2}$.
+\end{proof}
+
+Let $N_a=\operatorname{ord}(x_a)$.  The Kummer relation
+$x_a^r=x_{a-1}$ and the relative degree $r$ give
+$N_a=rN_{a-1}$.  Choose the roots and primes recursively:
+$\xi_{N_a}$ is a primitive complex $N_a$-th root satisfying
+\[
+ \xi_{N_a}^r=\xi_{N_{a-1}},
+\]
+and $\mathfrak P_a\mid2$ is the prime whose residue sends
+$\xi_{N_a}$ to $x_a$.  Since $x_a^r=x_{a-1}$, this makes
+$\mathfrak P_a$ restrict to $\mathfrak P_{a-1}$.  Put
+$\varepsilon_a=1-\xi_{N_a}$.
+For a row prime $p$, use the intrinsic residue-field notation
+\[
+ \left(\frac{\varepsilon_a}{\mathfrak P_a}\right)_p
+ :=\overline{\varepsilon_a}^{\,(|F_a|-1)/p}\in\mu_p(F_a).
+\]
+This is an Euler symbol in the selected residue field.  It agrees with the
+usual local power-residue/Artin symbol after adjoining $\mu_p$ and choosing
+the prime above $\mathfrak P_a$.
+
+\begin{theorem}[selected cyclotomic-value form]\label{thm:o-symbol}
 For $p\ne r$ dividing $L_{r,a}$, arm $O$ at $(r,a,p)$ is equivalent to
 \[
   \left(\frac{\varepsilon_a}{\mathfrak P_a}\right)_p\ne1.
@@ -567,6 +2276,14 @@ field has trivial $p$-Kummer quotient.  Its norm receives no information
 about the new selected class.
 \end{proof}
 
+The word \emph{value} in the theorem is deliberate.  The element
+$1-\xi_{N_a}$ is a cyclotomic number and is an $S$-unit for the primes
+dividing $N_a$; it is a global unit exactly when $N_a$ is not a prime power.
+For example, in the $r=7$ chain one has $N_a=7^{a+1}$ and its absolute norm
+is $7$.  This distinction does not alter reduction modulo the selected prime
+over two or the relative norm identity, but any global Kummer formulation
+must retain the conductor primes in $S$ (or in the ray modulus).
+
 The selected symbol has an exact Jacobi--Fourier expansion.  Let
 $Q=|F_a|$, let $H=\langle x_a\rangle\subset F_a^\times$ have order $N_a$,
 put $M=(Q-1)/N_a$, and let $\chi$ be a complex-valued order-$p$ power
@@ -598,12 +2315,14 @@ the ideal and $p$-adic unit conditions is also visible in Uehara's
 cyclotomic-unit criterion \cite{uehara1985}; it supplies an exact test, not a
 uniform nonvanishing theorem for the Conway-selected entry.
 
-This residue-symbol condition is a marked Artin-symbol assertion, not a
-statement about decomposition or conductor.  Its ray character splits into
-a ramified local logarithm and an unramified ideal-class character evaluated
-at $[\mathfrak P_a]$.  Stickelberger annihilation reduces the latter to an
-explicit decomposition-invariant quotient, but does not make it vanish
-uniformly.  This is a genuine boundary: at the actual Conway conductor
+After adjoining $\mu_p$ and retaining the conductor primes in the $S$-ray
+modulus, this residue-field condition becomes a marked Artin-symbol
+assertion, not merely a statement about decomposition or conductor.  Its
+ray character splits into a ramified local logarithm and an unramified
+ideal-class character evaluated at $[\mathfrak P_a]$.  Stickelberger
+annihilation reduces the latter to an explicit decomposition-invariant
+quotient, but does not make it vanish uniformly.  This is a genuine boundary:
+at the actual Conway conductor
 $r=11$, $a=1$, $p=23$, one contributing Stickelberger scalar vanishes with
 exact $23$-adic valuation one.  The corresponding unramified degree-$23$
 class line is nontrivial, and every prime over two has nontrivial Artin symbol
@@ -648,6 +2367,61 @@ The factors lie in the coprime circle and real parts of the unit group,
 giving the order identity.  Frobenius gives the other translates, and
 Proposition~\ref{prop:power} finishes the reduction.
 \end{proof}
+
+The half-angle test also has a lossless group-algebra form that removes all
+denominators.  Put
+\[
+ J_h(X)=X^{2h}+X^h+1,
+ \qquad B_d(X)=(X^2+1)^d+X^d\in\mathbb F_2[X].
+\]
+Since $J_h$ is the minimal polynomial of $\zeta_k$ and
+$\gamma_k=\zeta_k^{-1}(\zeta_k^2+1)$, one has
+\begin{equation}
+ \gamma_k^d=1
+ \quad\Longleftrightarrow\quad
+ J_h(X)\mid B_d(X).
+\end{equation}
+Equivalently, in
+$\mathbb F_2[X,X^{-1}]/(X^{3h}-1)$ the parity vector of
+$X^d(1+X^{-2})^d$ belongs to the affine coset $1+(J_h)$, not to the ideal
+$(J_h)$ itself.  Thus arm $C$ is exactly the universal assertion that, for
+every prime $\ell\mid 2^h-1$,
+\[
+ J_h(X)\nmid B_{(2^h-1)/\ell}(X).
+\]
+Lucas's theorem makes the support of $B_d$ explicit from the binary digits of
+$d$, but it does not by itself prove these selected nondivisibilities.  The
+denominator-free equivalence above is also kernel-checked as
+\texttt{halfAngle\_pow\_eq\_one\_iff\_minpoly\_dvd}; it is a reduction of
+$C$, not a proof of $C$.
+
+There is also an exact stable-polynomial formulation.  Put $P_0(X)=X$ and
+\[
+ P_{j+1}(X)=P_j(X)^3+P_j(X)^2+1,
+\]
+so that $P_j=f^{\circ j}$ for $f(X)=X^3+X^2+1$.  In characteristic two,
+$t(X)=X+1$ conjugates $g(X)=X^3+X$ to $f$: $f=t\circ g\circ t$.
+The triple-angle identity gives $g(\gamma_j)=\gamma_{j-1}$ with
+$\gamma_0=1$, hence $b_j=\gamma_j+1$ is a root of $P_j$.  Since $b_j$ has
+degree $3^j$, $P_j$ is its minimal polynomial.  Lin and Wang prove that $f$
+is stable, equivalently that all these iterates are irreducible
+\cite{linwang2024}; their theorem does not assert multiplicative primitivity.
+
+Indeed, this missing strengthening is exactly arm $C$.  With
+$q=2^{3^{j-1}}$, both $\gamma_j$ and $b_j$ have relative norm
+$\gamma_{j-1}$ to $\mathbb F_q$, and
+\[
+ \gamma_j b_j^2=\gamma_{j-1}.
+\]
+Because $\gcd(q-1,q^2+q+1)=1$, the norm propagates every old primary part.
+For a new prime $\ell\mid q^2+q+1$, the base-field factor
+$\gamma_{j-1}$ is an $\ell$-th power, while the displayed identity gives
+$[\gamma_j]+2[b_j]=0$ in the $\ell$-Kummer quotient.  Since $\ell$ is odd,
+$\gamma_j$ is an $\ell$-th power exactly when $b_j$ is.  Induction therefore
+shows that all $P_j$ with $j\geq1$ are primitive polynomials exactly when
+all $\gamma_j$ with $j\geq1$ are primitive.  Stability supplies the degrees;
+primitive preservation is the original selected-order problem, not a known
+solution of it.
 
 Put $q_k=2^{3^{k-1}}$ and
 \[
@@ -726,6 +2500,737 @@ subgroup of order $N/\ell$, which must contain all these quotients.
 The sieve is polynomial in $h$, while $N$ is exponential.  It proves a
 genuine selected large-factor range but not arm $C$.
 
+\begin{proposition}[intermediate-field cubic ratio packing]
+\label{prop:c-ratio-packing}
+Let $k\geq1$, $h=3^k$, $H=3^{k-1}$, $q=2^H$, and
+$N=q^2+q+1$.  Let $x=\zeta_k$ be the selected primitive
+$3^{k+1}$-st root, put $\gamma_k=x+x^{-1}$, and put
+$\eta_k=\gamma_k^{q-1}$.  For $0\leq j<k$ define
+\[
+ D_j=2\cdot3^j,\qquad R_j=3^{k-j},\qquad s_j=(R_j-1)/2,
+\]
+\[
+ B_j=\mathcal R(D_j,s_j)+
+ \left\lceil\frac{\mathcal R(D_j,s_j+1)-\mathcal R(D_j,s_j)}3\right\rceil,
+ \qquad B_{3,k}=\max_{0\leq j<k}B_j.
+\]
+These are the $r=3$, $b_3=2$ parameters of
+Proposition~\ref{prop:o-ratio-packing}, with $m=j+1$.  Then
+\[
+ \operatorname{ord}(\eta_k)\geq
+ \left\lceil\frac{B_{3,k}}3\right\rceil.
+\]
+In particular, if a prime $\ell\mid N$ is missing from the order of
+$\eta_k$ at its full valuation, then
+\[
+ \frac N\ell\geq\left\lceil\frac{B_{3,k}}3\right\rceil.
+\]
+\end{proposition}
+
+\begin{proof}
+Write $L=\mathbb F_{q^6}=\mathbb F_{4^{3^k}}$ and
+$K=\mathbb F_{q^2}=\mathbb F_{4^{3^{k-1}}}$.  We first identify exactly
+the order $o$ of $(1+x)K^\times$ in $L^\times/K^\times$:
+\[
+ o=3\operatorname{ord}(\eta_k).
+\]
+Indeed, write $A=\operatorname{ord}(\gamma_k)$.  The half-angle identity
+gives $\operatorname{ord}(1+x)=3^{k+1}A$, with
+$A\mid q^3-1$ and $3\nmid A$.  Since $H$ is odd,
+$\gcd(q^3-1,q^2-1)=q-1$, while LTE gives
+$v_3(q^2-1)=k$.  Consequently
+\[
+ \gcd(3^{k+1}A,q^2-1)=3^k\gcd(A,q-1),
+\]
+and the order in the cyclic quotient is
+\[
+ o=\frac{3^{k+1}A}{\gcd(3^{k+1}A,q^2-1)}
+   =3\frac A{\gcd(A,q-1)}
+   =3\operatorname{ord}(\gamma_k^{q-1}).
+\]
+The coprime circle/real order splitting and transfer of a lower bound
+through this factor of three are kernel-checked in
+\texttt{ExcessCubicPacking}; the finite-field half-angle, valuation, and
+component-gcd inputs remain paper-level.
+
+Since $\operatorname{ord}_{3^m}(2)=2\cdot3^{m-1}$, the minimal
+coefficient fields in Proposition~\ref{prop:o-ratio-packing} are exactly
+$\mathbb F_{4^{3^{m-1}}}$.  Its unconditional bound gives
+$o\geq B_{3,k}$, and the identity $o=3\operatorname{ord}(\eta_k)$ gives the first
+assertion.  A deficient full $\ell$-part implies
+$\operatorname{ord}(\eta_k)\mid N/\ell$, proving the second.
+\end{proof}
+
+\begin{corollary}[cubic square-root exponential bound]
+\label{cor:c-ratio-growth}
+As $k\to\infty$, with $h=3^k$,
+\[
+ \log_2\operatorname{ord}(\eta_k)
+ \geq\left(\log_2 3+\frac56\right)\sqrt h-O(\log h).
+\]
+The coefficient $\log_2 3+5/6>2.4182$ improves the partition coefficient
+$\pi/(3\log 2)$ in Proposition~\ref{prop:c-partition}.
+\end{corollary}
+
+\begin{proof}
+It is enough to retain one summand
+$2^t\binom{D_j}t\binom{s_j}t$ of the signed ball.
+Put $u=\sqrt h$ and $t=\lfloor u/2\rfloor$.
+If $k=2m$ is even, take $j=m-1$.  Then
+\[
+ D_j=\frac23u,\qquad s_j=\frac32u-\frac12.
+\]
+Writing $H_2(z)=-z\log_2z-(1-z)\log_2(1-z)$, the elementary
+Stirling estimate gives
+\[
+ \log_2\left(2^t\binom{D_j}t\binom{s_j}t\right)
+ =\left[\frac12+\frac23H_2\left(\frac34\right)
+              +\frac32H_2\left(\frac13\right)\right]u-O(\log h)
+ =\left(\log_2 3+\frac56\right)u-O(\log h).
+\]
+If $k=2m+1$ is odd, take $j=m$.  Then
+\[
+ D_j=\frac2{\sqrt3}u,\qquad
+ s_j=\frac{\sqrt3}2u-\frac12,
+\]
+giving the coefficient
+\[
+ c_{\rm odd}=\frac12+
+ \frac2{\sqrt3}H_2\left(\frac{\sqrt3}4\right)
+ +\frac{\sqrt3}2H_2\left(\frac1{\sqrt3}\right).
+\]
+This is at least the even coefficient, as can be seen without numerical
+comparison.  The function
+$g(x)=e^xH_2(\tfrac12e^{-x})$ is strictly concave on $x>-\log2$:
+with $z=\tfrac12e^{-x}\in(0,1)$,
+\[
+ g''(x)=\frac{e^x}{\log2}
+ \left(-\log(1-z)-\frac z{1-z}\right)<0.
+\]
+Thus $g(x)+g(-x)$ decreases for $0<x<\log2$.
+The even coefficient uses $x=\log(3/2)$, whereas the odd coefficient
+uses $x=\log(2/\sqrt3)$, which is smaller.
+Finally, dividing the order bound by three costs only $\log_2 3$,
+which is absorbed into $O(\log h)$.
+\end{proof}
+
+The bound remains subexponential in $h$, while $N$ is exponential in $h$.
+It therefore leaves the smaller current prime factors unresolved.
+
+The cyclotomic selector also permits a complementary partition bound.  This
+is the usual low-degree collision argument for Gaussian periods, specialized
+to the composite conductor $3^{k+1}$ and therefore retaining the literal
+selected element rather than replacing it by an arbitrary normal generator.
+
+\begin{proposition}[selected norm-one partition bound]
+\label{prop:c-partition}
+Let $n=3^{k+1}=3h$.  For an integer $m\geq1$ put
+\[
+ \mathcal A_m=\{1\leq j\leq m:3\nmid j\},\qquad
+ t_m=|\mathcal A_m|,\qquad s_m=\sum_{j\in\mathcal A_m}j.
+\]
+Let
+\[
+ \mathcal U_h=\{1\leq j<n:3\nmid j\},
+\]
+choose $0\leq z_j<2h$ with $2^{z_j}\equiv j\pmod n$, and, for
+$E\subseteq\mathcal U_h$, put
+\[
+ Q_E=\sum_{j\in E}2^{z_j},\qquad s_E=\sum_{j\in E}j.
+\]
+For distinct $E,F\subseteq\mathcal U_h$, set
+\[
+ A=E\setminus F,\quad B=F\setminus E,\quad
+ W=s_A+s_B,\quad j_0=\min(A\cup B).
+\]
+Then $\eta_k^{Q_E}\ne\eta_k^{Q_F}$ if either
+\[
+ s_A\not\equiv s_B\pmod3\ \text{ and }\ W<h,
+ \qquad\text{or}\qquad
+ s_A\equiv s_B\pmod3\ \text{ and }\ W-2j_0<h.
+\]
+In particular, weighted symmetric-difference sum below $h$ rules out every
+collision.
+
+Put
+\[
+ R_h=\frac{h-1}{2},\qquad
+ \mathcal P_h=
+ \sum_{r=0}^{R_h}[X^r]
+ \prod_{\substack{j\geq1\\3\nmid j}}(1+X^j).
+\]
+Then
+\[
+ \operatorname{ord}(\eta_k)\geq\mathcal P_h,
+ \qquad
+ \log_2\mathcal P_h=
+ \left(\frac{\pi}{3\log 2}+o(1)\right)\sqrt h.
+\]
+If $s_m<h$, then also
+\[
+ \operatorname{ord}(\eta_k)\geq2^{t_m}.
+\]
+Consequently
+\[
+ \log_2\operatorname{ord}(\eta_k)
+ \geq \left(\frac{\pi}{3\log 2}+o(1)\right)\sqrt h,
+\]
+and the elementary initial-segment subfamily alone gives
+\[
+ \log_2\operatorname{ord}(\eta_k)
+ \geq \sqrt{\frac{4h}{3}}-O(1).
+\]
+If a prime $\ell\mid N=|U_k|$ is absent from the order of $\eta_k$ at its
+full valuation, then $N/\ell\geq\mathcal P_h$ and, whenever $s_m<h$, also
+$N/\ell\geq2^{t_m}$.
+\end{proposition}
+
+\begin{proof}
+Put $w=\zeta_k^2$.  The identity $W(\eta_k)=w$ gives
+\[
+ \eta_k=\frac{\omega+\omega^2w}{1+w}.
+\]
+The order of two modulo $n$ is $2h$, so the exponents $z_j$ in the statement
+exist.  They satisfy
+\[
+ \eta_k^{2^{z_j}}
+ =\omega^j\frac{1+(\omega w)^j}{1+w^j}.
+\]
+A collision $\eta_k^{Q_E}=\eta_k^{Q_F}$ first permits cancellation of all indices in
+$E\cap F$: the relevant numerator and denominator factors are nonzero at
+$w$, because both $w$ and $\omega w$ are primitive $n$-th roots.  Put
+$A=E\setminus F$, $B=F\setminus E$, and $W=s_A+s_B$ as in the statement.
+Clearing the remaining
+denominators makes $w$ a root of the difference between
+\[
+ \omega^{s_A}
+ \prod_{j\in A}(1+(\omega X)^j)\prod_{j\in B}(1+X^j)
+ \quad\text{and}\quad
+ \omega^{s_B}
+ \prod_{j\in B}(1+(\omega X)^j)\prod_{j\in A}(1+X^j).
+\]
+Each polynomial has degree $W$.  The element $w$ is a
+primitive $n$-th root and the order of four modulo $n$ is $h$, so its minimal
+polynomial over $\mathbb F_4$ is $X^h+\omega^2$.  Thus a collision with
+$W<h$ would make the two polynomials identical.  Their constant coefficients
+first force $s_A\equiv s_B\pmod3$.  Cancel that common scalar and let $j_0$
+be the least index in $A\cup B$.  If, say, $j_0\in A$, then the coefficients
+of $X^{j_0}$ on the two
+sides are respectively $\omega^{j_0}$ and $1$.  They differ because
+$3\nmid j_0$; the other case is symmetric.  More sharply, if
+$s_A\not\equiv s_B\pmod3$, the
+difference has span $W$, while if $s_A\equiv s_B\pmod3$, its constant and
+leading terms cancel but its coefficients at degrees $j_0$ and $W-j_0$ are
+nonzero, so its span is $W-2j_0$.  A nonzero multiple of $X^h+\omega^2$ has
+span at least $h$.  This proves both pairwise criteria in the statement.
+
+When $s_m<h$, necessarily $m<n$, so $\mathcal A_m\subseteq\mathcal U_h$.
+For $E,F\subseteq\mathcal A_m$, their symmetric difference has weighted sum
+at most $s_m$.  Hence all $2^{t_m}$ displayed powers are distinct.
+
+Every subset $E$ with $s_E\leq R_h$ belongs to a family whose pairwise
+weighted symmetric differences have sum at most $2R_h<h$.  The number of
+such subsets is exactly $\mathcal P_h$, proving the first finite bound.  For
+its asymptotic, put
+\[
+ G(t)=\prod_{j\geq1}(1+e^{-tj}),\qquad
+ F(e^{-t})=\prod_{3\nmid j}(1+e^{-tj})=\frac{G(t)}{G(3t)}.
+\]
+The standard $q$-Pochhammer asymptotic gives
+\[
+ G(t)\sim2^{-1/2}\exp\!\left(\frac{\pi^2}{12t}\right),
+ \qquad
+ \frac{F(e^{-t})}{1-e^{-t}}
+ \sim t^{-1}\exp\!\left(\frac{\pi^2}{18t}\right).
+\]
+The coefficients of $F(X)/(1-X)$ are the nonnegative, nondecreasing
+cumulative counts in $\mathcal P_h$.  Ingham's exponential Tauberian theorem
+\cite{ingham1941} therefore gives
+\[
+ \log\mathcal P_h
+ =2\sqrt{\frac{\pi^2R_h}{18}}+o(\sqrt h)
+ =\frac\pi3\sqrt h+o(\sqrt h).
+\]
+Finally, $t_m=2m/3+O(1)$ and $s_m=m^2/3+O(m)$; taking the largest $m$ with
+$s_m<h$ gives the elementary initial-segment estimate.  The final assertion
+follows because a missing full $\ell$-part would force
+$\operatorname{ord}(\eta_k)\mid N/\ell$.
+\end{proof}
+
+There is a second, sharp consequence of the same selected formula.  It
+classifies the first possible one-sided relation rather than merely packing
+many pairwise-distinct powers.
+
+\begin{proposition}[sharp selected first-relation threshold]
+\label{prop:c-first-relation}
+Retain the notation above.  For every nonempty $E\subseteq\mathcal U_h$,
+put $S=s_E$ and decompose
+\[
+ B_E(X)=\prod_{j\in E}(1+X^j)
+ =B_0(X^3)+XB_1(X^3)+X^2B_2(X^3),
+ \qquad B_a\in\mathbb F_2[Y].
+\]
+If $a_0\equiv-S\pmod3$, then the exact all-weight criterion is
+\[
+ \eta_k^{Q_E}=1
+ \quad\Longleftrightarrow\quad
+ Y^{2H}+Y^H+1\mid B_a(Y)
+ \quad\text{for both }a\ne a_0,
+ \qquad H=h/3.
+\]
+In particular,
+\[
+ \eta_k^{Q_E}=1\quad\Longrightarrow\quad s_E\geq2h+1.
+\]
+The threshold is sharp: with $H=h/3$,
+\[
+ E_0=\{1,h-1,h+1\},\qquad
+ Q_{E_0}=1+2^H+2^{2H}=|U_k|,\qquad s_{E_0}=2h+1.
+\]
+Consequently, if a prime $\ell\mid N=|U_k|$ is absent from the selected
+order at its full valuation, write
+\[
+ \frac N\ell=\sum_{0\leq z<2H}\epsilon_z2^z,
+ \qquad j_z\equiv2^z\pmod{3h},\quad1\leq j_z<3h.
+\]
+Then necessarily
+\[
+ \sum_{\epsilon_z=1}j_z\geq2h+1.
+\]
+For this quotient word put
+$S=\sum_{\epsilon_z=1}j_z=3T+1$.  Its two surviving sections are padded
+reciprocals:
+\[
+ B_1(Y)=Y^T B_0(Y^{-1}).
+\]
+Thus the two divisibility conditions are equivalent, and the exact failure
+criterion is the single condition
+\[
+ \eta_k^{N/\ell}=1
+ \quad\Longleftrightarrow\quad
+ Y^{2H}+Y^H+1\mid B_0(Y).
+\]
+Equivalently, define $\mathcal T_m\in\mathbb F_2[Y]$ by
+\[
+ \mathcal T_0=\mathcal T_1=\mathcal T_2=1,
+ \qquad
+ \mathcal T_m=\mathcal T_{m-1}+\mathcal T_{m-2}
+ +(1+Y)\mathcal T_{m-3}\quad(m\geq3).
+\]
+Then, for $d=N/\ell$,
+\[
+ \eta_k^d=1
+ \quad\Longleftrightarrow\quad
+ Y^{2H}+Y^H+1\mid\mathcal T_d(Y).
+\]
+\end{proposition}
+
+\begin{proof}
+Put
+\[
+ P_E(X)=\omega^S B_E(\omega X)+B_E(X).
+\]
+The selected formula shows that $\eta_k^{Q_E}=1$ exactly when
+$M(X)=X^h+\omega^2$, the minimal polynomial of $w$ over $\mathbb F_4$,
+divides $P_E$.  If $[X^r]B_E=b_r\in\mathbb F_2$, then
+\[
+ [X^r]P_E=b_r(1+\omega^{S+r}).
+\]
+Thus the scalar multiplier vanishes precisely on the section
+$r\equiv-S\pmod3$.  Write
+the three sections as in the statement.
+Since $h=3H$, division by
+$M(X)=(X^3)^H+\omega^2$ respects these three sections.  Divisibility by $M$
+therefore forces each of the two surviving $B_a(Y)$ to be divisible by
+$Y^H+\omega^2$.  Because its coefficients lie in $\mathbb F_2$, conjugation
+also forces divisibility by $Y^H+\omega$, and hence by
+\[
+ (Y^H+\omega^2)(Y^H+\omega)=Y^{2H}+Y^H+1.
+\]
+The converse is immediate because the displayed polynomial contains
+$Y^H+\omega^2$ as a factor.  This proves the exact all-weight criterion.
+
+If $S<2h$, every surviving section has degree below $2H$.  If $S=2h$, the
+top term lies in the vanished residue-zero section, so the same strict bound
+holds for the two surviving sections.  Hence both are zero.  The constant
+term of $B_E$ then forces the sole supported section to be residue zero, but
+the least $j\in E$ contributes coefficient one at $X^j$, in a nonzero residue
+class.  This contradiction proves $S\geq2h+1$.
+
+The congruence $2^H\equiv h-1\pmod{3h}$ follows by induction from
+$2\equiv2\pmod9$ after cubing; squaring gives
+$2^{2H}\equiv h+1\pmod{3h}$.  Hence $E_0$ has the asserted exponent, and
+$\eta_k^N=1$ proves sharpness.  Finally, $N$ is odd and prime to three, so
+$\ell\geq5$ and $N/\ell<2^{2H}$.  Its binary indices lie below $2H$ and
+have distinct residues modulo $3h$.  A missing full $\ell$-part gives
+$\eta_k^{N/\ell}=1$, so the first assertion gives the displayed residue-weight
+bound.
+
+For the quotient word, every current prime satisfies
+$\operatorname{ord}_{\ell}(2^H)=3$, hence $\ell\equiv1\pmod3$, while
+$N\equiv1\pmod3$; therefore $d\equiv1\pmod3$ and
+$S\equiv d\equiv1\pmod3$.  The product $B_E$ is self-reciprocal of degree
+$S=3T+1$.  If $[X^m]B_E=b_m$, then $b_m=b_{S-m}$, so comparison of the
+residue-zero and residue-one coefficients gives
+\[
+ B_1(Y)=Y^TB_0(Y^{-1}).
+\]
+The polynomial $G(Y)=Y^{2H}+Y^H+1$ is self-reciprocal.  Since
+$\deg B_0\leq T$, reversing a factorization by $G$ shows
+$G\mid B_0$ if and only if $G\mid B_1$; the zero and subdegree cases are
+included.  The generic padded-mirror divisibility step is kernel-checked as
+\texttt{selfMirror\_dvd\_paddedMirror\_iff}.  The vanished section is
+$a_0\equiv-S\equiv2\pmod3$, proving the single-section criterion.
+
+For the recurrence formulation, let $y$ be a root of $G$, choose $w$ with
+$w^3=y$, and let $\omega^2+\omega+1=0$.  The three elements
+$1+w,1+\omega w,1+\omega^2w$ are the roots of
+\[
+ Z^3+Z^2+Z+(1+y),
+\]
+so their power sums obey the displayed recurrence and have initial values
+$1,1,1$.  Lucas's theorem gives
+$(1+X)^d=\prod_{\epsilon_z=1}(1+X^{2^z})$, and this product is congruent to
+$B_E(X)$ modulo $X^{3h}-1$.  Summing its values at the three cube roots of
+$y$ projects onto the residue-zero section.  Therefore
+$\mathcal T_d(y)=B_0(y)$.  Since $y$ has order $h=3^k$ and
+$\operatorname{ord}_h(2)=2H$, its minimal polynomial is $G$; the last
+divisibility criterion follows.
+\end{proof}
+
+The recurrence also admits a full symmetric composition law.  This explains
+why the forced norm-triple relation at exponent $N$ cannot simply be
+descended through $N=d\ell$.
+
+\begin{proposition}[cubic power-state composition saturation]
+\label{prop:c-composition}
+Let $K$ be a characteristic-two field containing
+$\omega^2+\omega+1=0$.  Let $L/K$ be a cyclic extension of degree three
+with generator $\sigma$, and let $w\in L^\times$ satisfy
+$\sigma(w)=\omega w$.  Put $y=w^3\in K$ and
+\[
+ a=1+w,\qquad c=1+y,\qquad b=\frac ca=1+w+w^2,
+\]
+and
+\[
+ A_m=\operatorname{Tr}_{L/K}(a^m),\qquad
+ B_m=\operatorname{Tr}_{L/K}(b^m),\qquad C_m=c^m.
+\]
+For universal variables define the sequence
+\[
+ D_0=1,\quad D_1=A,\quad D_2=A^2,\qquad
+ D_n=AD_{n-1}+BD_{n-2}+CD_{n-3}\quad(n\geq3).
+\]
+Then, for all $m,n\geq0$,
+\[
+ \begin{aligned}
+ A_{mn}&=D_n(A_m,B_m,C_m),\\
+ B_{mn}&=D_n(B_m,A_mC_m,C_m^2),\\
+ C_{mn}&=C_m^n.
+ \end{aligned}
+\]
+If $m\equiv1\pmod3$ and, for some positive integer
+$H$, the minimal polynomial of $y$ over $\mathbb F_2$ is the
+self-reciprocal polynomial $G(Y)=Y^{2H}+Y^H+1$, then
+\[
+ A_m=0\quad\Longleftrightarrow\quad B_m=0.
+\]
+Consequently, for every $n\equiv1\pmod3$,
+\[
+ (A_m,B_m)=(0,0)\quad\Longrightarrow\quad
+ (A_{mn},B_{mn})=(0,0).
+\]
+The converse cannot hold uniformly: already at $H=1$ one has
+$G\mid\mathcal T_7$ but $G\nmid\mathcal T_1$.
+\end{proposition}
+
+\begin{proof}
+The eigenvalue relation makes $w\notin K$, so $K(w)=L$.  It also gives
+$a\ne0$; and $c=0$ would make $w$ a cube root of unity already contained in
+$K$, so $c\ne0$.  Thus all displayed quotients are defined.
+The three conjugates of $a^m$ have elementary invariants
+$(A_m,B_m,C_m)$.  Newton's identities in characteristic two give the
+displayed recurrence for their power sums.  The pairwise products have
+elementary invariants $(B_m,A_mC_m,C_m^2)$, which proves the second
+composition formula; the third is immediate.
+
+Write $m=3t+1$ and decompose
+\[
+ (1+X)^m=P_0(X^3)+XP_1(X^3)+X^2P_2(X^3).
+\]
+Self-reciprocity gives $P_1(Y)=Y^tP_0(Y^{-1})$.  Since $G$ is
+self-reciprocal, $A_m=P_0(y)=0$ also gives $P_1(y)=0$; hence
+$a^m\in w^2K$.  Therefore $b^m=c^m/a^m\in wK$ and $B_m=0$.
+Conversely, decompose
+\[
+ (1+X+X^2)^m=Q_0(X^3)+XQ_1(X^3)+X^2Q_2(X^3).
+\]
+This polynomial is self-reciprocal of degree $6t+2$, so
+$Q_2(Y)=Y^{2t}Q_0(Y^{-1})$.  The equality $B_m=Q_0(y)=0$ therefore puts
+$b^m$ in $wK$, and $a^m=c^m/b^m$ lies in $w^2K$, giving $A_m=0$.
+
+When $A=B=0$, the recurrence $D_n=CD_{n-3}$ has zero values in residue
+classes one and two modulo three.  This proves the saturation statement.
+Finally, for $H=1$ the recurrence gives
+$\mathcal T_1=1$ and $\mathcal T_7=Y^2+Y+1=G$.
+\end{proof}
+
+The first infinitesimal neighborhood of the selected factor is also exact.
+It does not contradict failure; instead it shows that any failure is
+transverse and recovers the unique Kummer preimage already forced by the
+projective equation.
+
+\begin{proposition}[selected cubic first-jet transversality]
+\label{prop:c-first-jet}
+Use the notation of Proposition~\ref{prop:c-composition}.  Specialize to
+$k\geq1$, $h=3^k$, and $H=3^{k-1}$, let $y$ be the selected primitive
+$h$-th root whose minimal polynomial over $\mathbb F_2$ is
+$G(Y)=Y^{2H}+Y^H+1$, and put
+\[
+ q=2^H,\qquad N=q^2+q+1,\qquad e=\frac{q+1}{3},
+\]
+and let $\ell\mid N$ be prime, with
+$d=N/\ell$ and $s=(\ell-1)/3$.  Choose $w^3=y$, and put
+$a=1+w$ and $c=1+y$.  Then
+\[
+ \mathcal T_N(Y)=1+Y^e+Y^{qe},
+ \qquad \mathcal T_N'(y)=y^{e-1}\ne0.
+\]
+
+Suppose hypothetically that $G\mid\mathcal T_d$, and write
+$\mathcal T_d=GQ_d$.  There is a unique $\lambda$ with
+$a^d=w^2\lambda$, necessarily with $\lambda\in K^\times$, and it is
+forced to be
+\[
+ \lambda=\frac{y^{e-1}}{c^{ds-1}}.
+\]
+Moreover,
+\[
+ \mathcal T_d'(y)=\frac{y^{e-1}}{c^{ds}}\ne0,
+ \qquad Q_d(y)=c^{-ds}.
+\]
+In particular $G^2\nmid\mathcal T_d$.  Equivalently, in the quotient by
+$G^2$ one has the exact first-order lift
+\[
+ \mathcal T_d(Y)\equiv
+ G(Y)(1+Y)^{-ds}\pmod {G(Y)^2},
+\]
+where the negative power denotes the inverse of the unit $1+Y$ in that
+quotient.
+\end{proposition}
+
+\begin{proof}
+Lucas projection of
+\[
+ (1+X)^N=(1+X)(1+X^q)(1+X^{q^2})
+\]
+onto exponents divisible by three gives the displayed formula for
+$\mathcal T_N$.  The integer $e$ is odd and $qe$ is even, so its derivative
+at $y$ is $y^{e-1}$.
+
+Under the hypothetical zero state, the reciprocal-section argument in
+Proposition~\ref{prop:c-composition} puts $a^d$ in $w^2K$, giving the unique
+$\lambda$.  In the generic cubic algebra $w^3=Y$, formal differentiation
+gives $dw/dY=w^{-2}$.  Hence
+\[
+ \mathcal T_d'(y)
+ =\operatorname{Tr}_{L/K}(a^{d-1}w^{-2})
+ =\lambda\operatorname{Tr}_{L/K}(a^{-1})
+ =\frac{\lambda}{c}.
+\]
+
+Since $\ell=3s+1$ and $\ell$ is odd, $s$ is even.  The universal cubic
+power sum has linearization
+\[
+ D_\ell(A,B,C)=AC^s+O((A,B)^2).
+\]
+Differentiate the composition identity
+$\mathcal T_N=D_\ell(A_d,B_d,c^d)$ at the zero state.  This gives
+\[
+ y^{e-1}=c^{ds}\mathcal T_d'(y),
+\]
+which proves both formulas for $\lambda$ and $\mathcal T_d'(y)$.  Since
+$G'(y)=y^{H-1}$ and $e\equiv H\pmod h$, differentiating
+$\mathcal T_d=GQ_d$ at $y$ gives $Q_d(y)=c^{-ds}$.  The nonvanishing and
+the congruence modulo $G^2$ follow.
+\end{proof}
+
+For $k\geq2$, the next Hasse jet also saturates.  If
+$\epsilon_m=\binom m2\bmod2$, direct differentiation under the same
+hypothetical failure gives
+\[
+ \mathcal T_d^{[2]}(y)=\frac{\lambda}{yc}
+       +\epsilon_d\frac{\lambda}{c^2},
+ \qquad B_d'(y)=\frac{y\lambda^2}{c},
+\]
+while
+\[
+ D_\ell(A,B,C)=AC^s+\epsilon_\ell B^2C^{s-1}
+                 +O((A,B)^3).
+\]
+Because $N\equiv1\pmod4$ and $d\ell=N$, one has
+$d\equiv\ell\pmod4$ and hence
+$\epsilon_d=\epsilon_\ell$.  The two quadratic terms cancel using
+$\lambda^3=c^d/y^2$, leaving exactly
+$\mathcal T_N^{[2]}(y)=y^{e-2}$.  Thus neither the ordinary derivative nor
+the second Hasse derivative supplies a character contradiction.
+
+The two-base-$q$-digit degree route is arithmetically vacuous as well.  Write
+$d=Aq+B$ with $0\leq B<q$.  Every current quotient satisfies
+\[
+ B>A,\qquad B-A\equiv1\pmod h,
+ \qquad d>1\Longrightarrow B-A\geq h+1\text{ and }B\geq h+2.
+\]
+Indeed every prime factor of $d$ is $1$ modulo $2h$, while
+$q\equiv h-1\pmod {2h}$; hence $d\equiv1\pmod {2h}$ and
+$B-A\equiv1\pmod h$.  Also $d\mid N$ gives
+$d\mid A+q(A-B)$.  Here $d<q^2$ gives $A<q$, while oddness of $d$ gives
+odd $B\geq1$.  If $A\geq B$, then
+$0<A+q(A-B)<Aq+B=d$, a contradiction.  Thus $B>A$.  If $d>1$ and
+$B-A=1$, then $A\geq1$, and the same divisibility gives $d\mid q-A$ with
+$0<q-A<d$, again a contradiction.  Meanwhile the failure
+equation gives the nonzero polynomial
+\[
+ \mathcal Q(X)=(X+1)^B+
+  \omega^{B+1}(X+\omega)^A(X+\omega^2)^{B-A},
+ \qquad \mathcal Q(w)=0.
+\]
+Its exponent span is $B$ unless $A\equiv1\pmod3$, when it is $B-2$.
+Divisibility by the degree-$h$ selected factor therefore requires only
+$B\geq h$ or $B\geq h+2$, respectively.  The digit span excludes the
+already-settled $d=1$ prime-complement case directly; for every nontrivial
+current quotient $d>1$, the quotient arithmetic already gives the stronger
+bound in both cases.
+
+Thus every current $\ell\equiv1\pmod3$ carries a hypothetical deficient
+$d$-state to the forced $N=d\ell$ state.  In the finite-field specialization
+used below, $K=\mathbb F_{q^2}$ and $L=\mathbb F_{q^6}$.  The relevant cyclic
+projective quotient has order
+\[
+ |L^\times/K^\times|=q^4+q^2+1
+ =(q^2+q+1)(q^2-q+1),
+\]
+and the two displayed factors are coprime.  Hence for
+$\ell\mid q^2+q+1$ its $\ell$-power map has kernel exactly $\ell$.
+The forced projective equation
+\[
+ X^\ell=[w^{2\ell}]
+\]
+therefore has exactly $\ell$ solutions, one of which is the deficient target
+$[w^2]$.  This exact fibre belongs to the projective power map, not to the
+symmetric pair $(A_d,B_d)$ itself.  It proves that the symmetric recurrence
+and projective raising equation alone do not select the literal preimage;
+any resolvent or determinant refinement must supply an additional
+selector-sensitive ancestry input.
+
+The all-weight criterion has an equivalent projective-torsion form which
+pinpoints why Hilbert--90 does not close it.  This retains the marked root,
+rather than replacing it by a generic norm-one element.
+
+\begin{proposition}[marked projective obstruction and cohomological blindness]
+\label{prop:c-projective}
+Put $H=h/3$, $q=2^H$, $N=q^2+q+1$, and let
+$\ell\mid N$ be prime, with $d=N/\ell$.  In
+\[
+ L=\mathbb F_{2^{2h}},\qquad K=\mathbb F_{q^2},
+\]
+write $w=\zeta_k^2$ and
+\[
+ Z=\frac{(1+w)^d}{w^2}.
+\]
+Then
+\[
+ \eta_k^d=1\quad\Longleftrightarrow\quad Z\in K.
+\]
+Moreover, with $\alpha=w^3$,
+\[
+ Z^\ell
+ =\omega^2(1+\alpha)\alpha^{-(2\ell+1)/3}\in K.
+\]
+Thus $[Z]\in L^\times/K^\times$ is an explicitly marked
+$\ell$-torsion class, and arm~$C$ asks that this class be nontrivial for
+every current $\ell$.
+
+Let $\sigma(x)=x^{q^2}$ generate $\operatorname{Gal}(L/K)$.  On
+$\mu_\ell$ one has
+\[
+ 1+\sigma+\sigma^2=0,
+ \qquad \sigma-1\text{ is bijective},
+ \qquad H^1(\langle\sigma\rangle,\mu_\ell)=0.
+\]
+Consequently the norm and Hilbert--90 conditions on the displayed torsion
+class are automatic; they do not distinguish $[Z]=1$ from a nontrivial
+marked class.
+\end{proposition}
+
+\begin{proof}
+The congruences
+\[
+ 2^H\equiv h-1,\qquad 2^{2H}\equiv h+1\pmod{3h}
+\]
+give
+\[
+ w^q=\omega^2w^{-1},\qquad w^{q^2}=\omega^2w.
+\]
+The selected formula in the proof of
+Proposition~\ref{prop:c-partition} gives
+\[
+ \frac{1+\omega^2w}{1+w}=\omega\eta_k^{q+1}.
+\]
+Since every prime divisor $\ell$ of $N$ satisfies
+$\ell\equiv1\pmod3$, also $d\equiv1\pmod3$.  Therefore
+\[
+ Z^{q^2-1}
+ =\omega^2\left(\frac{1+\omega^2w}{1+w}\right)^d
+ =\eta_k^{d(q+1)}.
+\]
+As $\gcd(q+1,N)=1$, this is one exactly when $\eta_k^d=1$,
+which proves the fixed-field equivalence.
+
+The three conjugates under $q$-powering satisfy
+\[
+ (1+w)^N
+ =(1+w)(1+\omega^2w^{-1})(1+\omega^2w)
+ =\frac{\omega^2(1+w^3)}w.
+\]
+Hence
+\[
+ Z^\ell=\frac{(1+w)^N}{w^{2\ell}}
+ =\omega^2(1+\alpha)\alpha^{-(2\ell+1)/3};
+\]
+the exponent is integral because $\ell\equiv1\pmod3$.  The left side is
+fixed by $q^2$-powering (equivalently, this also follows by direct use of
+$\alpha^{q^2}=\alpha$), so it lies in $K$.
+
+Finally put $Q=q^2$.  Modulo $\ell$,
+\[
+ 1+Q+Q^2=1+q^2+q^4\equiv1+q^2+q=0,
+\]
+because $q^3\equiv1$.  On the other hand
+$\gcd(Q-1,\ell)=1$: any common divisor of $q^2-1$ and
+$q^2+q+1$ divides three, whereas $\ell\ne3$.  Thus the norm operator is
+zero on $\mu_\ell$ and the coboundary operator $\sigma-1$ is an
+automorphism.  The standard cyclic formula
+\[
+ H^1=\ker(1+\sigma+\sigma^2)/(\sigma-1)\mu_\ell
+\]
+is therefore zero.  This proves the claimed blindness, not the desired
+pointwise nontriviality of $[Z]$.
+
+More explicitly, $c=\sigma(Z)/Z$ lies in $\mu_\ell$ because $Z^\ell\in K$.
+There is a unique $\rho\in\mu_\ell$ with
+$c=\sigma(\rho)/\rho$, and then $Z/\rho\in K$, so $[Z]=[\rho]$ in
+$L^\times/K^\times$.  Every possible marked projective class is therefore
+represented by a coboundary; the zero cohomology class does not say whether
+its representing root $\rho$ equals one.
+\end{proof}
+
+Together, the partition and first-relation bounds strengthen the polynomial
+Singer sieve to an exponential-in-$\sqrt h$ exclusion and a sharp
+weight-$2h$ exclusion for the actual norm-one coordinate.  They remain
+subexponential and do not classify relations above the norm triple, so they
+do not force primitivity.
+
 There is an exact number-field factorization of the remaining index.  Put
 $L=\mathbb Q(\zeta_{3^{k+1}})^+$ and
 $K=\mathbb Q(\zeta_{3^k})^+$, reduce global units $E_F$ and circular units
@@ -777,11 +3282,29 @@ In $\mathbb F_{2^{4h}}/\mathbb F_{2^{2h}}$,
  = (\zeta+4)(\zeta+5)
  = \zeta^2+\zeta+\omega=A_k.
 \]
+Moreover,
+\[
+ \mathbb F_2(\zeta+4)=\mathbb F_{2^{4h}}.
+\]
 \end{proposition}
 
 \begin{proof}
 One has $4+5=1$ and $4\cdot5=\omega$.  Expanding the product gives the
 formula.
+
+Put $v=\zeta+4$ and suppose $v^{2^j}=v$.  Then
+\[
+ c:=\zeta^{2^j}+\zeta=4^{2^j}+4
+\]
+belongs both to $\mathbb F_{2^{2h}}$ and to $\mathbb F_{16}$.  Since $h$ is
+odd, their intersection is $\mathbb F_4$, so
+$c\in\{0,1,\omega,\omega^2\}$.  If $c\ne0$, the Frobenius conjugate
+$\zeta^{2^j}=\zeta+c$ would have order
+$3^{k+1}\operatorname{ord}(\gamma_k)>3^{k+1}$ by
+Proposition~\ref{prop:c-half}, whereas every Frobenius conjugate of $\zeta$
+has order exactly $3^{k+1}$.  Hence $c=0$.  It follows simultaneously that
+$2h\mid j$ and $4\mid j$.  Their least common multiple is $4h$, so the
+Frobenius orbit of $v$ has size $4h$, proving the generation assertion.
 \end{proof}
 
 Define
@@ -807,15 +3330,33 @@ valuations.  The following are equivalent:
 \end{theorem}
 
 \begin{proof}
-The element $\zeta$ has minimal polynomial $X^{2h}+X^h+1$.  Comparing the
-support of a hypothetical Frobenius relation $A_k^{2^j}=A_k$ modulo this
-trinomial forces $2^j\equiv1\pmod{3h}$, so $A_k$ has degree $2h$ and the
-resultant is its minimal polynomial.
+The element $\zeta$ has minimal polynomial $X^{2h}+X^h+1$.  To justify the
+degree of $A_k$, suppose $A_k^{2^j}=A_k$, put
+$t\equiv2^j\pmod{3h}$, and write $u=\zeta^t$.  If $j$ is even, then
+$\omega^t=\omega$ and
+\[
+ (u+\zeta)(u+\zeta+1)=0,
+\]
+so $u$ is either $\zeta$ or $\zeta+1$.  If $j$ is odd, then
+$\omega^t=\omega^2$ and
+\[
+ (u+\zeta+\omega)(u+\zeta+\omega^2)=0,
+\]
+so $u$ is either $\zeta+\omega$ or $\zeta+\omega^2$.  The three translated
+possibilities are impossible: Proposition~\ref{prop:c-half} gives each the
+same order as $\zeta+1$, namely
+$3^{k+1}\operatorname{ord}(\gamma_k)>3^{k+1}$; here
+$\operatorname{ord}(\gamma_k)>1$ because
+$\mathbb F_2(\gamma_k)=\mathbb F_{2^h}$ and $h>1$.  On the other hand, $u$ is a
+$3^{k+1}$-st root of unity.  Hence $u=\zeta$, so
+$2^j\equiv1\pmod{3h}$.  Since the order of two modulo $3h=3^{k+1}$ is
+$2h$, the Frobenius orbit of $A_k$ has size $2h$.  Thus $A_k$ has degree
+$2h$ and the displayed resultant is its minimal polynomial.
 
 The cyclotomic divisor criterion applied to
 $\Phi_{2\cdot3^k}(2)$ gives the stated prime support after removing its
 single factor of three.  Proposition~\ref{prop:d-lower} and the corrected
-norm give
+norm, now taken from the actual defining field of $\zeta+4$, give
 \[
  m_\ell=4
  \quad\Longleftrightarrow\quad
@@ -827,6 +3368,570 @@ $\operatorname{ord}(M_k)$.  Finally, $\mu_\ell$ lies in the defining field;
 Kummer theory and Capelli's lemma identify nonpower with irreducibility of
 $R_k(X^\ell)$.
 \end{proof}
+
+The exceptional Euler test also has a lossless sparse form parallel to the
+three-block criterion in the cubic arm.
+
+\begin{proposition}[sparse exceptional block criterion]
+\label{prop:d-block}
+Let $n=3h$, let $\ell\mid\Psi_k$ be prime, put
+$d=(q+1)/\ell$, and work in
+$\mathcal R_h=\mathbb F_2[X]/(X^n-1)$.  With $x$ the class of $X$, set
+\[
+ \mathcal A=x^2+x+x^h,\qquad
+ \iota(x)=x^{-1},\qquad C=\mathcal A^d.
+\]
+Write the unique cyclic representative of $V=C+\iota(C)$ as
+\[
+ V=V_0+X^hV_1+X^{2h}V_2,
+ \qquad \deg V_i<h.
+\]
+Then
+\[
+ M_k^{(q+1)/\ell}=1
+ \quad\Longleftrightarrow\quad
+ V_0=V_1=V_2.
+\]
+If $d=\sum_{i=0}^{h-1}\epsilon_i2^i$, then, losslessly in
+$\mathcal R_h$,
+\[
+ C=\prod_{\epsilon_i=1}
+ \left(x^{2^{i+1}}+x^{2^i}+x^{h2^i}\right),
+\]
+where exponents are read modulo $n$.  Thus arm $D$ is equivalent to failure
+of this three-block equality for every current prime $\ell$.
+\end{proposition}
+
+\begin{proof}
+The order of two modulo $3^{k+1}=n$ is $2h$, so
+$q=2^h\equiv-1\pmod n$.  Hence $q$-powering on $\mathcal R_h$ is
+$\iota$.  In the selected field
+$\mathbb F_2[X]/(J_h)$, where $J_h=X^{2h}+X^h+1$, the image of
+$\mathcal A$ is $A_k$, and
+\[
+ M_k^d=1
+ \quad\Longleftrightarrow\quad
+ (A_k^d)^q=A_k^d
+ \quad\Longleftrightarrow\quad
+ J_h\mid C+\iota(C).
+\]
+The first equivalence is kernel-checked abstractly as
+\texttt{exceptional\_euler\_fixed\_iff}.  Modulo $J_h$, characteristic two
+gives $X^{2h}=X^h+1$, and therefore
+\[
+ V\equiv(V_0+V_2)+X^h(V_1+V_2).
+\]
+The right side has degree less than $2h=\deg J_h$, so it vanishes exactly
+when $V_0=V_1=V_2$.  The product formula is the binary-power expansion of
+$\mathcal A^d$ in characteristic two.
+\end{proof}
+
+\begin{corollary}[primitive-only palindromicity]
+\label{cor:d-palindromic}
+In the notation of Proposition~\ref{prop:d-block}, one always has
+\[
+ V_0+V_1+V_2=0.
+\]
+Consequently the following conditions are equivalent:
+\[
+ M_k^d=1,
+ \qquad V_0=V_1=V_2,
+ \qquad V_0=V_1=V_2=0,
+ \qquad C=\iota(C)\text{ in }\mathcal R_h.
+\]
+In particular, every proper cyclic fold through
+$\mathbb F_2[X]/(X^h-1)$ vanishes identically on $V$; no Fourier test on a
+proper $3$-power quotient can detect arm~$D$.
+\end{corollary}
+
+\begin{proof}
+By lifting the exponent of three,
+\[
+ v_3(2^h+1)=k+1,
+\]
+so $n=3^{k+1}$ divides $q+1$.  Since $\ell\ne3$, it follows from
+$q+1=\ell d$ that $n\mid d$.  Modulo $X^h-1$ one has
+\[
+ \mathcal A=X^2+X+1,
+ \qquad \iota(\mathcal A)=X^{-2}\mathcal A.
+\]
+Hence
+\[
+ \iota(C)=X^{-2d}C=C
+       \pmod {X^h-1}.
+\]
+The image of $V_0+X^hV_1+X^{2h}V_2$ in this quotient is
+$V_0+V_1+V_2$, proving the first assertion.  If the three blocks are equal
+to $W$, their sum is $3W=W$ in characteristic two, so $W=0$.  The converse
+is immediate, and every quotient $X^m-1$ with $m\mid h$ factors through
+$X^h-1$.
+\end{proof}
+
+There is a second, complementary compression which shortens the binary
+product by one third before testing this palindromicity.
+
+\begin{proposition}[one-third Frobenius compression]
+\label{prop:d-one-third}
+Put
+\[
+ H=3^{k-1},\qquad h=3H,\qquad Q=2^H,
+ \qquad S=Q^2-Q+1=3\Psi_k,
+\]
+and, for a prime $\ell\mid\Psi_k$, put $e=S/\ell$.  Then
+\[
+ Q\equiv h-1\pmod {3h},\qquad
+ S\equiv3\pmod {3h},\qquad
+ e\equiv3\pmod {3h},
+\]
+and
+\[
+ d=(Q+1)e.
+\]
+In $\mathcal R_h$, define
+\[
+ \widetilde{\mathcal B}=\mathcal A^{Q+1}.
+\]
+It has the lossless seven-term representative
+\[
+ \widetilde{\mathcal B}
+ =1+x^{-2}+x^h+x^{h+1}+x^{2h}+x^{2h+1}+x^{2h+2},
+\]
+and $C=\widetilde{\mathcal B}^{e}$.  In the primitive component
+$\mathbb F_2[X]/(J_h)$ this reduces further to the trinomial
+\[
+ \mathcal B=x^{-2}+x+x^{2h+2}.
+\]
+Thus
+\[
+ M_k^d=1
+ \quad\Longleftrightarrow\quad
+ \mathcal B^e=\iota(\mathcal B)^e
+       \text{ in }\mathbb F_2[X]/(J_h),
+\]
+while arm~$D$ asks for the opposite inequality.  The exponent now has at
+most $2H+1=2h/3+1$ binary places, rather than $h+1$.
+
+If $e=3$---equivalently, if $\Psi_k=\ell$ is prime---then the opposite
+inequality always holds.  Hence every prime-complement level satisfies
+arm~$D$; in particular this gives proof-level, non-enumerative certificates
+for $k=2$ and $k=3$.
+
+More generally, put $r=\Psi_k/\ell$ and
+\[
+ \varepsilon_k=
+ \begin{cases}
+  1,&k\text{ even},\\
+  \omega^2,&k\text{ odd}.
+ \end{cases}
+\]
+For the reciprocal ratio
+\[
+ P=\frac{\iota(\mathcal B)}{\mathcal B}
+   =M_k^{Q+1}
+\]
+one has the exact identities
+\[
+ P^{\Psi_k}=\varepsilon_k,
+ \qquad
+ M_k^d=1\quad\Longleftrightarrow\quad P^r=\varepsilon_k.
+\]
+Thus, after removing its explicitly known three-primary phase, the unresolved
+composite target has exponent $r=\Psi_k/\ell\equiv1\pmod {2h}$ rather than
+$e=3\Psi_k/\ell$.
+\end{proposition}
+
+\begin{proof}
+The congruence for $Q$ follows by induction.  The base case is
+$2\equiv3-1\pmod9$.  If
+$Q+1=h(1+3t)$, write $h=3s$ and cube.  Then
+\[
+ Q^3+1
+ =3h\left(1+3\left[
+ t-s(1+3t)^2+s^2(1+3t)^3
+ \right]\right),
+\]
+which is the required congruence at the next level.  Substitution gives
+\[
+ S\equiv(h-1)^2-(h-1)+1\equiv3\pmod {3h}.
+\]
+Since $S=3\Psi_k$ and $\ell\mid\Psi_k$, the integer $e$ is divisible by
+three.  Moreover $\operatorname{ord}_\ell(2)=2h$ implies
+$h\mid\ell-1$.  Therefore $3h\mid(\ell-1)e$, and from $\ell e=S$ one gets
+$e\equiv S\equiv3\pmod {3h}$.
+
+The factorization $Q^3+1=(Q+1)S$ gives $d=(Q+1)e$.  Frobenius and the first
+congruence give
+\[
+ \mathcal A^Q
+ =x^{2h-2}+x^{h-1}+x^{2h}.
+\]
+Multiplication by $\mathcal A=x^2+x+x^h$ cancels the two copies of
+$x^{2h-1}$ and gives the displayed seven terms.  Modulo $J_h$, the three
+terms $1+x^h+x^{2h}$ vanish and
+$x^{h+1}+x^{2h+1}=x$, leaving $\mathcal B$.  The fixed-field equivalence is
+then Proposition~\ref{prop:d-block} and
+Corollary~\ref{cor:d-palindromic} applied to
+$C=\widetilde{\mathcal B}^{e}$.
+
+We next determine the three-primary phase.  Since
+$(Q+1)\Psi_k=(q+1)/3$,
+\[
+ P^{\Psi_k}
+ =M_k^{(q+1)/3}
+ =A_k^{(q^2-1)/3}
+ =\operatorname N_{\mathbb F_{4^h}/\mathbb F_4}(A_k).
+\]
+The minimal polynomial of $\zeta$ over $\mathbb F_4$ is $X^h+\omega$.
+If $y^2+y+\omega=0$, its other conjugate is $y+1$, so the resultant formula
+for the norm gives
+\[
+ \operatorname N(A_k)
+ =(y^h+\omega)((y+1)^h+\omega).
+\]
+Reduction by $y^2+y+\omega=0$ gives $y^{15}=1$ and
+\[
+ \begin{array}{c|cccc}
+  h\bmod15&3&9&12&6\\ \hline
+  y^h&\omega+\omega^2y&\omega+\omega y&1+\omega^2y&\omega y.
+ \end{array}
+\]
+The residues of $3^k$ modulo $15$ run through $3,9,12,6$.  Using
+$y(y+1)=\omega$, the displayed product is therefore $\omega^2$ in the
+first and third cases and $1$ in the second and fourth.  This proves
+$P^{\Psi_k}=\varepsilon_k$.
+
+Now $e=3r$.  If $P^e=1$, then $P^r$ is a cube root of unity.  Moreover
+\[
+ (P^r)^\ell=P^{\Psi_k}=\varepsilon_k.
+\]
+Every current prime satisfies $\ell\equiv1\pmod3$, so raising a cube root
+of unity to the $\ell$-th power fixes it.  Hence $P^r=\varepsilon_k$.
+The converse follows from $\varepsilon_k^3=1$.  Finally, since every prime
+factor of $r$ is current and hence congruent to one modulo $2h$, one has
+$r\equiv1\pmod {2h}$.
+
+It remains to prove the prime-complement assertion, where $r=1$.  Put
+$z=\zeta$ and multiply numerator and denominator of $P$ by $z^2$.  Then
+\[
+ P=\frac{N}{D},\qquad
+ N=z^4+z+\omega,\qquad
+ D=1+z^3+\omega^2z^4,
+\]
+and direct factorization over $\mathbb F_4$ gives
+\[
+ N+D=\omega(z+\omega^2)(z^3+\omega^2),
+ \qquad
+ N+\omega^2D=\omega^2(z+1)(z^3+\omega).
+\]
+If $k$ is even, the first identity shows $P\ne1$; if $k$ is odd, the second
+shows $P\ne\omega^2$.  Indeed $z$ has order $3h\ge27$, so neither $z$ nor
+$z^3$ can equal the displayed cube root of unity.  Thus
+$P\ne\varepsilon_k$, as required.  The only earlier level has
+$\Psi_1=1$ and no current prime.
+\end{proof}
+
+The normalized phase has a substantially simpler Kummer representative.  It
+also has an exact cubic ancestry law, although that law is provably blind to
+the newly born primary coordinate.
+
+\begin{proposition}[exceptional Cayley coboundary and norm boundary]
+\label{prop:d-cayley}
+Assume $k\geq2$, retain the notation of
+Proposition~\ref{prop:d-one-third}, and put
+\[
+ V_k=\frac{z^2+\omega^2z+1}{z^2+\omega z+1}
+     =\frac{\gamma_k+\omega^2}{\gamma_k+\omega}.
+\]
+Put also $U=\varepsilon_k^{-1}P$.
+For every prime $\ell\mid\Psi_k$, the elements $M_k$, $P$, $U$, and $V_k$
+have the same $\ell$-power/nonpower status.  Equivalently, arm~$D$ is the
+assertion that $V_k$ retains the full current $\Psi_k$-primary order.
+
+Under the relative cubic norm
+\[
+ \operatorname N_k:\mathbb F_4(z)^\times
+       \longrightarrow\mathbb F_4(z^3)^\times
+\]
+one has
+\[
+ \operatorname N_k(V_k)=V_{k-1}^{-1}.
+\]
+Thus the elements
+\[
+ E_k=\begin{cases}V_k,&k\text{ even},\\V_k^{-1},&k\text{ odd}
+ \end{cases}
+\]
+are norm coherent.  Nevertheless, at the birth level of every current
+$\ell$, every fibre of $\operatorname N_k$ contains both $\ell$-th powers
+and non-$\ell$-th powers.  Hence this complete norm ancestry does not
+determine the selected $\ell$-symbol.
+\end{proposition}
+
+\begin{proof}
+Put $H=3^{k-1}$ and $Q=2^H$.  The relative Frobenius
+$\sigma:x\mapsto x^{Q^2}$ fixes $\mathbb F_4(z^3)$ and satisfies
+$\sigma(z)=\omega z$, because $Q^2\equiv h+1\pmod {3h}$.  All divisions
+below are legitimate.  The roots of either quadratic defining $V_k$ lie in
+$\mathbb F_{16}^{\times}$ and therefore have order dividing $15$, whereas
+each of $z$, $\omega z$, and $\omega^2z$ has order $3h\geq27$; the ratio
+defining $P$ is a ratio of the nonzero elements $\iota(\mathcal B)$ and
+$\mathcal B$.  Direct factorization gives
+\[
+ \frac{\sigma(V_k)}{V_k}=\omega^2P,
+ \qquad\text{or equivalently}\qquad
+ P=\omega V_k^{Q^2-1}.
+\]
+The scalar is essential in this literal equality.  For a current $\ell$,
+$\operatorname{ord}_\ell(Q^2)=3$, so
+$\gcd(\ell,Q^2-1)=1$.  Also $\ell\equiv1\pmod3$, and hence
+$\omega=\omega^\ell$ is itself an $\ell$-th power.  Raising by
+$Q^2-1$ acts invertibly on the $\ell$-Kummer quotient, so it preserves
+power/nonpower status and the generated $\ell$-primary subgroup.  Finally
+$P=M_k^{Q+1}$, and $Q$ has order six modulo $\ell$, so
+$\gcd(\ell,Q+1)=1$.  Also
+$U=\varepsilon_k^{-1}P$ with
+$\varepsilon_k\in\{1,\omega^2\}$, and
+$\varepsilon_k=\varepsilon_k^\ell$ is an $\ell$-th power.  This proves all
+four power/nonpower equivalences.  The equality with
+the Möbius transform of $\gamma_k=z+z^{-1}$ follows after dividing the
+quadratics by $z$.
+
+For the norm recurrence, direct multiplication in
+$\mathbb F_2[\omega]/(\omega^2+\omega+1)$ gives
+\[
+ \prod_{i=0}^2\left((\omega^iz)^2+
+        \omega^2(\omega^iz)+1\right)=z^6+\omega z^3+1,
+\]
+and
+\[
+ \prod_{i=0}^2\left((\omega^iz)^2+
+        \omega(\omega^iz)+1\right)=z^6+\omega^2 z^3+1.
+\]
+Their quotient is $V_{k-1}(z^3)^{-1}$, proving both the norm formula and
+the alternating normalization.  The polynomial cross-product, the two
+three-factor products, the Möbius identity, and the scalar-corrected Kummer
+step are kernel-checked as
+\begin{center}
+\texttt{exceptional\_cayley\_coboundary\_cross},\\
+\texttt{exceptionalCayleyNum\_cubic\_product},\\
+\texttt{exceptionalCayleyDen\_cubic\_product},\\
+\texttt{exceptionalCayley\_eq\_traceMobius},\\
+\texttt{exceptional\_scaled\_coboundary\_}\par
+\texttt{isPthPower\_iff}.
+\end{center}
+
+It remains to prove the claimed blindness.  Put $B=4^H$.  Then
+$\operatorname{ord}_\ell(B)=3$, so
+\[
+ \ell\nmid B-1,
+ \qquad \ell\mid B^2+B+1.
+\]
+The kernel of
+$\mathbb F_{B^3}^\times\to\mathbb F_B^\times$ is cyclic of order
+$B^2+B+1$.  If $g$ generates the top group, the kernel is generated by
+$g^{B-1}$.  Because $\ell\nmid B-1$, this generator maps nontrivially, and
+hence surjectively, to the order-$\ell$ quotient
+\[
+ \mathbb F_{B^3}^\times/
+       (\mathbb F_{B^3}^\times)^\ell.
+\]
+Multiplying any point of a fixed norm fibre by the norm kernel therefore
+realizes every $\ell$-Kummer class in that same fibre.  Strict ancestors
+have trivial $\ell$-Kummer quotient, while later cubic norm maps are
+isomorphisms on that quotient because $\ell\ne3$.  Thus either birth class
+extends to a fully norm-coherent tail.  This is an exact alternative-parent
+countermodel to norm-only induction, not a counterexample on the literal
+Conway-selected ancestry.
+\end{proof}
+
+The parity-twisted exponent reduction does not by itself settle composite
+$\Psi_k$.  After putting $U=\varepsilon_k^{-1}P$, it says exactly that
+$U^{\Psi_k}=1$ and that arm~$D$ asks for
+$U^{\Psi_k/\ell}\ne1$ for every current prime $\ell$.  Thus it isolates the
+prime-to-three current coordinate but does not prove that every one of its
+prime factors occurs in $\operatorname{ord}(U)$.  Here the normalization uses
+$\Psi_k\equiv1\pmod3$ and $r\equiv1\pmod3$, the latter already following from
+$r\equiv1\pmod {2h}$.
+
+The ordinary-arm ratio packing has an exceptional analogue, provided the
+multiplier roots of unity and the degree of the marked root are balanced by
+an intermediate constant field.
+
+\begin{proposition}[intermediate-field exceptional packing sieve]
+\label{prop:d-packing}
+Assume $k\geq2$, put $h=3^k$, and let the prime $\ell$ divide $\Psi_k$.
+For $0\leq j<k$, set
+\[
+ m_j=3^j,\qquad R_j=3^{k-j},\qquad
+ s_j=\left\lfloor\frac{R_j-1}{8}\right\rfloor
+\]
+and define
+\[
+ \mathcal S_k=
+ \max_{0\leq j<k}
+ \sum_{t=0}^{\min(2m_j,s_j)}
+ 2^t\binom{2m_j}{t}\binom{s_j}{t}.
+\]
+If the current $\ell$-coordinate is deficient, then
+\[
+ \frac{\Psi_k}{\ell}\geq\mathcal S_k.
+\]
+Consequently arm~$D$ holds at every current factor satisfying
+\[
+ \frac{\Psi_k}{\ell}<\mathcal S_k.
+\]
+Moreover, if $H_2(x)=-x\log_2x-(1-x)\log_2(1-x)$ is binary entropy, then
+\[
+ \log_2\mathcal S_k
+ \geq c_0\sqrt h-O(\log h),
+ \qquad
+ c_0=\frac14+\frac23H_2\!\left(\frac38\right)
+              +\frac38H_2\!\left(\frac23\right)
+ >1.2306.
+\]
+Thus this sieve proves an exponential-in-$\sqrt h$ large-factor range at
+every exceptional level, while remaining subexponential in $h$.
+\end{proposition}
+
+\begin{proof}
+Write $z=\zeta$, $d=\Psi_k/\ell$, and regard the normalized phase as the
+rational function
+\[
+ U(T)=\varepsilon_k^{-1}\frac{\mathcal N(T)}{\mathcal D(T)},
+ \qquad
+ \mathcal N(T)=T^4+T+\omega,
+ \qquad
+ \mathcal D(T)=1+T^3+\omega^2T^4.
+\]
+The polynomial $T^h+\omega$ is the minimal polynomial of $z$ over
+$\mathbb F_4$.  The order of four modulo $3h$ is $h$, and the map
+\[
+ t\longmapsto z^{4^t-1},\qquad 0\leq t<h,
+\]
+is a bijection from the Frobenius orbit indices to $\mu_h$: every value is
+in $\mu_h$, and injectivity follows from the orbit size.  Hence the roots of
+$T^h+\omega$ are exactly $cz$, $c\in\mu_h$.  Since $U$ is defined over
+$\mathbb F_4$, deficiency $U(z)^d=1$ implies
+\[
+ U(cz)^d=1\qquad(c\in\mu_h).
+\]
+
+Fix $j$, abbreviate $m=m_j$, $R=R_j$, $s=s_j$, and put
+$E=\mathbb F_{4^m}$.  LTE gives
+\[
+ v_3(4^m-1)=1+v_3(m)=j+1,
+\]
+so $\mu_{3m}\subset E$.  Since $E\subset\mathbb F_{4^h}$,
+$[E(z):E]=h/m=R$.  Also $z^R$ has order $3m$ and lies in $E$, so the
+minimal polynomial of $z$ over $E$ is the binomial $T^R+z^R$.
+
+Over $\mathbb F_4$ introduce the six monic quadratics
+\[
+\begin{array}{lll}
+ f_1=T^2+\omega T+1,
+ &f_2=T^2+\omega T+\omega,
+ &f_3=T^2+\omega^2T+1,\\
+ f_4=T^2+T+\omega,
+ &f_5=T^2+T+\omega^2,
+ &f_6=T^2+\omega^2T+\omega^2.
+\end{array}
+\]
+They are distinct and irreducible by direct inspection in $\mathbb F_4$.
+Up to nonzero scalar factors,
+\[
+ \mathcal N(T)=f_1(T)f_2(T),\qquad
+ \mathcal D(T)\doteq f_3(T)f_4(T),
+\]
+and
+\[
+ \mathcal N(\omega T)\doteq f_4(T)f_5(T),\qquad
+ \mathcal D(\omega T)=f_2(T)f_6(T),
+\]
+where $\doteq$ denotes equality up to a nonzero scalar.  Since $m$ is odd,
+$E\cap\mathbb F_{16}=\mathbb F_4$, so all six quadratics remain irreducible
+over $E$.
+
+Choose representatives $\mathcal C$ for $\mu_{3m}/\mu_3$.  Scaled factors
+belonging to different representatives are disjoint.  Indeed, a common root
+of $f_a(cT)$ and $f_b(c'T)$ would give
+$c'/c\in\mathbb F_{16}^{\times}\cap\mu_{3m}=\mu_3$, hence $c=c'$ by the
+choice of representatives, and then $a=b$ because the six factors are
+distinct.  In particular, for each $c\in\mathcal C$ the two elements
+\[
+ u_{c,0}=U(cz),\qquad u_{c,1}=U(\omega cz)
+\]
+have, up to scalars, the factor patterns
+\[
+ u_{c,0}\doteq\frac{f_1(cz)f_2(cz)}{f_3(cz)f_4(cz)},
+ \qquad
+ u_{c,1}\doteq\frac{f_4(cz)f_5(cz)}{f_2(cz)f_6(cz)}.
+\]
+Their denominators are nonzero: otherwise a conjugate of $z$ would be a
+root over $\mathbb F_4$ of the degree-four polynomial $\mathcal D$, whereas
+$z$ and all its conjugates have degree $h\geq9$.  All $2m$ displayed
+elements are $d$-th roots of unity.
+
+Index them by a set $I$ of size $2m$.  For
+$v\in\mathbb Z^I$ with $\sum_i|v_i|\leq s$, put
+$V_v=\prod_i u_i^{v_i}$.  Suppose $V_v=V_w$ and set $g=v-w$.  Separating
+positive and negative exponents and cross-multiplying gives an equality at
+$z$ between two polynomials in $E[T]$, each of degree at most
+\[
+ 4\sum_i|g_i|\leq8s<R.
+\]
+The degree-$R$ minimal polynomial therefore forces equality of the two
+polynomials.  Unique factorization now recovers every exponent: for a fixed
+$c$, the valuation at $f_1(cT)$ gives $g_{c,0}=0$, and the valuation at
+$f_5(cT)$ gives $g_{c,1}=0$.  Cross-star disjointness handles all
+$c\in\mathcal C$.  Thus the $V_v$ are distinct.
+
+The signed $\ell^1$ ball in $\mathbb Z^{2m}$ has exactly
+\[
+ \sum_{t=0}^{\min(2m,s)}
+ 2^t\binom{2m}{t}\binom{s}{t}
+\]
+points.  Since their images are distinct roots of $X^d-1$, this number is
+at most $d$.  Taking the maximum over $j$ proves the exact bound.
+
+For the asymptotic statement, first let $k$ be even and take
+$j=k/2-1$.  Then, with $x=\sqrt h$,
+\[
+ 2m=\frac23x,\qquad s=\frac38x+O(1).
+\]
+The summand with $t=\lfloor x/4\rfloor$ and Stirling's formula give
+\[
+ \log_2\mathcal S_k\geq
+ \left[\frac14+\frac23H_2\!\left(\frac38\right)
+                  +\frac38H_2\!\left(\frac23\right)\right]x
+ -O(\log h).
+\]
+If $k$ is odd, take $j=(k-3)/2$.  Then
+\[
+ 2m=\frac{2}{3\sqrt3}x,
+ \qquad s=\frac{3\sqrt3}{8}x+O(1),
+\]
+and the same choice $t=\lfloor x/4\rfloor$ gives coefficient
+\[
+ \frac14+\frac{2}{3\sqrt3}H_2\!\left(\frac{3\sqrt3}{8}\right)
+ +\frac{3\sqrt3}{8}H_2\!\left(\frac{2}{3\sqrt3}\right)
+ >1.2341>c_0.
+\]
+The $O(\log h)$ errors are the standard logarithmic errors in the two
+binomial-coefficient estimates.  This proves the uniform claim for all
+sufficiently large $k$; enlarging the implicit constant absorbs the finitely
+many smaller levels.
+\end{proof}
+
+This packing theorem is a genuine composite-$\Psi_k$ range, not a universal
+proof: its lower bound is exponential in $\sqrt h$, whereas $\Psi_k$ is
+exponential in $h$.  Logarithmic or Hasse
+derivatives do not add an intrinsic constraint in this finite etale quotient:
+$\mathbb F_2[X]/(J_h)$ has no nonzero $\mathbb F_2$-derivations, while the
+formal polynomial derivative does not descend because
+$J_h'=X^{h-1}$ is a unit modulo $J_h$.  A derivative argument would therefore
+need genuinely new lift or multiplicity information.  Proposition~
+\ref{prop:d-one-third} and Proposition~\ref{prop:d-packing} therefore prove
+the prime-complement case and a large-factor range, not universal arm~$D$.
 
 \begin{proposition}[effective exceptional bound]\label{prop:d-bound}
 Let $k\geq2$, $h=3^k$, and let $\ell\mid\Psi_k$ be prime.  If $t$ is the
@@ -1113,7 +4218,7 @@ Theorem~\ref{thm:arms}:
 \begin{enumerate}
 \item full primary order for the synchronized structural norm, including
       every Conway--Fermat equality $\delta_n=F_n$;
-\item full primary projective order for the marked ordinary cyclotomic unit;
+\item full primary projective order for the marked ordinary cyclotomic value;
 \item primitivity of every selected Gaussian period $\gamma_k$, equivalently
       generation by every $\eta_k$;
 \item $\Psi_k\mid\operatorname{ord}(M_k)$ at every exceptional level.
@@ -1124,7 +4229,7 @@ not decide it.
 
 \section{Authority and verification}\label{sec:verification}
 
-The claims in this paper have five distinct sources.  Table~\ref{tab:status}
+The claims in this paper have six distinct sources.  Table~\ref{tab:status}
 is part of the theorem statement: in particular, a finite calculation or a
 Lean definition of a target is never used as evidence for a universal claim.
 
@@ -1139,14 +4244,28 @@ Cited input & Conway--Lenstra tower formulas, standard finite-field and
 Capelli theory, and the cited cyclotomic, class-field, function-field, and
 order results.  These are not reproved in Lean. \\
 Proved here & The four-arm equivalence; the exact selected coordinates and
-order criteria; the primitive-support, packet, supersingular, Singer,
-corrected-norm, ray-index, boundedness, and reciprocity-saturation results
-stated above. \\
-Kernel-checked & The algebraic Kummer interface, full-primary power tests,
-selected cubic and exceptional identities, cubical reductions, packet and
-Fibonacci identities, marked-holonomy calculus, and the named finite
-arithmetic certificates. \\
-Finite evidence & Source-backed rows, exact named-row certificates, and
+order criteria; the primitive-support, packet-degree, Wiedemann-sibling,
+supersingular, Singer
+and selected norm-one ratio-packing and partition and single-section first-relation bounds,
+corrected-norm, ordinary section, reciprocal-doubling, and unconditional
+intermediate-field Kummer-ratio selected-order bounds,
+exceptional palindromicity, one-third compression, intermediate-field packing,
+prime-complement exceptional case, ray-index, boundedness, and
+reciprocity-saturation results stated above. \\
+Ordinary kernel-checked Lean & Algebra without native evaluation: the
+algebraic Kummer interface, full-primary power tests, selected cubic and
+exceptional identities, low-degree minimal-polynomial collision and
+normalized rational-packing injection and the cubic factor-of-three
+order bridge, cubical
+reductions, packet and Fibonacci identities, and marked-holonomy calculus.
+These proofs may still use Lean's standard
+logical dependencies \texttt{propext}, \texttt{Classical.choice}, and
+\texttt{Quot.sound}. \\
+Native evaluation & Named finite arithmetic propositions proved
+with \texttt{native\_decide}.  Lean's axiom report records the generated
+\texttt{\_native.native\_decide.ax\_1\_1} for these declarations, so they
+are exact replayable finite calculations, not ordinary kernel reductions. \\
+External evidence & Source-backed rows, Python certificates, and
 explicit countermodels to overstrong intermediate lemmas.  These establish
 only their stated finite instances. \\
 Open & The universal assertions $Z,O,C,D$, Conjecture~\ref{conj:rule}, and

@@ -78,6 +78,7 @@ impl<S: Scalar> std::fmt::Display for QuadraticEtaleRelation<S> {
 /// A full or even Clifford center, materialized by its central generator when
 /// it is quadratic over the ground field.
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum DiscriminantEtaleAlgebra<S: Scalar, D> {
     /// The center is exactly the coefficient field.
     GroundField,

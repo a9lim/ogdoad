@@ -60,6 +60,7 @@
 /// The Brown invariant of a `ℤ/4`-quadratic form, mirroring
 /// [`ArfInvariants`](crate::forms::ArfInvariants) field-for-field.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct BrownInvariants {
     /// Brown invariant `β ∈ ℤ/8` of the **nonsingular core** (the part where the
     /// symmetric polar `b` is nondegenerate).
@@ -278,6 +279,25 @@ pub(crate) fn beta_from_gauss(re: i128, im: i128) -> Option<u128> {
 ///
 /// Reduction route: split off `rad(b)`, then reduce the nonsingular core into odd
 /// lines and even planes, adding their known Brown phases in `ℤ/8`.
+///
+/// # Examples
+///
+/// The line `q(e) = 1` generates the Brown–Witt group `ℤ/8`; a line with
+/// `q(e) = 3 = -1` is its inverse, and eight copies of the generator sum to
+/// `0 ∈ ℤ/8`. Doubling a classical `F₂` form, via [`double_f2`], gives `4·Arf`:
+///
+/// ```
+/// use ogdoad::forms::{arf_f2, brown_f2, double_f2};
+///
+/// assert_eq!(brown_f2(1, &[1], &[0]).beta, 1);
+/// assert_eq!(brown_f2(2, &[1, 3], &[0, 0]).beta, 0); // <1> + <-1>
+/// assert_eq!(brown_f2(8, &[1; 8], &[0; 8]).beta, 0); // 8 * 1 = 0 in Z/8
+///
+/// // x^2 + xy + y^2 has Arf 1, so its double has Brown invariant 4.
+/// let (qd, bmat) = ([true, true], [0b10, 0b01]);
+/// assert_eq!(arf_f2(2, &qd, &bmat).arf, 1);
+/// assert_eq!(double_f2(&qd, &bmat).beta, 4);
+/// ```
 pub fn brown_f2(n: usize, q4: &[u128], bmat: &[u128]) -> BrownInvariants {
     assert!(
         n <= 128,

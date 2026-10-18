@@ -11,6 +11,27 @@
 use crate::scalar::Scalar;
 
 /// An element `re + im·i` of `S[i]`, with `i² = −1`.
+///
+/// # Examples
+///
+/// Over `Rational` this is the Gaussian rationals. Over `F_5`, where `-1` is a
+/// square, `S[i]` splits and has zero divisors; in characteristic two,
+/// `(1 + i)² = 0`, so it is not even reduced.
+///
+/// ```
+/// use ogdoad::scalar::{Fp, Nimber, Rational, Scalar, Surcomplex};
+///
+/// let z = Surcomplex::new(Rational::one(), Rational::one()); // 1 + i
+/// assert_eq!(z.mul(&z), Surcomplex::new(Rational::zero(), Rational::from_int(2))); // 2i
+/// let half = Rational::new(1, 2);
+/// assert_eq!(z.inv(), Some(Surcomplex::new(half.clone(), half.neg()))); // (1 - i)/2
+///
+/// let w = Surcomplex::new(Fp::<5>::from_int(2), Fp::<5>::one()); // (2+i)(2-i) = 5 = 0
+/// assert!(!w.is_zero() && w.mul(&w.conj()).is_zero() && w.inv().is_none());
+///
+/// let n = Surcomplex::new(Nimber(1), Nimber(1)); // (1+i)^2 = 0
+/// assert!(!n.is_zero() && n.mul(&n).is_zero());
+/// ```
 #[derive(Clone, PartialEq)]
 pub struct Surcomplex<S: Scalar> {
     /// Real coefficient.
@@ -21,12 +42,25 @@ pub struct Surcomplex<S: Scalar> {
 
 impl<S: Scalar> std::fmt::Display for Surcomplex<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // A coefficient that itself mentions `i` (a nested extension) is
+        // parenthesized, and so is a multi-term imaginary part, so `ω + 1·i`
+        // and `(ω + 1)·i`, or an inner and an outer `i`, stay distinct.
+        let wrap = |part: String, multi_term: bool| {
+            if part.contains("·i") || (multi_term && part.contains(' ')) {
+                format!("({part})")
+            } else {
+                part
+            }
+        };
+        let re = wrap(self.re.to_string(), false);
         if self.im.is_zero() {
-            write!(f, "{}", self.re)
-        } else if self.re.is_zero() {
-            write!(f, "{}·i", self.im)
+            return write!(f, "{re}");
+        }
+        let im = wrap(self.im.to_string(), true);
+        if self.re.is_zero() {
+            write!(f, "{im}·i")
         } else {
-            write!(f, "{} + {}·i", self.re, self.im)
+            write!(f, "{re} + {im}·i")
         }
     }
 }
@@ -154,5 +188,24 @@ mod tests {
         let one_plus_i = NC::new(Nimber(1), Nimber(1));
         assert!(one_plus_i.mul(&one_plus_i).is_zero()); // (1+i)^2 = 0
         assert!(!one_plus_i.is_zero()); // but 1+i itself ≠ 0
+    }
+
+    #[test]
+    fn display_parenthesizes_a_multi_term_imaginary_part() {
+        use crate::scalar::Surreal;
+        let w = Surreal::omega();
+        let one = Surreal::one();
+        let a = Surcomplex::new(w.clone(), one.clone());
+        let b = Surcomplex::new(Surreal::zero(), w.add(&one));
+        assert_ne!(a.to_string(), b.to_string());
+        assert_eq!(b.to_string(), format!("({})·i", w.add(&one)));
+        // An inner `i` as a real part is not the outer `i`.
+        type Inner = Surcomplex<Rational>;
+        let inner_i = Surcomplex::new(Inner::i(), Inner::zero());
+        let outer_i = Surcomplex::new(Inner::zero(), Inner::one());
+        assert_eq!(inner_i.to_string(), "(1·i)");
+        assert_eq!(outer_i.to_string(), "1·i");
+        let mixed = Surcomplex::new(Inner::one(), Inner::i());
+        assert_eq!(mixed.to_string(), "1 + (1·i)·i");
     }
 }

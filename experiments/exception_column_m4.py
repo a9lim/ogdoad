@@ -31,7 +31,8 @@ THE IN-FIELD CRITERION (the chain, each step PROVED/machine-checked here):
 
 so: m_p = 4  <=>  p | ord(M_k),  M_k = Nbar/N,  N = zeta^2 + zeta + zeta^h,
 all inside F_2[x]/(x^(2h) + x^h + 1). Wieferich guard: the middle equivalences
-need v_p(2^(2h)-1) = 1, asserted per prime (cf. excess.tex Remark 3).
+need v_p(2^(2h)-1) = 1, asserted per prime (cf. the base-2 Wieferich
+boundary in excess.tex).
 
 RESULTS (this script; claim levels per the excess.tex convention):
 

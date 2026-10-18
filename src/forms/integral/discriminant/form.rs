@@ -25,7 +25,13 @@ fn rational_to_f64(x: &Rational) -> f64 {
 }
 
 fn dot_inv(v: &[i128], inv: &[Vec<Rational>], w: &[i128]) -> Rational {
-    let n = v.len();
+    let n = inv.len();
+    assert!(
+        v.len() == n && w.len() == n,
+        "discriminant-form vectors must have the lattice rank {n} (got {} and {})",
+        v.len(),
+        w.len()
+    );
     let mut acc = Rational::zero();
     for i in 0..n {
         if v[i] == 0 {
@@ -688,6 +694,29 @@ impl DiscriminantCore {
 }
 
 /// The finite discriminant quadratic module of an even lattice.
+///
+/// # Examples
+///
+/// The discriminant group of `D_4` is `(Z/2)^2`, and `q` takes the value 1 (mod
+/// 2) on each of its three nonzero classes. Milgram's formula recovers the
+/// signature 4 (mod 8) from the Gauss sum of `q`; that route and the Weil
+/// relations use floating point with a tolerance, while `q` itself is exact. An
+/// odd lattice has no `Q/2Z`-valued form.
+///
+/// ```
+/// use ogdoad::forms::{d_n, verify_milgram, DiscriminantForm, IntegralForm};
+/// use ogdoad::scalar::{Rational, Scalar};
+///
+/// let d4 = d_n(4).unwrap();
+/// let q = DiscriminantForm::from_lattice(&d4).unwrap();
+/// assert_eq!(q.group(), &[2, 2]);
+/// let values: Vec<Rational> = q.reps().iter().map(|y| q.quadratic_value_mod2(y)).collect();
+/// assert_eq!(values, [0, 1, 1, 1].map(Rational::from_int));
+/// assert_eq!(q.milgram_signature_mod8(), Some(4));
+/// assert_eq!(verify_milgram(&d4), Some(true));
+/// assert!(q.verify_weil_relations());
+/// assert!(DiscriminantForm::from_lattice(&IntegralForm::diagonal(&[1])).is_none());
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 pub struct DiscriminantForm {
     core: DiscriminantCore,
@@ -709,6 +738,7 @@ pub struct OddDiscriminantForm {
 /// Conway-Sloane genus symbol. For even lattices the uncorrected discriminant
 /// Gauss sum is handled by [`verify_milgram`].
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct OddMilgramInvariants {
     /// Real signature modulo eight.
     pub signature_mod8: i128,
@@ -778,11 +808,15 @@ impl DiscriminantForm {
     }
 
     /// `q_L(y) = y^T G^{-1} y mod 2Z`, represented in `[0, 2)`.
+    ///
+    /// Panics unless every vector has the lattice rank.
     pub fn quadratic_value_mod2(&self, y: &[i128]) -> Rational {
         rational_mod_int(dot_inv(y, &self.core.gram_inv, y), 2)
     }
 
     /// `b_L(y,z) = y^T G^{-1} z mod Z`, represented in `[0, 1)`.
+    ///
+    /// Panics unless every vector has the lattice rank.
     pub fn bilinear_value_mod1(&self, y: &[i128], z: &[i128]) -> Rational {
         self.core.bilinear_value_mod1(y, z)
     }
@@ -1009,6 +1043,28 @@ impl DiscriminantForm {
     /// (group larger than `ISO_GROUP_CAP`, or the search exceeding the node budget)
     /// and does not silently guess. This is an FQM isomorphism search, not a
     /// p-adic-symbol reimplementation.
+    ///
+    /// # Examples
+    ///
+    /// `A_1` and `E_7` both have discriminant group `Z/2`, but `q` of the
+    /// generator is `1/2` for one and `3/2` for the other, so the forms are
+    /// not isomorphic. A budget too small to decide the search returns `None`,
+    /// not `false`.
+    ///
+    /// ```
+    /// use ogdoad::forms::{a_n, e_7, DiscriminantForm};
+    /// use ogdoad::scalar::{Rational, Scalar};
+    ///
+    /// let a1 = DiscriminantForm::from_lattice(&a_n(1).unwrap()).unwrap();
+    /// let e7 = DiscriminantForm::from_lattice(&e_7()).unwrap();
+    /// assert_eq!(a1.group(), e7.group());
+    /// assert_eq!(a1.quadratic_value_mod2(&[1]), Rational::new(1, 2));
+    /// let values: Vec<Rational> = e7.reps().iter().map(|y| e7.quadratic_value_mod2(y)).collect();
+    /// assert_eq!(values, vec![Rational::from_int(0), Rational::new(3, 2)]);
+    /// assert_eq!(a1.is_isomorphic(&e7), Some(false));
+    /// assert_eq!(a1.is_isomorphic(&a1), Some(true));
+    /// assert_eq!(a1.is_isomorphic_bounded(&a1, 0), None);
+    /// ```
     pub fn is_isomorphic(&self, other: &Self) -> Option<bool> {
         self.is_isomorphic_bounded(other, ISO_NODE_BUDGET)
     }
@@ -1197,11 +1253,15 @@ impl OddDiscriminantForm {
     }
 
     /// `q_L(y) = y^T G^{-1} y mod Z`, represented in `[0, 1)`.
+    ///
+    /// Panics unless every vector has the lattice rank.
     pub fn quadratic_value_mod1(&self, y: &[i128]) -> Rational {
         rational_mod_int(dot_inv(y, &self.core.gram_inv, y), 1)
     }
 
     /// The discriminant bilinear pairing `b_L(y,z) = y^T G^{-1} z mod Z`.
+    ///
+    /// Panics unless every vector has the lattice rank.
     pub fn bilinear_value_mod1(&self, y: &[i128], z: &[i128]) -> Rational {
         self.core.bilinear_value_mod1(y, z)
     }
@@ -1255,6 +1315,23 @@ pub fn verify_milgram(lattice: &IntegralForm) -> Option<bool> {
 }
 
 /// Report the odd-lattice Milgram/van der Blij signature congruence.
+///
+/// # Examples
+///
+/// For the odd lattice `<1> + <3>` the two-adic oddity is 4 and the 3-excess is
+/// 2, so `oddity - p_excess = 2` recovers the signature 2. Even lattices use
+/// [`verify_milgram`] instead and return `None` here.
+///
+/// ```
+/// use ogdoad::forms::{a_n, odd_milgram_report, IntegralForm};
+///
+/// let report = odd_milgram_report(&IntegralForm::diagonal(&[1, 3])).unwrap();
+/// assert_eq!(report.oddity_mod8, 4);
+/// assert_eq!(report.p_excess_mod8, 2);
+/// assert_eq!(report.corrected_signature_mod8, report.signature_mod8);
+/// assert!(report.verified());
+/// assert!(odd_milgram_report(&a_n(2).unwrap()).is_none());
+/// ```
 pub fn odd_milgram_report(lattice: &IntegralForm) -> Option<OddMilgramInvariants> {
     let _disc = OddDiscriminantForm::from_lattice(lattice)?;
     let (pos, neg) = lattice.signature();

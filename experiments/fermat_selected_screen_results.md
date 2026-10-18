@@ -78,3 +78,61 @@ hypothetical selected failure, this proves the first Hasse jet not already
 forced by the quotient residue is nonzero at all displayed coordinates. It
 does not prove the selected residue nonzero, maximal order, or any unlisted
 factor.
+
+## Wiedemann's tower
+
+The same script with `--tower wiedemann` evaluates `S_(F_n / ell)` at
+`x_(n-1)^(-1)` in Wiedemann's tower `x_(-1) = 1`,
+`x_m + x_m^(-1) = x_(m-1)`, modulo the iterated self-reciprocal transform
+`W_(n-1)` of `X + 1`. By the Binet identity a zero is exactly
+`x_n^(F_n / ell) = 1`, a failure of `ord(x_n) = F_n`.
+
+With `--complete-level N`, the script screens every prime factor of the
+completely factored `F_5, ..., F_11` (the large cofactors are published
+primes; the script only runs a Miller--Rabin sanity check). Every residue is
+nonzero in both towers, so `ord(u_n) = ord(x_n) = F_n` for `n <= 11`. This
+reproduces Popovych's verifications for both towers (Wiedemann's own check
+stopped at `n = 8`).
+
+At the incompletely factored levels, the FLINT runs used
+
+```sh
+uv run --no-project --with python-flint python \
+  experiments/fermat_selected_screen.py --backend flint --tower wiedemann \
+  --published-level N [--residual]
+```
+
+| n | degree of W_(n-1) | weight | published prime factor ell | residue degree | residue SHA-256 |
+|---:|---:|---:|---:|---:|:---|
+| 12 | 4096 | 2089 | 114689 | 4095 | 65f2980fdcff0fd29d8da3d217909e0dfb795622afaf7bbda53fbccd3a59db8e |
+| 12 | 4096 | 2089 | 26017793 | 4094 | f06586ef126247dcecb07d252d19976c57b78fd64302bfe52ce54b3fc88bf004 |
+| 12 | 4096 | 2089 | 63766529 | 4094 | bff57e6c3529c288514a1d068d15cf627d9edc134e746bb6e3eeeb25e8238705 |
+| 12 | 4096 | 2089 | 190274191361 | 4095 | be7a9c44a8fa5524a906b96801d98243ebf6fa46239df6fed48aa31592299d2a |
+| 12 | 4096 | 2089 | 1256132134125569 | 4095 | 4a3507ee42cb4214818381743d5b60f226454ec317fb94eeb82c54bbcd054fb7 |
+| 12 | 4096 | 2089 | 568630647535356955169033410940867804839360742060818433 | 4093 | d79aea2e79f637db01c1579607e0f452a19301843177a05cc5b85129b709e1eb |
+| 13 | 8192 | 4151 | 2710954639361 | 8191 | 4e53ef115cad27968193ff63acf63ffc5da18e9c36472fa188cc611725ba8d0b |
+| 13 | 8192 | 4151 | 2663848877152141313 | 8191 | d716f519de4ba68b15f528c14053e00d157dcaa7e053a2460ba3ef74a1fbf1d6 |
+| 13 | 8192 | 4151 | 3603109844542291969 | 8190 | 089d282149b47b9d8f5ad40c10726808b6ea4095e5846291715f4f9448218bdc |
+| 13 | 8192 | 4151 | 319546020820551643220672513 | 8190 | 5f904415ab434dc4677f22f05ae9cc7c86f4d4dd5682cab2ff05f7c607fe29d4 |
+| 14 | 16384 | 8265 | 116928085873074369829035993834596371340386703423373313 | 16383 | 40c2ec622855c64b540a19016022d7dafe4ba67ea9bde541fb8a849567e97a71 |
+| 15 | 32768 | 16511 | 1214251009 | 32767 | 75e51391362a05b2427d93de8ef4a1aab1c1ce6276a2a7e6aafd3495fbf4971a |
+| 15 | 32768 | 16511 | 2327042503868417 | 32763 | e280aa61628aa69f46903d09a3914da6332def29e535b2260f4c23546abbe79f |
+| 15 | 32768 | 16511 | 168768817029516972383024127016961 | 32766 | a397f3127451594b2fc4cfa2625fc3b2900a6d996a83421c93c1f175b75416d0 |
+| 16 | 65536 | 33265 | 825753601 | 65533 | 0333098ab88308aa0e845bb837ada00105b55f3f98507a2aa5f1a60241a4bd68 |
+| 16 | 65536 | 33265 | 188981757975021318420037633 | 65532 | 76005d93f5789700a4640ba1dbc59e4cccbc892cff038d1001d931f228874d7c |
+| 17 | 131072 | 65135 | 31065037602817 | 131071 | 9037e75e50c3b632c79f5f07cbc97b19b0cd19bb03195c69642ab58424379bd2 |
+| 17 | 131072 | 65135 | 7751061099802522589358967058392886922693580423169 | 131069 | 34149773d55c4a6bb69ee360133482d75ecf132d98a61cc396708b3b3cfadf22 |
+
+| n | residual block | residue degree | residue SHA-256 |
+|---:|:---|---:|:---|
+| 15 | `C9808` | 32767 | 39b8ecccc7bf8eedca0bd40b9b20028f77ff393d566d30a3212f7d2c28305488 |
+| 16 | `C19694` | 65535 | 8b26fddb0096261f6946a7e9fcc4983b47d239b879ac6f14f8ad5e8758d4f02d |
+| 17 | `C39395` | 131071 | 2cbe16c38ead345e02a243545891d3b462a0de9826ad0387bd1de532a4e3a0aa |
+| 18 | `C78884` | 262141 | dda0a429615d5b114d033b00a624f6dc427da1fc8ebc4ca7dbe52f7af8553b7c |
+
+Level 18 is covered here only by its residual block. Every displayed
+residue is nonzero, with the same scope as the Conway table:
+only the listed primary coordinates and complete residual blocks are
+certified, and no level from 12 on is decided. The stdlib and FLINT backends
+agree bit-for-bit at level 12, and the `--residual` option reproduces the
+Conway level-15 block hash recorded above.

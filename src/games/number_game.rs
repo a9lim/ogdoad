@@ -12,6 +12,26 @@ use std::fmt;
 /// operations all come from [`Surreal`]. The finite [`Game`] engine is untouched
 /// — `NumberGame` is a parallel *view*, not a `Game`, the numbers-only honoring
 /// of "games of transfinite birthday" (`ω = {0,1,2,...|}` is a number).
+///
+/// # Examples
+///
+/// ```
+/// use ogdoad::games::{Game, NumberGame};
+/// use ogdoad::scalar::{Rational, Surreal};
+/// use std::cmp::Ordering;
+///
+/// // ω has no finite option tree, but its arithmetic is surreal arithmetic.
+/// let omega = NumberGame::from_surreal(&Surreal::omega());
+/// let one = NumberGame::from_surreal(&Surreal::from_int(1));
+/// assert!(omega.to_finite_game().is_none());
+/// assert_eq!(omega.add(&one).cmp(&omega), Ordering::Greater);
+/// assert_eq!(omega.to_string(), "ω");
+///
+/// // Dyadic values convert back to the short-game engine.
+/// let three_quarters = NumberGame::from_surreal(&Surreal::from_rational(Rational::new(3, 4)));
+/// let game = three_quarters.to_finite_game().unwrap();
+/// assert_eq!(game.number_value(), Some(three_quarters.value().clone()));
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 pub struct NumberGame {
     value: Surreal,

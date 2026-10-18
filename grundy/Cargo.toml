@@ -1,10 +1,10 @@
 [package]
 # The workspace language is not published as a separate crate.
 name = "grundy"
-version = "0.3.6"
+version = "0.4.0"
 edition = "2021"
 publish = false
-description = "The grundy expression language over ogdoad's scalar, Clifford, and game worlds."
+description = "A typed ruleset language for combinatorial games over ogdoad."
 license = "AGPL-3.0-or-later"
 authors = ["a9lim <mx@a9l.im>"]
 

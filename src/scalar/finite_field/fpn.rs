@@ -82,11 +82,31 @@ fn discrete_log_linear<F: FiniteField>(base: F, target: F, order: u128) -> Optio
 
 /// An element of `F_{p^N}`: the coefficients of `c_0 + c_1 x + … + c_{N-1} x^{N-1}`,
 /// each reduced into `[0, P)`.
+///
+/// # Examples
+///
+/// `Fpn<2, 3>` is `F_8`, a characteristic-two field the finite nimbers cannot
+/// reach (their subfields have degree `2^k`; the ordinal nimbers do contain it). The reduction polynomial is a
+/// deterministic choice, so the example asserts only basis-independent facts.
+///
+/// ```
+/// use ogdoad::scalar::{FiniteField, Fpn, Scalar};
+///
+/// type F8 = Fpn<2, 3>;
+/// let x = F8::generator(); // the class of the indeterminate
+/// assert_eq!(F8::field_order(), 8);
+/// assert!(x.add(&x).is_zero()); // characteristic 2
+/// assert_eq!(x.degree(), 3); // x is not in the prime subfield F_2
+/// assert_eq!(x.frobenius_iter(3), x); // x^8 = x
+/// assert_eq!(x.multiplicative_order(), Some(7)); // |F_8^*| = 7 is prime
+/// assert!(x.is_primitive());
+/// ```
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Fpn<const P: u128, const N: usize>([u128; N]);
 
 /// Classification of an `Fpn<P,N>` reduction polynomial.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum ReductionPolynomialKind {
     /// Degree-1 prime field, so no extension polynomial is needed.
     PrimeField,
@@ -544,7 +564,7 @@ impl<const P: u128, const N: usize> Fpn<P, N> {
 /// giant-step, while nimbers use their separate Pohlig--Hellman path.
 impl<const P: u128, const N: usize> FiniteField for Fpn<P, N> {
     fn frobenius(&self) -> Self {
-        FiniteField::pow(self, P)
+        Scalar::pow(self, P)
     }
 
     fn ext_degree() -> usize {
@@ -588,7 +608,7 @@ impl<const P: u128, const N: usize> FiniteField for Fpn<P, N> {
         }
 
         let inverse_step_exponent = (order - width % order) % order;
-        let inverse_step = FiniteField::pow(self, inverse_step_exponent);
+        let inverse_step = Scalar::pow(self, inverse_step_exponent);
         let mut giant = target;
         for giant_index in 0..=width {
             if let Some(&baby_index) = babies.get(&giant) {
@@ -931,7 +951,7 @@ mod tests {
         let g = Fpn::<2, 3>::primitive_element();
         assert_eq!(g.multiplicative_order(), Some(7));
         for e in 0..7u128 {
-            assert_eq!(g.discrete_log(FiniteField::pow(&g, e)), Some(e % 7));
+            assert_eq!(g.discrete_log(Scalar::pow(&g, e)), Some(e % 7));
         }
         // F_16's Conway generator has order 15 for x^4+x+1.
         let c = Fpn::<2, 4>::generator();

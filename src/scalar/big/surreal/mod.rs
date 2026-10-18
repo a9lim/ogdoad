@@ -47,6 +47,28 @@ use std::fmt;
 ///
 /// Non-monomial inverses and many roots have infinite support; the exact
 /// [`Scalar`] operations return `None` when such a result is not representable.
+///
+/// # Examples
+///
+/// Monomials such as `ω` and `ε = ω⁻¹` invert exactly. The inverse of `ω + 1`
+/// is the infinite series `ε - ε² + ε³ - …`, so the exact `inv` refuses and
+/// `inv_to_terms` returns a truncation.
+///
+/// ```
+/// use ogdoad::scalar::{Scalar, Surreal};
+///
+/// let (w, eps) = (Surreal::omega(), Surreal::epsilon());
+/// assert_eq!(w.mul(&eps), Surreal::one());
+/// assert!(w > Surreal::from_int(1_000_000)); // infinite
+/// assert!(eps.mul(&Surreal::from_int(1_000_000)) < Surreal::one()); // infinitesimal
+///
+/// let w1 = w.add(&Surreal::one());
+/// assert_eq!(w1.mul(&w.sub(&Surreal::one())), w.mul(&w).sub(&Surreal::one())); // (ω+1)(ω-1) = ω²-1
+/// assert_eq!(w1.inv(), None);
+/// let approx = w1.inv_to_terms(3).unwrap(); // ε - ε² + ε³
+/// assert_eq!(approx.mul(&w1), Surreal::one().add(&eps.pow(3))); // off by ε³
+/// assert_eq!(Surreal::from_int(2).sqrt_to_terms(2), None); // coefficients are rational
+/// ```
 #[derive(Clone)]
 pub struct Surreal {
     /// (exponent, coefficient), strictly descending by exponent, coeffs ≠ 0.

@@ -1,11 +1,9 @@
-//! Structured errors produced by parsing and evaluation.
+//! Structured errors produced by parsing, type checking, and evaluation.
 
 use std::fmt;
 
-use super::ast::DataSort;
-
 /// Half-open byte range in the submitted source.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct Span {
     /// First byte in the range.
     pub start: usize,
@@ -26,74 +24,70 @@ impl Span {
             end: pos,
         }
     }
+
+    /// The smallest range covering both spans.
+    pub fn join(self, other: Span) -> Span {
+        Span {
+            start: self.start.min(other.start),
+            end: self.end.max(other.end),
+        }
+    }
 }
 
 /// Stable machine-readable error categories.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum GrundyErrorKind {
     /// Invalid token or grammar.
     Parse,
     /// Syntax reserved by the grammar but unsupported.
     Reserved,
-    /// Invalid exponent sort.
-    ExpSort,
-    /// Index sort mismatch.
-    IndexSort,
-    /// Boolean sort mismatch.
-    BoolSort,
-    /// Function used outside a permitted first-order position.
-    FnSort,
-    /// Unsupported fixpoint sort.
-    FixpointSort,
-    /// Invalid binder shadowing or duplication.
+    /// Two types that must agree do not unify.
+    Type,
+    /// A type the program does not determine and no default resolves.
+    Ambiguous,
+    /// Unbound identifier, constructor, or type name.
+    Unbound,
+    /// A binder or binding that shadows a reserved name, or duplicates one.
     Shadow,
-    /// Discarded value within a sequence.
-    SeqValue,
-    /// Bare integer where a marked nimber is required.
-    BareInt,
-    /// Bare omega where a marked ordinal is required.
-    BareOrdinal,
-    /// Operation or literal unavailable in the active world.
-    WrongWorld,
-    /// Noncanonical order in a Cantor-normal-form literal.
-    CnfOrder,
-    /// Ordinal nim operation outside the supported Kummer tower.
-    KummerEscape,
+    /// Call with the wrong number of arguments.
+    Arity,
+    /// A refutable pattern did not match, or a `match` had no matching arm.
+    Pattern,
+    /// A recursive binding whose type has no recursion theory here.
+    Fixpoint,
+    /// Unguarded recursive game equation.
+    Unfounded,
+    /// Operand outside an operation's mathematical domain.
+    Domain,
     /// Missing multiplicative inverse or exact quotient.
     NotInvertible,
     /// Division or remainder by zero.
     DivisionByZero,
-    /// Blade or coefficient index outside the active dimension.
-    BladeIndex,
-    /// Container length does not match the Clifford dimension.
-    DimMismatch,
-    /// Operation unavailable for a general bilinear metric.
-    GeneralMetric,
-    /// Unbound identifier.
-    Unbound,
-    /// Function arity mismatch.
-    Arity,
-    /// Unknown built-in function.
-    UnknownFn,
-    /// Non-scalar value where grade zero is required.
-    Grade0,
-    /// Unsupported modulus.
-    Modulus,
     /// Fixed-width arithmetic overflow.
     Overflow,
-    /// Value outside an operation's mathematical domain.
-    Domain,
-    /// Recursive unfolding exhausted its fuel budget.
+    /// Ordinal nim operation outside the supported Kummer tower.
+    KummerEscape,
+    /// Unsupported modulus.
+    Modulus,
+    /// Noncanonical order in a Cantor-normal-form literal.
+    CnfOrder,
+    /// Operation unavailable for a general bilinear metric.
+    GeneralMetric,
+    /// Multivectors from different Clifford algebras.
+    AlgebraMismatch,
+    /// Coordinate list length does not match the Clifford dimension.
+    DimMismatch,
+    /// Blade or coefficient index outside the dimension.
+    BladeIndex,
+    /// Operation outside the supported loopy-game envelope.
+    Loopy,
+    /// Evidence that fails its independent check.
+    Refuted,
+    /// The work budget was exhausted.
     Fuel,
     /// Evaluator recursion exceeded its host frame guard.
     StackDepth,
-    /// Append encountered an improper game spine.
-    Improper,
-    /// Unguarded recursive game equation.
-    Unfounded,
-    /// Operation outside the supported loopy-game envelope.
-    Loopy,
-    /// Graph materialization exceeded its node budget.
+    /// A graph or exploration exceeded its node budget.
     GraphBudget,
 }
 
@@ -103,38 +97,62 @@ impl GrundyErrorKind {
         match self {
             GrundyErrorKind::Parse => "E_Parse",
             GrundyErrorKind::Reserved => "E_Reserved",
-            GrundyErrorKind::ExpSort => "E_ExpSort",
-            GrundyErrorKind::IndexSort => "E_IndexSort",
-            GrundyErrorKind::BoolSort => "E_BoolSort",
-            GrundyErrorKind::FnSort => "E_FnSort",
-            GrundyErrorKind::FixpointSort => "E_FixpointSort",
+            GrundyErrorKind::Type => "E_Type",
+            GrundyErrorKind::Ambiguous => "E_Ambiguous",
+            GrundyErrorKind::Unbound => "E_Unbound",
             GrundyErrorKind::Shadow => "E_Shadow",
-            GrundyErrorKind::SeqValue => "E_SeqValue",
-            GrundyErrorKind::BareInt => "E_BareInt",
-            GrundyErrorKind::BareOrdinal => "E_BareOrdinal",
-            GrundyErrorKind::WrongWorld => "E_WrongWorld",
-            GrundyErrorKind::CnfOrder => "E_CnfOrder",
-            GrundyErrorKind::KummerEscape => "E_KummerEscape",
+            GrundyErrorKind::Arity => "E_Arity",
+            GrundyErrorKind::Pattern => "E_Pattern",
+            GrundyErrorKind::Fixpoint => "E_Fixpoint",
+            GrundyErrorKind::Unfounded => "E_Unfounded",
+            GrundyErrorKind::Domain => "E_Domain",
             GrundyErrorKind::NotInvertible => "E_NotInvertible",
             GrundyErrorKind::DivisionByZero => "E_DivisionByZero",
-            GrundyErrorKind::BladeIndex => "E_BladeIndex",
-            GrundyErrorKind::DimMismatch => "E_DimMismatch",
-            GrundyErrorKind::GeneralMetric => "E_GeneralMetric",
-            GrundyErrorKind::Unbound => "E_Unbound",
-            GrundyErrorKind::Arity => "E_Arity",
-            GrundyErrorKind::UnknownFn => "E_UnknownFn",
-            GrundyErrorKind::Grade0 => "E_Grade0",
-            GrundyErrorKind::Modulus => "E_Modulus",
             GrundyErrorKind::Overflow => "E_Overflow",
-            GrundyErrorKind::Domain => "E_Domain",
+            GrundyErrorKind::KummerEscape => "E_KummerEscape",
+            GrundyErrorKind::Modulus => "E_Modulus",
+            GrundyErrorKind::CnfOrder => "E_CnfOrder",
+            GrundyErrorKind::GeneralMetric => "E_GeneralMetric",
+            GrundyErrorKind::AlgebraMismatch => "E_AlgebraMismatch",
+            GrundyErrorKind::DimMismatch => "E_DimMismatch",
+            GrundyErrorKind::BladeIndex => "E_BladeIndex",
+            GrundyErrorKind::Loopy => "E_Loopy",
+            GrundyErrorKind::Refuted => "E_Refuted",
             GrundyErrorKind::Fuel => "E_Fuel",
             GrundyErrorKind::StackDepth => "E_StackDepth",
-            GrundyErrorKind::Improper => "E_Improper",
-            GrundyErrorKind::Unfounded => "E_Unfounded",
-            GrundyErrorKind::Loopy => "E_Loopy",
             GrundyErrorKind::GraphBudget => "E_GraphBudget",
         }
     }
+
+    /// Every kind, in declaration order.
+    pub const ALL: [GrundyErrorKind; 26] = [
+        GrundyErrorKind::Parse,
+        GrundyErrorKind::Reserved,
+        GrundyErrorKind::Type,
+        GrundyErrorKind::Ambiguous,
+        GrundyErrorKind::Unbound,
+        GrundyErrorKind::Shadow,
+        GrundyErrorKind::Arity,
+        GrundyErrorKind::Pattern,
+        GrundyErrorKind::Fixpoint,
+        GrundyErrorKind::Unfounded,
+        GrundyErrorKind::Domain,
+        GrundyErrorKind::NotInvertible,
+        GrundyErrorKind::DivisionByZero,
+        GrundyErrorKind::Overflow,
+        GrundyErrorKind::KummerEscape,
+        GrundyErrorKind::Modulus,
+        GrundyErrorKind::CnfOrder,
+        GrundyErrorKind::GeneralMetric,
+        GrundyErrorKind::AlgebraMismatch,
+        GrundyErrorKind::DimMismatch,
+        GrundyErrorKind::BladeIndex,
+        GrundyErrorKind::Loopy,
+        GrundyErrorKind::Refuted,
+        GrundyErrorKind::Fuel,
+        GrundyErrorKind::StackDepth,
+        GrundyErrorKind::GraphBudget,
+    ];
 }
 
 /// One structured grundy diagnostic.
@@ -166,6 +184,14 @@ impl GrundyError {
         self.hint = Some(hint.into());
         self
     }
+
+    /// Attach a span if the error does not carry a meaningful one yet.
+    pub fn at(mut self, span: Span) -> Self {
+        if self.span == Span::default() {
+            self.span = span;
+        }
+        self
+    }
 }
 
 impl fmt::Display for GrundyError {
@@ -180,195 +206,10 @@ impl fmt::Display for GrundyError {
 
 impl std::error::Error for GrundyError {}
 
-/// Result type for grundy parsing and evaluation.
+/// Result type for grundy parsing, checking, and evaluation.
 pub type GrundyResult<T> = Result<T, GrundyError>;
 
-pub(crate) fn parse_error(message: impl Into<String>) -> GrundyError {
-    GrundyError::new(GrundyErrorKind::Parse, Span::point(0), message)
-}
-
-pub(crate) fn index_sort_error() -> GrundyError {
-    GrundyError::new(
-        GrundyErrorKind::IndexSort,
-        Span::point(0),
-        "expected an Index expression",
-    )
-}
-
-pub(crate) fn bool_sort_error() -> GrundyError {
-    GrundyError::new(
-        GrundyErrorKind::BoolSort,
-        Span::point(0),
-        "expected a Bool expression",
-    )
-}
-
-pub(crate) fn fn_sort_error() -> GrundyError {
-    GrundyError::new(
-        GrundyErrorKind::FnSort,
-        Span::point(0),
-        "Function values are first-order and cannot appear here",
-    )
-}
-
-pub(crate) fn fixpoint_sort_error() -> GrundyError {
-    GrundyError::new(
-        GrundyErrorKind::FixpointSort,
-        Span::point(0),
-        "Bool and Index values do not have recursive fixpoint semantics",
-    )
-    .with_hint("recursion is for Functions (unfolding) and game Elements (graphs)")
-}
-
-pub(crate) fn exp_sort_error() -> GrundyError {
-    GrundyError::new(
-        GrundyErrorKind::ExpSort,
-        Span::point(0),
-        "exponent must be an Index",
-    )
-    .with_hint("`↑`/`^` is power; the wedge product is `∧`/`&`")
-}
-
-pub(crate) fn sort_mismatch(expected: DataSort, actual: DataSort) -> GrundyError {
-    if expected == DataSort::Bool || actual == DataSort::Bool {
-        bool_sort_error()
-    } else {
-        index_sort_error()
-    }
-}
-
-pub(crate) fn unbound_error(name: &str) -> GrundyError {
-    let err = GrundyError::new(
-        GrundyErrorKind::Unbound,
-        Span::point(0),
-        format!("unbound identifier `{name}`"),
-    );
-    if name == "omega" {
-        err.with_hint("`ω` (sugar `w`) is the omega literal")
-    } else if name == "t" {
-        err.with_hint("`t` is the indeterminate in polynomial and rational-function worlds")
-    } else {
-        err.with_hint(format!(
-            "did you mean `{name} := ...`? recursive definition? `{name} =: ...`"
-        ))
-    }
-}
-
-pub(crate) fn outcome_name_error(name: &str) -> GrundyError {
-    GrundyError::new(
-        GrundyErrorKind::Unbound,
-        Span::point(0),
-        format!("unbound outcome name `{name}`"),
-    )
-    .with_hint(
-        "outcomes are relations against 0: `g > 0` Left wins, `g < 0` Right wins, \
-         `g = 0` second player wins, `g ∥ 0` first player wins; draws use the `‿` doubles",
-    )
-}
-
-pub(crate) fn literal_call_error(name: &str) -> GrundyError {
-    GrundyError::new(
-        GrundyErrorKind::UnknownFn,
-        Span::point(0),
-        format!("unknown function `{name}`"),
-    )
-    .with_hint(format!("write the literal `{name}` without parentheses"))
-}
-
-pub(crate) fn function_replacement_error(name: &str, replacement: &str) -> GrundyError {
-    GrundyError::new(
-        GrundyErrorKind::UnknownFn,
-        Span::point(0),
-        format!("unknown function `{name}`"),
-    )
-    .with_hint(format!("use `{replacement}`"))
-}
-
-pub(crate) fn element_fixpoint_error(name: &str) -> GrundyError {
-    GrundyError::new(
-        GrundyErrorKind::WrongWorld,
-        Span::point(0),
-        format!("element fixpoint `{name} =: ...` has no fixpoint theory outside the `game` world"),
-    )
-}
-
-pub(crate) fn grade0_error(span: Span) -> GrundyError {
-    GrundyError::new(
-        GrundyErrorKind::Grade0,
-        span,
-        "operation requires a grade-0 element",
-    )
-}
-
-pub(crate) fn modulus_error(span: Span) -> GrundyError {
-    GrundyError::new(
-        GrundyErrorKind::Modulus,
-        span,
-        "remainder modulus is outside this world's supported scope",
-    )
-    .with_hint("moduli here are monic omega-powers: `% ω↑2` truncates the CNF below it")
-}
-
-pub(crate) fn polyint_modulus_error(span: Span) -> GrundyError {
-    GrundyError::new(
-        GrundyErrorKind::Modulus,
-        span,
-        "`integer[t]` divisor is outside the exact-division domain",
-    )
-    .with_hint("`integer[t]` divisors must be monic")
-}
-
-pub(crate) fn kummer_escape(span: Span) -> GrundyError {
-    GrundyError::new(
-        GrundyErrorKind::KummerEscape,
-        span,
-        "ordinal nim-product escaped the represented Kummer tower below ω^(ω^ω)",
-    )
-    .with_hint("supported below ω^(ω^ω) when Kummer carries use primes <= 727")
-}
-
-pub(crate) fn overflow(message: impl Into<String>) -> GrundyError {
-    GrundyError::new(GrundyErrorKind::Overflow, Span::point(0), message)
-}
-
-pub(crate) fn domain(message: impl Into<String>) -> GrundyError {
-    GrundyError::new(GrundyErrorKind::Domain, Span::point(0), message)
-}
-
-pub(crate) fn graph_budget_error(budget: u128) -> GrundyError {
-    GrundyError::new(
-        GrundyErrorKind::GraphBudget,
-        Span::point(0),
-        format!("materialized graph exceeded its node budget of {budget}"),
-    )
-}
-
-pub(crate) fn game_only_error(feature: &str) -> GrundyError {
-    let err = GrundyError::new(
-        GrundyErrorKind::WrongWorld,
-        Span::point(0),
-        format!("{feature} is only defined in the `game` world"),
-    );
-    if feature == "`≡`" {
-        err.with_hint("`=` is already structural here")
-    } else {
-        err
-    }
-}
-
-pub(crate) fn array_world_error(feature: &str) -> GrundyError {
-    GrundyError::new(
-        GrundyErrorKind::WrongWorld,
-        Span::point(0),
-        format!("`{feature}` is only defined in fixed-dimension Clifford worlds"),
-    )
-    .with_hint("`[…]` is fixed-shape in Clifford worlds and a free spine in the game world")
-}
-
-pub(crate) fn no_order_error() -> GrundyError {
-    GrundyError::new(
-        GrundyErrorKind::WrongWorld,
-        Span::point(0),
-        "this world has no canonical order",
-    )
+/// Shorthand for an error without a span; callers attach one with [`GrundyError::at`].
+pub(crate) fn err(kind: GrundyErrorKind, message: impl Into<String>) -> GrundyError {
+    GrundyError::new(kind, Span::default(), message)
 }

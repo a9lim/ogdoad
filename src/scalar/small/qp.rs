@@ -39,6 +39,32 @@ use std::fmt;
 
 /// An element of `Q_p` to precision `k`: `p^{val} · unit` with `p ∤ unit` carried
 /// mod `p^k`, or the sentinel `{ 0, 0 }` for the field zero.
+///
+/// # Examples
+///
+/// `Qp<5, 8>` is `Q_5` with eight significant digits. Valuations and Hensel
+/// square roots work inside that window; addition drops terms below it, and the
+/// `Option<Option<_>>` of `sqrt` separates a definite nonsquare (`Some(None)`)
+/// from an answer the model cannot give (`None`: too little precision, or a
+/// root construction that is not implemented).
+///
+/// ```
+/// use ogdoad::scalar::{Qp, Scalar};
+///
+/// type Q5 = Qp<5, 8>;
+/// assert_eq!(Q5::from_int(5).inv(), Some(Q5::from_p_power(-1))); // 1/5 exists in Q_5
+/// assert_eq!(Q5::from_int(50).valuation(), Some(2));
+/// let i = Q5::from_int(-1).sqrt().unwrap().unwrap(); // -1 = 2^2 mod 5, lifted by Hensel
+/// assert_eq!(i.mul(&i), Q5::from_int(-1));
+/// assert_eq!(Q5::from_int(2).sqrt(), Some(None)); // 2 is a nonresidue mod 5
+///
+/// type Q5p2 = Qp<5, 2>; // at precision 2, 5^2 is invisible next to 1
+/// assert_eq!(Q5p2::from_int(1).add(&Q5p2::from_int(25)), Q5p2::one());
+///
+/// type Q2 = Qp<2, 8>; // 17 = 1 mod 8 is a square in Q_2, but no root is constructed
+/// assert_eq!(Q2::from_int(17).is_square(), Some(true));
+/// assert_eq!(Q2::from_int(17).sqrt(), None);
+/// ```
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Qp<const P: u128, const K: u128> {
     /// The unit mantissa in `[0, p^k)` (`0` only for the field zero; otherwise

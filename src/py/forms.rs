@@ -72,14 +72,7 @@ impl PyArfInvariants {
         self.inner.o_type().to_string()
     }
     fn __repr__(&self) -> String {
-        format!(
-            "ArfInvariants(arf={}, type={}, rank={}, radical_dim={}, radical_anisotropic={})",
-            self.inner.arf,
-            self.inner.o_type(),
-            self.inner.rank,
-            self.inner.radical_dim,
-            self.inner.radical_anisotropic,
-        )
+        self.inner.display()
     }
 }
 
@@ -108,13 +101,7 @@ impl PyBrownInvariants {
         self.inner.radical_anisotropic
     }
     fn __repr__(&self) -> String {
-        format!(
-            "BrownInvariants(beta={}, rank={}, radical_dim={}, radical_anisotropic={})",
-            self.inner.beta,
-            self.inner.rank,
-            self.inner.radical_dim,
-            self.inner.radical_anisotropic
-        )
+        self.inner.display()
     }
 }
 
@@ -259,6 +246,9 @@ impl PyExtraspecialElement {
     fn __eq__(&self, other: &PyExtraspecialElement) -> bool {
         self.inner == other.inner
     }
+    fn __ne__(&self, other: &PyExtraspecialElement) -> bool {
+        !self.__eq__(other)
+    }
     fn __repr__(&self) -> String {
         format!(
             "ExtraspecialElement(central={}, vector={})",
@@ -367,6 +357,9 @@ impl PyExtraspecial2Group {
     }
     fn __eq__(&self, other: &PyExtraspecial2Group) -> bool {
         self.inner == other.inner
+    }
+    fn __ne__(&self, other: &PyExtraspecial2Group) -> bool {
+        !self.__eq__(other)
     }
     fn __repr__(&self) -> String {
         format!(
@@ -697,7 +690,7 @@ fn trace_form_arf(degree: usize, power: usize) -> PyResult<PyArfInvariants> {
 // ---------------------------------------------------------------------------
 
 #[pyclass(name = "BaseField", module = "ogdoad", from_py_object)]
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 struct PyBaseField {
     inner: crate::forms::BaseField,
 }
@@ -772,7 +765,7 @@ impl PyBaseField {
 }
 
 #[pyclass(name = "RationalPlace", module = "ogdoad", from_py_object)]
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 struct PyRationalPlace {
     inner: crate::forms::Place,
 }
@@ -1345,6 +1338,9 @@ impl PyWittClass {
     }
     fn __eq__(&self, other: &PyWittClass) -> bool {
         self.inner == other.inner
+    }
+    fn __ne__(&self, other: &PyWittClass) -> bool {
+        !self.__eq__(other)
     }
     fn __repr__(&self) -> String {
         self.inner.display()
@@ -3889,6 +3885,9 @@ impl PyWittClassG {
     fn __eq__(&self, other: &PyWittClassG) -> bool {
         self.inner == other.inner
     }
+    fn __ne__(&self, other: &PyWittClassG) -> bool {
+        !self.__eq__(other)
+    }
     fn display(&self) -> String {
         self.inner.display()
     }
@@ -5105,22 +5104,12 @@ impl PyRationalBrauerWallClass {
     fn __eq__(&self, other: &PyRationalBrauerWallClass) -> bool {
         self.inner == other.inner
     }
+    fn __ne__(&self, other: &PyRationalBrauerWallClass) -> bool {
+        !self.__eq__(other)
+    }
 
     fn __repr__(&self) -> String {
-        let places = self
-            .inner
-            .clifford_brauer_class()
-            .ramified_places()
-            .iter()
-            .copied()
-            .map(place_name)
-            .collect::<Vec<_>>();
-        format!(
-            "RationalBrauerWallClass(parity={}, signed_discriminant={}, clifford_ramified={places:?}, real_bott_index={})",
-            self.inner.dimension_parity(),
-            self.inner.signed_discriminant(),
-            self.inner.real_bott_index()
-        )
+        self.inner.to_string()
     }
 }
 
@@ -5236,6 +5225,9 @@ impl PyFunctionFieldBrauer2Class {
             (PyFunctionFieldBrauer2Inner::F13(a), PyFunctionFieldBrauer2Inner::F13(b)) => a == b,
             _ => false,
         }
+    }
+    fn __ne__(&self, other: &PyFunctionFieldBrauer2Class) -> bool {
+        !self.__eq__(other)
     }
     fn display(&self) -> String {
         ff_brauer2_match!(&self.inner, |inner, _Field| inner.display())
@@ -5436,6 +5428,9 @@ impl PyFunctionFieldBrauerWallClass {
             }
             _ => false,
         }
+    }
+    fn __ne__(&self, other: &PyFunctionFieldBrauerWallClass) -> bool {
+        !self.__eq__(other)
     }
     fn display(&self) -> String {
         ff_bw_match!(&self.inner, |inner, _Field| inner.display())
@@ -6885,6 +6880,9 @@ impl PyFqmWittClass {
     fn __eq__(&self, other: &PyFqmWittClass) -> bool {
         self.inner == other.inner
     }
+    fn __ne__(&self, other: &PyFqmWittClass) -> bool {
+        !self.__eq__(other)
+    }
     fn display(&self) -> String {
         self.inner.display()
     }
@@ -7164,6 +7162,9 @@ impl PyFiniteQuadraticModule {
     }
     fn __eq__(&self, other: &PyFiniteQuadraticModule) -> bool {
         self.inner == other.inner
+    }
+    fn __ne__(&self, other: &PyFiniteQuadraticModule) -> bool {
+        !self.__eq__(other)
     }
     fn __repr__(&self) -> String {
         let values = self
@@ -7940,6 +7941,9 @@ impl PyBrauerWallClass {
     }
     fn __eq__(&self, other: &PyBrauerWallClass) -> bool {
         self.inner == other.inner
+    }
+    fn __ne__(&self, other: &PyBrauerWallClass) -> bool {
+        !self.__eq__(other)
     }
     fn display(&self) -> String {
         self.inner.display()

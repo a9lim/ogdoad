@@ -80,6 +80,7 @@ pub enum FiniteFieldWittDecomp {
 /// defective forms should use [`crate::forms::ArfInvariants`] directly and
 /// check the `radical_anisotropic` flag before relying on the Arf bit.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct Char2WittDecomp {
     /// Extension degree `m` for `F_{2^m}`.
     pub field_degree: u128,
@@ -240,28 +241,7 @@ impl std::fmt::Display for ClassifyError {
     }
 }
 
-/// Classify the quadratic form data attached to a [`Metric`] over `Self`,
-/// dispatched on the scalar field. For real/complex-style legs this is also the
-/// implemented Clifford-algebra closure type; for `Rational` it is the complete
-/// Hasse-Minkowski quadratic-form invariant, not a full rational Brauer-Wall
-/// class. The [`Class`](ClassifyForm::Class) associated type is the leg-specific
-/// datum:
-///
-/// | scalar | `Class` | leg |
-/// |---|---|---|
-/// | [`Surreal`] | [`CliffordInvariants`] | exact-square char 0 subdomain (8-fold) |
-/// | [`Surcomplex<Surreal>`](Surcomplex) | [`CliffordInvariants`] | exact-square char 0 subdomain (2-fold) |
-/// | [`Rational`] | [`RationalCliffordInvariants`] | char 0, full Hasse-Minkowski form invariant |
-/// | [`Fp<P>`](Fp) | [`OddCharInvariants`] | odd characteristic |
-/// | [`Fpn<P,N>`](Fpn) | [`FiniteFieldInvariants`] | finite extension fields, odd or char 2 |
-/// | [`Nimber`] | [`ArfInvariants`] | characteristic 2 (Arf) |
-/// | [`Ordinal`] | [`ArfInvariants`] | detected finite ordinal-nimber windows only |
-///
-/// `Err` means the metric is outside the classifier's domain (e.g. an `Ordinal`
-/// metric with coefficients outside the detected finite-subfield windows, or a
-/// metric the diagonalizer can't reduce); see [`ClassifyError`]. A non-diagonal
-/// char-2 form is *not* such an example — the char-2 legs classify directly off
-/// the full `(q, b)` metric via Arf reduction, with no diagonalization step.
+/// A failed Witt-class construction is reported as the matching façade error.
 impl From<crate::forms::WittClassError> for ClassifyError {
     fn from(e: crate::forms::WittClassError) -> Self {
         match e {
@@ -328,7 +308,51 @@ fn two_metric_failure<S: crate::scalar::Scalar>(
     }
 }
 
-/// Scalar capability for classifying the quadratic data of a metric.
+/// Classify the quadratic form data attached to a [`Metric`] over `Self`,
+/// dispatched on the scalar field. For real/complex-style legs this is also the
+/// implemented Clifford-algebra closure type; for `Rational` it is the complete
+/// Hasse-Minkowski quadratic-form invariant, not a full rational Brauer-Wall
+/// class. The [`Class`](ClassifyForm::Class) associated type is the leg-specific
+/// datum:
+///
+/// | scalar | `Class` | leg |
+/// |---|---|---|
+/// | [`Surreal`] | [`CliffordInvariants`] | exact-square char 0 subdomain (8-fold) |
+/// | [`Surcomplex<Surreal>`](Surcomplex) | [`CliffordInvariants`] | exact-square char 0 subdomain (2-fold) |
+/// | [`Rational`] | [`RationalCliffordInvariants`] | char 0, full Hasse-Minkowski form invariant |
+/// | [`Fp<P>`](Fp) | [`OddCharInvariants`] | odd characteristic |
+/// | [`Fpn<P,N>`](Fpn) | [`FiniteFieldInvariants`] | finite extension fields, odd or char 2 |
+/// | [`Nimber`] | [`ArfInvariants`] | characteristic 2 (Arf) |
+/// | [`Ordinal`] | [`ArfInvariants`] | detected finite ordinal-nimber windows only |
+///
+/// `Err` means the metric is outside the classifier's domain (e.g. an `Ordinal`
+/// metric with coefficients outside the detected finite-subfield windows, or a
+/// metric the diagonalizer can't reduce); see [`ClassifyError`]. A non-diagonal
+/// char-2 form is *not* such an example — the char-2 legs classify directly off
+/// the full `(q, b)` metric via Arf reduction, with no diagonalization step.
+///
+/// # Examples
+///
+/// The façade returns the leg-specific invariant, or a [`ClassifyError`] saying
+/// why the metric is outside that leg's domain. Here `x^2 - y^2 + z^2` over the
+/// surreals (two positive squares, one negative) has Clifford algebra
+/// `M_2(R) ⊕ M_2(R)`, while `<2>` would need `sqrt 2`, which the finite-support
+/// surreal backend does not represent, so it is refused rather than
+/// misclassified:
+///
+/// ```
+/// use ogdoad::clifford::Metric;
+/// use ogdoad::forms::{ClassifyError, ClassifyForm};
+/// use ogdoad::scalar::{Scalar, Surreal};
+///
+/// let cl21 = Metric::diagonal([1, -1, 1].map(Surreal::from_int).to_vec());
+/// let invariants = Surreal::classify(&cl21).unwrap();
+/// assert_eq!(invariants.signature, (2, 1));
+/// assert_eq!(invariants.to_string(), "M_2(R) ⊕ M_2(R)");
+///
+/// let two = Metric::diagonal(vec![Surreal::from_int(2)]);
+/// assert_eq!(Surreal::classify(&two), Err(ClassifyError::UnsupportedFieldOrWindow));
+/// ```
 pub trait ClassifyForm: Scalar {
     /// The classification datum produced for this field's characteristic leg.
     type Class;
@@ -424,9 +448,16 @@ impl ClassifyForm for Rational {
     }
 }
 
+/// Odd prime fields. `Fp<2>` is refused with
+/// [`ClassifyError::UnsupportedFieldOrWindow`]: classify forms over `F_2`
+/// through `Fpn<2, 1>` or [`arf_char2`](crate::forms::arf_char2), whose
+/// classes carry the Arf invariant.
 impl<const P: u128> ClassifyForm for Fp<P> {
     type Class = OddCharInvariants;
     fn classify(metric: &Metric<Self>) -> Result<OddCharInvariants, ClassifyError> {
+        if P == 2 {
+            return Err(ClassifyError::UnsupportedFieldOrWindow);
+        }
         classify_finite_odd(metric).ok_or_else(|| char0_failure(metric))
     }
 }
@@ -1247,5 +1278,26 @@ mod tests {
             FiniteFieldWittDecomp::Char2(nonsingular).display(),
             nonsingular.to_string()
         );
+    }
+
+    #[test]
+    fn fp2_refuses_and_points_at_the_char2_classifiers() {
+        use crate::forms::arf_char2;
+        use crate::scalar::Fpn;
+        type F2 = Fp<2>;
+        let plane = Metric::new(vec![F2::one(), F2::one()], [((0, 1), F2::one())]);
+        assert_eq!(
+            <F2 as ClassifyForm>::classify(&plane).unwrap_err(),
+            ClassifyError::UnsupportedFieldOrWindow
+        );
+        assert_eq!(arf_char2(&plane).unwrap().arf, 1);
+        let plane = Metric::new(
+            vec![Fpn::<2, 1>::one(), Fpn::<2, 1>::one()],
+            [((0, 1), Fpn::<2, 1>::one())],
+        );
+        assert!(matches!(
+            Fpn::<2, 1>::classify(&plane),
+            Ok(FiniteFieldInvariants::Char2(inv)) if inv.arf == 1
+        ));
     }
 }

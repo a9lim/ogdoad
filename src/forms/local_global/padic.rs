@@ -365,6 +365,25 @@ pub fn try_hilbert_reciprocity_product(a: i128, b: i128) -> Option<i128> {
 /// rank ≥ 3 needs `ℝ`-indefiniteness plus the local condition at each prime dividing
 /// `2·∏a_i` (all other primes are automatically isotropic for rank ≥ 3). Returns
 /// `None` if bounded square-class arithmetic overflows.
+///
+/// # Examples
+///
+/// `x² + y² − 3z²` is indefinite, hence isotropic over `R`, but has no
+/// nontrivial rational zero: the obstruction is local, at `Q_2` and `Q_3`
+/// (the quaternion algebra `(-1, 3)` ramifies at exactly those two places, an
+/// even number, as Hilbert reciprocity requires). `x² + y² − 2z²` has the zero
+/// `(1, 1, 1)`:
+///
+/// ```
+/// use ogdoad::forms::{isotropy_over_adeles, try_is_isotropic_q};
+///
+/// assert_eq!(try_is_isotropic_q(&[1, 1, -3]), Some(false));
+/// assert_eq!(try_is_isotropic_q(&[1, 1, -2]), Some(true));
+///
+/// let places = isotropy_over_adeles(&[1, 1, -3]).unwrap();
+/// assert!(places.real);
+/// assert_eq!((places.local[&2], places.local[&3]), (false, false));
+/// ```
 pub fn try_is_isotropic_q(entries: &[i128]) -> Option<bool> {
     if entries.contains(&0) {
         return Some(true); // a null coordinate direction

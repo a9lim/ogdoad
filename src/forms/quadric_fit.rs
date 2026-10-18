@@ -11,6 +11,7 @@ use crate::forms::{arf_f2, ArfInvariants};
 
 /// The result of fitting a quadratic form to a subset of F₂^k.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct QuadricFit {
     /// Constant term: false ⇒ `0 ∈ set` (form through the origin); true ⇒ affine
     /// offset (`set = {Q = 1}` for the homogeneous part below).

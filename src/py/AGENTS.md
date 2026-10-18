@@ -7,12 +7,13 @@ monomorphizations of the pure-Rust core behind the optional `python` feature.
 
 | path | responsibility |
 | --- | --- |
-| `mod.rs` | module registration and shared Python helpers |
-| `catalog.rs` | fixed dispatch catalogue and generated backend families |
+| `mod.rs` | the `#[pymodule]` entry and `version()`; chains each submodule's `register` |
+| `catalog.rs` | backend manifest macros for the algebra/multivector/linear-map, divided-power, and CGA class families |
 | `scalars.rs` | scalar wrappers and arithmetic |
-| `engine.rs` | Clifford, multivector, divided-power, and CGA wrappers |
+| `engine.rs` | Clifford, multivector, divided-power, and CGA wrappers, and the `scalar_boundary` panic guard |
 | `forms.rs` | classifiers, local--global reports, integral forms |
 | `games.rs` | game values, evaluators, thermography, lexicodes |
+| `weyl.rs` | Rational/Fp3/Nimber Weyl algebras, elements, sparse symbols, transformations, centres, bounded fibres, and `p`-symbols |
 
 ## Binding policy
 
@@ -34,10 +35,18 @@ monomorphizations of the pure-Rust core behind the optional `python` feature.
 
 - `*`: geometric product; `&`: wedge; `<<`/`>>`: contractions; `~`: reverse;
   `**`: multivector power; `/`: supported scalar/versor division.
-- Scalar power follows each scalar wrapper's documented API. Ordinal arithmetic
-  keeps an explicit checked nim-power path.
+- Scalar power follows each scalar wrapper's documented API. `Ordinal` exposes
+  checked `nim_mul`, `nim_pow`, `checked_inv`, and `checked_sqrt`, which
+  return `None` at the Kummer boundary, and has no `**` operator.
+- Panics inside a guarded scalar boundary become `ValueError`; an unguarded
+  panic surfaces as `pyo3_runtime.PanicException`.
 - A scalar `__mul__` must return `NotImplemented` for a multivector so Python
   can dispatch to the multivector's `__rmul__`.
+- Scalar and algebra `__eq__` and comparisons return `NotImplemented` for an
+  operand they cannot read, never `TypeError` or a bare `False`. Python then
+  tries the reflected comparison, so a declared embedding compares the same in
+  both orders and an unrelated world compares unequal. New bindings follow the
+  same pattern.
 - Python `repr`/display delegates to canonical Rust `Display` whenever a core
   report or value exists.
 
@@ -45,6 +54,9 @@ monomorphizations of the pure-Rust core behind the optional `python` feature.
 
 - Never import PyO3 outside `src/py/`; never make it a default dependency.
 - Keep registrations, exports, and the generated `ogdoad.pyi` synchronized.
+  PyO3 installs every comparison slot once a class defines any comparison, so
+  a class with a genuine order must be listed in `ORDERED_CLASSES` in
+  `scripts/generate_stubs.py`.
 - Validate Python integer conversions against the core `u128`/`i128` widths;
   do not narrow payloads for convenience.
 - Preserve domain errors and optional/unknown distinctions instead of mapping
@@ -61,6 +73,7 @@ python -m maturin build --profile dev -i python
 python -m pip install --force-reinstall --no-deps target/wheels/ogdoad-*.whl
 python demo.py
 python scripts/generate_stubs.py --check
+python -m unittest discover -s tests/python
 ```
 
 Also run the default workspace tests; they remain the authority for the math

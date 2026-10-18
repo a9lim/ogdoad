@@ -4,7 +4,7 @@
 //! graph evaluators and bounded recognition certificates; it does not identify
 //! loopy outcomes with the acyclic normal-play Gold--Arf construction.
 //!
-//! Five layers are re-exported through this module:
+//! Six layers are re-exported through this module:
 //!
 //!   * [`catalogue`] — [`LoopyWinner`], [`LoopyPartizanOutcome`],
 //!     [`PartizanOutcome`], and the [`LoopyValue`] stopper catalogue
@@ -17,6 +17,9 @@
 //!     negation, budgeted reachable product sums, finite-game embedding, stopper
 //!     witnesses, and exact [`LoopyPartizanOutcome`] pairs, projecting to the
 //!     classical five-class [`PartizanOutcome`] only when honest.
+//!   * [`certificate`] — [`OutcomeCertificate`]: certifying retrograde analysis
+//!     under normal or misère [`PlayConvention`], with ranks and chosen moves,
+//!     checked by local conditions independent of the solver.
 //!   * [`nim_values`] — [`LoopyNimber`], [`LoopyNimCertificate`],
 //!     [`loopy_nim_values`], and [`loopy_nim_values_certified`]: impartial loopy
 //!     nim-values with certificates (including the checked recovery condition).
@@ -29,12 +32,14 @@
 //! return `None`.
 
 pub mod catalogue;
+pub mod certificate;
 pub mod graph;
 pub mod nim_values;
 pub mod partizan;
 pub mod research;
 
 pub use catalogue::*;
+pub use certificate::*;
 pub use graph::*;
 pub use nim_values::*;
 pub use partizan::*;

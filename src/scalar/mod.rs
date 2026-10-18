@@ -17,6 +17,30 @@
 //! [`Tropical`] is deliberately separate because an idempotent semiring has no
 //! additive inverses. Arbitrary partizan games likewise do not implement
 //! `Scalar`: they form an additive group, not a commutative ring.
+//!
+//! # Examples
+//!
+//! One generic function runs over coefficient worlds of different characteristic,
+//! and each world states its own representation limit: `Rational` lives in an
+//! `i128` carrier and reports overflow through its `checked_*` operations.
+//!
+//! ```
+//! use ogdoad::scalar::{Fp, Nimber, Rational, Scalar};
+//!
+//! fn square_plus_one<S: Scalar>(x: &S) -> S {
+//!     x.mul(x).add(&S::one())
+//! }
+//!
+//! assert_eq!(square_plus_one(&Rational::new(3, 2)), Rational::new(13, 4));
+//! assert!(square_plus_one(&Fp::<5>::from_int(2)).is_zero()); // 2^2 + 1 = 5 = 0 in F_5
+//! assert_eq!(square_plus_one(&Nimber(2)), Nimber(2)); // 2 ⊗ 2 = 3, and 3 ⊕ 1 = 2
+//!
+//! assert_eq!(Rational::characteristic(), 0);
+//! assert_eq!(Fp::<5>::characteristic(), 5);
+//! assert_eq!(Nimber::characteristic(), 2);
+//! let huge = Rational::new(i128::MAX, 1);
+//! assert_eq!(huge.checked_add(&Rational::one()), None); // `Scalar::add` would panic
+//! ```
 
 pub mod analytic;
 pub mod big;
@@ -380,8 +404,7 @@ pub trait Scalar: Clone + PartialEq + Debug + Display {
     /// `x.pow(0) == one()`. The same default-method precedent as
     /// [`Scalar::from_int`]: one correct implementation for every backend whose
     /// `mul` is total, with per-backend overrides only where a genuinely sharper
-    /// algorithm exists (e.g. [`Nimber`]'s Fermat-tower `nim_pow`, reached through
-    /// [`FiniteField::pow`]).
+    /// algorithm exists (e.g. [`Nimber`]'s Fermat-tower `nim_pow`).
     ///
     /// `Ordinal` implements `Scalar` with a panic-on-escape `mul` (the represented
     /// Kummer tower's honest boundary), so it inherits this default `pow` as a

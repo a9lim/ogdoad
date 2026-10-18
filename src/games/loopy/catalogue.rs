@@ -84,7 +84,27 @@ pub enum PartizanOutcome {
 /// This is not a complete equality theory for loopy games; arithmetic returns
 /// `None` whenever a sum leaves the represented catalogue or would require a
 /// non-local sidling/equality proof.
+///
+/// # Examples
+///
+/// ```
+/// use ogdoad::games::{LoopyValue::*, PartizanOutcome};
+///
+/// // on = {on|} is Left's forever-move; negation swaps it with off.
+/// assert_eq!(On.form(), "{on|}");
+/// assert_eq!(On.neg(), Off);
+/// // on + off = dud: neither player can force a win.
+/// assert_eq!(On.add(&Off), Some(Dud));
+/// assert_eq!(Dud.partizan_outcome(), Some(PartizanOutcome::Draw));
+/// // on absorbs the other stoppers, but over + under is outside the catalogue.
+/// assert_eq!(On.add(&Star), Some(On));
+/// assert_eq!(Over.add(&Under), None);
+/// // Stoppers are ordered off < under < 0 < over < on; dud is confused with all.
+/// assert!(Off < Under && Under < Zero && Zero < Over && Over < On);
+/// assert_eq!(Dud.partial_cmp(&Zero), None);
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[non_exhaustive]
 pub enum LoopyValue {
     /// `0 = {|}` — the second player (previous mover) wins.
     Zero,

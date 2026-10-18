@@ -18,6 +18,32 @@ use std::fmt;
 
 /// A represented transfinite Nim heap `⋆α`, carried by its ordinal Grundy
 /// value rather than an infinite option set.
+///
+/// # Examples
+///
+/// Finite heaps add by XOR and agree with the short-game engine; `⋆ω` has no
+/// finite option tree, and `ω` is a cube root of `2` under nim-multiplication:
+///
+/// ```
+/// use ogdoad::games::{Game, NimberGame};
+/// use ogdoad::scalar::Ordinal;
+///
+/// let sum = NimberGame::nim_heap(5).add(&NimberGame::nim_heap(3));
+/// assert_eq!(sum.to_string(), "*6"); // 5 xor 3
+/// assert!(sum.to_finite_game().unwrap().eq(&Game::nim_heap(6)));
+///
+/// let omega = NimberGame::from_ordinal(&Ordinal::omega());
+/// assert_eq!(omega.add(&NimberGame::nim_heap(1)).to_string(), "*(ω + 1)");
+/// assert!(omega.to_finite_game().is_none());
+///
+/// // Turning-Corners product: ω ⊗ ω ⊗ ω = 2.
+/// let omega_squared = omega.turning_corners(&omega).unwrap();
+/// assert_eq!(omega_squared.turning_corners(&omega).unwrap().to_string(), "*2");
+///
+/// // The represented segment is bounded: past it the product is refused, not wrong.
+/// let beyond = NimberGame::from_ordinal(&Ordinal::omega_pow(Ordinal::omega_pow(Ordinal::omega())));
+/// assert!(beyond.turning_corners(&NimberGame::nim_heap(2)).is_none());
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 pub struct NimberGame {
     grundy: Ordinal,

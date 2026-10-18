@@ -1,4 +1,4 @@
-import Ogdoad.Fifo
+import Ogdoad.Algebra.ZModTwo
 import Mathlib.FieldTheory.Finite.Trace
 import Mathlib.RingTheory.Trace.Basic
 

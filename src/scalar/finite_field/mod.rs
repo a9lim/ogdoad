@@ -38,18 +38,12 @@ use crate::scalar::Scalar;
 /// An impl supplies four things: the Frobenius map, the extension degree
 /// `[F : F_p]`, the order of `F*`, and the prime factors of that order.
 /// Backends with a sharper algorithm for a derived method (nimber's
-/// Pohlig–Hellman [`discrete_log`](FiniteField::discrete_log), nimber's
-/// Fermat-tower [`pow`](FiniteField::pow)) override it.
+/// Pohlig–Hellman [`discrete_log`](FiniteField::discrete_log)) override it;
+/// exponentiation is [`Scalar::pow`], which nimber overrides with its
+/// Fermat-tower `nim_pow`.
 pub trait FiniteField: Scalar + Copy {
     /// The Frobenius endomorphism `x ↦ x^p` — the generator of `Gal(F / F_p)`.
     fn frobenius(&self) -> Self;
-
-    /// Exponentiation `self^e` by an ordinary integer exponent. Defaults to the
-    /// supertrait's [`Scalar::pow`] (square-and-multiply); nimber overrides this
-    /// with the sharper Fermat-tower `nim_pow`.
-    fn pow(&self, e: u128) -> Self {
-        Scalar::pow(self, e)
-    }
 
     /// The **absolute** degree `[F : F_p]` over the prime field, so `|F| = p^{ext_degree}`.
     /// Distinct from [`FieldExtension::extension_degree`](crate::scalar::FieldExtension::extension_degree),
@@ -166,7 +160,7 @@ pub trait FiniteField: Scalar + Copy {
         }
         let mut ord = Self::group_order();
         for p in Self::group_order_factors() {
-            while ord % p == 0 && FiniteField::pow(self, ord / p) == Self::one() {
+            while ord % p == 0 && Scalar::pow(self, ord / p) == Self::one() {
                 ord /= p;
             }
         }

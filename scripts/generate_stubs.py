@@ -187,6 +187,99 @@ MEMBER_OVERRIDES: dict[str, str] = {
     "GuySmithCertificate.is_p_position": "(self, heaps: Sequence[builtins.int]) -> builtins.bool",
 }
 
+# Selected monomorphic Weyl classes share one Rust macro surface while keeping
+# their scalar and element types separate in Python.
+for _weyl_world, _weyl_scalar in (
+    ("Rational", "Rational"),
+    ("Fp3", "Fp3"),
+    ("Nimber", "Nimber"),
+):
+    _weyl_alg = f"{_weyl_world}WeylAlgebra"
+    _weyl_element = f"{_weyl_world}WeylElement"
+    _weyl_poly = f"{_weyl_world}SparsePolynomial"
+    _weyl_psymbol = f"{_weyl_world}WeylPSymbol"
+    MEMBER_OVERRIDES.update(
+        {
+            f"{_weyl_alg}.__init__": "(self, pairs: builtins.int) -> None",
+            f"{_weyl_alg}.from_commutator": f"@staticmethod (rows: Sequence[Sequence[Any]]) -> {_weyl_alg}",
+            f"{_weyl_alg}.dim": "(self) -> builtins.int",
+            f"{_weyl_alg}.standard_pairs": "(self) -> builtins.int | None",
+            f"{_weyl_alg}.commutator_form": f"(self) -> list[list[{_weyl_scalar}]]",
+            f"{_weyl_alg}.zero": f"(self) -> {_weyl_element}",
+            f"{_weyl_alg}.one": f"(self) -> {_weyl_element}",
+            f"{_weyl_alg}.scalar": f"(self, value: Any) -> {_weyl_element}",
+            f"{_weyl_alg}.generator": f"(self, index: builtins.int) -> {_weyl_element}",
+            f"{_weyl_alg}.x": f"(self, index: builtins.int) -> {_weyl_element}",
+            f"{_weyl_alg}.d": f"(self, index: builtins.int) -> {_weyl_element}",
+            f"{_weyl_alg}.monomial": f"(self, exponents: Sequence[builtins.int], coefficient: Any) -> {_weyl_element}",
+            f"{_weyl_alg}.direct_sum": f"(self, other: {_weyl_alg}) -> {_weyl_alg}",
+            f"{_weyl_alg}.affine_map_to": f"(self, target: {_weyl_alg}, value: {_weyl_element}, linear: Sequence[Sequence[Any]], translation: Sequence[Any], max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+            f"{_weyl_alg}.mul": f"(self, left: {_weyl_element}, right: {_weyl_element}, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+            f"{_weyl_alg}.pow": f"(self, value: {_weyl_element}, exponent: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+            f"{_weyl_alg}.commutator": f"(self, left: {_weyl_element}, right: {_weyl_element}, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+            f"{_weyl_alg}.bernstein_degree": f"(self, value: {_weyl_element}) -> builtins.int | None",
+            f"{_weyl_alg}.differential_order": f"(self, value: {_weyl_element}) -> builtins.int | None",
+            f"{_weyl_alg}.principal_symbol": f"(self, value: {_weyl_element}, filtration_name: builtins.str) -> {_weyl_poly}",
+            f"{_weyl_alg}.poisson_bracket": f"(self, left: {_weyl_poly}, right: {_weyl_poly}, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_poly}",
+            f"{_weyl_alg}.act_on_sparse_polynomial": f"(self, operator: {_weyl_element}, polynomial: {_weyl_poly}, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_poly}",
+            f"{_weyl_alg}.hbar_product": f"(self, left: {_weyl_element}, right: {_weyl_element}, hbar: Any, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+            f"{_weyl_alg}.hbar_commutator": f"(self, left: {_weyl_element}, right: {_weyl_element}, hbar: Any, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+            f"{_weyl_alg}.is_central": f"(self, value: {_weyl_element}, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> builtins.bool",
+            f"{_weyl_alg}.radical_generators": f"(self, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[{_weyl_element}]",
+            f"{_weyl_alg}.center_generators": f"(self, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[{_weyl_element}]",
+            f"{_weyl_alg}.center_rank_over_center": "(self) -> builtins.int | None",
+            f"{_weyl_alg}.center_basis_element": f"(self, index: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+            f"{_weyl_alg}.darboux_ranks": "(self) -> tuple[builtins.int, builtins.int]",
+            f"{_weyl_alg}.darboux_to_normal": f"(self, value: {_weyl_element}, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> tuple[{_weyl_alg}, {_weyl_element}]",
+            f"{_weyl_alg}.darboux_from_normal": f"(self, value: {_weyl_element}, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+            f"{_weyl_alg}.fourier": f"(self, value: {_weyl_element}, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+            f"{_weyl_alg}.fourier_inverse": f"(self, value: {_weyl_element}, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+            f"{_weyl_alg}.scaling": f"(self, value: {_weyl_element}, scales: Sequence[Any], max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+            f"{_weyl_alg}.shear": f"(self, value: {_weyl_element}, shear: Sequence[Sequence[Any]], max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+            f"{_weyl_alg}.translation": f"(self, value: {_weyl_element}, translation: Sequence[Any], max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+            f"{_weyl_alg}.parity": f"(self, value: {_weyl_element}, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+            f"{_weyl_alg}.formal_adjoint": f"(self, value: {_weyl_element}, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+            f"{_weyl_alg}.fourier_central_character": f"(self, central_values: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[{_weyl_scalar}]",
+            f"{_weyl_alg}.scaling_central_character": f"(self, central_values: Sequence[Any], scales: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[{_weyl_scalar}]",
+            f"{_weyl_alg}.shear_central_character": f"(self, central_values: Sequence[Any], shear: Sequence[Sequence[Any]], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[{_weyl_scalar}]",
+            f"{_weyl_alg}.translation_central_character": f"(self, central_values: Sequence[Any], translation: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> list[{_weyl_scalar}]",
+            f"{_weyl_alg}.psymbol": f"(self, central_values: Sequence[Any], max_basis_dimension: builtins.int) -> {_weyl_psymbol}",
+            f"{_weyl_alg}.transported_central_reduce": f"(self, value: {_weyl_element}, paired_values: Sequence[Any], radical_values: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+            f"{_weyl_alg}.transported_fiber_products_agree": f"(self, left: {_weyl_element}, right: {_weyl_element}, paired_values: Sequence[Any], radical_values: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> builtins.bool",
+            f"{_weyl_alg}.central_reduce": f"(self, value: {_weyl_element}, central_values: Sequence[Any], max_basis_dimension: builtins.int) -> {_weyl_element}",
+            f"{_weyl_alg}.clifford_fiber_products_agree": f"(self, left: {_weyl_element}, right: {_weyl_element}, central_values: Sequence[Any], max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> builtins.bool",
+            f"{_weyl_alg}.central_character_generator_matrices": f"(self, central_values: Sequence[Any], splitting_roots: Sequence[Any], max_basis_dimension: builtins.int, max_matrix_entries: builtins.int, max_steps: builtins.int) -> list[list[list[{_weyl_scalar}]]]",
+            f"{_weyl_element}.dim": "(self) -> builtins.int",
+            f"{_weyl_element}.term_count": "(self) -> builtins.int",
+            f"{_weyl_element}.is_zero": "(self) -> builtins.bool",
+            f"{_weyl_element}.terms": f"(self) -> list[tuple[list[builtins.int], {_weyl_scalar}]]",
+            f"{_weyl_element}.algebra": f"(self) -> {_weyl_alg}",
+            f"{_weyl_element}.scale": f"(self, scalar: Any) -> {_weyl_element}",
+            f"{_weyl_element}.mul": f"(self, other: {_weyl_element}, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+            f"{_weyl_element}.pow": f"(self, exponent: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_element}",
+            f"{_weyl_poly}.__init__": "(self, dim: builtins.int) -> None",
+            f"{_weyl_poly}.scalar": f"@staticmethod (dim: builtins.int, coefficient: Any) -> {_weyl_poly}",
+            f"{_weyl_poly}.monomial": f"@staticmethod (exponents: Sequence[builtins.int], coefficient: Any) -> {_weyl_poly}",
+            f"{_weyl_poly}.variable": f"@staticmethod (dim: builtins.int, index: builtins.int) -> {_weyl_poly}",
+            f"{_weyl_poly}.dim": "(self) -> builtins.int",
+            f"{_weyl_poly}.term_count": "(self) -> builtins.int",
+            f"{_weyl_poly}.is_zero": "(self) -> builtins.bool",
+            f"{_weyl_poly}.total_degree": "(self) -> builtins.int | None",
+            f"{_weyl_poly}.terms": f"(self) -> list[tuple[list[builtins.int], {_weyl_scalar}]]",
+            f"{_weyl_poly}.partial_derivative": f"(self, index: builtins.int) -> {_weyl_poly}",
+            f"{_weyl_poly}.scale": f"(self, scalar: Any) -> {_weyl_poly}",
+            f"{_weyl_poly}.mul": f"(self, other: {_weyl_poly}, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> {_weyl_poly}",
+            f"{_weyl_psymbol}.characteristic": "(self) -> builtins.int",
+            f"{_weyl_psymbol}.tensor_rank": "(self) -> builtins.int",
+            f"{_weyl_psymbol}.pairs": f"(self) -> list[tuple[{_weyl_scalar}, {_weyl_scalar}]]",
+            f"{_weyl_psymbol}.brauer_split": "(self) -> builtins.bool | None",
+            f"{_weyl_psymbol}.certify_split": f"(self, splitting_roots: Sequence[Any], max_basis_dimension: builtins.int, max_matrix_entries: builtins.int, max_steps: builtins.int) -> builtins.bool",
+            f"{_weyl_psymbol}.p_residue": f"(self, value: {_weyl_element}) -> {_weyl_scalar}",
+            f"{_weyl_psymbol}.split_trace_matches_residue": f"(self, value: {_weyl_element}, splitting_roots: Sequence[Any], max_basis_dimension: builtins.int, max_matrix_entries: builtins.int, max_steps: builtins.int) -> builtins.bool",
+            f"{_weyl_psymbol}.cyclic_factor": f"(self, pair: builtins.int, max_basis_dimension: builtins.int, max_terms: builtins.int | None = None, max_steps: builtins.int | None = None) -> tuple[{_weyl_scalar}, {_weyl_scalar}]",
+        }
+    )
+
 # --------------------------------------------------------------------------- #
 # Operator / protocol dunders: kept (with canonical signatures), everything    #
 # else dunder-shaped is dropped from the stub as noise.                        #
@@ -217,6 +310,28 @@ DUNDER_SIGNATURES: dict[str, str] = {
     "__iter__": "(self) -> Iterator[Any]", "__next__": "(self) -> Any",
     "__call__": "(self, *args: Any, **kwargs: Any) -> Any",
 }
+
+# PyO3 installs all six comparison slot wrappers whenever a class defines any
+# comparison, so `vars(cls)` cannot tell a genuine order from an equality-only
+# class whose `<` raises. These classes carry a real (total or partial) order;
+# every other class omits the ordering dunders from its stub.
+ORDERED_CLASSES = frozenset({
+    "Integer", "LoopyValue", "NimberGame", "NumberGame", "Omnific", "Ordinal",
+    "Rational", "Surreal",
+})
+_ORDERING_DUNDERS = frozenset({"__lt__", "__le__", "__gt__", "__ge__"})
+
+
+def _defines_dunder(cls: type, cls_name: str, name: str) -> bool:
+    """Whether a stubbed dunder is actually callable on `cls` at runtime."""
+    if name not in DUNDER_SIGNATURES or name not in vars(cls):
+        return False
+    # PyO3 sets `__hash__ = None` on a class with `__eq__` but no `__hash__`.
+    if vars(cls)[name] is None:
+        return False
+    if name in _ORDERING_DUNDERS:
+        return cls_name in ORDERED_CLASSES
+    return True
 
 HEADER = """\
 # This file is @generated by scripts/generate_stubs.py from the built ogdoad
@@ -403,7 +518,7 @@ def _emit_class(name: str) -> list[str]:
 
     # operator / protocol dunders, sorted. No docstrings: PyO3 leaves these with
     # inherited boilerplate, not real `///` docs.
-    dunders = sorted(n for n in own if n in DUNDER_SIGNATURES)
+    dunders = sorted(n for n in own if _defines_dunder(cls, name, n))
     for n in dunders:
         body.append(f"    def {n}{DUNDER_SIGNATURES[n]}: ...")
 
@@ -426,6 +541,13 @@ def build() -> str:
         elif isinstance(obj, int) and not isinstance(obj, bool):
             consts.append(n)
         # modules and anything else are skipped
+
+    unordered = sorted(
+        n for n in ORDERED_CLASSES
+        if n not in classes or "__lt__" not in vars(getattr(ogdoad, n))
+    )
+    if unordered:
+        raise SystemExit(f"generate_stubs: ORDERED_CLASSES lists classes without comparisons: {unordered}")
 
     out = [HEADER, ""]
     for n in sorted(consts):

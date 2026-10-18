@@ -15,6 +15,33 @@
 //! This module constructs only the proved matching-plus-isolates arena. It does
 //! not assume or expose the stronger arbitrary-graph isolated-dummy FIFO
 //! conjecture.
+//!
+//! # Examples
+//!
+//! The construction is the one proved in `goldarf.tex`: the loaded root is a
+//! `P`-position exactly when `Q(x) = 0`. The example checks this by Grundy value
+//! for the inputs of one three-dimensional form with a radical direction. That
+//! is a finite check of one instance, not a proof of the theorem, and it does
+//! not exercise the Lean formalization. The full-weight input `0b111` loads nine
+//! coins, whose unfolding has millions of states, so it is left to the explicit
+//! state budget.
+//!
+//! ```
+//! use ogdoad::games::{WittFifoArena, WittFifoError};
+//!
+//! // Q(x) = x0 + x2 + x0 x1 on F_2^3; the polar form has b01 = 1 and radical e2.
+//! let diagonal = [true, false, true];
+//! let polar = [0b010, 0b001, 0b000];
+//! for x in 0u128..7 {
+//!     let arena = WittFifoArena::try_new(&diagonal, &polar, x).unwrap();
+//!     let grundy = arena.grundy(1_000_000).unwrap();
+//!     assert_eq!(grundy == 0, !arena.quadratic_value()); // P-position iff Q(x) = 0
+//! }
+//!
+//! // Unfolding takes an explicit state budget and reports exhaustion.
+//! let heavy = WittFifoArena::try_new(&diagonal, &polar, 0b111).unwrap();
+//! assert!(matches!(heavy.grundy(1_000), Err(WittFifoError::StateBudgetExceeded { .. })));
+//! ```
 
 use crate::games::{mex, Game};
 use std::collections::{HashMap, VecDeque};
@@ -187,6 +214,7 @@ pub enum WittFifoMove {
 
 /// Checked-construction or finite-unfolding failure.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum WittFifoError {
     /// The bitmask representation supports at most 128 original coordinates.
     DimensionTooLarge {
@@ -282,6 +310,43 @@ pub struct WittFifoArena {
 
 impl WittFifoArena {
     /// Construct the proved matching-plus-isolates realization of `Q(x)`.
+    ///
+    /// `diagonal[i]` is `q_i`, `polar[i]` is the bitmask row of the symmetric
+    /// alternating form `b_ij`, and `input` is the bitmask of `x`. Malformed
+    /// quadratic data is refused with a [`WittFifoError`].
+    ///
+    /// # Examples
+    ///
+    /// `witt_realization.tex` realizes each bit of a Witt class as the literal
+    /// impartial game `0` or `*`, so that orthogonal sum becomes disjunctive sum.
+    /// The Rust layer exposes only this finite `F_2` arena, not the global
+    /// `F_2(t)` coordinate compiler, so the example checks one finite instance:
+    /// for an orthogonal sum `Q = Q1 + Q2` the arena bit is the XOR of the two
+    /// summand bits, matching `0`/`*` addition in the game group. (The
+    /// full-weight input `0b111` is skipped: its nine-coin arena has millions of
+    /// states.)
+    ///
+    /// ```
+    /// use ogdoad::games::{Game, PartizanOutcome, WittFifoArena, WittFifoError};
+    ///
+    /// let bit = |b: bool| if b { Game::star() } else { Game::zero() };
+    /// // Q1(x) = x on F_2, and Q2 = x0 + x1 + x0 x1 (the anisotropic plane).
+    /// for x in 0u128..7 {
+    ///     let q1 = WittFifoArena::try_new(&[true], &[0], x & 1).unwrap();
+    ///     let q2 = WittFifoArena::try_new(&[true, true], &[0b10, 0b01], x >> 1).unwrap();
+    ///     let sum = WittFifoArena::try_new(&[true; 3], &[0b000, 0b100, 0b010], x).unwrap();
+    ///     let (b1, b2) = (q1.quadratic_value(), q2.quadratic_value());
+    ///     assert_eq!(sum.quadratic_value(), b1 ^ b2);
+    ///     assert_eq!(sum.grundy(1_000_000).unwrap() == 0, b1 == b2);
+    ///     assert!(bit(b1).add(&bit(b2)).eq(&bit(b1 ^ b2)));
+    ///     let outcome = bit(b1).add(&bit(b2)).outcome_class();
+    ///     assert_eq!(outcome == PartizanOutcome::P, b1 == b2);
+    /// }
+    ///
+    /// // A non-symmetric polar form is refused, not silently symmetrized.
+    /// let refused = WittFifoArena::try_new(&[false, false], &[0b10, 0b00], 0);
+    /// assert_eq!(refused.err(), Some(WittFifoError::PolarNotSymmetric { i: 0, j: 1 }));
+    /// ```
     pub fn try_new(diagonal: &[bool], polar: &[u128], input: u128) -> Result<Self, WittFifoError> {
         validate_quadratic_data(diagonal, polar, input)?;
         let dimension = diagonal.len();

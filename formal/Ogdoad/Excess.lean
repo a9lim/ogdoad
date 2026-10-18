@@ -37,6 +37,131 @@ theorem isPthPower_of_coprime_order {G : Type*} [Group G] {p : Nat} {a : G}
     (⟨a, Subgroup.mem_zpowers a⟩ : H)
   exact ⟨x.1, congrArg Subtype.val hx⟩
 
+/-- If `p` is absent from a finite group's order, every element is a
+`p`-th power.  This is the exact primary-vacuity statement used when a strict
+lower Conway ancestor has no current `p`-torsion. -/
+theorem isPthPower_of_coprime_card
+    {G : Type*} [Group G] [Fintype G] {p : Nat}
+    (hcop : (Fintype.card G).Coprime p) (a : G) :
+    IsPthPower p a := by
+  apply isPthPower_of_coprime_order
+  exact hcop.of_dvd_left orderOf_dvd_card
+
+/-- Recovering an element from a power by an inverse exponent.  In the
+ordinary Kummer arm, `m = q - 1`, `c^p = 1 + x^r`, and `e` is the inverse
+of `p` modulo `q - 1`; the conclusion is the scalar equality used by the
+bottom-ancestor polynomial-divisibility reduction. -/
+theorem eq_pow_of_pow_eq_of_inverse_exponent {G : Type*} [Monoid G]
+    (c u : G) (p e m t : Nat) (hcp : c ^ p = u)
+    (hpe : p * e = 1 + t * m) (hperiod : c ^ m = 1) :
+    c = u ^ e := by
+  have hpe' : p * e = 1 + m * t := by
+    calc
+      p * e = 1 + t * m := hpe
+      _ = 1 + m * t := by rw [Nat.mul_comm t m]
+  calc
+    c = c ^ (p * e) := by
+      rw [hpe', pow_add, pow_mul, hperiod]
+      simp
+    _ = (c ^ p) ^ e := by rw [pow_mul]
+    _ = u ^ e := by rw [hcp]
+
+/-- Degree obstruction used after extracting a nonzero polynomial section in
+arm `O`.  A section with constant coefficient one cannot contain a degree-`b`
+bottom-ancestor factor when its exponent gap `d - j` is below `b*n`. -/
+theorem ordinary_section_degree_obstruction
+    {K : Type*} [Field K] (P S : Polynomial K) (b n d j : Nat)
+    (hn : 0 < n) (hgap : d - j < b * n)
+    (hPdeg : P.natDegree = b)
+    (hSdeg : S.natDegree ≤ (d - j) / n)
+    (hSconst : S.coeff 0 = 1) :
+    ¬P ∣ S := by
+  have hS : S ≠ 0 := by
+    intro hzero
+    rw [hzero] at hSconst
+    exact zero_ne_one hSconst
+  have hdiv : (d - j) / n < b :=
+    (Nat.div_lt_iff_lt_mul hn).2 hgap
+  apply Polynomial.not_dvd_of_natDegree_lt hS
+  calc
+    S.natDegree ≤ (d - j) / n := hSdeg
+    _ < b := hdiv
+    _ = P.natDegree := hPdeg.symm
+
+/-- Two coprime polynomial divisors of one nonzero polynomial consume the
+sum of their degrees.  This is the generic algebraic core used when an
+ordinary section is divisible by two distinct reciprocal minimal
+polynomials; it does not prove that the selected finite-field polynomials
+are reciprocal or distinct. -/
+theorem polynomial_natDegree_add_le_of_isCoprime_dvd
+    {K : Type*} [Field K] (P Q S : Polynomial K)
+    (hcop : IsCoprime P Q) (hPS : P ∣ S) (hQS : Q ∣ S)
+    (hS : S ≠ 0) :
+    P.natDegree + Q.natDegree ≤ S.natDegree := by
+  have hP : P ≠ 0 := by
+    intro hP
+    obtain ⟨R, hR⟩ := hPS
+    apply hS
+    rw [hR, hP, zero_mul]
+  have hQ : Q ≠ 0 := by
+    intro hQ
+    obtain ⟨R, hR⟩ := hQS
+    apply hS
+    rw [hR, hQ, zero_mul]
+  have hmul : P * Q ∣ S := hcop.mul_dvd hPS hQS
+  calc
+    P.natDegree + Q.natDegree = (P * Q).natDegree :=
+      (Polynomial.natDegree_mul hP hQ).symm
+    _ ≤ S.natDegree := Polynomial.natDegree_le_of_dvd hmul hS
+
+/-- Divisibility by a self-mirror polynomial is unchanged by a padded
+coefficient reversal, provided the divisor is coprime to `X`.  In the cubic
+selected-order sieve the divisor is `Y^(2H) + Y^H + 1`, while the two
+surviving residue sections are padded mirrors of one another.  This is the
+generic polynomial core of the resulting one-section criterion. -/
+theorem selfMirror_dvd_paddedMirror_iff
+    {K : Type*} [Field K] (G P : Polynomial K) (n : Nat)
+    (hG : G.mirror = G)
+    (hcop : IsCoprime G (Polynomial.X : Polynomial K)) :
+    G ∣ P.mirror * Polynomial.X ^ n ↔ G ∣ P := by
+  constructor
+  · intro h
+    have hcopn : IsCoprime G (Polynomial.X ^ n) := hcop.pow_right
+    have hm : G ∣ P.mirror := hcopn.dvd_of_dvd_mul_right h
+    obtain ⟨Q, hQ⟩ := hm
+    refine ⟨Q.mirror, ?_⟩
+    calc
+      P = P.mirror.mirror := P.mirror_mirror.symm
+      _ = (G * Q).mirror := by rw [hQ]
+      _ = G.mirror * Q.mirror := Polynomial.mirror_mul_of_domain G Q
+      _ = G * Q.mirror := by rw [hG]
+  · rintro ⟨Q, rfl⟩
+    rw [Polynomial.mirror_mul_of_domain, hG, mul_assoc]
+    exact dvd_mul_right G (Q.mirror * Polynomial.X ^ n)
+
+/-- Characteristic-two Frobenius expansion used before separating
+coefficients in the affine odd-power-basis argument.  The paper rewrites the
+first and last products as powers with exponent `2^k + 1`. -/
+theorem affine_frobenius_product_expansion
+    {K : Type*} [CommRing K] [CharP K 2] (t u : K) (k : Nat) :
+    (t + u) ^ (2 ^ k + 1) =
+      t ^ (2 ^ k) * t + u * t ^ (2 ^ k) +
+        u ^ (2 ^ k) * t + u ^ (2 ^ k) * u := by
+  rw [pow_add, pow_one, add_pow_char_pow]
+  ring
+
+/-- Frobenius factorization behind the cubic Singer norm-triple word.  In the
+cyclic polynomial quotient, reducing the two large exponents turns the right
+side into the sharp three-factor relation; consequently taking the current
+prime power of a quotient-bit word recovers that known norm relation rather
+than evaluating the missing Euler phase. -/
+theorem singer_normTriple_power_factorization
+    {K : Type*} [CommRing K] [CharP K 2] (x : K) (H : Nat) :
+    (1 + x) ^ (2 ^ (2 * H) + 2 ^ H + 1) =
+      (1 + x) * (1 + x ^ (2 ^ H)) * (1 + x ^ (2 ^ (2 * H))) := by
+  rw [pow_add, pow_add, pow_one, add_pow_char_pow, add_pow_char_pow]
+  ring
+
 /-- Exact Euler-quotient criterion in a finite cyclic group.  No
 squarefreeness shorthand is hidden: `p ∣ |G|` is the full hypothesis used in
 this group-level statement. -/
@@ -76,6 +201,26 @@ theorem isPthPower_iff_pow_card_div_eq_one {G : Type*}
     rcases haP with ⟨x, hx⟩
     exact ⟨x, hx⟩
 
+/-- Raising by an exponent coprime to `p` does not change the `p`-power
+class in a finite cyclic group whose order is divisible by `p`.  This is the
+group-theoretic bridge from the exceptional norm `A` to `M = A^(q-1)`. -/
+theorem isPthPower_pow_iff_of_coprime
+    {G : Type*} [CommGroup G] [Fintype G] [IsCyclic G]
+    {p e : Nat} (hp : p ∣ Fintype.card G)
+    (hcop : p.Coprime e) (a : G) :
+    IsPthPower p (a ^ e) ↔ IsPthPower p a := by
+  rw [isPthPower_iff_pow_card_div_eq_one hp,
+    isPthPower_iff_pow_card_div_eq_one hp]
+  rw [show (a ^ e) ^ (Fintype.card G / p) =
+      (a ^ (Fintype.card G / p)) ^ e by
+    simp only [← pow_mul, Nat.mul_comm]]
+  have hpOrder : (a ^ (Fintype.card G / p)) ^ p = 1 := by
+    rw [← pow_mul, Nat.div_mul_cancel hp]
+    exact pow_card_eq_one
+  have hiff := pow_eq_one_iff_of_coprime
+    (a := a ^ (Fintype.card G / p)) hcop.symm
+  simpa [hpOrder] using hiff
+
 /-- Order-theoretic form of the exact power criterion.  This is the useful
 interface for the four excess arms: when `p` is prime, a selected element
 misses the full `p`-primary part of the ambient cyclic group exactly when its
@@ -87,6 +232,39 @@ theorem isPthPower_iff_orderOf_dvd_card_div {G : Type*}
     IsPthPower p a ↔ orderOf a ∣ Fintype.card G / p := by
   rw [isPthPower_iff_pow_card_div_eq_one hp]
   exact orderOf_dvd_iff_pow_eq_one.symm
+
+/-- An index divides the order defect exactly when the selected order divides
+the corresponding ambient quotient.  Combined with
+`isPthPower_iff_orderOf_dvd_card_div`, this says that a failed power test is
+precisely a prime factor of the defect, with no squarefreeness assumption. -/
+theorem orderOf_dvd_card_div_iff_dvd_orderDefect
+    {G : Type*} [Group G] [Fintype G] {m : Nat}
+    (hm : m ∣ Fintype.card G) (a : G) :
+    orderOf a ∣ Fintype.card G / m ↔
+      m ∣ Fintype.card G / orderOf a := by
+  constructor
+  · intro h
+    have hmul : m * orderOf a ∣ Fintype.card G :=
+      (Nat.dvd_div_iff_mul_dvd hm).1 h
+    apply (Nat.dvd_div_iff_mul_dvd
+      (orderOf_dvd_card : orderOf a ∣ Fintype.card G)).2
+    simpa [Nat.mul_comm] using hmul
+  · intro h
+    have hmul : orderOf a * m ∣ Fintype.card G :=
+      (Nat.dvd_div_iff_mul_dvd
+        (orderOf_dvd_card : orderOf a ∣ Fintype.card G)).1 h
+    apply (Nat.dvd_div_iff_mul_dvd hm).2
+    simpa [Nat.mul_comm] using hmul
+
+/-- In a finite cyclic group, membership in the image of the `m`-th-power
+map is exactly divisibility of the order defect by `m`. -/
+theorem isPthPower_iff_dvd_orderDefect
+    {G : Type*} [CommGroup G] [Fintype G] [IsCyclic G]
+    {m : Nat} (hm : m ∣ Fintype.card G) (a : G) :
+    IsPthPower m a ↔
+      m ∣ Fintype.card G / orderOf a := by
+  exact (isPthPower_iff_orderOf_dvd_card_div hm a).trans
+    (orderOf_dvd_card_div_iff_dvd_orderDefect hm a)
 
 /-- Exact factorization of an element's order into its order in a quotient and
 the residual order after raising by that quotient order.  This is the abstract
@@ -357,6 +535,142 @@ theorem conwayUnit_eulerSymbol
   rw [pow_mul, hbase]
 
 end FermatLocalSymbol
+
+/-- Fixed-field form of the exceptional Euler test.  For the literal
+exceptional coordinate, `A^(q-1)` is `M_k`; after putting
+`d = (q+1)/ell`, failure of the desired nontrivial Euler phase is exactly
+Frobenius fixity of `A^d`.  The cyclic three-block criterion in the paper
+is a concrete polynomial-coordinate refinement of this group identity. -/
+theorem exceptional_euler_fixed_iff
+    {G : Type*} [CommGroup G] (A : G) (q d : Nat) (hq : 0 < q) :
+    (A ^ (q - 1)) ^ d = 1 ↔ (A ^ d) ^ q = A ^ d := by
+  have hbalance : (A ^ (q - 1)) ^ d * A ^ d = (A ^ d) ^ q := by
+    simp only [← pow_mul, ← pow_add]
+    congr 1
+    calc
+      (q - 1) * d + d = (q - 1 + 1) * d := by rw [add_mul, one_mul]
+      _ = q * d := by
+        rw [Nat.sub_add_cancel (Nat.one_le_iff_ne_zero.mpr hq.ne')]
+      _ = d * q := Nat.mul_comm _ _
+  constructor
+  · intro h
+    rw [← hbalance, h, one_mul]
+  · intro h
+    apply mul_right_cancel (b := A ^ d)
+    rw [hbalance, h, one_mul]
+
+section ExceptionalCyclicCompression
+
+/-- In characteristic two, three equal blocks whose block sum vanishes are
+all zero.  In the exceptional cyclic model the vanishing block sum comes
+from the automatic reciprocal symmetry on the `X^h - 1` component; this
+lemma is the abstract last step upgrading the paper's three-block equality
+to literal vanishing of the cyclic representative. -/
+theorem three_equal_blocks_eq_zero
+    {R : Type*} [CommRing R] [CharP R 2]
+    (v₀ v₁ v₂ : R) (hsum : v₀ + v₁ + v₂ = 0)
+    (h₀₁ : v₀ = v₁) (h₁₂ : v₁ = v₂) :
+    v₀ = 0 ∧ v₁ = 0 ∧ v₂ = 0 := by
+  subst v₁
+  subst v₂
+  have hv₀ : v₀ = 0 := by
+    simpa [CharTwo.add_self_eq_zero] using hsum
+  exact ⟨hv₀, hv₀, hv₀⟩
+
+/-- A multiplicative twist whose full exponent is one disappears from the
+powered value.  The exceptional old-component specialization takes the twist
+to be `x⁻²`; divisibility of the Euler exponent by the cyclic length makes
+its `d`-th power one. -/
+theorem mul_twist_pow_eq_of_pow_eq_one
+    {R : Type*} [CommMonoid R] (u a : R) (d : Nat)
+    (hu : u ^ d = 1) :
+    (u * a) ^ d = a ^ d := by
+  rw [mul_pow, hu, one_mul]
+
+/-- Algebraic core of the one-third Frobenius compression in arm `D`.
+If `w²+w+1=0`, multiplication of the exceptional trinomial by its
+one-third-Frobenius conjugate collapses from nine terms to three.  The paper
+supplies `z^Q = w*z⁻¹` from the exact congruence
+`Q ≡ h-1 (mod 3h)`. -/
+theorem exceptional_one_third_sparse_product
+    {F : Type*} [Field F] [CharP F 2]
+    (z w : F) (hz : z ≠ 0) (hw : w ^ 2 + w + 1 = 0) :
+    (z ^ 2 + z + w) *
+        (w ^ 2 * (z⁻¹) ^ 2 + w * z⁻¹ + w ^ 2) =
+      (z⁻¹) ^ 2 + z + w ^ 2 * z ^ 2 := by
+  have hw' : w ^ 2 + (w + 1) = 0 := by
+    simpa [add_assoc] using hw
+  have hwinv : w ^ 2 = w + 1 := by
+    have hneg : -(w + 1) = w + 1 := CharTwo.neg_eq (w + 1)
+    calc
+      w ^ 2 = -(w + 1) := eq_neg_of_add_eq_zero_left hw'
+      _ = w + 1 := hneg
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hfour : (4 : F) = 0 := by
+    calc
+      (4 : F) = 2 + 2 := by norm_num
+      _ = 0 := by rw [htwo]; simp
+  rw [hwinv]
+  field_simp [hz]
+  ring_nf
+  rw [hwinv]
+  ring_nf
+  simp [htwo]
+  exact Or.inr hfour
+
+/-- Factoring an Euler exponent through the one-third Frobenius block
+commutes with powering.  In arm `D`, `d=(Q+1)e` and `B=A^(Q+1)`, so the
+original selected word `A^d` is exactly the compressed word `B^e`. -/
+theorem exceptional_power_one_third_compression
+    {R : Type*} [Monoid R] (A : R) (Q e d : Nat)
+    (hd : d = (Q + 1) * e) :
+    A ^ d = (A ^ (Q + 1)) ^ e := by
+  rw [hd, pow_mul]
+
+/-- Exact algebraic step in the parity-twisted exceptional compression.
+Suppose `P^(r*ell)` is the known cubic phase `ε`, `ell = 1 (mod 3)`, and
+`ε³=1`.  Then the original exponent `3*r` kills `P` exactly when the shorter
+exponent `r` reaches that phase.  The paper obtains
+`P^(r*ell)=ε` from an explicit relative-norm computation. -/
+theorem power_three_complement_eq_one_iff_twisted
+    {G : Type*} [Monoid G] (P ε : G) (r ell t : Nat)
+    (hfull : P ^ (r * ell) = ε) (hell : ell = 3 * t + 1)
+    (hε : ε ^ 3 = 1) :
+    P ^ (3 * r) = 1 ↔ P ^ r = ε := by
+  constructor
+  · intro hkill
+    have hcube : (P ^ r) ^ 3 = 1 := by
+      rw [← pow_mul]
+      simpa [Nat.mul_comm] using hkill
+    have hfix : (P ^ r) ^ ell = P ^ r := by
+      rw [hell, pow_add, pow_mul, hcube]
+      simp
+    calc
+      P ^ r = (P ^ r) ^ ell := hfix.symm
+      _ = P ^ (r * ell) := (pow_mul P r ell).symm
+      _ = ε := hfull
+  · intro hphase
+    calc
+      P ^ (3 * r) = P ^ (r * 3) := by rw [Nat.mul_comm]
+      _ = (P ^ r) ^ 3 := pow_mul P r 3
+      _ = ε ^ 3 := by rw [hphase]
+      _ = 1 := hε
+
+/-- Cubing a trinomial in characteristic two has no three-way mixed term.
+This is the algebraic expansion used by the paper to settle the compressed
+exceptional target when the complementary exponent is exactly three. -/
+theorem charTwo_trinomial_cube
+    {R : Type*} [CommRing R] [CharP R 2] (a b c : R) :
+    (a + b + c) ^ 3 =
+      (a ^ 2 + b ^ 2 + c ^ 2) * (a + b + c) := by
+  have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  calc
+    (a + b + c) ^ 3 = (a + b + c) ^ 2 * (a + b + c) := by ring
+    _ = (a ^ 2 + b ^ 2 + c ^ 2) * (a + b + c) := by
+      rw [add_sq, add_sq]
+      simp [htwo]
+
+end ExceptionalCyclicCompression
 
 /-- If a primary factor `r` divides `a` but is coprime to a divisor `b`, then
 the whole factor survives in the quotient `a / b`.  Applied to
@@ -1484,6 +1798,157 @@ theorem cubicAffineLine_subset_traceKernel
     tr gamma hgamma hgammaSq a b
 
 end CubicSelfPolarAffineLine
+
+section LowDegreeMinpolyCollision
+
+open Polynomial
+
+/-- Two polynomials of degree below the minimal-polynomial degree cannot
+collide at the selected algebraic point.  This is the ordinary kernel-checked
+algebraic core of the cubic partition bound's cross-product argument; the
+cyclotomic degree and combinatorial coefficient comparison remain in the
+paper. -/
+theorem polynomial_eq_of_aeval_eq_of_natDegree_lt_minpoly
+    {K L : Type*} [Field K] [Field L] [Algebra K L]
+    (x : L) (A B : K[X])
+    (hA : A.natDegree < (minpoly K x).natDegree)
+    (hB : B.natDegree < (minpoly K x).natDegree)
+    (heval : aeval x A = aeval x B) :
+    A = B := by
+  by_contra hne
+  have hsub : A - B ≠ 0 := sub_ne_zero.mpr hne
+  have hdvd : minpoly K x ∣ A - B := by
+    rw [minpoly.dvd_iff]
+    rw [map_sub, heval, sub_self]
+  have hle : (minpoly K x).natDegree ≤ (A - B).natDegree :=
+    Polynomial.natDegree_le_of_dvd hdvd hsub
+  have hlt : (A - B).natDegree < (minpoly K x).natDegree :=
+    (Polynomial.natDegree_sub_le A B).trans_lt (max_lt hA hB)
+  exact (not_lt_of_ge hle) hlt
+
+/-- A phase cancellation can permit the cross-product difference to have
+degree equal to the minimal-polynomial degree.  In that boundary case it is
+a scalar multiple of the minimal polynomial; a zero constant coefficient
+still rules it out when the minimal polynomial has nonzero constant
+coefficient.  This is the ordinary algebraic core of the phase-refined
+Kummer-ratio packing bound in the paper. -/
+theorem polynomial_eq_of_aeval_eq_of_natDegree_le_minpoly_of_coeff_zero
+    {K L : Type*} [Field K] [Field L] [Algebra K L]
+    (x : L) (A B : K[X])
+    (hx : IsIntegral K x)
+    (hdegree : (A - B).natDegree ≤ (minpoly K x).natDegree)
+    (hcoeff : (A - B).coeff 0 = 0)
+    (hmincoeff : (minpoly K x).coeff 0 ≠ 0)
+    (heval : aeval x A = aeval x B) :
+    A = B := by
+  have hdvd : minpoly K x ∣ A - B := by
+    rw [minpoly.dvd_iff]
+    rw [map_sub, heval, sub_self]
+  have hmultiple :
+      A - B = minpoly K x * C (A - B).leadingCoeff :=
+    Polynomial.eq_mul_leadingCoeff_of_monic_of_dvd_of_natDegree_le
+      (minpoly.monic hx) hdvd hdegree
+  have hlead : (A - B).leadingCoeff = 0 := by
+    have hzero :
+        (minpoly K x).coeff 0 * (A - B).leadingCoeff = 0 := by
+      have hconstant := congrArg (fun P : K[X] ↦ P.coeff 0) hmultiple
+      simpa [hcoeff] using hconstant.symm
+    exact (mul_eq_zero.mp hzero).resolve_left hmincoeff
+  rw [hlead, map_zero, mul_zero] at hmultiple
+  exact sub_eq_zero.mp hmultiple
+
+end LowDegreeMinpolyCollision
+
+section CubicPowerState
+
+variable {R : Type*} [CommRing R]
+
+/-- Algebraic recurrence used for power sums of the roots of a monic cubic
+in characteristic two.  It is defined over any commutative ring, but the
+initial values `1`, `A`, and `A²` have the asserted three-root power-sum
+interpretation after characteristic-two specialization. -/
+def cubicPowerSum (A B C : R) : ℕ → R
+  | 0 => 1
+  | 1 => A
+  | 2 => A ^ 2
+  | n + 3 =>
+      A * cubicPowerSum A B C (n + 2) +
+      B * cubicPowerSum A B C (n + 1) +
+      C * cubicPowerSum A B C n
+
+/-- The tripled power sum is `A³ + A*B + C`, the first nontrivial instance
+of the cubic power-state composition law. -/
+theorem cubicPowerSum_three (A B C : R) :
+    cubicPowerSum A B C 3 = A ^ 3 + A * B + C := by
+  simp [cubicPowerSum]
+  ring
+
+/-- Once both trace coordinates vanish, the universal cubic power state
+continues to vanish in residue class one modulo three. -/
+theorem cubicPowerSum_zero_zero_mod_one (C : R) (t : ℕ) :
+    cubicPowerSum 0 0 C (3 * t + 1) = 0 := by
+  induction t with
+  | zero => simp [cubicPowerSum]
+  | succ t ih =>
+      rw [show 3 * (t + 1) + 1 = (3 * t + 1) + 3 by omega]
+      simp [cubicPowerSum, ih]
+
+/-- The same zero state vanishes in residue class two modulo three. -/
+theorem cubicPowerSum_zero_zero_mod_two (C : R) (t : ℕ) :
+    cubicPowerSum 0 0 C (3 * t + 2) = 0 := by
+  induction t with
+  | zero => simp [cubicPowerSum]
+  | succ t ih =>
+      rw [show 3 * (t + 1) + 2 = (3 * t + 2) + 3 by omega]
+      simp [cubicPowerSum, ih]
+
+/-- The pairwise products of three roots have elementary invariants
+`(B, A*C, C²)`, the algebraic input for the second power-state composition
+formula. -/
+theorem cubicPairwiseProduct_invariants (x y z : R) :
+    (x * y) * (x * z) + (x * y) * (y * z) + (x * z) * (y * z) =
+      (x + y + z) * (x * y * z) ∧
+    (x * y) * (x * z) * (y * z) = (x * y * z) ^ 2 := by
+  constructor
+  <;> ring
+
+end CubicPowerState
+
+section CubicHalfAngleDivisibility
+
+open Polynomial
+
+/-- Lossless denominator-free polynomial form of the half-angle order test.
+For a nonzero `z`, the equality `(z + z⁻¹)^d = 1` is equivalent to the
+minimal polynomial of `z` dividing `(X² + 1)^d - X^d`.  In the cubic arm,
+`minpoly z = X^(2*h) + X^h + 1` and characteristic two turns the subtraction
+into addition, exposing the exact Lucas-parity divisibility problem.  This
+reduction does not prove the required nondivisibility, hence does not prove
+arm `C`. -/
+theorem halfAngle_pow_eq_one_iff_minpoly_dvd
+    {K F : Type*} [Field K] [Field F] [Algebra K F]
+    (z : F) (hz : z ≠ 0) (d : Nat) :
+    (z + z⁻¹) ^ d = 1 ↔
+      minpoly K z ∣ (X ^ 2 + 1) ^ d - X ^ d := by
+  rw [minpoly.dvd_iff]
+  simp only [map_sub, map_pow, aeval_X, aeval_add, aeval_one]
+  have hrewrite : z + z⁻¹ = z⁻¹ * (z ^ 2 + 1) := by
+    field_simp
+  rw [hrewrite, mul_pow]
+  constructor
+  · intro h
+    apply sub_eq_zero.mpr
+    calc
+      (z ^ 2 + 1) ^ d = 1 * (z ^ 2 + 1) ^ d := by simp
+      _ = (z ^ d * (z⁻¹) ^ d) * (z ^ 2 + 1) ^ d := by
+        rw [← mul_pow, mul_inv_cancel₀ hz, one_pow]
+      _ = z ^ d * ((z⁻¹) ^ d * (z ^ 2 + 1) ^ d) := by ring
+      _ = z ^ d := by rw [h, mul_one]
+  · intro h
+    have heq : (z ^ 2 + 1) ^ d = z ^ d := sub_eq_zero.mp h
+    rw [heq, ← mul_pow, inv_mul_cancel₀ hz, one_pow]
+
+end CubicHalfAngleDivisibility
 
 section CubicSingerIncidence
 
@@ -3459,6 +3924,24 @@ theorem signedDicksonLucas_eq_add_powers (T U : R) (n : Nat) :
       rw [signedDicksonLucas_add_two, hn, hn1]
       ring
 
+/-- Exact power-sum recursion across one Conway quadratic edge.  If `y` and
+`y+x` are the two roots of `Y² + xY + x³`, their `m`-th power sum is the
+signed Dickson--Lucas word with lower invariants `(x, x³)`. -/
+theorem conwayChild_powerSum [CharP R 2]
+    (x y : R) (h : y ^ 2 + x * y + x ^ 3 = 0) (m : Nat) :
+    signedDicksonLucas x (x ^ 3) m = y ^ m + (y + x) ^ m := by
+  have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  have hsum : y + (y + x) = x := by
+    linear_combination htwo * y
+  have hprod : y * (y + x) = x ^ 3 := by
+    have hxy : y ^ 2 + x * y = -x ^ 3 := eq_neg_of_add_eq_zero_left h
+    calc
+      y * (y + x) = y ^ 2 + x * y := by ring
+      _ = -x ^ 3 := hxy
+      _ = x ^ 3 := CharTwo.neg_eq (x ^ 3)
+  simpa only [hsum, hprod] using
+    signedDicksonLucas_eq_add_powers y (y + x) m
+
 /-- Factorization behind the exact tangency of an odd Dickson trace word to
 the identity.  In characteristic two, taking `u = 1 + T` and
 `X = u + u⁻¹` turns the two factors on the right into the two independent
@@ -3771,6 +4254,113 @@ theorem csdu_closes_below_totient_square
     csdu_failure_forces_totient_square
       G t phiN phiDelta hpacket hfactor hphi
   omega
+
+/-- A positive `p`-rough defect below `p²` is exactly `p`.  The multiplicative
+factor `B` is kept explicit so the theorem applies directly to a selected
+order lower bound `B ≤ o`, an ambient factorization `N = o * Δ`, and the
+prime-to-source part of `Δ`. -/
+theorem rough_defect_eq_prime
+    (B N D p : ℕ)
+    (hDpos : 0 < D)
+    (hpD : p ∣ D)
+    (hrough : ∀ q, q.Prime → q ∣ D → p ≤ q)
+    (hBD : B * D ≤ N)
+    (hsmall : N < B * p ^ 2) :
+    D = p := by
+  obtain ⟨k, rfl⟩ := hpD
+  have hkpos : 0 < k := by
+    by_contra hk
+    have hkzero : k = 0 := Nat.eq_zero_of_not_pos hk
+    subst k
+    simp at hDpos
+  have hkone : k = 1 := by
+    by_contra hk
+    obtain ⟨q, hqprime, hqk⟩ := Nat.exists_prime_and_dvd hk
+    have hqD : q ∣ p * k := dvd_mul_of_dvd_right hqk p
+    have hpq : p ≤ q := hrough q hqprime hqD
+    have hqk_le : q ≤ k := Nat.le_of_dvd hkpos hqk
+    have hpk : p ≤ k := hpq.trans hqk_le
+    have hsq : B * p ^ 2 ≤ B * (p * k) := by
+      apply Nat.mul_le_mul_left
+      simpa [pow_two] using Nat.mul_le_mul_left p hpk
+    exact (not_lt_of_ge (hsq.trans hBD)) hsmall
+  simp [hkone]
+
+/-- Distinct natural numbers in the same residue class are separated by at
+least the modulus.  This is the additive step behind the refined
+least-counterexample conductor sieve. -/
+theorem add_modulus_le_of_modEq_one_of_lt
+    (p q M : ℕ)
+    (hpM : p ≡ 1 [MOD M])
+    (hqM : q ≡ 1 [MOD M])
+    (hpq : p < q) :
+    p + M ≤ q := by
+  have hpqM : p ≡ q [MOD M] := hpM.trans hqM.symm
+  have hdiv : M ∣ q - p :=
+    (Nat.modEq_iff_dvd' hpq.le).mp hpqM
+  have hMle : M ≤ q - p :=
+    Nat.le_of_dvd (Nat.sub_pos_of_lt hpq) hdiv
+  omega
+
+/-- A positive defect containing `p`, whose other prime factors are either
+another copy of `p` or at least `p+M`, is exactly `p` below the latter
+threshold unless it contains `p²`.  This division-free form applies to both
+the Fermat and odd-cyclotomic least-counterexample sieves. -/
+theorem rough_gap_defect_eq_prime_or_square_dvd
+    (B N D p M : ℕ)
+    (hDpos : 0 < D)
+    (hpD : p ∣ D)
+    (hgap : ∀ q, q.Prime → q ∣ D → q ≠ p → p + M ≤ q)
+    (hBD : B * D ≤ N)
+    (hsmall : N < B * (p * (p + M))) :
+    D = p ∨ p ^ 2 ∣ D := by
+  by_cases hsq : p ^ 2 ∣ D
+  · exact Or.inr hsq
+  · left
+    obtain ⟨k, rfl⟩ := hpD
+    have hkpos : 0 < k := by
+      by_contra hk
+      have hkzero : k = 0 := Nat.eq_zero_of_not_pos hk
+      subst k
+      simp at hDpos
+    have hkone : k = 1 := by
+      by_contra hk
+      obtain ⟨q, hqprime, hqk⟩ := Nat.exists_prime_and_dvd hk
+      have hqD : q ∣ p * k := dvd_mul_of_dvd_right hqk p
+      have hqne : q ≠ p := by
+        intro hqp
+        subst q
+        apply hsq
+        rw [pow_two]
+        exact Nat.mul_dvd_mul_left p hqk
+      have hpMq : p + M ≤ q := hgap q hqprime hqD hqne
+      have hqk_le : q ≤ k := Nat.le_of_dvd hkpos hqk
+      have hpk : p + M ≤ k := hpMq.trans hqk_le
+      have hlarge : B * (p * (p + M)) ≤ B * (p * k) := by
+        exact Nat.mul_le_mul_left B (Nat.mul_le_mul_left p hpk)
+      exact (not_lt_of_ge (hlarge.trans hBD)) hsmall
+    simp [hkone]
+
+/-- Congruence form of `rough_gap_defect_eq_prime_or_square_dvd`: if every
+prime divisor of the defect is at least `p` and congruent to `1` modulo `M`,
+then a distinct second divisor is automatically at least `p+M`. -/
+theorem rough_congruent_defect_eq_prime_or_square_dvd
+    (B N D p M : ℕ)
+    (hDpos : 0 < D)
+    (hp : p.Prime)
+    (hpD : p ∣ D)
+    (hrough : ∀ q, q.Prime → q ∣ D → p ≤ q)
+    (hcongr : ∀ q, q.Prime → q ∣ D → q ≡ 1 [MOD M])
+    (hBD : B * D ≤ N)
+    (hsmall : N < B * (p * (p + M))) :
+    D = p ∨ p ^ 2 ∣ D := by
+  apply rough_gap_defect_eq_prime_or_square_dvd
+      B N D p M hDpos hpD _ hBD hsmall
+  intro q hqprime hqD hqne
+  have hpq : p ≤ q := hrough q hqprime hqD
+  have hpqlt : p < q := lt_of_le_of_ne hpq (Ne.symm hqne)
+  exact add_modulus_le_of_modEq_one_of_lt p q M
+    (hcongr p hp hpD) (hcongr q hqprime hqD) hpqlt
 
 end FermatPacketGapCore
 
@@ -5738,6 +6328,179 @@ theorem canonical_new_component_ratio
 
 end FermatEulerTail
 
+section FermatSelectedMultiplicationBlocks
+
+variable {R : Type*} [CommSemiring R]
+
+/-- Literal two-block multiplication at one Conway--Fermat edge.  If the
+new Artin--Schreier coordinate satisfies `c² = c + a`, then multiplication
+by the selected product `a*c`, in coordinates `R ⊕ cR`, has block form
+`[[0, A²], [A, A]]`, where `A` denotes multiplication by `a`.  This is an
+exact selector-retaining interface; it does not assert that any resulting
+Fibonacci/Kummer coordinate is nonzero. -/
+theorem fermat_selected_product_mul_pair
+    (a c x y : R) (hc : c ^ 2 = c + a) :
+    (a * c) * (x + c * y) =
+      a ^ 2 * y + c * (a * x + a * y) := by
+  calc
+    (a * c) * (x + c * y) = a * c * x + a * c ^ 2 * y := by ring
+    _ = a * c * x + a * (c + a) * y := by rw [hc]
+    _ = a ^ 2 * y + c * (a * x + a * y) := by ring
+
+end FermatSelectedMultiplicationBlocks
+
+section FermatSelectedSymmetricBlocks
+
+variable {R : Type*} [CommSemiring R]
+
+/-- Scaling the lower coordinate at a selected Conway--Fermat edge by a
+square root `b` of the parent `a` makes multiplication by `a*c` symmetric.
+In the basis represented by `b*x + c*y`, both off-diagonal coefficients are
+`a*b`.  No division is used, so the identity remains valid before imposing
+that the coordinates form a basis. -/
+theorem fermat_selected_product_symmetric_pair
+    (a b c x y : R) (hb : b ^ 2 = a) (hc : c ^ 2 = c + a) :
+    (a * c) * (b * x + c * y) =
+      b * (a * b * y) + c * (a * b * x + a * y) := by
+  calc
+    (a * c) * (b * x + c * y) =
+        a * b * c * x + a * c ^ 2 * y := by ring
+    _ = a * b * c * x + a * (c + a) * y := by rw [hc]
+    _ = b * (a * b * y) + c * (a * b * x + a * y) := by
+      rw [← hb]
+      ring
+
+/-- Full symmetric two-block reduction.  If a reduced field value is
+`u + (a*c)*v`, then in the square-root-scaled coordinates `b*x + c*y` its
+multiplication blocks are
+
+`[[u, a*b*v], [a*b*v, u+a*v]]`.
+
+Thus every polynomial in the literal selected multiplication operator has a
+selector-retaining symmetric realization. -/
+theorem fermat_selected_remainder_symmetric_pair
+    (a b c u v x y : R) (hb : b ^ 2 = a) (hc : c ^ 2 = c + a) :
+    (u + a * c * v) * (b * x + c * y) =
+      b * (u * x + a * b * v * y) +
+        c * (a * b * v * x + (u + a * v) * y) := by
+  calc
+    (u + a * c * v) * (b * x + c * y) =
+        u * b * x + u * c * y + a * b * c * v * x +
+          a * c ^ 2 * v * y := by ring
+    _ = u * b * x + u * c * y + a * b * c * v * x +
+          a * (c + a) * v * y := by rw [hc]
+    _ = b * (u * x + a * b * v * y) +
+        c * (a * b * v * x + (u + a * v) * y) := by
+      rw [← hb]
+      ring
+
+/-- Fast squaring directly on the two diagonal endpoint coordinates of the
+symmetric block.  Writing a quadratic value as `L + c*(L+R)`, its square has
+diagonal endpoints
+
+`(L² + a*(L+R)², R² + a*(L+R)²)`.
+
+The common correction is the square of the relative-trace coordinate. -/
+theorem fermat_symmetric_diagonal_square
+    {S : Type*} [CommRing S] [CharP S 2]
+    (a c L R₁ : S) (hc : c ^ 2 = c + a) :
+    (L + c * (L + R₁)) ^ 2 =
+      (L ^ 2 + a * (L + R₁) ^ 2) +
+        c * ((L ^ 2 + a * (L + R₁) ^ 2) +
+          (R₁ ^ 2 + a * (L + R₁) ^ 2)) := by
+  have hsquare (x y : S) : (x + y) ^ 2 = x ^ 2 + y ^ 2 := by
+    simpa using (add_pow_expChar_pow x y 2 1)
+  rw [hsquare, mul_pow, hc, hsquare]
+  have htwo : (2 : S) = 0 := CharP.cast_eq_zero S 2
+  ring_nf
+  simp [htwo]
+
+/-- Odd fast doubling on the same diagonal coordinates.  If `(L,R)` are
+the endpoints for `S_m` and `(P,Q)` those for `S_(m+1)`, then the endpoints
+for `S_(2m+1) = S_(m+1)² + (a*c)S_m²` are the displayed pair.  This is
+the scalar residual recurrence obtained from the literal symmetric block;
+it retains the complete selected parent `a`. -/
+theorem fermat_symmetric_diagonal_odd
+    {S : Type*} [CommRing S] [CharP S 2]
+    (a c L R₁ P Q : S) (hc : c ^ 2 = c + a) :
+    (P + c * (P + Q)) ^ 2 +
+        (a * c) * (L + c * (L + R₁)) ^ 2 =
+      (P ^ 2 + a * (P + Q) ^ 2 + a ^ 2 * (L + R₁) ^ 2) +
+        c * ((P ^ 2 + a * (P + Q) ^ 2 +
+            a ^ 2 * (L + R₁) ^ 2) +
+          (Q ^ 2 + a * (P + Q) ^ 2 + a * R₁ ^ 2)) := by
+  have hsquare (x y : S) : (x + y) ^ 2 = x ^ 2 + y ^ 2 := by
+    simpa using (add_pow_expChar_pow x y 2 1)
+  rw [hsquare, mul_pow, hsquare, hsquare, mul_pow, hc, hsquare]
+  have htwo : (2 : S) = 0 := CharP.cast_eq_zero S 2
+  ring_nf
+  rw [hc]
+  ring_nf
+  simp [htwo]
+
+/-- The selected square root of the upper multiplier `a*c` is still linear
+in the literal quadratic coordinate: if `b²=a`, then
+`sqrt(a*c) = a + b*c`. -/
+theorem fermat_selected_product_square_root [CharP R 2]
+    (a b c : R) (hb : b ^ 2 = a) (hc : c ^ 2 = c + a) :
+    (a + b * c) ^ 2 = a * c := by
+  rw [add_sq, mul_pow, hb, hc]
+  have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  ring_nf
+  simp [htwo]
+
+/-- Exact residual equation for a hypothetical odd Fibonacci zero.  The
+fast-doubling identity `S_(2m+1)=S_(m+1)²+(a*c)S_m²` vanishes precisely
+when the two adjacent values differ by the literal selected square root
+`a+b*c`. -/
+theorem fermat_selected_odd_square_zero_iff
+    {F : Type*} [Field F] [CharP F 2]
+    (a b c z y : F) (hb : b ^ 2 = a) (hc : c ^ 2 = c + a) :
+    z ^ 2 + (a * c) * y ^ 2 = 0 ↔ z = (a + b * c) * y := by
+  let s := a + b * c
+  have hs : s ^ 2 = a * c := by
+    exact fermat_selected_product_square_root a b c hb hc
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  constructor
+  · intro h
+    have hsq : (z + s * y) ^ 2 = 0 := by
+      rw [show (z + s * y) ^ 2 = z ^ 2 + (s * y) ^ 2 by
+        simpa using (add_pow_expChar_pow z (s * y) 2 1)]
+      rw [mul_pow, hs]
+      exact h
+    have hzero : z + s * y = 0 := by
+      exact mul_self_eq_zero.mp (by simpa [pow_two] using hsq)
+    exact (eq_neg_of_add_eq_zero_left hzero).trans (CharTwo.neg_eq (s * y))
+  · intro h
+    rw [h, mul_pow, hs]
+    ring_nf
+    simp [htwo]
+
+/-- Endpoint-coordinate form of multiplication by the selected square root.
+If `(L,R)` are the two symmetric diagonal endpoints of a value, then the
+endpoints after multiplication by `a+b*c` are obtained by the displayed
+symmetric two-by-two matrix. -/
+theorem fermat_selected_square_root_diagonal_pair
+    {S : Type*} [CommRing S] [CharP S 2]
+    (a b c L R₁ : S) (hb : b ^ 2 = a) (hc : c ^ 2 = c + a) :
+    (a + b * c) * (L + c * (L + R₁)) =
+      (a * (1 + b) * L + a * b * R₁) +
+        c * ((a * (1 + b) * L + a * b * R₁) +
+          (a * b * L + (a * b + a + b) * R₁)) := by
+  have htwo : (2 : S) = 0 := CharP.cast_eq_zero S 2
+  calc
+    (a + b * c) * (L + c * (L + R₁)) =
+        a * L + a * c * (L + R₁) + b * c * L +
+          b * c ^ 2 * (L + R₁) := by ring
+    _ = (a * (1 + b) * L + a * b * R₁) +
+        c * ((a * (1 + b) * L + a * b * R₁) +
+          (a * b * L + (a * b + a + b) * R₁)) := by
+      rw [hc, ← hb]
+      ring_nf
+      simp [htwo]
+
+end FermatSelectedSymmetricBlocks
+
 section FermatFibonacciCompression
 
 variable {R : Type*} [CommRing R]
@@ -5748,6 +6511,36 @@ def fibPolyValue (a : R) : Nat → R
   | 0 => 0
   | 1 => 1
   | n + 2 => fibPolyValue a (n + 1) + a * fibPolyValue a n
+
+/-- Binet parametrization of the characteristic-two Fibonacci polynomials by
+the inversion quotient `u / (u + 1)^2`.  This is the exact packet identity
+used to show that the fourth-power residuals hold for every torsion packet,
+not only for the Conway-selected branch. -/
+theorem fibPolyValue_torus_binet
+    {F : Type*} [Field F] [CharP F 2]
+    (u : F) (hu1 : u + 1 ≠ 0) (n : Nat) :
+    fibPolyValue (u / (u + 1) ^ 2) n =
+      (u ^ n + 1) / (u + 1) ^ n := by
+  induction n using Nat.twoStepInduction with
+  | zero =>
+      have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+      simp only [fibPolyValue, pow_zero, div_one]
+      have hone : (1 : F) + 1 = 0 := by
+        simpa only [one_add_one_eq_two] using htwo
+      exact hone.symm
+  | one =>
+      simp [fibPolyValue, hu1]
+  | more n hn hn1 =>
+      have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+      rw [fibPolyValue, hn, hn1]
+      field_simp [hu1]
+      ring_nf
+      have hthree : (3 : F) = 1 := by linear_combination htwo
+      have hfive : (5 : F) = 1 := by linear_combination 2 * htwo
+      have hseven : (7 : F) = 1 := by linear_combination 3 * htwo
+      have hnine : (9 : F) = 1 := by linear_combination 4 * htwo
+      rw [hthree, hfive, hseven, hnine]
+      simp only [htwo, mul_zero, add_zero, zero_add, mul_one]
 
 /-- Evaluation at `a` of the formal derivative of `Sᵣ`.  Differentiating
 `Sᵣ₊₂ = Sᵣ₊₁ + X Sᵣ` gives the displayed recursive definition. -/
@@ -6063,6 +6856,41 @@ theorem fermat_complement_indices_not_dvd
     omega
 
 end FermatFibonacciCompression
+
+section FermatSelectedBlockIndexBoundary
+
+variable {K : Type*} [Field K] [CharP K 2]
+
+/-- The partial Frobenius trace telescopes to its two endpoints.  This is the
+additive-polynomial identity
+
+`T_m(x)^2 + T_m(x) = x^(2^m) + x`.
+
+It is useful here because a Fibonacci zero whose index divides `2^m+1`
+forces `T_m(x)=1`, and hence forces `x` into the `2^m`-fixed subfield. -/
+theorem partialFrobeniusTrace_square_add_self (x : K) (m : Nat) :
+    (partialFrobeniusTrace x m) ^ 2 + partialFrobeniusTrace x m =
+      x ^ (2 ^ m) + x := by
+  have hsucc := partialFrobeniusTrace_succ x m
+  have hsplit := partialFrobeniusTrace_add_index x m 1
+  rw [show partialFrobeniusTrace x 1 = x by
+    simp [partialFrobeniusTrace]] at hsplit
+  have htwo : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  calc
+    (partialFrobeniusTrace x m) ^ 2 + partialFrobeniusTrace x m =
+        ((partialFrobeniusTrace x m) ^ 2 + x) +
+          (partialFrobeniusTrace x m + x) := by
+            ring_nf
+            simp [htwo]
+    _ = partialFrobeniusTrace x (m + 1) +
+          (partialFrobeniusTrace x m + x) := by rw [hsucc]
+    _ = (partialFrobeniusTrace x m + x ^ (2 ^ m)) +
+          (partialFrobeniusTrace x m + x) := by rw [hsplit]
+    _ = x ^ (2 ^ m) + x := by
+      ring_nf
+      simp [htwo]
+
+end FermatSelectedBlockIndexBoundary
 
 section FermatAdditiveEdgeArithmetic
 
@@ -7491,6 +8319,114 @@ theorem fibPolyValue_cassini
         _ = a * a ^ d := by rw [ih]
         _ = a ^ (d + 1) := by rw [pow_succ]; ring
 
+section FermatOddFourthPowerResidual
+
+/-- The lower fourth-power residual at an odd index factors through the
+selected Fibonacci value.  With `d = 2*m+1`, this is the ordinary
+characteristic-two polynomial identity
+
+`S_m(a)^4 + a^(d-2) = S_d(a) * S_(d-2)(a)`.
+
+The positivity hypothesis only keeps the natural-number expression `d-2`
+away from truncated subtraction. -/
+theorem fibPolyValue_odd_lower_fourth_factor
+    {R : Type*} [CommRing R] [CharP R 2]
+    (a : R) (m : Nat) (hm : 0 < m) :
+    (fibPolyValue a m) ^ 4 + a ^ (2 * m - 1) =
+      fibPolyValue a (2 * m + 1) * fibPolyValue a (2 * m - 1) := by
+  have hc := fibPolyValue_cassini a (2 * m - 1)
+  have hprev : 2 * m - 1 + 1 = 2 * m := by omega
+  have hnext : 2 * m - 1 + 2 = 2 * m + 1 := by omega
+  rw [hprev, hnext] at hc
+  have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  calc
+    (fibPolyValue a m) ^ 4 + a ^ (2 * m - 1) =
+        ((fibPolyValue a m) ^ 2) ^ 2 + a ^ (2 * m - 1) := by ring
+    _ = (fibPolyValue a (2 * m)) ^ 2 + a ^ (2 * m - 1) := by
+      rw [(fibPolyValue_double a m).1]
+    _ = (fibPolyValue a (2 * m)) ^ 2 +
+        ((fibPolyValue a (2 * m)) ^ 2 +
+          fibPolyValue a (2 * m - 1) * fibPolyValue a (2 * m + 1)) := by
+      rw [hc]
+    _ = fibPolyValue a (2 * m + 1) *
+        fibPolyValue a (2 * m - 1) := by
+      ring_nf
+      simp [htwo]
+
+/-- The companion upper fourth-power residual at the same odd index:
+
+`S_(m+1)(a)^4 + a^d = S_d(a) * S_(d+2)(a)` for `d = 2*m+1`. -/
+theorem fibPolyValue_odd_upper_fourth_factor
+    {R : Type*} [CommRing R] [CharP R 2]
+    (a : R) (m : Nat) :
+    (fibPolyValue a (m + 1)) ^ 4 + a ^ (2 * m + 1) =
+      fibPolyValue a (2 * m + 1) * fibPolyValue a (2 * m + 3) := by
+  have hc := fibPolyValue_cassini a (2 * m + 1)
+  have hdouble : 2 * m + 1 + 1 = 2 * (m + 1) := by omega
+  have hnext : 2 * m + 1 + 2 = 2 * m + 3 := by omega
+  rw [hdouble, hnext] at hc
+  have htwo : (2 : R) = 0 := CharP.cast_eq_zero R 2
+  calc
+    (fibPolyValue a (m + 1)) ^ 4 + a ^ (2 * m + 1) =
+        ((fibPolyValue a (m + 1)) ^ 2) ^ 2 + a ^ (2 * m + 1) := by ring
+    _ = (fibPolyValue a (2 * (m + 1))) ^ 2 + a ^ (2 * m + 1) := by
+      rw [(fibPolyValue_double a (m + 1)).1]
+    _ = (fibPolyValue a (2 * (m + 1))) ^ 2 +
+        ((fibPolyValue a (2 * (m + 1))) ^ 2 +
+          fibPolyValue a (2 * m + 1) * fibPolyValue a (2 * m + 3)) := by
+      rw [hc]
+    _ = fibPolyValue a (2 * m + 1) * fibPolyValue a (2 * m + 3) := by
+      ring_nf
+      simp [htwo]
+
+/-- Exact two-binomial residual for a hypothetical odd Fibonacci zero.
+Over a characteristic-two field, `S_(2*m+1)(a)` vanishes exactly when both
+adjacent half-index values have the forced fourth powers.  One equation
+alone also contains an adjacent Fibonacci branch; their conjunction removes
+that extraneous branch.  This sharpens the residual but does not decide the
+Conway-selected nonvanishing target: after Frobenius-root extraction its
+lower equation is the existing AE4 inverse-exponent seam. -/
+theorem fibPolyValue_odd_eq_zero_iff_fourth_residuals
+    {K : Type*} [Field K] [CharP K 2]
+    (a : K) (m : Nat) (hm : 0 < m) :
+    fibPolyValue a (2 * m + 1) = 0 ↔
+      (fibPolyValue a m) ^ 4 = a ^ (2 * m - 1) ∧
+        (fibPolyValue a (m + 1)) ^ 4 = a ^ (2 * m + 1) := by
+  have htwo : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  constructor
+  · intro hz
+    constructor
+    · have hfactor := fibPolyValue_odd_lower_fourth_factor a m hm
+      rw [hz, zero_mul] at hfactor
+      exact (eq_neg_of_add_eq_zero_left hfactor).trans
+        (CharTwo.neg_eq (a ^ (2 * m - 1)))
+    · have hfactor := fibPolyValue_odd_upper_fourth_factor a m
+      rw [hz, zero_mul] at hfactor
+      exact (eq_neg_of_add_eq_zero_left hfactor).trans
+        (CharTwo.neg_eq (a ^ (2 * m + 1)))
+  · rintro ⟨hlower, hupper⟩
+    have hodd := (fibPolyValue_double a m).2
+    have hsq : (fibPolyValue a (2 * m + 1)) ^ 2 = 0 := by
+      calc
+        (fibPolyValue a (2 * m + 1)) ^ 2 =
+            ((fibPolyValue a (m + 1)) ^ 2 +
+              a * (fibPolyValue a m) ^ 2) ^ 2 := by rw [hodd]
+        _ = (fibPolyValue a (m + 1)) ^ 4 +
+            a ^ 2 * (fibPolyValue a m) ^ 4 := by
+              ring_nf
+              simp [htwo]
+        _ = a ^ (2 * m + 1) + a ^ 2 * a ^ (2 * m - 1) := by
+              rw [hupper, hlower]
+        _ = 0 := by
+              rw [← pow_add]
+              have hexp : 2 + (2 * m - 1) = 2 * m + 1 := by omega
+              rw [hexp]
+              ring_nf
+              simp [htwo]
+    exact mul_self_eq_zero.mp (by simpa [pow_two] using hsq)
+
+end FermatOddFourthPowerResidual
+
 /-- Cassini at a Fibonacci zero: the square of the block scalar is the
 corresponding power of the recurrence parameter. -/
 theorem fibPolyValue_succ_sq_of_zero
@@ -7551,6 +8487,59 @@ theorem fibPolyValue_zero_block_scalar_root
     _ = a := by rw [hzeroTop, hpow, zero_add, mul_one]
 
 end FermatShiftBlockCore
+
+section FermatSelectedBlockWrongIndexExclusion
+
+variable {K : Type*} [Field K] [CharP K 2]
+
+/-- **Wrong-index exclusion, not the Conway--Fermat conjecture.**
+
+Suppose `a` is fixed by `2^m`-Frobenius while `c` is on the nontrivial side
+of a quadratic edge, so `c^(2^m)=c+1`.  Then `a*c` cannot be a Fibonacci
+zero at any index `r` dividing the *lower* period `2^m+1`.
+
+Indeed such a zero propagates to index `2^m+1`; the closed form there forces
+the partial trace to be one, and the telescoping identity
+`partialFrobeniusTrace_square_add_self` would put `a*c` in the fixed subfield.
+Its actual Frobenius displacement is the nonzero element `a`.
+
+For the literal block `M=[[0,A^2],[A,A]]` at the edge `c_n`, the represented
+element is `a_n=a_(n-1)c_n`.  Taking `2^m=|E_(n-1)|` proves automatic
+nonvanishing only for divisors of `F_n=2^m+1`.  The genuine next-level target
+for this block has index dividing `F_(n+1)=(2^m)^2+1`, so this theorem must
+not be read as a proof of the selected-order conjecture. -/
+theorem fibPolyValue_quadratic_birth_lower_period_ne_zero
+    (a c : K) (m ell r : Nat)
+    (ha : a ≠ 0)
+    (haFixed : a ^ (2 ^ m) = a)
+    (hcConj : c ^ (2 ^ m) = c + 1)
+    (hindex : ell * r = 2 ^ m + 1) :
+    fibPolyValue (a * c) r ≠ 0 := by
+  intro hr
+  have htop : fibPolyValue (a * c) (2 ^ m + 1) = 0 := by
+    have hblock := fibPolyValue_mul_add_zero_block (a * c) r ell 0 hr
+    simpa [hindex, fibPolyValue] using hblock
+  have hformula := fibPolyValue_trailing_zero_compression (a * c) m 1
+  simp only [fibPolyValue, mul_zero, add_zero, mul_one, one_pow] at hformula
+  have htraceZero : 1 + partialFrobeniusTrace (a * c) m = 0 := by
+    rw [← hformula]
+    exact htop
+  have htrace : partialFrobeniusTrace (a * c) m = 1 := by
+    exact (eq_neg_of_add_eq_zero_right htraceZero).trans
+      (CharTwo.neg_eq (1 : K))
+  have hfixed : (a * c) ^ (2 ^ m) + a * c = 0 := by
+    rw [← partialFrobeniusTrace_square_add_self (a * c) m, htrace]
+    simpa using (CharTwo.add_self_eq_zero (1 : K))
+  have hdisplacement : (a * c) ^ (2 ^ m) + a * c = a := by
+    rw [mul_pow, haFixed, hcConj]
+    have htwo : (2 : K) = 0 := CharP.cast_eq_zero K 2
+    ring_nf
+    simp [htwo]
+  apply ha
+  rw [← hdisplacement]
+  exact hfixed
+
+end FermatSelectedBlockWrongIndexExclusion
 
 section FermatSemiconjugacySaturation
 
@@ -8775,6 +9764,41 @@ section NormalizedSingerAlgebra
 
 variable {F : Type*} [Field F]
 
+/-- Dividing the oriented cyclic resolvent by the product of the three
+coordinates turns it into the trace of their successive ratios.  In the
+selected cubic tower the ratios are the three Frobenius conjugates of
+`eta_k`, so this identity identifies the old terminal orientation parameter
+with the preceding Singer coefficient. -/
+theorem orientedCyclicResolvent_div_eq_ratioTrace
+    (r₀ r₁ r₂ a : F)
+    (hr₀ : r₀ ≠ 0) (hr₁ : r₁ ≠ 0) (hr₂ : r₂ ≠ 0)
+    (ha : a = r₀ * r₁ * r₂) :
+    (r₀ ^ 2 * r₁ + r₁ ^ 2 * r₂ + r₂ ^ 2 * r₀) / a =
+      r₀ / r₂ + r₁ / r₀ + r₂ / r₁ := by
+  rw [ha]
+  field_simp
+
+/-- After the resolvent orientation is identified with the preceding Singer
+coordinate `e`, its two nonconstant coefficients have a denominator-free
+normal form.  This is the algebraic substitution used in the selected
+exceptional terminal cubic; it does not assert any multiplicative-order
+transfer between the two coprime tori. -/
+theorem exceptionalTerminal_coefficients_of_singer [CharP F 2]
+    (a e : F) (hSinger : a ^ 2 * (e ^ 2 + e + 1) = 1) :
+    a ^ 2 * e + a ^ 2 + 1 = a ^ 2 * e ^ 2 ∧
+      a ^ 2 * (a + 1) * e + a ^ 3 + a + 1 =
+        (a + 1) * (a ^ 2 * e ^ 2) + a ^ 2 := by
+  have htwo : (2 : F) = 0 := CharP.cast_eq_zero F 2
+  have hquadratic : a ^ 2 * e + a ^ 2 + 1 = a ^ 2 * e ^ 2 := by
+    calc
+      a ^ 2 * e + a ^ 2 + 1 =
+          a ^ 2 * e + a ^ 2 + a ^ 2 * (e ^ 2 + e + 1) := by rw [hSinger]
+      _ = a ^ 2 * e ^ 2 := by ring_nf; simp [htwo]
+  refine ⟨hquadratic, ?_⟩
+  rw [← hquadratic]
+  ring_nf
+  simp [htwo]
+
 /-- The rational trace coordinate on the cubic Singer locus.  For
 `x^(q+1) + x + 1 = 0`, this is the relative trace of `x` over the preceding
 cubic field. -/
@@ -9596,6 +10620,205 @@ theorem exceptional_quartic_norm (x a : R) (hx : x ^ 3 = a) :
 
 end DQuarticCoset
 
+section ExceptionalCayleyCoboundary
+
+variable {K : Type*} [Field K] [CharP K 2]
+
+/-- Numerator of the exceptional Cayley coordinate. -/
+def exceptionalCayleyNum (z omega : K) : K :=
+  z ^ 2 + omega ^ 2 * z + 1
+
+/-- Denominator of the exceptional Cayley coordinate. -/
+def exceptionalCayleyDen (z omega : K) : K :=
+  z ^ 2 + omega * z + 1
+
+/-- The Möbius companion of the selected real cubic coordinate. -/
+def exceptionalCayley (z omega : K) : K :=
+  exceptionalCayleyNum z omega / exceptionalCayleyDen z omega
+
+omit [CharP K 2] in
+/-- Dividing the quadratic Cayley coordinate by `z` identifies it with the
+Möbius transform of the real trace `z + z⁻¹`. -/
+theorem exceptionalCayley_eq_traceMobius
+    (z omega : K)
+    (hz : z ≠ 0) :
+    exceptionalCayley z omega =
+      (z + z⁻¹ + omega ^ 2) / (z + z⁻¹ + omega) := by
+  simp only [exceptionalCayley, exceptionalCayleyNum,
+    exceptionalCayleyDen]
+  have hnum : z ^ 2 + omega ^ 2 * z + 1 =
+      z * (z + z⁻¹ + omega ^ 2) := by
+    field_simp [hz]
+    ring
+  have hden : z ^ 2 + omega * z + 1 =
+      z * (z + z⁻¹ + omega) := by
+    field_simp [hz]
+    ring
+  rw [hnum, hden]
+  exact mul_div_mul_left _ _ hz
+
+/-- Polynomial cross-product behind the exceptional cubic coboundary.  If
+`sigma(z)=omega*z`, division by the four nonzero denominator factors gives
+`sigma(V)/V=omega^2*P`, where `V` is `exceptionalCayley` and `P` is the
+normalized quartic ratio used in arm D. -/
+theorem exceptional_cayley_coboundary_cross
+    (z omega : K)
+    (homega : omega ^ 2 + omega + 1 = 0) :
+    exceptionalCayleyNum (omega * z) omega *
+        exceptionalCayleyDen z omega *
+        (1 + z ^ 3 + omega ^ 2 * z ^ 4) =
+      omega ^ 2 * exceptionalCayleyDen (omega * z) omega *
+        exceptionalCayleyNum z omega *
+        (z ^ 4 + z + omega) := by
+  have htwo : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  have hthree : (3 : K) = 1 := by
+    calc
+      (3 : K) = 2 + 1 := by norm_num
+      _ = 1 := by rw [htwo]; simp
+  have hfour : (4 : K) = 0 := by
+    calc
+      (4 : K) = 2 + 2 := by norm_num
+      _ = 0 := by rw [htwo]; simp
+  have homega2 : omega ^ 2 = omega + 1 := by
+    linear_combination homega - (omega + 1) * htwo
+  have homega3 : omega ^ 3 = 1 := by
+    calc
+      omega ^ 3 = omega * omega ^ 2 := by ring
+      _ = omega * (omega + 1) := by rw [homega2]
+      _ = 1 := by linear_combination homega - htwo
+  have homega4 : omega ^ 4 = omega := by
+    rw [show omega ^ 4 = omega * omega ^ 3 by ring, homega3, mul_one]
+  have homega5 : omega ^ 5 = omega ^ 2 := by
+    rw [show omega ^ 5 = omega ^ 2 * omega ^ 3 by ring, homega3, mul_one]
+  have homega6 : omega ^ 6 = 1 := by rw [show omega ^ 6 = (omega ^ 3) ^ 2 by ring, homega3, one_pow]
+  have homega7 : omega ^ 7 = omega := by
+    rw [show omega ^ 7 = omega * omega ^ 6 by ring, homega6, mul_one]
+  simp only [exceptionalCayleyNum, exceptionalCayleyDen]
+  ring_nf
+  simp [htwo, homega2, homega3, homega4, homega5, homega6, homega7]
+  ring_nf
+  simp [htwo, hthree, hfour]
+
+/-- The numerator of the Cayley coordinate has the displayed cubic relative
+norm under `z ↦ omega*z`. -/
+theorem exceptionalCayleyNum_cubic_product
+    (z omega : K)
+    (homega : omega ^ 2 + omega + 1 = 0) :
+    exceptionalCayleyNum z omega *
+        exceptionalCayleyNum (omega * z) omega *
+        exceptionalCayleyNum (omega ^ 2 * z) omega =
+      z ^ 6 + omega * z ^ 3 + 1 := by
+  have htwo : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  have hfour : (4 : K) = 0 := by
+    calc
+      (4 : K) = 2 + 2 := by norm_num
+      _ = 0 := by rw [htwo]; simp
+  have homega2 : omega ^ 2 = omega + 1 := by
+    linear_combination homega - (omega + 1) * htwo
+  have homega3 : omega ^ 3 = 1 := by
+    calc
+      omega ^ 3 = omega * omega ^ 2 := by ring
+      _ = omega * (omega + 1) := by rw [homega2]
+      _ = 1 := by linear_combination homega - htwo
+  have homega4 : omega ^ 4 = omega := by
+    rw [show omega ^ 4 = omega * omega ^ 3 by ring, homega3, mul_one]
+  have homega5 : omega ^ 5 = omega ^ 2 := by
+    rw [show omega ^ 5 = omega ^ 2 * omega ^ 3 by ring, homega3, mul_one]
+  have homega6 : omega ^ 6 = 1 := by
+    rw [show omega ^ 6 = (omega ^ 3) ^ 2 by ring, homega3, one_pow]
+  have homega7 : omega ^ 7 = omega := by
+    rw [show omega ^ 7 = omega * omega ^ 6 by ring, homega6, mul_one]
+  have homega8 : omega ^ 8 = omega ^ 2 := by
+    rw [show omega ^ 8 = omega ^ 2 * omega ^ 6 by ring, homega6, mul_one]
+  have homega9 : omega ^ 9 = 1 := by
+    rw [show omega ^ 9 = (omega ^ 3) ^ 3 by ring, homega3, one_pow]
+  simp only [exceptionalCayleyNum]
+  ring_nf
+  simp [htwo, homega2, homega3, homega4, homega5, homega6,
+    homega7, homega8, homega9]
+  ring_nf
+  simp [htwo, hfour]
+
+/-- The denominator has the conjugate cubic relative norm. -/
+theorem exceptionalCayleyDen_cubic_product
+    (z omega : K)
+    (homega : omega ^ 2 + omega + 1 = 0) :
+    exceptionalCayleyDen z omega *
+        exceptionalCayleyDen (omega * z) omega *
+        exceptionalCayleyDen (omega ^ 2 * z) omega =
+      z ^ 6 + omega ^ 2 * z ^ 3 + 1 := by
+  have htwo : (2 : K) = 0 := CharP.cast_eq_zero K 2
+  have hfour : (4 : K) = 0 := by
+    calc
+      (4 : K) = 2 + 2 := by norm_num
+      _ = 0 := by rw [htwo]; simp
+  have homega2 : omega ^ 2 = omega + 1 := by
+    linear_combination homega - (omega + 1) * htwo
+  have homega3 : omega ^ 3 = 1 := by
+    calc
+      omega ^ 3 = omega * omega ^ 2 := by ring
+      _ = omega * (omega + 1) := by rw [homega2]
+      _ = 1 := by linear_combination homega - htwo
+  have homega4 : omega ^ 4 = omega := by
+    rw [show omega ^ 4 = omega * omega ^ 3 by ring, homega3, mul_one]
+  have homega5 : omega ^ 5 = omega ^ 2 := by
+    rw [show omega ^ 5 = omega ^ 2 * omega ^ 3 by ring, homega3, mul_one]
+  have homega6 : omega ^ 6 = 1 := by
+    rw [show omega ^ 6 = (omega ^ 3) ^ 2 by ring, homega3, one_pow]
+  have homega7 : omega ^ 7 = omega := by
+    rw [show omega ^ 7 = omega * omega ^ 6 by ring, homega6, mul_one]
+  simp only [exceptionalCayleyDen]
+  ring_nf
+  simp [htwo, homega2, homega3, homega4, homega5, homega6, homega7]
+  ring_nf
+  simp [htwo, hfour]
+
+/-- Group-theoretic Kummer consequence of the coboundary identity.  If the
+relative Frobenius acts as the `A`-th power and `ell` is coprime to `A-1`,
+then its coboundary has the same `ell`-power class as the original Cayley
+coordinate. -/
+theorem exceptional_coboundary_isPthPower_iff
+    {G : Type*} [CommGroup G] [Fintype G] [IsCyclic G]
+    (V P : G) (ell A : ℕ)
+    (hell : ell ∣ Fintype.card G)
+    (hcop : ell.Coprime (A - 1))
+    (hP : P = V ^ (A - 1)) :
+    IsPthPower ell P ↔ IsPthPower ell V := by
+  rw [hP]
+  exact isPthPower_pow_iff_of_coprime hell hcop V
+
+/-- Multiplication by a known `ell`-th power does not change an
+`ell`-power class. -/
+theorem isPthPower_mul_iff_of_isPthPower
+    {G : Type*} [CommGroup G]
+    (ell : ℕ) (c a : G)
+    (hc : IsPthPower ell c) :
+    IsPthPower ell (c * a) ↔ IsPthPower ell a := by
+  obtain ⟨x, rfl⟩ := hc
+  constructor
+  · rintro ⟨y, hy⟩
+    refine ⟨x⁻¹ * y, ?_⟩
+    rw [mul_pow, inv_pow, hy]
+    simp
+  · rintro ⟨y, rfl⟩
+    exact ⟨x * y, mul_pow x y ell⟩
+
+/-- Scalar-corrected form used by the exceptional arm: if
+`P = c*V^(A-1)` and the fixed scalar `c` is already an `ell`-th power, then
+`P` and `V` have the same `ell`-power status. -/
+theorem exceptional_scaled_coboundary_isPthPower_iff
+    {G : Type*} [CommGroup G] [Fintype G] [IsCyclic G]
+    (V P c : G) (ell A : ℕ)
+    (hell : ell ∣ Fintype.card G)
+    (hcop : ell.Coprime (A - 1))
+    (hc : IsPthPower ell c)
+    (hP : P = c * V ^ (A - 1)) :
+    IsPthPower ell P ↔ IsPthPower ell V := by
+  rw [hP, isPthPower_mul_iff_of_isPthPower ell c _ hc]
+  exact isPthPower_pow_iff_of_coprime hell hcop V
+
+end ExceptionalCayleyCoboundary
+
 section AdjacentHilbert
 
 variable {K : Type*} [Field K] [CharP K 2]
@@ -10044,6 +11267,27 @@ theorem affine_cocycle_value_surjective
   refine ⟨u / (1 - (q : F)), ?_⟩
   have hden : (1 : F) - (q : F) ≠ 0 := sub_ne_zero.mpr (Ne.symm hq)
   field_simp [hden]
+
+/-- Algebraic core of the cubic arm's Hilbert--90 blindness.  If a
+degree-three cyclic action has scalar `Q`, with vanishing norm scalar
+`1 + Q + Q^2` and nontrivial `Q`, then every additive torsion coordinate is
+a coboundary while every such coordinate has zero norm.  The paper applies
+this in `ZMod ell`; the statement deliberately does not assert that the
+marked projective class itself is trivial. -/
+theorem cyclicThree_coboundary_surjective_and_norm_zero
+    {F : Type*} [Field F] (Q : F)
+    (hQ : 1 + Q + Q ^ 2 = 0) (hne : Q ≠ 1) :
+    (∀ u : F, ∃ a : F, u = (Q - 1) * a) ∧
+      ∀ u : F, u + Q * u + Q ^ 2 * u = 0 := by
+  constructor
+  · intro u
+    have hden : Q - 1 ≠ 0 := sub_ne_zero.mpr hne
+    refine ⟨u / (Q - 1), ?_⟩
+    field_simp [hden]
+  · intro u
+    calc
+      u + Q * u + Q ^ 2 * u = (1 + Q + Q ^ 2) * u := by ring
+      _ = 0 := by rw [hQ, zero_mul]
 
 /-- Translation accumulated by the first `n` arrows
 `x ↦ q*x + t_j` in a labeled affine groupoid. -/
@@ -10757,6 +12001,46 @@ theorem not_isPthPower_iff_not_orderOf_dvd_card_sub_one_div {p : Nat} {a : F}
     (ha : a ≠ 0) (hp : p ∣ Fintype.card F - 1) :
     ¬IsPthPower p a ↔ ¬orderOf a ∣ (Fintype.card F - 1) / p := by
   exact not_congr (isPthPower_iff_orderOf_dvd_card_sub_one_div ha hp)
+
+/-- Exact finite-field norm reduction for the Kummer power test.  When `p`
+divides the base-field unit-group order, an element of a finite extension is
+a `p`-th power exactly when its norm is.  This formalizes the lossless norm
+step used in the zero and exceptional arms; it does not evaluate the selected
+norm. -/
+theorem isPthPower_iff_norm_isPthPower
+    {K L : Type*} [Field K] [Field L]
+    [Fintype K] [Fintype L] [Algebra K L]
+    (p : Nat) (x : L) (hx : x ≠ 0)
+    (hp : p ∣ Fintype.card K - 1) :
+    IsPthPower p x ↔ IsPthPower p (Algebra.norm K x) := by
+  have hKL : Fintype.card K - 1 ∣ Fintype.card L - 1 := by
+    have hu : Nat.card Kˣ ∣ Nat.card Lˣ :=
+      Subgroup.card_dvd_of_injective
+        (Units.map (algebraMap K L).toMonoidHom)
+        (Units.map_injective (algebraMap K L).injective)
+    simpa [Nat.card_units, Nat.card_eq_fintype_card] using hu
+  have hpL : p ∣ Fintype.card L - 1 := hp.trans hKL
+  have hnorm0 : Algebra.norm K x ≠ 0 :=
+    Algebra.norm_ne_zero_iff.mpr hx
+  rw [isPthPower_iff_pow_card_sub_one_div_eq_one hx hpL,
+    isPthPower_iff_pow_card_sub_one_div_eq_one hnorm0 hp]
+  have heq :
+      algebraMap K L
+          ((Algebra.norm K x) ^
+            ((Fintype.card K - 1) / p)) =
+        x ^ ((Fintype.card L - 1) / p) := by
+    rw [map_pow, FiniteField.algebraMap_norm_eq_pow,
+      Nat.card_eq_fintype_card, Nat.card_eq_fintype_card,
+      ← pow_mul]
+    congr 2
+    exact Nat.div_mul_div hKL hp
+  constructor
+  · intro hxpow
+    apply (algebraMap K L).injective
+    rw [map_one, heq, hxpow]
+  · intro hnormpow
+    have h := congrArg (algebraMap K L) hnormpow
+    rwa [map_one, heq] at h
 
 /-- The easy direction of the finite-field power criterion, with all
 divisibility explicit.  It is the direction used by a certificate: a nontrivial

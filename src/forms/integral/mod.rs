@@ -5,6 +5,29 @@
 //! genus computation, and mass/Leech layer together. Children stay private
 //! behind the flat re-export, like every other shelf; the parent `forms`
 //! module re-exports the public items flat.
+//!
+//! # Examples
+//!
+//! `E8` is the even unimodular lattice of rank 8 with 240 roots. Construction A
+//! on the extended Hamming `[8,4,4]` code lands in the same genus with the same
+//! theta series (by the classical uniqueness of positive-definite even
+//! unimodular lattices in rank 8, it is `E8` again). The Smith--Minkowski--Siegel mass of that genus is
+//! `1/696729600`, the reciprocal of `|Aut(E8)|`, because the genus has one class.
+//!
+//! ```
+//! use ogdoad::forms::{are_in_same_genus, e_8, extended_hamming_code, mass_even_unimodular};
+//!
+//! let e8 = e_8();
+//! assert!(e8.is_even() && e8.is_unimodular() && e8.dim() == 8);
+//! assert_eq!(e8.kissing_number(), Some(240)); // the roots
+//! assert_eq!(e8.theta_series(3), Some(vec![1, 240, 2160])); // 1 + 240 q + 2160 q^2
+//! assert_eq!(e8.automorphism_group_order(), Some(696_729_600)); // |W(E8)|
+//! assert_eq!(mass_even_unimodular(8), Some((1, 696_729_600)));
+//!
+//! let from_code = extended_hamming_code().construction_a().unwrap();
+//! assert!(are_in_same_genus(&from_code, &e8));
+//! assert_eq!(from_code.theta_series(3), e8.theta_series(3));
+//! ```
 
 mod clifford_lattices;
 mod codes;

@@ -55,6 +55,7 @@ pub struct HermitianSignature {
 /// Failure to restrict a Hermitian form to an ordinary quadratic metric over
 /// the involution-fixed scalar world.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum HermitianRestrictionError {
     /// Restriction doubles the represented dimension and would exceed the
     /// Clifford engine's fixed-width generator boundary.
@@ -185,6 +186,7 @@ pub struct FiniteHermitianForm<F: FiniteField> {
 /// does not fit the crate's fixed-width `u128` metadata model (for example
 /// `|F_{2^128}| = 2^128`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct FiniteHermitianInvariants {
     /// Rank of the Hermitian form.
     pub rank: usize,
@@ -345,6 +347,27 @@ impl<F: FiniteField> FiniteHermitianForm<F> {
     /// The method is available when the coefficient backend supplies an exact
     /// [`QuadraticInvolution`] bridge.  It currently covers every finite field
     /// exposed by Python: `F_4/F_2`, `F_16/F_4`, `F_9/F_3`, and `F_25/F_5`.
+    ///
+    /// # Examples
+    ///
+    /// Over `F_4/F_2` the form `<1>` restricts to the norm form
+    /// `N(x) = x·x̄`, which is the anisotropic plane (Arf invariant 1); two
+    /// copies give Arf invariant 0. In characteristic two this is why the
+    /// restriction uses `h(v, v)` itself rather than `Tr(h(v, v)) = 0`.
+    ///
+    /// ```
+    /// use ogdoad::forms::{arf_char2, FiniteHermitianForm};
+    /// use ogdoad::scalar::{Fpn, Scalar};
+    ///
+    /// type F4 = Fpn<2, 2>;
+    /// let one = FiniteHermitianForm::<F4>::diagonal(vec![F4::one()]).unwrap();
+    /// let norm_form = one.restrict_scalars().unwrap();
+    /// assert_eq!(norm_form.dim(), 2);
+    /// assert_eq!(arf_char2(&norm_form).unwrap().arf, 1);
+    ///
+    /// let two = FiniteHermitianForm::<F4>::diagonal(vec![F4::one(), F4::one()]).unwrap();
+    /// assert_eq!(arf_char2(&two.restrict_scalars().unwrap()).unwrap().arf, 0);
+    /// ```
     pub fn restrict_scalars(
         &self,
     ) -> Result<Metric<<F as QuadraticInvolution>::Fixed>, HermitianRestrictionError>
@@ -490,6 +513,22 @@ impl<S: Scalar> HermitianForm<S> {
     /// Restrict this Hermitian form over `Surcomplex<S>/S` to its ordinary
     /// quadratic form over `S`.  A Hermitian dimension `n` becomes quadratic
     /// dimension `2n` in the coordinate order `(e_0, i e_0, e_1, i e_1, ...)`.
+    ///
+    /// # Examples
+    ///
+    /// The Hermitian form `<1> ⊥ <-1>` on `C^2` restricts to the real quadratic
+    /// form `|z_0|² - |z_1|²` on `R^4`: the dimension doubles and the signature
+    /// is `(2, 2)`.
+    ///
+    /// ```
+    /// use ogdoad::forms::{classify_surreal, HermitianForm};
+    /// use ogdoad::scalar::{Scalar, Surreal};
+    ///
+    /// let h = HermitianForm::<Surreal>::diagonal(vec![Surreal::from_int(1), Surreal::from_int(-1)]);
+    /// let q = h.restrict_scalars().unwrap();
+    /// assert_eq!(q.dim(), 4);
+    /// assert_eq!(classify_surreal(&q).unwrap().signature, (2, 2));
+    /// ```
     pub fn restrict_scalars(&self) -> Result<Metric<S>, HermitianRestrictionError>
     where
         S: Ordered,

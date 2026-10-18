@@ -97,6 +97,23 @@ pub fn loopy_nim_values(succ: &[Vec<usize>]) -> Option<Vec<LoopyNimber>> {
 /// [`loopy_nim_values`] plus a small certificate explaining the outcome split and
 /// whether cyclic non-Draw sidling was solved uniquely by the bounded mex-equation
 /// search.
+///
+/// # Examples
+///
+/// ```
+/// use ogdoad::games::{loopy_nim_values, loopy_nim_values_certified, LoopyNimber::*};
+///
+/// // 0 <-> 1 is a drawn two-cycle (Side); 2 moves to the terminal position 3.
+/// let succ = vec![vec![1], vec![0], vec![3], vec![]];
+/// let (values, cert) = loopy_nim_values_certified(&succ).unwrap();
+/// assert_eq!(values, [Side, Side, Value(1), Value(0)]);
+/// assert_eq!(cert.side_positions, [0, 1]);
+/// assert!(cert.recovery_condition_holds); // no finite position has a Side option
+///
+/// // A symmetric two-cycle with exits has two mex solutions: refused.
+/// let symmetric = vec![vec![1, 2], vec![0, 3], vec![], vec![]];
+/// assert_eq!(loopy_nim_values(&symmetric), None);
+/// ```
 pub fn loopy_nim_values_certified(
     succ: &[Vec<usize>],
 ) -> Option<(Vec<LoopyNimber>, LoopyNimCertificate)> {

@@ -49,6 +49,7 @@ impl fmt::Display for OrthogonalType {
 /// Classification invariants for a characteristic-2 quadratic form over any
 /// nim-subfield or supported finite char-2 field.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct ArfInvariants {
     /// Arf invariant of the nonsingular core (0 or 1).
     pub arf: u128,
@@ -137,6 +138,29 @@ fn b_of(u: u128, v: u128, bmat: &[u128]) -> bool {
 
 /// Arf invariant of an F₂ quadratic form given by diagonal `qd` (the squares)
 /// and symmetric adjacency `bmat` (the polar form; `bmat[i]` bit j ⇔ b_{ij}=1).
+///
+/// # Examples
+///
+/// The hyperbolic plane `xy` has Arf invariant 0 and the anisotropic plane
+/// `x² + xy + y²` has Arf invariant 1. Arf is additive under orthogonal sum, so
+/// two copies of the anisotropic plane are hyperbolic, and a radical direction
+/// on which `Q` is nonzero is reported as data rather than folded into the bit:
+///
+/// ```
+/// use ogdoad::forms::arf_f2;
+///
+/// // `qd[i]` is Q(e_i); bit j of `bmat[i]` is the polar value B(e_i, e_j).
+/// assert_eq!(arf_f2(2, &[false, false], &[0b10, 0b01]).arf, 0);
+/// assert_eq!(arf_f2(2, &[true, true], &[0b10, 0b01]).arf, 1);
+///
+/// let doubled = arf_f2(4, &[true; 4], &[0b0010, 0b0001, 0b1000, 0b0100]);
+/// assert_eq!((doubled.arf, doubled.rank), (0, 4));
+///
+/// // xy + z^2: z spans the polar radical, and Q(z) = 1.
+/// let defective = arf_f2(3, &[false, false, true], &[0b010, 0b001, 0b000]);
+/// assert_eq!((defective.rank, defective.radical_dim), (2, 1));
+/// assert!(defective.radical_anisotropic);
+/// ```
 pub fn arf_f2(n: usize, qd: &[bool], bmat: &[u128]) -> ArfInvariants {
     assert!(
         n <= 128,

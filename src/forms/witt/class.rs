@@ -21,6 +21,7 @@ use crate::scalar::{nim_degree, Nimber};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 /// Failure to construct a finite characteristic-two Witt class.
+#[non_exhaustive]
 pub enum WittClassError {
     /// The metric has an ordered general-bilinear component.
     GeneralBilinearMetric,
@@ -84,6 +85,31 @@ impl std::fmt::Display for WittClassGError {
 
 /// A class in the Witt group `W_q(F) ≅ ℤ/2` of a finite nim-field: the Arf
 /// invariant of a form's anisotropic core (hyperbolic planes are the identity).
+///
+/// # Examples
+///
+/// The anisotropic plane `x² + xy + y²` over `F_2` is the nonzero class and is
+/// its own inverse. Sums are only defined over a common field, and a form with
+/// a polar radical is rejected instead of being silently projected away:
+///
+/// ```
+/// use ogdoad::clifford::Metric;
+/// use ogdoad::forms::{WittClass, WittClassError};
+/// use ogdoad::scalar::Nimber;
+///
+/// let plane = Metric::new(vec![Nimber(1), Nimber(1)], [((0, 1), Nimber(1))]);
+/// let w = WittClass::try_from_metric(&plane).unwrap();
+/// assert_eq!((w.arf(), w.anisotropic_dim()), (1, 2));
+/// assert!(w.try_add(&w).unwrap().is_hyperbolic()); // A + A is hyperbolic
+///
+/// assert!(w.try_add(&WittClass::zero_over(2)).is_err()); // F_2 versus F_4
+///
+/// let singular = Metric::new(vec![Nimber(0), Nimber(0), Nimber(1)], [((0, 1), Nimber(1))]);
+/// assert_eq!(
+///     WittClass::try_from_metric(&singular),
+///     Err(WittClassError::Singular { radical_dim: 1, radical_anisotropic: true })
+/// );
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct WittClass {
     field_degree: u128,
@@ -121,12 +147,6 @@ impl WittClass {
             field_degree: 1,
             arf: 0,
         }
-    }
-
-    /// Deprecated alias for [`zero_f2`](Self::zero_f2).
-    #[deprecated(since = "1.0.0", note = "use zero_f2() for clarity")]
-    pub fn zero() -> Self {
-        Self::zero_f2()
     }
 
     /// The identity over `F_{2^field_degree}`.
@@ -245,7 +265,28 @@ impl std::ops::Neg for WittClass {
 ///   `add`, and is what produces the `ℤ/4` when `kappa = 1`.
 /// * `Char2`: over a fixed finite char-2 field `W ≅ ℤ/2`, classified by the Arf
 ///   invariant together with the field degree.
+///
+/// # Examples
+///
+/// Over the reals `W(R) ≅ ℤ` by signature, so classes add and multiply as
+/// integers. Classes from different characteristic regimes do not combine, and
+/// the characteristic-two quadratic Witt group is a module rather than a ring,
+/// so its `try_mul` is refused:
+///
+/// ```
+/// use ogdoad::forms::{WittClassG, WittClassGError};
+///
+/// let three = WittClassG::char0(3, 0);
+/// let minus_one = WittClassG::char0(0, 1);
+/// assert_eq!(three.try_add(&minus_one), Ok(WittClassG::char0(2, 0)));
+/// assert_eq!(three.try_mul(&minus_one), Ok(WittClassG::char0(0, 3)));
+///
+/// let arf = WittClassG::Char2 { field_degree: 1, arf: 1 };
+/// assert_eq!(arf.try_mul(&arf), Err(WittClassGError::Char2NotARing));
+/// assert_eq!(three.try_add(&arf), Err(WittClassGError::DifferentCharacteristics));
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum WittClassG {
     /// Real characteristic-zero Witt class.
     Char0 {

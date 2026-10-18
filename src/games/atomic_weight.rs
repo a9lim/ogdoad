@@ -33,6 +33,21 @@ use crate::games::Game;
 /// The **atomic weight** of an all-small game, as a `Game` value (usually an
 /// integer, occasionally a non-integer game). `None` if `G` is not all-small
 /// (the calculus is undefined there).
+///
+/// # Examples
+///
+/// ```
+/// use ogdoad::games::{atomic_weight_int, Game};
+///
+/// let up = Game::up();
+/// assert_eq!(atomic_weight_int(&up), Some(1));
+/// assert_eq!(atomic_weight_int(&up.neg()), Some(-1));
+/// assert_eq!(atomic_weight_int(&Game::star()), Some(0));
+/// // Additive on all-small games: aw(up + up + *) = 1 + 1 + 0.
+/// assert_eq!(atomic_weight_int(&up.add(&up).add(&Game::star())), Some(2));
+/// // A switch is not all-small, so the calculus does not apply.
+/// assert_eq!(atomic_weight_int(&Game::switch(1, -1)), None);
+/// ```
 pub fn atomic_weight(g: &Game) -> Option<Game> {
     if !g.is_all_small() {
         return None;
