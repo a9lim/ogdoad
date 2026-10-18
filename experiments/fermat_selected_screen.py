@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exact selected-factor screen for the Conway--Fermat tower.
+"""Exact selected-factor screen for the Conway--Fermat and Wiedemann towers.
 
 For a level ``n`` and a divisor ``ell`` of the Fermat number
 
@@ -13,6 +13,21 @@ in the literal Conway quadratic tower.  A zero is an exact counterexample to
 full Popovych maximal order.  For a caller-supplied prime divisor, a nonzero
 value certifies only that one primary test, not the level or universal
 conjecture.  The script checks divisibility, not primality.
+
+With ``--tower wiedemann`` the same residue is computed at
+``x_(n-1)^(-1)`` in Wiedemann's tower ``x_(-1) = 1``,
+``x_m + x_m^(-1) = x_(m-1)``.  Since ``x_(n-1)^(-1) = x_n / (x_n + 1)^2``, the
+Binet identity ``S_j(u / (u + 1)^2) = (u^j + 1) / (u + 1)^j`` makes a zero
+equivalent to ``x_n^(F_n / ell) = 1``, the corresponding failure of
+Wiedemann's conjecture ``ord(x_n) = F_n``.  The minimal polynomial is the
+iterated self-reciprocal transform
+
+    W_-1(Y) = Y + 1,        W_i(X) = X^(deg W_(i-1)) W_(i-1)(X + 1/X),
+
+which is also the minimal polynomial of ``x_(n-1)^(-1)``.  ``--complete-level``
+screens every prime factor of a completely factored ``F_n`` (``n <= 11``) and
+so decides that level for the chosen tower, granting the published primality
+of the large cofactors; the script only runs a probable-prime sanity check.
 
 The implementation is independent of a precomputed Conway polynomial table.
 It builds the selected minimal polynomial from
@@ -47,6 +62,7 @@ import argparse
 import hashlib
 import importlib
 import math
+import sys
 import time
 from dataclasses import dataclass
 from typing import Any
@@ -93,6 +109,81 @@ PUBLISHED_FACTORS = {
         81_274_690_703_860_512_587_777,
     ),
 }
+
+
+# Complete factorizations of F_5, ..., F_11: the listed prime factors, with the
+# remaining cofactor (a published large prime from F_8 on) formed exactly.
+COMPLETE_SMALL_FACTORS = {
+    5: (641, 6_700_417),
+    6: (274_177, 67_280_421_310_721),
+    7: (59_649_589_127_497_217, 5_704_689_200_685_129_054_721),
+    8: (1_238_926_361_552_897,),
+    9: (
+        2_424_833,
+        7_455_602_825_647_884_208_337_395_736_200_454_918_783_366_342_657,
+    ),
+    10: (
+        45_592_577,
+        6_487_031_809,
+        4_659_775_785_220_018_543_264_560_743_076_778_192_897,
+    ),
+    11: (
+        319_489,
+        974_849,
+        167_988_556_341_760_475_137,
+        3_560_841_906_445_833_920_513,
+    ),
+}
+
+TOWERS = ("conway", "wiedemann")
+
+
+def complete_factors(level: int) -> tuple[int, ...]:
+    """Return every prime factor of a completely factored ``F_level``."""
+
+    if level < 1:
+        raise ValueError("level must be at least one")
+    fermat_number = (1 << (1 << level)) + 1
+    if level <= 4:
+        return (fermat_number,)
+    small = COMPLETE_SMALL_FACTORS.get(level)
+    if small is None:
+        raise ValueError(f"F_{level} is not completely factored; choose n <= 11")
+    cofactor = fermat_number
+    for factor in small:
+        cofactor, remainder = divmod(cofactor, factor)
+        if remainder:
+            raise AssertionError(f"{factor} does not divide F_{level}")
+    factors = small + ((cofactor,) if cofactor > 1 else ())
+    if not all(is_probable_prime(factor) for factor in factors):
+        raise AssertionError(f"a listed factor of F_{level} is composite")
+    return factors
+
+
+def is_probable_prime(value: int) -> bool:
+    """Miller--Rabin with the first twelve prime bases; a sanity check only."""
+
+    if value < 2:
+        return False
+    bases = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37)
+    for base in bases:
+        if value % base == 0:
+            return value == base
+    odd, shift = value - 1, 0
+    while odd % 2 == 0:
+        odd //= 2
+        shift += 1
+    for base in bases:
+        witness = pow(base, odd, value)
+        if witness in (1, value - 1):
+            continue
+        for _ in range(shift - 1):
+            witness = witness * witness % value
+            if witness == value - 1:
+                break
+        else:
+            return False
+    return True
 
 
 @dataclass(frozen=True)
@@ -292,14 +383,44 @@ def is_irreducible_binary(poly: int) -> bool:
     )
 
 
-def selected_minimal_polynomial(level: int) -> int:
-    """Return the minimal polynomial of ``a_(level-1)`` over ``F_2``."""
+def self_reciprocal_transform(poly: int, degree: int) -> int:
+    """Return ``X^degree * poly(X + 1/X)``; ``degree`` is a power of two.
+
+    The split ``P = P_low + Y^h P_high`` with ``h = degree / 2`` gives
+    ``X^h Q(P_low) + (X^(2h) + 1) Q(P_high)``, using ``X (X + 1/X) = X^2 + 1``
+    and ``(X^2 + 1)^h = X^(2h) + 1``.
+    """
+
+    if poly.bit_length() - 1 > degree:
+        raise ValueError("polynomial degree exceeds the transform degree")
+    if degree == 1:
+        low, high = poly & 1, (poly >> 1) & 1
+        return (high << 2) | (low << 1) | high
+    half = degree >> 1
+    low = self_reciprocal_transform(poly & ((1 << half) - 1), half)
+    high = self_reciprocal_transform(poly >> half, half)
+    return (low << half) ^ (high << degree) ^ high
+
+
+def selected_minimal_polynomial(level: int, tower: str = "conway") -> int:
+    """Return the minimal polynomial of the selected level-``(level-1)`` point.
+
+    For Conway this is ``a_(level-1)``; for Wiedemann it is
+    ``x_(level-1)^(-1)``, whose minimal polynomial equals that of
+    ``x_(level-1)``.
+    """
 
     if level < 0:
         raise ValueError("level must be nonnegative")
-    poly = 0b11  # A_-1(Y) = Y + 1.
-    for _ in range(level):
-        poly = conway_resultant_step(poly)
+    poly = 0b11  # A_-1(Y) = W_-1(Y) = Y + 1.
+    if tower == "conway":
+        for _ in range(level):
+            poly = conway_resultant_step(poly)
+    elif tower == "wiedemann":
+        for step in range(level):
+            poly = self_reciprocal_transform(poly, 1 << step)
+    else:
+        raise ValueError(f"unknown tower: {tower}")
     return poly
 
 
@@ -454,6 +575,7 @@ def screen(
     factor: int,
     backend: str = "stdlib",
     flint_threads: int = 1,
+    tower: str = "conway",
 ) -> int:
     """Run one exact selected residue screen and print a reproducible fingerprint."""
 
@@ -466,12 +588,12 @@ def screen(
 
     jet_screen = (
         factor_sensitive_jet_screen(level, factor)
-        if level >= 2 and factor < fermat_number
+        if tower == "conway" and level >= 2 and factor < fermat_number
         else None
     )
 
     started = time.perf_counter()
-    modulus = selected_minimal_polynomial(level)
+    modulus = selected_minimal_polynomial(level, tower)
     built = time.perf_counter()
     expected_degree = 1 << level
     if modulus.bit_length() - 1 != expected_degree:
@@ -490,11 +612,13 @@ def screen(
         raise ValueError(f"unknown backend: {backend}")
     finished = time.perf_counter()
 
+    print(f"tower={tower}")
     print(f"backend={backend}")
     if backend == "flint":
         print(f"flint_threads={flint_threads}")
     print(f"level={level}")
-    print(f"factor={factor}")
+    digits = len(str(factor))
+    print(f"factor={factor if digits <= 100 else f'C{digits}'}")
     print(f"factor_bits={factor.bit_length()}")
     print(f"quotient_bits={quotient.bit_length()}")
     print(f"jet_screen_applicable={jet_screen is not None}")
@@ -527,8 +651,10 @@ def screen_published(
     backend: str = "stdlib",
     flint_threads: int = 1,
     jet_only: bool = False,
+    tower: str = "conway",
+    residual: bool = False,
 ) -> int:
-    """Screen every currently published prime factor at a supported level."""
+    """Screen every published prime factor, or their residual block, at a level."""
 
     factors = PUBLISHED_FACTORS.get(level)
     if factors is None:
@@ -537,13 +663,37 @@ def screen_published(
 
     print(f"factor_source={FERMATSEARCH_FACTOR_URL}")
     print("factor_list_complete=false")
+    if residual:
+        block = ((1 << (1 << level)) + 1) // math.prod(factors)
+        print("residual_block=true")
+        return screen(level, block, backend, flint_threads, tower)
     status = 0
     for position, factor in enumerate(factors, start=1):
         print(f"published_factor={position}/{len(factors)}")
         if jet_only:
             print_factor_sensitive_jet_screen(level, factor)
         else:
-            status = max(status, screen(level, factor, backend, flint_threads))
+            status = max(
+                status, screen(level, factor, backend, flint_threads, tower)
+            )
+    return status
+
+
+def screen_complete(
+    level: int,
+    backend: str = "stdlib",
+    flint_threads: int = 1,
+    tower: str = "conway",
+) -> int:
+    """Screen every prime factor of a completely factored ``F_level``."""
+
+    factors = complete_factors(level)
+    print("factor_list_complete=true")
+    status = 0
+    for position, factor in enumerate(factors, start=1):
+        print(f"complete_factor={position}/{len(factors)}")
+        status = max(status, screen(level, factor, backend, flint_threads, tower))
+    print(f"level_full_order={status == 0}")
     return status
 
 
@@ -561,14 +711,39 @@ def self_test() -> None:
                 f"A_{index} orientation mismatch: {actual:#x} != {value:#x}"
             )
 
-    # The first composite Fermat level must miss neither known prime factor.
+    # Wiedemann minimal polynomials, checked against nim arithmetic in
+    # experiments/wiedemann_sibling.py.  W_1 = A_1 is the shared level.
+    expected_wiedemann = {
+        0: 0x7,
+        1: 0x1F,
+        2: 0x1D7,
+        3: 0x1F93F,
+    }
+    for index, value in expected_wiedemann.items():
+        actual = selected_minimal_polynomial(index + 1, "wiedemann")
+        if actual != value:
+            raise AssertionError(
+                f"W_{index} mismatch: {actual:#x} != {value:#x}"
+            )
+    for level in range(1, 8):
+        modulus = selected_minimal_polynomial(level, "wiedemann")
+        reversed_modulus = int(f"{modulus:b}"[::-1], 2)
+        if modulus != reversed_modulus or not is_irreducible_binary(modulus):
+            raise AssertionError(f"W_{level - 1} is not irreducible self-reciprocal")
+
+    # The first composite Fermat level must miss neither known prime factor,
+    # in either tower; the full index lies in the packet in both.
+    for tower in TOWERS:
+        field = BinaryFieldReducer.build(selected_minimal_polynomial(5, tower))
+        if fibonacci_residue((1 << 32) + 1, field)[0] != 0:
+            raise AssertionError(f"{tower} level 5 is outside the F_5 packet")
+        for factor in (641, 6_700_417):
+            quotient = ((1 << 32) + 1) // factor
+            if fibonacci_residue(quotient, field)[0] == 0:
+                raise AssertionError(
+                    f"unexpected {tower} F_5 failure at factor {factor}"
+                )
     for factor in (641, 6_700_417):
-        fermat = (1 << 32) + 1
-        quotient = fermat // factor
-        modulus = selected_minimal_polynomial(5)
-        residue, _ = fibonacci_residue(quotient, BinaryFieldReducer.build(modulus))
-        if residue == 0:
-            raise AssertionError(f"unexpected F_5 failure at factor {factor}")
         jet_screen = factor_sensitive_jet_screen(5, factor)
         if jet_screen.arithmetic_gcd != 1 or not jet_screen.nonzero_by_arithmetic:
             raise AssertionError(f"unexpected F_5 jet obstruction at factor {factor}")
@@ -626,9 +801,25 @@ def parse_args() -> argparse.Namespace:
         help="FLINT worker threads (default: 1; ignored by stdlib)",
     )
     parser.add_argument(
+        "--tower",
+        choices=TOWERS,
+        default="conway",
+        help="selected tower (default: conway)",
+    )
+    parser.add_argument(
         "--published-level",
         type=int,
         help="screen the pinned, incomplete FermatSearch factor list",
+    )
+    parser.add_argument(
+        "--residual",
+        action="store_true",
+        help="with --published-level, screen the exact residual cofactor instead",
+    )
+    parser.add_argument(
+        "--complete-level",
+        type=int,
+        help="screen every prime factor of a completely factored F_n (n <= 11)",
     )
     parser.add_argument(
         "--jet-only",
@@ -639,31 +830,53 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
+    # Residual cofactors have tens of thousands of digits.
+    getattr(sys, "set_int_max_str_digits", lambda _: None)(0)
     args = parse_args()
     if args.flint_threads < 1:
         raise SystemExit("--flint-threads must be positive")
+    if args.jet_only and args.tower != "conway":
+        raise SystemExit("--jet-only is the Conway higher-jet screen")
+    if args.residual and (args.published_level is None or args.jet_only):
+        raise SystemExit("--residual requires --published-level without --jet-only")
+    level_modes = (args.published_level, args.complete_level)
     if args.self_test:
         self_test()
         print("self-test: ok")
-        if args.level is None and args.factor is None and args.published_level is None:
+        if (
+            args.level is None
+            and args.factor is None
+            and all(mode is None for mode in level_modes)
+        ):
             return 0
-    if args.published_level is not None:
+    if sum(mode is not None for mode in level_modes) > 1:
+        raise SystemExit("choose at most one of --published-level/--complete-level")
+    if any(mode is not None for mode in level_modes):
         if args.level is not None or args.factor is not None:
-            raise SystemExit(
-                "--published-level cannot be combined with --level/--factor"
-            )
+            raise SystemExit("a level mode cannot be combined with --level/--factor")
+    if args.published_level is not None:
         return screen_published(
             args.published_level,
             args.backend,
             args.flint_threads,
             args.jet_only,
+            args.tower,
+            args.residual,
+        )
+    if args.complete_level is not None:
+        if args.jet_only:
+            raise SystemExit("--jet-only applies to --published-level or one factor")
+        return screen_complete(
+            args.complete_level, args.backend, args.flint_threads, args.tower
         )
     if args.level is None or args.factor is None:
         raise SystemExit("--level and --factor must be supplied together")
     if args.jet_only:
         print_factor_sensitive_jet_screen(args.level, args.factor)
         return 0
-    return screen(args.level, args.factor, args.backend, args.flint_threads)
+    return screen(
+        args.level, args.factor, args.backend, args.flint_threads, args.tower
+    )
 
 
 if __name__ == "__main__":
