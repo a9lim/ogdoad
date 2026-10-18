@@ -162,8 +162,8 @@ impl Dyadic {
             return Dyadic::new(half, u128::from(a.k) - 1);
         }
         // `b.num` is odd and the scaled `a.num` even, so the sum stays reduced.
-        let scaled = a.num.checked_mul(1 << (b.k - a.k)).ok_or(overflow)?;
-        let num = scaled.checked_add(b.num).ok_or(overflow)?;
+        // The scaled term may leave i128 while the sum does not.
+        let num = shl_add(a.num, b.k - a.k, b.num).ok_or(overflow)?;
         Ok(Dyadic { num, k: b.k })
     }
 
@@ -218,6 +218,20 @@ impl Dyadic {
     fn to_surreal(self) -> Surreal {
         Surreal::from_rational(Rational::new(self.num, 1 << self.k))
     }
+}
+
+/// `a * 2^shift + b` exactly, for `0 < shift < 128`, or `None` when it leaves
+/// `i128`. Works in 256-bit two's complement `(hi, lo)`, so an aligned term
+/// outside `i128` that `b` cancels back into range is not refused.
+fn shl_add(a: i128, shift: u32, b: i128) -> Option<i128> {
+    let (a_lo, a_hi) = (a as u128, if a < 0 { -1i128 } else { 0 });
+    let lo = a_lo << shift;
+    let hi = a_hi.wrapping_shl(shift) | (a_lo >> (128 - shift)) as i128;
+    let (b_lo, b_hi) = (b as u128, if b < 0 { -1i128 } else { 0 });
+    let (lo, carry) = lo.overflowing_add(b_lo);
+    let hi = hi.wrapping_add(b_hi).wrapping_add(i128::from(carry));
+    let num = lo as i128;
+    (hi == if num < 0 { -1 } else { 0 }).then_some(num)
 }
 
 impl Ord for Dyadic {
@@ -1195,6 +1209,14 @@ mod tests {
             )))
         );
         assert_eq!(arena.dyadic(1, 127), Err(ArenaError::NumberOutOfRange));
+        // 2 - 2^-126 = (2^127 - 1) / 2^126: the aligned 2 * 2^126 leaves i128,
+        // the sum does not.
+        let neg_tiny = arena.dyadic(-1, 126).unwrap();
+        let sum = arena.add(two, neg_tiny).unwrap();
+        assert_eq!(
+            arena.number_value(sum),
+            Some(Surreal::from_rational(Rational::new(i128::MAX, 1 << 126)))
+        );
         assert_eq!(arena.dyadic(i128::MAX, 126).map(|_| ()), Ok(()));
         // {0 | 2^-126} is the number 2^-127, outside the range.
         let zero = arena.zero();
@@ -1239,5 +1261,25 @@ mod tests {
         assert_eq!(arena.positions(star10, 1), 2);
         assert_eq!(arena.positions(star10, 5), 6);
         assert_eq!(arena.positions(star10, 100), 11);
+    }
+
+    #[test]
+    fn shl_add_is_exact_at_the_i128_edge() {
+        for a in [-5i128, -1, 0, 1, 3, 1 << 60, -(1 << 60)] {
+            for shift in [1u32, 7, 60] {
+                for b in [-7i128, -1, 0, 1, 9] {
+                    let exact = a.checked_mul(1 << shift).and_then(|x| x.checked_add(b));
+                    assert_eq!(shl_add(a, shift, b), exact, "{a} << {shift} + {b}");
+                }
+            }
+        }
+        assert_eq!(shl_add(2, 126, -1), Some(i128::MAX));
+        assert_eq!(shl_add(-2, 126, 0), Some(i128::MIN));
+        assert_eq!(shl_add(2, 126, 0), None);
+        assert_eq!(shl_add(-2, 126, -1), None);
+        // 3 * 2^126 leaves i128; subtracting 2^126 + 1 lands on i128::MAX.
+        assert_eq!(shl_add(3, 126, -(1 << 126) - 1), Some(i128::MAX));
+        assert_eq!(shl_add(i128::MAX, 127, 0), None);
+        assert_eq!(shl_add(-1, 127, 0), Some(i128::MIN));
     }
 }
