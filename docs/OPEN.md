@@ -208,9 +208,9 @@ Frobenius coset. So his argument in its standard form does not carry over
 through that realization. Sharper degree estimates, even or non-integer
 multipliers, other counting schemes, and other realizations stay open. A realization of `u_n` by torsion points of
 order polynomial in their degree would be an independent ancestry input of
-the kind described below. Both questions hold for `n <= 11`; at levels
-`12..18` every published prime factor and residual block of `F_n` passes for
-both towers (`experiments/fermat_selected_screen.py --tower`,
+the kind described below. Both questions hold for `n <= 11`; every published
+prime factor of `F_12..F_17` and every residual block of `F_15..F_18` passes
+for both towers (`experiments/fermat_selected_screen.py --tower`,
 `experiments/wiedemann_sibling.py`).
 
 **Arm `O`.** The arm is the residue symbol
