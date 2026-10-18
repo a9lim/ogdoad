@@ -117,6 +117,11 @@ measurement are engineering work in `docs/ROADMAP.md`.
   borrow-based trait methods.
 - Public rendering is deliberate. Preserve canonical `Display` forms and
   update exact-string tests when a format intentionally changes.
+- Public types grow by minor releases. Error enums, open catalogue and
+  evidence enums, and output-only report structs are `#[non_exhaustive]`.
+  Closed mathematical sets (outcomes, ADE kinds, places, `Plus`/`Minus`
+  types), value types, inputs, budgets, and certificates that an external
+  checker must be able to construct stay exhaustive.
 - Preserve unrelated work. Use focused diffs and tests that exercise the
   changed causal surface.
 

@@ -30,6 +30,7 @@ use std::fmt;
 
 /// One explicit Kneser neighbor, recording the projective line that generated it.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct KneserNeighbor {
     /// Prime defining the neighbor relation.
     pub prime: u128,
@@ -41,6 +42,7 @@ pub struct KneserNeighbor {
 
 /// One class used in a bounded mass-closure report.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct KneserMassRecord {
     /// Catalogue label of the isometry class.
     pub label: &'static str,
@@ -67,6 +69,7 @@ impl fmt::Display for KneserMassRecord {
 
 /// A bounded Kneser/mass certificate for an explicit even-unimodular genus.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct KneserMassInvariants {
     /// Rank of the genus.
     pub rank: usize,

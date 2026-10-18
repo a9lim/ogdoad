@@ -207,6 +207,7 @@ fn multisets(atoms: &[usize], max: usize) -> Vec<Vec<usize>> {
 
 /// A bounded misère indistinguishability quotient.
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub struct Quotient {
     /// The enumerated elements (sorted multisets of atoms, up to `elem_bound`).
     pub elements: Vec<Vec<usize>>,

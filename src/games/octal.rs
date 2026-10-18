@@ -21,6 +21,7 @@ pub struct OctalCode {
 
 /// Invalid finite octal-code input.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum OctalCodeError {
     /// Octal digits are exactly `0..=7`.
     InvalidDigit {
@@ -308,6 +309,7 @@ impl GuySmithCertificate {
 
 /// Rejection reason for an alleged Guy--Smith certificate.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum GuySmithError {
     /// The theorem requires a nonzero finite code with a last nonzero digit.
     ZeroCode,

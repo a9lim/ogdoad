@@ -187,6 +187,7 @@ pub enum WittFifoMove {
 
 /// Checked-construction or finite-unfolding failure.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum WittFifoError {
     /// The bitmask representation supports at most 128 original coordinates.
     DimensionTooLarge {

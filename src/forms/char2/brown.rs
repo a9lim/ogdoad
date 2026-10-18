@@ -60,6 +60,7 @@
 /// The Brown invariant of a `ℤ/4`-quadratic form, mirroring
 /// [`ArfInvariants`](crate::forms::ArfInvariants) field-for-field.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct BrownInvariants {
     /// Brown invariant `β ∈ ℤ/8` of the **nonsingular core** (the part where the
     /// symmetric polar `b` is nondegenerate).

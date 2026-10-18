@@ -8,6 +8,7 @@ use std::fmt;
 /// Classification invariants for a nondegenerate-plus-radical diagonal form
 /// over `F_P` of odd characteristic.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct OddCharInvariants {
     /// Characteristic prime.
     pub p: u128,

@@ -55,6 +55,7 @@ pub struct HermitianSignature {
 /// Failure to restrict a Hermitian form to an ordinary quadratic metric over
 /// the involution-fixed scalar world.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum HermitianRestrictionError {
     /// Restriction doubles the represented dimension and would exceed the
     /// Clifford engine's fixed-width generator boundary.
@@ -185,6 +186,7 @@ pub struct FiniteHermitianForm<F: FiniteField> {
 /// does not fit the crate's fixed-width `u128` metadata model (for example
 /// `|F_{2^128}| = 2^128`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct FiniteHermitianInvariants {
     /// Rank of the Hermitian form.
     pub rank: usize,

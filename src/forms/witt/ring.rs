@@ -114,6 +114,7 @@ pub fn in_fundamental_ideal<S: Scalar>(metric: &Metric<S>) -> Option<bool> {
 /// signed-discriminant square class, and `e₂ =` the Hasse invariant — `+1` over a
 /// finite field, where `I² = 0`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct EnStaircase {
     /// `e₀ ∈ H⁰ = ℤ/2`: the dimension mod 2.
     pub e0: u128,

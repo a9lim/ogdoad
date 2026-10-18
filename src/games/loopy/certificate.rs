@@ -67,6 +67,7 @@ pub struct OutcomeCertificate {
 
 /// Why a certificate fails its check.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum CertificateError {
     /// The label count is not twice the node count.
     LabelCount {

@@ -21,6 +21,7 @@ use crate::scalar::{nim_degree, Nimber};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 /// Failure to construct a finite characteristic-two Witt class.
+#[non_exhaustive]
 pub enum WittClassError {
     /// The metric has an ordered general-bilinear component.
     GeneralBilinearMetric,
@@ -121,12 +122,6 @@ impl WittClass {
             field_degree: 1,
             arf: 0,
         }
-    }
-
-    /// Deprecated alias for [`zero_f2`](Self::zero_f2).
-    #[deprecated(since = "1.0.0", note = "use zero_f2() for clarity")]
-    pub fn zero() -> Self {
-        Self::zero_f2()
     }
 
     /// The identity over `F_{2^field_degree}`.
@@ -246,6 +241,7 @@ impl std::ops::Neg for WittClass {
 /// * `Char2`: over a fixed finite char-2 field `W ≅ ℤ/2`, classified by the Arf
 ///   invariant together with the field degree.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum WittClassG {
     /// Real characteristic-zero Witt class.
     Char0 {

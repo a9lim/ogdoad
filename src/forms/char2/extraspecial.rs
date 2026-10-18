@@ -26,6 +26,7 @@ pub const HEISENBERG_WEIL_MATRIX_RANK_CAP: usize = 8;
 
 /// Error returned when a metric is outside the extraspecial 2-group boundary.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum ExtraspecialError {
     /// The bitmask model supports at most 128 `F_2` basis vectors.
     DimensionTooLarge,

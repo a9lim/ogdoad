@@ -21,6 +21,7 @@ use std::fmt;
 
 /// The Clifford/Weyl report for one irreducible ADE component.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct WeylVersorInvariants {
     /// Irreducible ADE type.
     pub kind: NiemeierComponentKind,

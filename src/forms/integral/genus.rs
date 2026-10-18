@@ -105,6 +105,7 @@ pub struct Genus {
 /// Local rational invariants computed from one presentation of a quadratic
 /// space over `Q_p`.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct GenusLocalFieldInvariants {
     /// The local prime.
     pub prime: u128,
@@ -121,6 +122,7 @@ pub struct GenusLocalFieldInvariants {
 /// Independent local-field comparison between a lattice Gram matrix and its
 /// Conway--Sloane genus symbol.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct GenusHasseCoherence {
     /// The local prime.
     pub prime: u128,

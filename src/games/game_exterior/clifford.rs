@@ -23,6 +23,7 @@ use super::relations::{
 /// pairing. Over the torsion-free target `Z`, this is what forces documented
 /// vanishings such as `2* = 0` killing every pairing involving `*`.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum GameCliffordError {
     /// The quadratic diagonal does not match the generator count.
     QuadraticLength {

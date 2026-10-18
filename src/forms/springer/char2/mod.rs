@@ -130,6 +130,7 @@ impl<S: FiniteChar2Field> Char2QuadForm<S> {
 /// Arf bits of the unramified and `⟨π⟩`-scaled parts; `psi` is the wild `R_π`
 /// coordinate, a sparse map `odd pole order n ↦ κ-coefficient` (no zero entries).
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub struct Char2LocalDecomp<S: FiniteChar2Field> {
     /// The `W_q(κ) ≅ F₂` Arf bit of the unramified part `φ₀`.
     pub phi0: u128,

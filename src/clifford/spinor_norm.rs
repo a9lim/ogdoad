@@ -32,6 +32,7 @@ pub fn versor_grade_parity<S: Scalar>(v: &Multivector<S>) -> Option<u128> {
 
 /// Raw norm and grade-parity data for a versor candidate.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct VersorInvariants<S: Scalar> {
     /// The raw spinor norm `N(v) = ⟨v ṽ⟩₀ = ∏ q(vᵢ)`. Over a field of
     /// characteristic other than two, its class in `F*/F*²` is the classical

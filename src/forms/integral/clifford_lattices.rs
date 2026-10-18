@@ -31,6 +31,7 @@ pub const BW16_AUTOMORPHISM_INDEX_IN_CLIFFORD_GROUP: u128 = 2;
 
 /// Verification record for the Clifford-side construction of `BW16`.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct CliffordBarnesWall16Invariants {
     /// Lattice constructed from Clifford-module rows.
     pub lattice: IntegralForm,

@@ -709,6 +709,7 @@ pub struct OddDiscriminantForm {
 /// Conway-Sloane genus symbol. For even lattices the uncorrected discriminant
 /// Gauss sum is handled by [`verify_milgram`].
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct OddMilgramInvariants {
     /// Real signature modulo eight.
     pub signature_mod8: i128,

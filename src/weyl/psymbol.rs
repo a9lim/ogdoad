@@ -25,6 +25,7 @@ use std::fmt;
 
 /// Failure while constructing or checking a characteristic-`p` symbol surface.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum WeylPSymbolError {
     /// A bounded central-fibre operation failed.
     Fiber(WeylFiberError),
@@ -361,6 +362,7 @@ impl<S: ExactFieldScalar> WeylPSymbolPresentation<S> {
 
 /// Evidence level carried by a Weyl central-fibre Brauer report.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum WeylFiberBrauerEvidence {
     /// The fibre has an executable tensor presentation by `p`-symbols. Its
     /// `p`-torsion Brauer interpretation is cited, not internally proved.

@@ -7,6 +7,7 @@ use std::collections::BTreeMap;
 
 /// A standard filtration on a PBW Weyl algebra.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum WeylFiltration {
     /// Every generator has degree one.
     Bernstein,

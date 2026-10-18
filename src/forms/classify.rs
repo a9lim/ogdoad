@@ -80,6 +80,7 @@ pub enum FiniteFieldWittDecomp {
 /// defective forms should use [`crate::forms::ArfInvariants`] directly and
 /// check the `radical_anisotropic` flag before relying on the Arf bit.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct Char2WittDecomp {
     /// Extension degree `m` for `F_{2^m}`.
     pub field_degree: u128,

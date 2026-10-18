@@ -65,6 +65,7 @@ impl<const P: u128, const N: usize> FiniteFieldInvariantField for Fpn<P, N> {
 
 /// Numeric invariants of a supported finite field.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct FiniteFieldNumericInvariants {
     /// Characteristic prime `p`.
     pub characteristic: u128,

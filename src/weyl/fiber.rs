@@ -33,6 +33,7 @@ impl WeylRepresentationBudget {
 
 /// Failure while constructing or using a finite central-character fibre.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum WeylFiberError {
     /// A checked operation in the ambient PBW algebra failed.
     Weyl(WeylError),

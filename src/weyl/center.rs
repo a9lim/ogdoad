@@ -7,6 +7,7 @@ use std::fmt;
 
 /// Failure while describing or materializing the centre of a Weyl algebra.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum WeylCenterError {
     /// Darboux reduction or coordinate transport failed.
     Darboux(WeylDarbouxError),
@@ -93,6 +94,7 @@ impl From<WeylError> for WeylCenterError {
 
 /// The mathematical source of a reported central generator.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum WeylCenterGeneratorKind {
     /// The characteristic power of a noncommutative Darboux generator.
     CharacteristicPower {

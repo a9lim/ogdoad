@@ -66,6 +66,7 @@ impl IndexSet {
 
 /// A value-count entry in a finite quadratic module normal form.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct FqmValueCount {
     /// Numerator of the canonical rational representative.
     pub numer: i128,
@@ -77,6 +78,7 @@ pub struct FqmValueCount {
 
 /// One p-primary summand of the finite-quadratic-module Witt class.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct FqmPrimaryWittClass {
     /// The prime `p`.
     pub prime: u128,
@@ -118,6 +120,7 @@ impl fmt::Display for FqmPrimaryWittClass {
 
 /// The Witt class of a nonsingular finite quadratic module.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct FqmWittClass {
     /// Order of the original finite module.
     pub order: u128,
@@ -159,6 +162,7 @@ impl fmt::Display for FqmWittClass {
 
 /// A local condition in Nikulin's even-lattice existence criterion.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct NikulinPrimaryExistenceInvariants {
     /// The prime `p`.
     pub prime: u128,
@@ -206,6 +210,7 @@ impl fmt::Display for NikulinPrimaryExistenceInvariants {
 
 /// The first failed condition in Nikulin's theorem 1.10.1.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum NikulinExistenceObstruction {
     /// `sign(q) != t_+ - t_- (mod 8)`.
     SignatureCongruence {
@@ -286,6 +291,7 @@ impl fmt::Display for NikulinExistenceObstruction {
 
 /// Full bounded report for Nikulin's even-lattice existence criterion.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct NikulinExistenceInvariants {
     /// Requested signature `(t_+, t_-)`.
     pub signature: (usize, usize),

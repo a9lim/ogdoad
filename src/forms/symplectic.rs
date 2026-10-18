@@ -31,6 +31,7 @@ pub struct SymplecticForm<S: Scalar> {
 /// The complete invariant of an alternating form: its rank (always even, twice the
 /// number of hyperbolic planes) and the dimension of its radical.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct SymplecticInvariants {
     /// `2 × (number of hyperbolic planes)` — always even.
     pub rank: usize,
@@ -45,6 +46,7 @@ pub struct SymplecticInvariants {
 /// future elimination regression cannot be mistaken for a mathematical
 /// decomposition.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum DarbouxError {
     /// A nonzero alternating pairing did not have a represented inverse.
     NoninvertiblePairing,

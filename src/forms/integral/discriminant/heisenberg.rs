@@ -21,6 +21,7 @@ const TOL: f64 = 1e-8;
 /// Coherence report for the 2-elementary discriminant module `(A,q)` and the
 /// Schrödinger representation of its doubled Heisenberg phase space `A (+) A*`.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct TwoElementaryWeilHeisenbergInvariants {
     /// `dim_F2 A`.
     pub rank: usize,

@@ -41,6 +41,7 @@ pub struct LoopyTurnState {
 /// `cycle` is closed: its first state is repeated as its last state. Consecutive
 /// states follow a legal move and alternate the mover.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct LoopyStopperWitness {
     /// Closed alternating cycle witnessing nontermination.
     pub cycle: Vec<LoopyTurnState>,
@@ -61,6 +62,7 @@ pub enum LoopyStopperStatus {
 /// A structural or resource error while constructing or combining partizan
 /// loopy graphs.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum LoopyPartizanGraphError {
     /// Left and Right adjacency tables have different lengths.
     MismatchedNodeCounts {

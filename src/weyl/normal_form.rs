@@ -8,6 +8,7 @@ use std::fmt;
 /// Failure while constructing the Darboux tensor presentation of a Weyl
 /// algebra.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum WeylDarbouxError {
     /// The underlying alternating form could not produce a certified exact-field
     /// Darboux basis.

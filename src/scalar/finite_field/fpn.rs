@@ -87,6 +87,7 @@ pub struct Fpn<const P: u128, const N: usize>([u128; N]);
 
 /// Classification of an `Fpn<P,N>` reduction polynomial.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum ReductionPolynomialKind {
     /// Degree-1 prime field, so no extension polynomial is needed.
     PrimeField,

@@ -44,6 +44,7 @@ use crate::scalar::ResidueField;
 /// One graded piece of a discrete Springer decomposition: a residue `k`-form at a
 /// fixed valuation, recorded by dimension and discriminant square-class.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct LocalResidueForm {
     /// The valuation of this graded piece.
     pub valuation: i128,
@@ -57,6 +58,7 @@ pub struct LocalResidueForm {
 /// A discrete Springer decomposition: the valuation-graded residue forms (sorted
 /// descending by valuation), and the radical (genuinely zero entries).
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct LocalSpringerDecomp {
     /// Residue forms, sorted by decreasing valuation.
     pub graded: Vec<LocalResidueForm>,

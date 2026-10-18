@@ -45,6 +45,7 @@ pub fn hilbert_product(a: &Rational, b: &Rational) -> Option<i128> {
 /// prime that can carry a nontrivial local condition. A form is isotropic over `ℚ`
 /// iff [`is_global`](Self::is_global) — isotropic at *every* place (Hasse–Minkowski).
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct AdelicIsotropy {
     /// Isotropy over the Archimedean completion `ℝ`.
     pub real: bool,

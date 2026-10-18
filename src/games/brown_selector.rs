@@ -11,6 +11,7 @@ use std::fmt;
 
 /// Checked-construction or finite-unfolding failure for a Brown selector.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum BrownSelectorError {
     /// Basis values and off-diagonal polar rows must have equal length.
     ShapeMismatch {

@@ -7,6 +7,7 @@ use std::fmt;
 /// A checked failure while constructing or operating on a finite-support Weyl
 /// algebra.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum WeylError {
     /// Doubling the requested standard rank exceeded the host dimension type.
     StandardDimensionOverflow,

@@ -49,6 +49,7 @@ impl fmt::Display for OrthogonalType {
 /// Classification invariants for a characteristic-2 quadratic form over any
 /// nim-subfield or supported finite char-2 field.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct ArfInvariants {
     /// Arf invariant of the nonsingular core (0 or 1).
     pub arf: u128,

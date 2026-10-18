@@ -134,6 +134,7 @@ fn same_char2_isometry_invariant(
 /// Witt decomposition of a real form: `witt_index` hyperbolic planes plus an
 /// anisotropic kernel that is definite (all `+` or all `−`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct RealWittDecomp {
     /// Number of hyperbolic planes split off (`min(p, q)`).
     pub witt_index: usize,
@@ -178,6 +179,7 @@ pub fn witt_decompose_real(m: &Metric<Surreal>) -> Option<RealWittDecomp> {
 /// Witt decomposition of an odd-characteristic form: `witt_index` hyperbolic
 /// planes plus an anisotropic kernel of dimension 0, 1, or 2.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct OddWittDecomp {
     /// Characteristic prime.
     pub p: u128,

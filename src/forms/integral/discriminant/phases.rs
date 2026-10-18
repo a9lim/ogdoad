@@ -12,6 +12,7 @@ use std::fmt;
 /// This is the **Gauss-sum phase projection** of the finite-quadratic-module Witt
 /// class, not Wall's full generator-and-relation normal form.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct FqmPrimaryPhase {
     /// The prime `p` of the primary subgroup.
     pub prime: u128,
@@ -46,6 +47,7 @@ impl fmt::Display for FqmPrimaryPhase {
 /// Kawauchi-Kojima generator data. This record intentionally exposes only the
 /// p-local normalized Gauss-sum phases and their total.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct FqmGaussPhase {
     /// The cardinality of the full finite quadratic module.
     pub order: usize,

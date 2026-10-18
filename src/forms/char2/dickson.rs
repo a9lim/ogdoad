@@ -10,6 +10,7 @@ use std::fmt;
 
 /// Failure modes for characteristic-two vector-symmetry factorization.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum Char2FactorizationError {
     /// The scalar field does not have characteristic two.
     WrongCharacteristic,

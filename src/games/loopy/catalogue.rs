@@ -85,6 +85,7 @@ pub enum PartizanOutcome {
 /// `None` whenever a sum leaves the represented catalogue or would require a
 /// non-local sidling/equality proof.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[non_exhaustive]
 pub enum LoopyValue {
     /// `0 = {|}` — the second player (previous mover) wins.
     Zero,
