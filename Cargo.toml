@@ -7,7 +7,7 @@ default-members = ["."]
 
 [package]
 name = "ogdoad"
-version = "1.0.7"
+version = "2.0.0"
 edition = "2021"
 description = "Clifford and Weyl algebras, quadratic forms, and games over exact, finite, local, and transfinite scalar backends."
 license = "AGPL-3.0-or-later"
