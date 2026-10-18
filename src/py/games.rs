@@ -318,58 +318,6 @@ fn call_usize_moves(callback: &Bound<'_, PyAny>, pos: usize) -> PyResult<Vec<usi
     callback.call1((pos,))?.extract()
 }
 
-fn grundy_u128_inner(
-    pos: u128,
-    moves: &Bound<'_, PyAny>,
-    memo: &mut HashMap<u128, u128>,
-) -> PyResult<u128> {
-    if let Some(&v) = memo.get(&pos) {
-        return Ok(v);
-    }
-    let nexts = call_u128_moves(moves, pos)?;
-    let mut values = Vec::with_capacity(nexts.len());
-    for next in nexts {
-        values.push(grundy_u128_inner(next, moves, memo)?);
-    }
-    let g = crate::games::mex(values);
-    memo.insert(pos, g);
-    Ok(g)
-}
-
-fn misere_is_n_u128_inner(
-    pos: u128,
-    moves: &Bound<'_, PyAny>,
-    memo: &mut HashMap<u128, bool>,
-    visiting: &mut HashSet<u128>,
-) -> PyResult<Option<bool>> {
-    if let Some(&v) = memo.get(&pos) {
-        return Ok(Some(v));
-    }
-    if !visiting.insert(pos) {
-        return Ok(None);
-    }
-    let nexts = call_u128_moves(moves, pos)?;
-    let mut result = nexts.is_empty();
-    if !result {
-        for next in nexts {
-            match misere_is_n_u128_inner(next, moves, memo, visiting)? {
-                Some(false) => {
-                    result = true;
-                    break;
-                }
-                Some(true) => {}
-                None => {
-                    visiting.remove(&pos);
-                    return Ok(None);
-                }
-            }
-        }
-    }
-    visiting.remove(&pos);
-    memo.insert(pos, result);
-    Ok(Some(result))
-}
-
 fn loopy_succ_from_callback(n: usize, moves: &Bound<'_, PyAny>) -> PyResult<Vec<Vec<usize>>> {
     let mut succ = Vec::with_capacity(n);
     for v in 0..n {
@@ -530,10 +478,12 @@ fn tartan_grundy(
 }
 
 /// Grundy value of an acyclic impartial game with `u128` positions and a Python
-/// move callback `moves(pos) -> list[u128]`.
+/// move callback `moves(pos) -> list[u128]`. Evaluation is iterative; raises
+/// `ValueError` if the move graph has a cycle.
 #[pyfunction]
 fn grundy(pos: u128, moves: Bound<'_, PyAny>) -> PyResult<u128> {
-    grundy_u128_inner(pos, &moves, &mut HashMap::new())
+    crate::games::grundy::grundy_with(&pos, |p| call_u128_moves(&moves, *p), &mut HashMap::new())?
+        .ok_or_else(|| PyValueError::new_err("grundy requires an acyclic move graph"))
 }
 
 /// Sprague–Grundy values of a finite **acyclic** impartial game graph given as
@@ -1329,7 +1279,11 @@ fn misere_nim_p_predicted(heaps: Vec<u128>) -> bool {
 /// Python move callback. Returns `None` if the callback-defined graph has a cycle.
 #[pyfunction]
 fn try_misere_is_n(pos: u128, moves: Bound<'_, PyAny>) -> PyResult<Option<bool>> {
-    misere_is_n_u128_inner(pos, &moves, &mut HashMap::new(), &mut HashSet::new())
+    crate::games::misere::misere_is_n_with(
+        &pos,
+        |p| call_u128_moves(&moves, *p),
+        &mut HashMap::new(),
+    )
 }
 
 /// Misère N/P outcome for an acyclic Python callback game; errors on cycles.

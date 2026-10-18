@@ -13,45 +13,6 @@ use std::hash::Hash;
 
 use crate::games::octal::octal_moves;
 
-fn misere_is_n_inner<P, F>(
-    pos: &P,
-    moves: &F,
-    memo: &mut HashMap<P, bool>,
-    visiting: &mut HashSet<P>,
-) -> Option<bool>
-where
-    P: Clone + Eq + Hash,
-    F: Fn(&P) -> Vec<P>,
-{
-    if let Some(&v) = memo.get(pos) {
-        return Some(v);
-    }
-    if !visiting.insert(pos.clone()) {
-        return None;
-    }
-    let nexts = moves(pos);
-    // terminal ⇒ N (can't-move wins); otherwise N ⟺ some move reaches a P.
-    let mut result = nexts.is_empty();
-    if !result {
-        for q in &nexts {
-            match misere_is_n_inner(q, moves, memo, visiting) {
-                Some(false) => {
-                    result = true;
-                    break;
-                }
-                Some(true) => {}
-                None => {
-                    visiting.remove(pos);
-                    return None;
-                }
-            }
-        }
-    }
-    visiting.remove(pos);
-    memo.insert(pos.clone(), result);
-    Some(result)
-}
-
 /// Misère outcome of a finite **acyclic** impartial game: `true` =
 /// **N-position** (the player to move wins under misère, last-to-move-loses),
 /// `false` = **P-position** (the previous player wins). `moves(p)` lists the
@@ -64,8 +25,52 @@ where
     P: Clone + Eq + Hash,
     F: Fn(&P) -> Vec<P>,
 {
-    let mut visiting = HashSet::new();
-    misere_is_n_inner(pos, moves, memo, &mut visiting)
+    match misere_is_n_with(pos, |p| Ok::<_, std::convert::Infallible>(moves(p)), memo) {
+        Ok(is_n) => is_n,
+        Err(never) => match never {},
+    }
+}
+
+/// [`try_misere_is_n`] with a fallible move generator, whose first error is
+/// returned. Evaluation is iterative, explores options in order, and stops at
+/// the first P-position option, as the recursive definition does.
+pub(crate) fn misere_is_n_with<P, E>(
+    pos: &P,
+    mut moves: impl FnMut(&P) -> Result<Vec<P>, E>,
+    memo: &mut HashMap<P, bool>,
+) -> Result<Option<bool>, E>
+where
+    P: Clone + Eq + Hash,
+{
+    if let Some(&is_n) = memo.get(pos) {
+        return Ok(Some(is_n));
+    }
+    let mut visiting = HashSet::from([pos.clone()]);
+    let mut stack = vec![(pos.clone(), moves(pos)?, 0usize)];
+    while let Some((_, options, next)) = stack.last_mut() {
+        // The most recently resolved option makes this an N-position if it is P.
+        let won = *next > 0 && memo.get(&options[*next - 1]) == Some(&false);
+        if !won {
+            if let Some(option) = options.get(*next).cloned() {
+                *next += 1;
+                if memo.contains_key(&option) {
+                    continue;
+                }
+                if !visiting.insert(option.clone()) {
+                    return Ok(None);
+                }
+                let option_moves = moves(&option)?;
+                stack.push((option, option_moves, 0));
+                continue;
+            }
+        }
+        let (position, options, _) = stack.pop().expect("the stack is nonempty");
+        // A terminal position is N (the mover cannot move and wins); otherwise
+        // the position is N exactly when some option is P.
+        visiting.remove(&position);
+        memo.insert(position, won || options.is_empty());
+    }
+    Ok(memo.get(pos).copied())
 }
 
 /// Convenience checked wrapper: `Some(true)` iff `pos` is a misère P-position

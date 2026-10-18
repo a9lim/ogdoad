@@ -36,8 +36,8 @@
 //!
 //! // Sprague--Grundy: Nim heaps 1, 2, 3 have value 1 ^ 2 ^ 3 = 0, heaps 3, 5 have 3 ^ 5 = 6.
 //! let mut memo = HashMap::new();
-//! assert_eq!(grundy(&vec![1, 2, 3], &nim_moves, &mut memo), 0);
-//! assert_eq!(grundy(&vec![3, 5], &nim_moves, &mut memo), 6);
+//! assert_eq!(grundy(&vec![1, 2, 3], &nim_moves, &mut memo), Some(0));
+//! assert_eq!(grundy(&vec![3, 5], &nim_moves, &mut memo), Some(6));
 //! ```
 
 pub mod arena;
