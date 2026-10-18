@@ -556,8 +556,8 @@ pub const NIEMEIER_CLASSES: [NiemeierRecord; 24] = [
 /// 24 generated Gram matrices: a rooted class constructs only its root
 /// sublattice ([`NiemeierRecord::root_lattice`]), and the Leech lattice has its
 /// own constructor, [`leech`](crate::forms::leech). Each rooted class has `24 h`
-/// roots for its Coxeter number `h`, and the catalogue's automorphism orders sum
-/// to the Smith--Minkowski--Siegel mass, a consistency check on the data rather
+/// roots for its Coxeter number `h`, and the reciprocals of the catalogue's
+/// automorphism orders sum to the Smith--Minkowski--Siegel mass, a consistency check on the data rather
 /// than a proof that the list is complete.
 ///
 /// # Examples

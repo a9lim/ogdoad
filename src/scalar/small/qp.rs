@@ -44,7 +44,9 @@ use std::fmt;
 ///
 /// `Qp<5, 8>` is `Q_5` with eight significant digits. Valuations and Hensel
 /// square roots work inside that window; addition drops terms below it, and the
-/// `Option<Option<_>>` of `sqrt` separates "not a square" from "not implemented".
+/// `Option<Option<_>>` of `sqrt` separates a definite nonsquare (`Some(None)`)
+/// from an answer the model cannot give (`None`: too little precision, or a
+/// root construction that is not implemented).
 ///
 /// ```
 /// use ogdoad::scalar::{Qp, Scalar};

@@ -110,7 +110,7 @@ pub fn loopy_nim_values(succ: &[Vec<usize>]) -> Option<Vec<LoopyNimber>> {
 /// assert_eq!(cert.side_positions, [0, 1]);
 /// assert!(cert.recovery_condition_holds); // no finite position has a Side option
 ///
-/// // Two graph-symmetric cycles with exits have two mex solutions: refused.
+/// // A symmetric two-cycle with exits has two mex solutions: refused.
 /// let symmetric = vec![vec![1, 2], vec![0, 3], vec![], vec![]];
 /// assert_eq!(loopy_nim_values(&symmetric), None);
 /// ```

@@ -103,9 +103,10 @@ enum TropVal {
 ///
 /// # Examples
 ///
-/// `Tropical<MaxPlus>` is the semiring `(ℚ ∪ {−∞}, max, +)`: ⊕ is idempotent, so
-/// no finite element has an additive inverse, yet every finite element is a
-/// ⊗-unit. The paper `writeups/semiring_stability.tex` (*Quadratic Stability
+/// `Tropical<MaxPlus>` models the semiring `(ℚ ∪ {−∞}, max, +)` inside
+/// `Rational`'s fixed-width carrier: ⊕ is idempotent, so no finite element has
+/// an additive inverse, while every finite element is a ⊗-unit in the model
+/// (the represented `int(i128::MIN)` has no representable inverse). The paper `writeups/semiring_stability.tex` (*Quadratic Stability
 /// without Subtraction*) works over idempotent semifields of this shape. Its
 /// Hessenberg and supertropical semirings are not implemented in this crate, and
 /// its thermograph-wall semifields have piecewise-linear values rather than

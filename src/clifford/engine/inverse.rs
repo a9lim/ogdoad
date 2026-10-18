@@ -13,7 +13,10 @@ use crate::scalar::Scalar;
 use std::collections::BTreeMap;
 
 impl<S: Scalar> CliffordAlgebra<S> {
-    /// The **general multivector inverse** `v⁻¹` (two-sided), for any element.
+    /// The **general multivector inverse** `v⁻¹` (two-sided), by a unit-pivot
+    /// solve over the full `2^dim` blade basis. `None` means the element is not
+    /// invertible, a pivot is not a unit of the scalar ring, or the basis is too
+    /// large to enumerate.
     ///
     /// # Examples
     ///

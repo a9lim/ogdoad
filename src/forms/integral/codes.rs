@@ -1133,8 +1133,8 @@ pub fn repetition_code(n: usize) -> Option<BinaryCode> {
 /// # Examples
 ///
 /// The Construction A lattice is odd and unimodular, with the theta head and
-/// genus of `Z^2` (classically `Z^2` is the only odd unimodular lattice of
-/// rank 2).
+/// genus of `Z^2` (classically `Z^2` is the only positive-definite odd
+/// unimodular lattice of rank 2).
 ///
 /// ```
 /// use ogdoad::forms::{are_in_same_genus, type_i_z2_code, IntegralForm};
@@ -1250,9 +1250,9 @@ pub fn ternary_golay_code() -> TernaryCode {
 /// # Examples
 ///
 /// Construction A on the Golay code is an even unimodular rank-24 lattice with
-/// 48 roots (the vectors `+-sqrt(2) e_i`) and the theta series
-/// `1 + 48 q + 195408 q^2`, which are the root count and theta series Venkov's
-/// formula assigns to the `A_1^24` row of the Niemeier catalogue. (That it is
+/// 48 roots (the vectors `+-sqrt(2) e_i`) and a theta series beginning
+/// `1 + 48 q + 195408 q^2`; the example checks that head, which is the root
+/// count and theta head Venkov's formula assigns to the `A_1^24` row of the Niemeier catalogue. (That it is
 /// the `A_1^24` Niemeier lattice follows from Niemeier's uniqueness theorem;
 /// the check here is these invariants.) It is not the Leech lattice, which has
 /// no roots; see [`leech`](crate::forms::leech).

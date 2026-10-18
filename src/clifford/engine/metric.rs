@@ -121,7 +121,8 @@ impl<S: Scalar> Metric<S> {
     ///
     /// # Panics
     ///
-    /// Panics unless every key of `b` and `a` satisfies `i < j < q.len()`.
+    /// Panics unless every key of `b` and `a` satisfies `i < j < q.len()` and
+    /// `q.len()` is at most [`MAX_BASIS_DIM`].
     ///
     /// # Examples
     ///

@@ -55,7 +55,7 @@ use std::fmt;
 /// let x = w.nim_add(&n(1));
 /// assert_eq!(x.nim_mul(&x.checked_inv().unwrap()), Some(n(1)));
 ///
-/// // Past ω^(ω^ω) every checked operation reports the boundary.
+/// // At ω^(ω^ω), these nontrivial products, inverses, and roots are refused.
 /// let beyond = Ordinal::omega_pow(Ordinal::omega_pow(w));
 /// assert_eq!(beyond.nim_mul(&beyond), None);
 /// assert_eq!((beyond.checked_inv(), beyond.checked_sqrt()), (None, None));

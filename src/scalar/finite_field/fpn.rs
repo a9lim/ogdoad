@@ -85,8 +85,8 @@ fn discrete_log_linear<F: FiniteField>(base: F, target: F, order: u128) -> Optio
 ///
 /// # Examples
 ///
-/// `Fpn<2, 3>` is `F_8`, a characteristic-two field the nimbers cannot reach
-/// (their subfields have degree `2^k`). The reduction polynomial is a
+/// `Fpn<2, 3>` is `F_8`, a characteristic-two field the finite nimbers cannot
+/// reach (their subfields have degree `2^k`; the ordinal nimbers do contain it). The reduction polynomial is a
 /// deterministic choice, so the example asserts only basis-independent facts.
 ///
 /// ```

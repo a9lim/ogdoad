@@ -141,8 +141,10 @@ pub fn grundy_1d<F: Fn(u128) -> Vec<u128>>(
 }
 
 /// Single-coin Grundy value of the Tartan product of two 1-D coin-turning games
-/// at cell (x,y), computed from the 2-D excludant directly (memoised). Compare
-/// against `nim_mul` of the component 1-D Grundy values to check the theorem.
+/// at cell (x,y), computed from the 2-D excludant directly (memoised). The
+/// Tartan theorem says it equals `nim_mul` of the component 1-D Grundy values;
+/// comparing the two pins this implementation against the theorem at the cells
+/// compared, which is evidence, not a proof.
 ///
 /// # Examples
 ///

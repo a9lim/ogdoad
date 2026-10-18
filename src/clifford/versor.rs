@@ -158,8 +158,9 @@ impl<S: Scalar> CliffordAlgebra<S> {
     ///
     /// # Examples
     ///
-    /// The rotor `R = 1 + e₁e₀` is a quarter turn in the `e₀e₁` plane: it
-    /// sends `e₀` to `e₁` and `e₁` to `-e₀`, exactly, with no trigonometry.
+    /// The even versor `R = 1 + e₁e₀` (a rotor up to the scale `R R̃ = 2`) is a
+    /// quarter turn in the `e₀e₁` plane: it sends `e₀` to `e₁` and `e₁` to
+    /// `-e₀`, exactly, with no trigonometry; the sandwich cancels the scale.
     ///
     /// ```
     /// use ogdoad::clifford::{CliffordAlgebra, Metric};

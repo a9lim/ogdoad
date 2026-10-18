@@ -10,8 +10,8 @@
 //!
 //! `E8` is the even unimodular lattice of rank 8 with 240 roots. Construction A
 //! on the extended Hamming `[8,4,4]` code lands in the same genus with the same
-//! theta series (by the classical uniqueness of even unimodular lattices in rank
-//! 8, it is `E8` again). The Smith--Minkowski--Siegel mass of that genus is
+//! theta series (by the classical uniqueness of positive-definite even
+//! unimodular lattices in rank 8, it is `E8` again). The Smith--Minkowski--Siegel mass of that genus is
 //! `1/696729600`, the reciprocal of `|Aut(E8)|`, because the genus has one class.
 //!
 //! ```

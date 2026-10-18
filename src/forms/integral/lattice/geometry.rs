@@ -369,8 +369,8 @@ impl IntegralForm {
     /// # Examples
     ///
     /// The six roots of `A_2`, both signs included; the same enumeration gives
-    /// the minimum and kissing number. An indefinite lattice has infinitely
-    /// many vectors below any bound, so it returns `None`.
+    /// the minimum and kissing number. The enumeration is defined only for
+    /// positive-definite lattices; an indefinite one returns `None`.
     ///
     /// ```
     /// use ogdoad::forms::{a_n, IntegralForm};
