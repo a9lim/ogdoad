@@ -178,26 +178,40 @@ two function values `g(P_n)` and `Theta_n`, in a one-dimensional Kummer
 quotient) are proved boundaries, not detectors. Two-block tensor arguments
 prove the multicomponent arm at `h = 12, 15, 24, 36, 40`.
 
-The Fermat chain has an elementary reformulation that is not yet in the
-paper. With `q = 2^(2^n)`, Frobenius over `F_q` sends `c_n` to `c_n + 1`, so
-`z -> z^(q-1)` identifies the quotient with the norm-one torus of order
-`F_n` and sends `c_n` to
+The Fermat chain is a torus problem. With `q = 2^(2^n)`, Frobenius over
+`F_q` sends `c_n` to `c_n + 1`, so `z -> z^(q-1)` identifies the quotient with
+the norm-one torus `T_n` of order `F_n` and sends `c_n` to
 
 ```text
-w_n = 1 + c_n^(-1),        w_n + w_n^(-1) = (c_0 c_1 ... c_(n-1))^(-1).
+u_n = (c_n + 1)/c_n,        u_n + u_n^(-1) = a_(n-1)^(-1),
+a_(n-1) = c_0 c_1 ... c_(n-1).
 ```
 
-Thus `ord(w_n) = delta_n`, and the arm asks whether `w_n` generates that
-torus. Wiedemann's conjecture asks the same of `x_n` in the tower
-`x_0 + x_0^(-1) = 1`, `x_n + x_n^(-1) = x_(n-1)` (D. Wiedemann, *Fibonacci
-Quart.* 26(4), 1988), and is also open. The two elements are
-Frobenius-conjugate for `n <= 2` and for no `n >= 3`: with
-`a_m = c_0 ... c_m`, the relative trace satisfies
-`Tr(a_m^(-1)) = a_(m-1)^(-2)`, so conjugacy would descend to level two, where
-`a_2^(-1)` and `x_2` have different minimal polynomials. The towers are
-siblings, not one tower, and no transfer of an order theorem between them is
-known (`experiments/wiedemann_sibling.py` checks levels `0..5` and the
-level-two obstruction).
+Thus `ord(u_n) = delta_n`, and the arm asks whether `u_n` generates `T_n`.
+Wiedemann's question (D. Wiedemann, *Fibonacci Quart.* 26(4), 1988) asks the
+same of `x_n` in the tower `x_(-1) = 1`, `x_m + x_m^(-1) = x_(m-1)`, and is
+also open; Seyfarth--Ranade restate it as a Fibonacci-index condition, which
+is the paper's residue test `S_(F_n/l)(x_(n-1)^(-1)) != 0`. Both towers have
+relative trace equal to the previous coordinate, with relative norms
+`a_(m-1)^3` and `1`. Since `a_(n-2)^3 != 1` for `n >= 3`, the norm
+separates them: `u_n` and `x_n` are Frobenius-conjugate exactly for `n <= 2`.
+Wiedemann's tower is the abscissa tower of the 2-primary torsion of the
+ordinary curve `y^2 + xy = x^3 + 1`, where every odd multiplier acts as a
+Frobenius power. Voloch's bound `ord(x_n) >= exp(2^(delta n))` rests on that,
+and in this case the argument gives the explicit
+`ord(x_n) >= 2^floor((3 * 2^(n-2))^(1/3))`. The Conway selection
+`u_(n+1) = g(P_n)` lives on the supersingular curve, where Frobenius acts on
+`<P_n>` through a subgroup `H_n` of order `2^(n+2)`. When `ord(P_n) = F_n`
+(true for `2 <= n <= 6`), Voloch's order hypothesis fails from `n = 3` on, and
+for `n >= 4` the standard degree budget admits at most one odd multiplier per
+Frobenius coset. So his argument in its standard form does not carry over
+through that realization. Sharper degree estimates, even or non-integer
+multipliers, other counting schemes, and other realizations stay open. A realization of `u_n` by torsion points of
+order polynomial in their degree would be an independent ancestry input of
+the kind described below. Both questions hold for `n <= 11`; at levels
+`12..18` every published prime factor and residual block of `F_n` passes for
+both towers (`experiments/fermat_selected_screen.py --tower`,
+`experiments/wiedemann_sibling.py`).
 
 **Arm `O`.** The arm is the residue symbol
 `(epsilon_a / P_a)_p != 1` on the unique inert ray above two, and residue

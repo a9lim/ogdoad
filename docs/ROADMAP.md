@@ -70,8 +70,6 @@ unpublished until the publication row is complete.
 - Give every paper an author read-through and check all cited theorem numbers.
 - Check the thermography novelty boundary against *Winning Ways*, Chapter 8,
   and Siegel, Section III.3, before making a literature claim.
-- Add the Conway--Fermat torus reformulation of arm `Z` and its comparison
-  with Wiedemann's conjecture (`OPEN.md` §2) to `excess.tex`.
 - Prepare the characteristic-two classification for a Mathlib contribution.
 - Prepare stable submission artifacts for the finished papers; the tracked
   `.tex` and `.bib` files remain the source of truth.
@@ -85,7 +83,7 @@ to `OPEN.md`, and the front list in `AGENTS.md` changes in the same commit.
 
 | direction | first concrete target |
 | --- | --- |
-| Wiedemann siblings | the Conway--Fermat arm asks whether `w_n = 1 + c_n^(-1)`, with `w_n + w_n^(-1) = (c_0 ... c_(n-1))^(-1)`, generates the norm-one torus of order `F_n`; Wiedemann's open conjecture asks the same of `x_n + x_n^(-1) = x_(n-1)`. The elements are Frobenius-conjugate exactly for `n <= 2` (a trace-descent proof; `experiments/wiedemann_sibling.py`). Run the selected-factor Fermat screen on Wiedemann's tower at the levels already screened for Conway's; compare the known partial results on Wiedemann's tower, including the Fibonacci-index formulation of Seyfarth--Ranade (*J. Math. Phys.* 53, 2012), with the arm-`Z` packet bounds; and find either a transfer of a lower-bound technique or an explicit obstruction to one. A transfer is the kind of independent ancestry input `OPEN.md` §2 says a proof needs |
+| Wiedemann siblings | `excess.tex` proves that the Conway--Fermat torus element `u_n` and Wiedemann's `x_n` are distinct selections of the same Fermat torus from level three on (their trace-compatible towers differ in relative norm), and that Voloch's lower bound for `x_n`, which uses the 2-primary torsion of an ordinary curve, does not carry over in its standard form to the supersingular realization `u_(n+1) = g(P_n)`, on which Frobenius acts through a thin subgroup of order `2^(n+2)`. Search for a realization that would transfer it: `u_n` (or `c_n`) as a fixed function of torsion points whose order is polynomial in their degree and whose cyclic group is Frobenius-stable, on the ordinary curves over `F_2` and `F_4` at levels `n <= 6`, or a proof that no fixed function of bounded degree on those curves gives one; even and non-integer multipliers on the supersingular curve are the other untested routes. Decide also whether `ord(P_n) = F_n` for every `n` (true for `2 <= n <= 6`), on which the sharp form of the thinness statement depends. A realization would be the independent ancestry input `OPEN.md` §2 says a proof needs |
 | ko thermography | a machine-checked thermograph for loopy games with kos, validated against the known generalized-thermography examples, then its tropical structure; the linking arena's one-step ko is the in-house test case |
 | lexicode residuals | decide whether a lexicographic construction reaches a rootless rank-24 lattice — binary Construction A always contains the coordinate roots, so the Golay lexicode `L(24, 8)` gives the Niemeier lattice with root system `A_1^24`, not Leech — or state exactly which nimber-subfield scalars preserve base-`2^k` lexicodes when `k` is not a power of two |
 

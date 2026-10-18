@@ -39,7 +39,10 @@ period in a norm-one torus, and a corrected conductor-five norm.  These are
 lossless reductions, not hypotheses, and all four universal assertions remain
 open.  The paper then isolates the arithmetic content of each coordinate.  It
 constructs the primitive-support quotient and the Conway--Fermat packet
-recursion and a packet-degree defect bound, identifies the ordinary Artin
+recursion and a packet-degree defect bound, proves that the Conway--Fermat
+coordinate and Wiedemann's iterated quadratic tower select generator
+candidates of the same Fermat torus that are never conjugate from level three
+on, identifies the ordinary Artin
 symbol, proves least-counterexample one-primary regimes in the Fermat and
 ordinary arms, the cubic Singer recursion, a shared minimal-coefficient-field
 packing bound for the ordinary and cubic arms, and a partition selected-order
@@ -111,6 +114,7 @@ packet-universal Fermat residual of Proposition~\ref{prop:z-packet-universal},
 the packet-degree bound of Proposition~\ref{prop:z-packet-degree},
 the least-counterexample packet sharpening of
 Corollary~\ref{cor:z-one-packet},
+the Wiedemann-sibling comparison of Proposition~\ref{prop:z-wiedemann},
 the all-iterate ramification boundary of
 Proposition~\ref{prop:z-iterate-ramification}, the generalized-Prym
 saturation boundary of Proposition~\ref{prop:z-prym-boundary}, the selected
@@ -410,9 +414,45 @@ and the $2^{n+1}$ Frobenius conjugates are distinct because $c_n$ has that
 degree.  They exhaust the tuples and preserve all relative orders.
 \end{proof}
 
-The recurrence has a deterministic packet form.  If
-$u_n=(c_n+1)/c_n$, then $\operatorname{ord}(u_n)=\delta_n$ and
-$a_{n-1}=\prod_{j<n}c_j=u_n/(u_n+1)^2$.  For each divisor $e>1$ of $F_n$,
+The quotient in Theorem~\ref{thm:fermat} is a torus.  Put
+\[
+ q=2^{2^n}=|E_{n-1}|,\qquad
+ T_n=\ker\bigl(N_{E_n/E_{n-1}}\colon E_n^{\times}\to E_{n-1}^{\times}\bigr),
+ \qquad
+ u_n=\frac{c_n+1}{c_n},
+\]
+and $a_{n-1}=\prod_{j<n}c_j$, with $a_{-1}=1$.
+
+\begin{proposition}[Fermat torus coordinate]\label{prop:z-torus}
+The group $T_n$ is cyclic of order $F_n$, and $z\mapsto z^{q-1}$ induces an
+isomorphism $E_n^{\times}/E_{n-1}^{\times}\simeq T_n$ sending
+$c_nE_{n-1}^{\times}$ to $u_n$.  Moreover
+\[
+ u_n+u_n^{-1}=a_{n-1}^{-1},
+ \qquad
+ a_{n-1}=\frac{u_n}{(u_n+1)^2}.
+\]
+Consequently $\operatorname{ord}(u_n)=\delta_n$, and the Conway--Fermat
+equality $\delta_n=F_n$ says exactly that $u_n$ generates $T_n$.
+\end{proposition}
+
+\begin{proof}
+The group $E_n^{\times}$ is cyclic of order $q^2-1$ and
+$N_{E_n/E_{n-1}}(z)=z^{q+1}$, so $T_n$ is its subgroup of order $q+1=F_n$.
+The $(q-1)$-st power map has kernel $E_{n-1}^{\times}$ and image $T_n$.  The
+generator $z\mapsto z^q$ of $\operatorname{Gal}(E_n/E_{n-1})$ fixes
+$a_{n-1}$, hence permutes the two roots $c_n$ and $c_n+1$ of
+$X^2+X+a_{n-1}$; since $c_n\notin E_{n-1}$, it exchanges them.  Thus
+$c_n^{q-1}=(c_n+1)/c_n=u_n$.  Finally
+\[
+ u_n+u_n^{-1}=\frac{(c_n+1)^2+c_n^2}{c_n(c_n+1)}
+ =\frac1{c_n^2+c_n}=\frac1{a_{n-1}},
+\]
+and $u_n/(u_n+1)^2=(u_n+u_n^{-1})^{-1}$ in characteristic two.
+\end{proof}
+
+The recurrence has a deterministic packet form.  For each divisor $e>1$ of
+$F_n$,
 the inverse pairs of primitive $e$-th roots give a squarefree packet
 polynomial
 \[
@@ -1322,6 +1362,315 @@ and cannot replace the selected five-torsion function above.  The remaining
 statement is still exclusion of every proper-conductor packet along the
 complete resultant chain.  Trace, relative norm, irreducibility, and the
 etale Jacobian hold for proper packets as well as the full packet.
+
+\subsection{Wiedemann's sibling tower}\label{sec:z-wiedemann}
+
+Proposition~\ref{prop:z-torus} places the Conway--Fermat assertion beside an
+older open problem.  Wiedemann's iterated quadratic tower is
+\[
+ x_{-1}=1,\qquad x_m+x_m^{-1}=x_{m-1}\qquad(m\geq0).
+\]
+Wiedemann proves that every step is quadratic, so that $E_m=E_{m-1}(x_m)$
+and $x_m^{-1}$ is the conjugate of $x_m$ over $E_{m-1}$, and that
+$x_m^{F_m}=1$ \cite[Theorem~1 and Corollary]{wiedemann1988}.  He verifies
+$\operatorname{ord}(x_m)=F_m$ for $m\leq8$, asks whether it holds for every
+$m$, and, setting his tower beside Conway's, records that no explicit
+isomorphism between the two presentations was known
+\cite[Sections~4--5]{wiedemann1988}.  Seyfarth and Ranade show that the
+conjecture is equivalent to the assertion that, for every $m$, the minimal
+polynomial of $x_{m-1}$---the $m$-fold self-reciprocal transform
+$f\mapsto X^{\deg f}f(X+X^{-1})$ of $X+1$---has Fibonacci index $F_m$
+\cite[Theorem~2]{seyfarthranade2012}.  The question remains open.  Since
+$x_{n-1}^{-1}=x_n/(x_n+1)^2$, the Binet identity in the proof of
+Proposition~\ref{prop:z-packet-universal} turns it into the residue test
+\[
+ S_{F_n/\ell}(x_{n-1}^{-1})\ne0
+ \qquad(\ell\mid F_n\text{ prime}),
+\]
+the Conway target $S_{F_n/\ell}(a_{n-1})\ne0$ evaluated at a different
+selected point.
+
+Both towers have one shape.  Call $(b_m)_{m\geq-1}$, with $b_{-1}=1$, a
+\emph{trace-compatible quadratic tower} if $b_m\in E_m\setminus E_{m-1}$ and
+\[
+ b_m^2+b_{m-1}b_m+\nu_m=0,
+ \qquad \nu_m\in E_{m-1}^{\times}\qquad(m\geq0).
+\]
+Then $\operatorname{Tr}_{E_m/E_{m-1}}(b_m)=b_{m-1}$ and
+$N_{E_m/E_{m-1}}(b_m)=\nu_m$, and with $q=|E_{m-1}|$ the norm-one coordinate
+$t_m=b_m^{q-1}$ satisfies
+\[
+ t_m+t_m^{-1}=\frac{(b_m^q+b_m)^2}{b_m^{q+1}}=\frac{b_{m-1}^2}{\nu_m},
+ \qquad\text{that is,}\qquad
+ \frac{t_m}{(t_m+1)^2}=\frac{\nu_m}{b_{m-1}^2}.
+\]
+
+\begin{proposition}[Wiedemann sibling]\label{prop:z-wiedemann}
+\begin{enumerate}
+\item[(a)] The sequences $(a_m)$ and $(x_m)$ are trace-compatible quadratic
+  towers, with $\nu_m=a_{m-1}^3$ and $\nu_m=1$, and with norm-one
+  coordinates $u_m$ and $x_m^{-2}$.  Thus $x_n\in T_n$, and Wiedemann's
+  conjecture at level $n$ says that $x_n$ generates $T_n$.
+\item[(b)] For each $m$, the compatible tuples $(x_0,\ldots,x_m)$ form one
+  absolute-Frobenius orbit.
+\item[(c)] The elements $u_n$ and $x_n$ are Frobenius-conjugate if and only
+  if $n\leq2$.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+(a) The nontrivial automorphism of $E_m/E_{m-1}$ sends $c_m$ to $c_m+1$,
+hence $a_m=a_{m-1}c_m$ to $a_{m-1}(c_m+1)$, and it sends $x_m$ to $x_m^{-1}$.
+Taking sums and products, and using $c_m(c_m+1)=a_{m-1}$, gives
+$\operatorname{Tr}(a_m)=a_{m-1}$, $N(a_m)=a_{m-1}^3$,
+$\operatorname{Tr}(x_m)=x_{m-1}$, and $N(x_m)=1$.  Moreover
+$a_m\notin E_{m-1}$, because $a_{m-1}\in E_{m-1}^{\times}$ and
+$c_m\notin E_{m-1}$.  The norm-one coordinates are
+$a_m^{q-1}=(c_m+1)/c_m=u_m$ and $x_m^{q-1}=x_m^{-2}$.
+
+(b) A compatible tuple is determined by its top entry, and there are
+$2^{m+1}$ of them.  Every proper subfield of $E_m$ lies in $E_{m-1}$, which
+does not contain $x_m$, so $x_m$ has $2^{m+1}$ distinct Frobenius conjugates.
+Frobenius preserves the defining relations, so these conjugates are the top
+entries of $2^{m+1}$ distinct compatible tuples, which are all of them.
+
+(c) The map $z\mapsto z+z^{-1}$ commutes with every field automorphism, and
+its fibres are the pairs $\{z,z^{-1}\}$; on $T_n$ one has $z^{-1}=z^q$, a
+Frobenius conjugate of $z$.  Since $u_n+u_n^{-1}=a_{n-1}^{-1}$ and
+$x_n+x_n^{-1}=x_{n-1}$, and every automorphism of $E_{n-1}$ extends to
+$E_n$, the elements $u_n$ and $x_n$ are conjugate exactly when
+$a_{n-1}^{-1}$ and $x_{n-1}$ are.  As $x_{n-1}^{-1}$ is a conjugate of
+$x_{n-1}$, this happens exactly when $a_{n-1}$ and $x_{n-1}$ are conjugate.
+
+Let $n\geq3$, and suppose that an automorphism $\sigma$ of $E_{n-1}$ sends
+$a_{n-1}$ to $x_{n-1}$.  It preserves $E_{n-2}$ and commutes with
+$N_{E_{n-1}/E_{n-2}}$, so (a) gives
+\[
+ 1=N(x_{n-1})=\sigma\bigl(N(a_{n-1})\bigr)=\sigma(a_{n-2})^3.
+\]
+Hence $a_{n-2}^3=1$ and $a_{n-2}\in\mathbb F_4\subseteq E_{n-3}$, contrary to
+$a_{n-2}\notin E_{n-3}$.
+
+For $n\leq2$: one has $a_{-1}=x_{-1}=1$; next, $a_0=c_0$ and $x_0$ are both
+roots of $X^2+X+1$; finally, $a_1$ has trace $a_0$ and norm $a_0^3=1$, so it
+is a root of $X^2+a_0X+1$, which is the Wiedemann relation for the
+compatible choice $x_0=a_0$.  By (b), $a_1$ is conjugate to $x_1$.
+\end{proof}
+
+For instance, $a_2^{17}=N(a_2)=a_1^3$ has order five, because $a_1$ is a
+root of $X^2+a_0X+1$ and hence of $X^4+X^3+X^2+X+1$, while the image of
+$a_2$ in $E_2^{\times}/E_1^{\times}$ is that of $c_2$, of order
+$\delta_2=17$.  Thus $a_2$ has order $85$, whereas $x_2$ lies in $T_2$, of
+order $17$.
+
+In the trace-compatible coordinates the two recursions therefore share their
+trace prescription and differ in their norm prescription.  On the selected
+torus elements the parent laws are
+\[
+ \frac{x_n}{(x_n+1)^2}=\frac1{x_{n-1}},
+ \qquad
+ \frac{u_n}{(u_n+1)^2}=\frac{u_{n-1}}{(u_{n-1}+1)^3}
+ \qquad(n\geq1),
+\]
+the second by Proposition~\ref{prop:z-torus} and
+$c_{n-1}=(u_{n-1}+1)^{-1}$.  The first is the genus-zero correspondence of
+iterated preimages of $z\mapsto z+z^{-1}$: every entry of a Wiedemann tuple
+is a rational function of the top entry, so the analogue of the curve
+$\mathcal X_r$ of Proposition~\ref{prop:z-iterate-ramification} is the
+projective line at every depth.  The second is birational to the
+supersingular curve of Proposition~\ref{prop:z-elliptic}, and its iterates
+have the growing genus of Proposition~\ref{prop:z-iterate-ramification}.
+Proposition~\ref{prop:z-packet-universal} is independent of the selected
+ancestry and holds equally for Wiedemann's torus elements, whereas
+Proposition~\ref{prop:z-trace-separation} concerns generic field elements
+and gives no separation theorem inside the Fermat tori or along either
+selected sequence.  The two selections differ only through their parent
+laws, and part~(c) shows that they are distinct from level three on: no
+isomorphism between Conway's and Wiedemann's presentations of $E_n$ carries
+$u_n$ to $x_n$ when $n\geq3$.
+
+\begin{remark}[ordinary realization]\label{rem:z-ordinary}
+Wiedemann's tower is an isogeny division tower, on a curve of the opposite
+type.  On the ordinary curve
+\[
+ \mathcal E'\colon\quad y^2+xy=x^3+1
+\]
+over $\mathbb F_2$, let $\pi$ be absolute Frobenius and $V$ its dual, so
+that $V\pi=[2]$ and $V=[2]\circ\pi^{-1}$ on geometric points.  Duplication
+gives $x([2]Q)=x(Q)^2+x(Q)^{-2}$, so
+\[
+ x(VQ)=x(Q)+x(Q)^{-1}\qquad(x(Q)\ne0).
+\]
+Voloch uses this identity to place Wiedemann's elements on $\mathcal E'$
+\cite[Section~4]{voloch2010}, and Ugolini studies the dynamics of
+$z\mapsto z+z^{-1}$ through the same abscissa action of the dual Frobenius
+\cite{ugolini2012}.  Since $\pi$ preserves
+orders, $\operatorname{ord}(VQ)=\operatorname{ord}(Q)/\gcd(2,\operatorname{ord}(Q))$.
+The rational points $(1,0)$ and $(1,1)$ have order four, because
+$[2](1,0)=(0,1)$ and $[2](0,1)=O$, and they are the only points with
+abscissa one.  Every point of order at least eight has nonzero abscissa, so
+$V^{n+1}$ carries a geometric point with abscissa a level-$n$ Wiedemann
+element to a point of order four, and conversely.  Hence the level-$n$
+Wiedemann elements are exactly the abscissas of the geometric points of
+exact order $2^{n+3}$ on $\mathcal E'$.  Such a point is rational over
+$E_n$: with $z=y/x_n$, its ordinate solves $z^2+z=x_n+x_n^{-2}$, whose
+absolute trace is
+$\operatorname{Tr}_{E_n/\mathbb F_2}(x_n+x_n^{-1})
+ =\operatorname{Tr}_{E_n/\mathbb F_2}(x_{n-1})=0$.
+
+Thus Wiedemann's tower is the abscissa tower of the $2$-primary torsion of
+an ordinary curve, whereas the selected points of
+Proposition~\ref{prop:z-elliptic} are annihilated by the odd number $F_n$ on
+a supersingular curve and, as shown above, do not form a division tower.
+Ordinary and supersingular curves are not isogenous, even over
+$\overline{\mathbb F}_2$.  This separates the two geometric realizations; it
+does not exclude other relations between the two multiplicative-order
+questions.
+\end{remark}
+
+The ordinary realization carries a published asymptotic lower bound for
+Wiedemann's tower.  Voloch proves $\operatorname{ord}(x_n)\geq\exp(2^{\delta n})$
+for an unspecified $\delta>0$ and all large $n$ \cite{voloch2010}, and
+Popovych proves the effective bound
+$\operatorname{ord}(x_n)\geq7\cdot2^{n+2}+1$ for $n\geq12$ together with
+$\operatorname{ord}(x_n)=F_n$ for $n\leq11$
+\cite[Theorem~3]{popovych2015}.  For the Conway--Fermat chain the published
+lower bound is the Euler--Lucas congruence bound
+$\delta_n\geq2^{n+2}+1$ for $n\geq2$
+\cite{popovych2018,caglierohermanszechtman2025}, which
+Proposition~\ref{prop:z-packet-degree} recovers.  Voloch's theorem concerns
+a fixed function $y$ on an elliptic curve evaluated at a point $P$ whose
+cyclic group is Frobenius-stable and whose order $r$ is below
+$[\mathbb F_q(P):\mathbb F_q]^{3/2-\epsilon}$
+\cite[Theorem~4.1]{voloch2010}.  Its proof chooses many small integers $k$
+in one coset $\gamma\langle a\rangle$ of the image of Frobenius in
+$(\mathbb Z/r\mathbb Z)^{\times}$; with $C=[\gamma^{-1}]P$, the values
+$y([k]C)$ are Frobenius conjugates of $y(P)$, and products of them are
+separated by the multiplicative independence of the functions $y\circ[k]$.
+On $\mathcal E'$ the image of Frobenius is everything up to sign: if $Q$ has
+exact order $2^{n+3}$ and abscissa $x_n$, the $2^{n+1}$ conjugates of $x_n$
+are abscissas of points of exact order $2^{n+3}$, and these are the
+$2^{n+1}$ abscissas $x([k]Q)$ with $k$ odd.  In this specialization the
+argument is explicit.
+
+\begin{proposition}[explicit Wiedemann bound]\label{prop:z-wiedemann-bound}
+For every $n\geq0$,
+\[
+ \operatorname{ord}(x_n)\geq2^t,
+ \qquad t=\bigl\lfloor(3\cdot2^{n-2})^{1/3}\bigr\rfloor.
+\]
+\end{proposition}
+
+\begin{proof}
+Let $Q$ be as above and put $f_k=x\circ[k]$ for odd $k\geq1$, a function of
+degree $2k^2$ on $\mathcal E'$.  Each $f_k(Q)$ is a conjugate of $x_n$, hence
+lies in $\langle x_n\rangle$.  The functions $f_k$ are multiplicatively
+independent: $\operatorname{div}(x)=2[T]-2[O]$ with $T=(0,1)$, and for the
+largest $k$ in a putative relation, a geometric point $R$ of exact order $2k$
+is a zero of $f_k$, whereas for odd $\ell<k$ the point $[\ell]R$ is neither
+$T$ nor $O$.  If two subset products of $f_1(Q),f_3(Q),\ldots,f_{2t-1}(Q)$
+coincide, the quotient of the corresponding functions minus one is a nonzero
+function over $\mathbb F_2$ vanishing at $Q$, hence at its $2^{n+1}$
+conjugates, while its degree is at most
+\[
+ 2\sum_{j=1}^{t}(2j-1)^2=\frac{8t^3-2t}{3}<2^{n+1}.
+\]
+Thus the $2^t$ subset products are distinct elements of
+$\langle x_n\rangle$.
+\end{proof}
+
+This beats Popovych's effective bound from $n=13$ on, and it is far from
+$F_n$.  The selected Conway element also has a fixed-function realization,
+$u_{n+1}=g(P_n)$ in Proposition~\ref{prop:z-elliptic}, but its Frobenius
+image is thin.
+
+\begin{proposition}[Frobenius-thin Conway torsion]
+\label{prop:z-voloch-boundary}
+Let $n\geq2$, put $h=2^{2^{n-1}}$, and let $r$ be the order of the point
+$P_n$ of Proposition~\ref{prop:z-elliptic}.  Then $r\mid F_n$, the cyclic
+group $\langle P_n\rangle$ is stable under $\iota$ and absolute Frobenius,
+$\iota$ acts on it as multiplication by $h$ or by $-h$, and Frobenius acts
+through the subgroup
+\[
+ H_n=\langle2\rangle\cup(h+1)\langle2\rangle
+ \subseteq(\mathbb Z/r\mathbb Z)^{\times},
+ \qquad |H_n|=2^{n+2}=[\mathbb F_2(P_n):\mathbb F_2].
+\]
+In particular $r>2^{n+2}$.  Suppose $r=F_n$.  Then no odd integer $k$ with
+$1<|k|<h-1$ lies in $H_n$, and for distinct odd positive integers $k,k'$
+with $kk'<h/2$ there is no congruence $k'\equiv\alpha k\pmod{F_n}$ with
+$\alpha\in H_n$; when both are units, they lie in distinct cosets of
+$H_n$.
+\end{proposition}
+
+\begin{proof}
+Proposition~\ref{prop:z-elliptic} gives $[F_n]P_n=O$.  Let
+$\sigma=\pi^{2^n}$ be the $|E_{n-1}|$-power Frobenius.  It sends $c_n$ to
+$c_n+1$, hence $a_n=a_{n-1}c_n$ to $a_n+a_{n-1}$, so it sends $c_{n+1}$ to a
+root of $Z^2+Z=a_n+a_{n-1}$, namely $c_{n+1}+c_n$ or $c_{n+1}+c_n+1$.  By the
+coordinate formula for $\iota$ and $-(x,y)=(x,y+1)$, this says
+$\sigma(P_n)=\pm\iota P_n$.  On the other hand $\pi^4=[-4]$ gives
+$\sigma=[(-4)^{2^{n-2}}]=[\pm h]$.  Hence $\iota P_n=\pm hP_n$, and since
+$\pi=\iota-[1]$, Frobenius acts on $\langle P_n\rangle$ as multiplication by
+$m=\pm h-1$.
+
+Modulo $r$ one has $h^2=2^{2^n}\equiv-1$, so $-1$ and $h$ lie in
+$\langle2\rangle$, which has order $2^{n+1}$.  Since
+$(h+1)^2\equiv2h\in\langle2\rangle$, the set $H_n$ is a subgroup of order
+at most $2^{n+2}$.  Moreover $(h+1)h=h-1$, so $\pm h-1\in(h+1)\langle2\rangle$
+and $\langle m\rangle\subseteq H_n$.  The group $\langle m\rangle$ has the
+order $2^{n+2}$ of the Frobenius orbit of $P_n$, which is the degree of
+$c_{n+1}$.  Hence $\langle m\rangle=H_n$, and $\varphi(r)\geq2^{n+2}$ gives
+$r>2^{n+2}$.
+
+Now let $r=F_n=h^2+1$, and note that
+$\langle2\rangle=\{\pm2^b:0\leq b<2^n\}$ modulo $F_n$.  Since
+$(h+1)2^{b+2^{n-1}}\equiv(h-1)2^b$, the residues of $H_n$ in $(0,F_n)$ are
+$2^b$ and $F_n-2^b$ for $0\leq b<2^n$, together with $(h\pm1)2^b$ and
+$F_n-(h\pm1)2^b$ for $0\leq b<2^{n-1}$.  The odd ones are $1$, $h\pm1$, and
+residues $F_n-y$ with $y\leq(h+1)2^{2^{n-1}-1}$, which are at least
+$2^{2^n-1}+1-h/2>h$.  Since $-1\in H_n$, the first claim follows.
+
+For the second, suppose $k'\equiv\epsilon k2^b$ or
+$k'\equiv\epsilon k(h+1)2^b$ with $\epsilon=\pm1$ and $0\leq b<2^n$.  In the
+first case, if $k2^b<F_n/2$, then $k'-\epsilon k2^b$ is a nonzero integer of
+absolute value below $F_n$: it is odd when $b\geq1$, and $k'\ne\pm k$ when
+$b=0$.  If $k2^b\geq F_n/2$, multiplication by $2^{2^n-b}<2k$ gives
+$2^{2^n-b}k'+\epsilon k\equiv0$, an odd integer of absolute value below
+$2kk'+k<F_n$.  In the second case, multiplication by $h-1$ and
+$(h+1)(h-1)\equiv-2$ give $k'(h-1)+\epsilon k2^{B}\equiv0$ with $B=b+1$.  If
+$k2^B<F_n/2$, the left side is an odd integer of absolute value below
+$k'h+F_n/2<F_n$.  Otherwise multiplication by $2^{2^n-B}<2k$ gives
+$k'(h-1)2^{2^n-B}-\epsilon k\equiv0$, where the left side has absolute value
+below $2kk'(h-1)+k<F_n$ and is nonzero: by parity if $B<2^n$, and because
+$k'(h-1)\geq h-1>k$ if $B=2^n$.  Each case contradicts $F_n$ dividing a
+nonzero integer of smaller absolute value.
+\end{proof}
+
+For $2\leq n\leq6$ a direct computation gives $r=F_n$; whether
+$\operatorname{ord}(P_n)=F_n$ for every $n$ is itself a selected-order
+question.  When $r=F_n$ and $n\geq3$, Theorem~4.1 of \cite{voloch2010} does
+not apply to $g(P_n)$, because $F_n>2^{3(n+2)/2}$.  Under $r=F_n$ the usual
+odd-multiplier argument also meets a counting obstruction.  Its standard
+degree estimate separates products when the sum of their function degrees,
+proportional to $\sum k^2$, is below the degree $d=2^{n+2}$ of $P_n$.  For
+$n\geq4$, any two distinct odd multipliers within this budget satisfy
+$kk'<d\leq h/2$, so each Frobenius coset contains at most one, and this
+sufficient budget cannot supply the growing family of multipliers that
+Voloch's argument uses.  The first nontrivial odd multiplication map
+representing Frobenius itself, $[h-1]$, has degree $(h-1)^2>2^{2^n-1}$.
+None of this excludes sharper degree estimates that exploit cancellation,
+even multipliers, other counting schemes, non-integer endomorphisms, or other
+realizations of $u_n$.  A realization satisfying Voloch's
+hypotheses would be an independent ancestry input in the sense of
+Section~\ref{sec:nim-reciprocity}; none is known.  Popovych's effective
+exclusions \cite[Theorem~2]{popovych2015}, valid for $i\geq2$, use trivial
+intersections between the cyclic groups of parent coordinates, such as
+$\langle x_{i-1}\rangle\cap\langle x_{i-2}\rangle=1$.  For the trace-compatible Conway parents
+that intersection is nontrivial when $i\geq3$: by
+Proposition~\ref{prop:z-wiedemann}(a),
+$a_{i-2}^3=N(a_{i-1})=a_{i-1}^{F_{i-1}}$ lies in
+$\langle a_{i-1}\rangle\cap\langle a_{i-2}\rangle$ and is not $1$.
 
 \section{The ordinary arm: a marked cyclotomic value}\label{sec:o}
 
@@ -3895,7 +4244,8 @@ Cited input & Conway--Lenstra tower formulas, standard finite-field and
 Capelli theory, and the cited cyclotomic, class-field, function-field, and
 order results.  These are not reproved in Lean. \\
 Proved here & The four-arm equivalence; the exact selected coordinates and
-order criteria; the primitive-support, packet-degree, supersingular, Singer
+order criteria; the primitive-support, packet-degree, Wiedemann-sibling,
+supersingular, Singer
 and selected norm-one ratio-packing and partition and single-section first-relation bounds,
 corrected-norm, ordinary section, reciprocal-doubling, and unconditional
 intermediate-field Kummer-ratio selected-order bounds,
