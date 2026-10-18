@@ -1061,6 +1061,14 @@ macro_rules! backend_algebra {
                 })
             }
 
+            /// Algebras compare by their defining data, as their elements do.
+            fn __eq__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                match other.cast::<$alg>() {
+                    Ok(other) => (*self.inner == *other.borrow().inner).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
+            }
+
             fn __repr__(&self) -> String {
                 format!("{}(dim={})", $alg_name, self.inner.dim())
             }
@@ -1645,6 +1653,14 @@ macro_rules! divided_power_backend {
                     inner: Arc::new(DividedPowerAlgebra::new(dim)),
                 }
             }
+            /// Algebras compare by their defining data, as their elements do.
+            fn __eq__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                match other.cast::<$alg>() {
+                    Ok(other) => (*self.inner == *other.borrow().inner).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
+            }
+
             #[getter]
             fn dim(&self) -> usize {
                 self.inner.dim()
@@ -1762,9 +1778,22 @@ macro_rules! divided_power_backend {
                     self.alg.scalar_mul(&neg_one, &self.vec)
                 })?))
             }
-            fn __mul__(&self, other: &$vec) -> PyResult<$vec> {
-                self.ensure_same_algebra(other)?;
-                Ok(self.wrap(scalar_boundary(|| self.alg.mul(&self.vec, &other.vec))?))
+            /// The divided-power product with a vector of the same algebra, or
+            /// right multiplication by a scalar (the scalar ring is commutative).
+            fn __mul__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                if let Ok(other) = other.cast::<$vec>() {
+                    let other = other.borrow();
+                    self.ensure_same_algebra(&other)?;
+                    return self
+                        .wrap(scalar_boundary(|| self.alg.mul(&self.vec, &other.vec))?)
+                        .into_py_any(py);
+                }
+                match $parse(other) {
+                    Ok(s) => self
+                        .wrap(scalar_boundary(|| self.alg.scalar_mul(&s, &self.vec))?)
+                        .into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
             }
             fn scale(&self, s: &Bound<'_, PyAny>) -> PyResult<$vec> {
                 let s = $parse(s)?;
@@ -1795,7 +1824,7 @@ macro_rules! divided_power_backend {
                 }
             }
             fn __repr__(&self) -> String {
-                format!("{:?}", self.vec)
+                format!("{}", self.vec)
             }
         }
     };

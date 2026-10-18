@@ -43,11 +43,20 @@ pub struct Surcomplex<S: Scalar> {
 impl<S: Scalar> std::fmt::Display for Surcomplex<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.im.is_zero() {
-            write!(f, "{}", self.re)
-        } else if self.re.is_zero() {
-            write!(f, "{}·i", self.im)
+            return write!(f, "{}", self.re);
+        }
+        // A multi-term imaginary part is parenthesized, so `ω + 1·i` and
+        // `(ω + 1)·i` stay distinct.
+        let im = self.im.to_string();
+        let im = if im.contains(' ') {
+            format!("({im})")
         } else {
-            write!(f, "{} + {}·i", self.re, self.im)
+            im
+        };
+        if self.re.is_zero() {
+            write!(f, "{im}·i")
+        } else {
+            write!(f, "{} + {im}·i", self.re)
         }
     }
 }
@@ -175,5 +184,16 @@ mod tests {
         let one_plus_i = NC::new(Nimber(1), Nimber(1));
         assert!(one_plus_i.mul(&one_plus_i).is_zero()); // (1+i)^2 = 0
         assert!(!one_plus_i.is_zero()); // but 1+i itself ≠ 0
+    }
+
+    #[test]
+    fn display_parenthesizes_a_multi_term_imaginary_part() {
+        use crate::scalar::Surreal;
+        let w = Surreal::omega();
+        let one = Surreal::one();
+        let a = Surcomplex::new(w.clone(), one.clone());
+        let b = Surcomplex::new(Surreal::zero(), w.add(&one));
+        assert_ne!(a.to_string(), b.to_string());
+        assert_eq!(b.to_string(), format!("({})·i", w.add(&one)));
     }
 }

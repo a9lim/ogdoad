@@ -54,6 +54,57 @@ pub struct DpVector<S: Scalar> {
     pub(crate) terms: BTreeMap<Multidegree, S>,
 }
 
+/// Canonical rendering in the multivector style: divided powers `e0^[2]`
+/// (with `e0^[1]` written `e0`), joined by `⋅`; coefficient `1` elided, `-1`
+/// as a sign, and other coefficients attached as `c⋅monomial`, parenthesized
+/// when non-atomic. The zero vector renders as the scalar zero.
+impl<S: Scalar> std::fmt::Display for DpVector<S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.terms.is_empty() {
+            return write!(f, "{}", S::zero());
+        }
+        let (one, neg_one) = (S::one(), S::one().neg());
+        let mut out = String::new();
+        for (idx, (degree, coeff)) in self.terms.iter().enumerate() {
+            let label = degree
+                .iter()
+                .enumerate()
+                .filter(|&(_, &k)| k > 0)
+                .map(|(i, &k)| {
+                    if k == 1 {
+                        format!("e{i}")
+                    } else {
+                        format!("e{i}^[{k}]")
+                    }
+                })
+                .collect::<Vec<_>>()
+                .join("⋅");
+            let part = if label.is_empty() {
+                coeff.to_string()
+            } else if *coeff == one {
+                label
+            } else if *coeff == neg_one {
+                format!("-{label}")
+            } else {
+                crate::scalar::poly::attach_coeff(coeff, &label)
+            };
+            match part.strip_prefix('-') {
+                Some(stripped) if idx > 0 => {
+                    out.push_str(" - ");
+                    out.push_str(stripped);
+                }
+                _ => {
+                    if idx > 0 {
+                        out.push_str(" + ");
+                    }
+                    out.push_str(&part);
+                }
+            }
+        }
+        write!(f, "{out}")
+    }
+}
+
 impl<S: Scalar> DpVector<S> {
     /// The term map: multidegree → coefficient (no zero entries).
     pub fn terms(&self) -> &BTreeMap<Multidegree, S> {
@@ -499,5 +550,21 @@ mod tests {
             Some(&F3::one()),
             "C(5,2)=10≡1 (mod 3)"
         );
+    }
+
+    #[test]
+    fn display_renders_divided_powers_canonically() {
+        use crate::scalar::Rational;
+        let mut terms = BTreeMap::new();
+        terms.insert(vec![0, 0], Rational::from(3));
+        terms.insert(vec![2, 0], Rational::one());
+        terms.insert(vec![1, 1], Rational::from(-2));
+        terms.insert(vec![0, 3], Rational::new(1, 2));
+        let v = DpVector { terms };
+        assert_eq!(v.to_string(), "3 + (1/2)⋅e1^[3] - 2⋅e0⋅e1 + e0^[2]");
+        let zero: DpVector<Rational> = DpVector {
+            terms: BTreeMap::new(),
+        };
+        assert_eq!(zero.to_string(), "0");
     }
 }

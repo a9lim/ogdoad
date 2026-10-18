@@ -197,8 +197,13 @@ impl PyNimber {
             inner: parse_nimber(other)?.mul(&si),
         })
     }
-    fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
-        matches!(other.cast::<PyNimber>(), Ok(n) if n.borrow().inner == self.inner)
+    fn __eq__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        // A foreign operand defers to its own `__eq__`, so a declared embedding
+        // compares the same in both orders and unrelated worlds compare unequal.
+        match other.cast::<PyNimber>() {
+            Ok(n) => (n.borrow().inner == self.inner).into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
     }
     /// The nimber/game-value fuzzy relation: distinct nimbers are incomparable.
     fn fuzzy(&self, other: &Bound<'_, PyAny>) -> PyResult<bool> {
@@ -488,8 +493,13 @@ impl PyNimberPoly {
             .ok_or_else(|| PyValueError::new_err("polynomial divisor is not a unit"))?;
         Ok(wrap_nimber_poly(parse_nimber_poly(other)?.mul(&si)))
     }
-    fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
-        matches!(parse_nimber_poly(other), Ok(p) if p == self.inner)
+    fn __eq__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        // A foreign operand defers to its own `__eq__`, so a declared embedding
+        // compares the same in both orders and unrelated worlds compare unequal.
+        match parse_nimber_poly(other) {
+            Ok(p) => (p == self.inner).into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
     }
     fn __repr__(&self) -> String {
         format!("{}", self.inner)
@@ -648,8 +658,13 @@ impl PyNimberRationalFunction {
             parse_nimber_rational_function(other)?.mul(&si),
         ))
     }
-    fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
-        matches!(parse_nimber_rational_function(other), Ok(f) if f == self.inner)
+    fn __eq__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        // A foreign operand defers to its own `__eq__`, so a declared embedding
+        // compares the same in both orders and unrelated worlds compare unequal.
+        match parse_nimber_rational_function(other) {
+            Ok(f) => (f == self.inner).into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
     }
     fn __repr__(&self) -> String {
         format!("{}", self.inner)
@@ -797,8 +812,13 @@ macro_rules! prime_field_pyclass {
                     .ok_or_else(|| PyValueError::new_err("division by 0 in this field"))?;
                 Ok($wrap($parse(other)?.mul(&si)))
             }
-            fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
-                matches!(other.cast::<$py>(), Ok(x) if x.borrow().inner == self.inner)
+            fn __eq__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                // A foreign operand defers to its own `__eq__`, so a declared embedding
+                // compares the same in both orders and unrelated worlds compare unequal.
+                match other.cast::<$py>() {
+                    Ok(x) => (x.borrow().inner == self.inner).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
             }
             fn __hash__(&self) -> usize {
                 self.inner.value() as usize
@@ -815,11 +835,7 @@ macro_rules! prime_field_pyclass {
             if let Ok(v) = obj.extract::<i128>() {
                 return Ok(Fp::<$p>::from_int(v));
             }
-            Err(PyTypeError::new_err(concat!(
-                "expected ",
-                $name,
-                " or int"
-            )))
+            Err(PyTypeError::new_err(concat!("expected ", $name, " or int")))
         }
 
         pub(crate) fn $wrap(inner: Fp<$p>) -> $py {
@@ -1074,8 +1090,13 @@ macro_rules! extension_field_pyclass {
                     .ok_or_else(|| PyValueError::new_err("division by 0 in this field"))?;
                 Ok($wrap($parse(other)?.mul(&si)))
             }
-            fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
-                matches!(other.cast::<$py>(), Ok(x) if x.borrow().inner == self.inner)
+            fn __eq__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                // A foreign operand defers to its own `__eq__`, so a declared embedding
+                // compares the same in both orders and unrelated worlds compare unequal.
+                match other.cast::<$py>() {
+                    Ok(x) => (x.borrow().inner == self.inner).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
             }
             fn __repr__(&self) -> String {
                 format!("{}", self.inner)
@@ -1171,8 +1192,13 @@ impl PyReductionPolynomialKind {
         )
     }
 
-    fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
-        matches!(parse_reduction_polynomial_kind(other), Ok(kind) if kind == self.inner)
+    fn __eq__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        // A foreign operand defers to its own `__eq__`, so a declared embedding
+        // compares the same in both orders and unrelated worlds compare unequal.
+        match parse_reduction_polynomial_kind(other) {
+            Ok(kind) => (kind == self.inner).into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
     }
 }
 
@@ -1354,10 +1380,9 @@ macro_rules! function_field_pyclasses {
                 Ok($wrap_poly(self.inner.pow_mod(e, &modulus.inner)))
             }
             fn inv(&self) -> PyResult<$poly_py> {
-                self.inner
-                    .inv()
-                    .map($wrap_poly)
-                    .ok_or_else(|| PyValueError::new_err("only nonzero constant polynomials invert"))
+                self.inner.inv().map($wrap_poly).ok_or_else(|| {
+                    PyValueError::new_err("only nonzero constant polynomials invert")
+                })
             }
             fn to_fraction(&self) -> $rf_py {
                 $wrap_rf(<Poly<$base> as HasFractionField>::to_fraction(&self.inner))
@@ -1406,8 +1431,13 @@ macro_rules! function_field_pyclasses {
                     .ok_or_else(|| PyValueError::new_err("polynomial divisor is not a unit"))?;
                 Ok($wrap_poly($parse_poly(other)?.mul(&si)))
             }
-            fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
-                matches!($parse_poly(other), Ok(p) if p == self.inner)
+            fn __eq__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                // A foreign operand defers to its own `__eq__`, so a declared embedding
+                // compares the same in both orders and unrelated worlds compare unequal.
+                match $parse_poly(other) {
+                    Ok(p) => (p == self.inner).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
             }
             fn __repr__(&self) -> String {
                 format!("{}", self.inner)
@@ -1528,14 +1558,19 @@ macro_rules! function_field_pyclasses {
                 if let Ok(s) = $base_parse(other) {
                     let den = self.inner.den().eval(&s);
                     if den.is_zero() {
-                        return Err(PyValueError::new_err("rational-function evaluation hit a pole"));
+                        return Err(PyValueError::new_err(
+                            "rational-function evaluation hit a pole",
+                        ));
                     }
                     let num = self.inner.num().eval(&s);
                     return $base_wrap(num.mul(&den.inv().expect("checked nonzero field element")))
                         .into_py_any(py);
                 }
-                $wrap_rf(substitute_rational_function(&self.inner, &$parse_rf(other)?)?)
-                    .into_py_any(py)
+                $wrap_rf(substitute_rational_function(
+                    &self.inner,
+                    &$parse_rf(other)?,
+                )?)
+                .into_py_any(py)
             }
             fn __add__(&self, other: &Bound<'_, PyAny>) -> PyResult<$rf_py> {
                 Ok($wrap_rf(self.inner.add(&$parse_rf(other)?)))
@@ -1563,20 +1598,24 @@ macro_rules! function_field_pyclasses {
             }
             fn __truediv__(&self, other: &Bound<'_, PyAny>) -> PyResult<$rf_py> {
                 let o = $parse_rf(other)?;
-                let oi = o
-                    .inv()
-                    .ok_or_else(|| PyValueError::new_err(concat!("division by zero in ", $rf_name)))?;
+                let oi = o.inv().ok_or_else(|| {
+                    PyValueError::new_err(concat!("division by zero in ", $rf_name))
+                })?;
                 Ok($wrap_rf(self.inner.mul(&oi)))
             }
             fn __rtruediv__(&self, other: &Bound<'_, PyAny>) -> PyResult<$rf_py> {
-                let si = self
-                    .inner
-                    .inv()
-                    .ok_or_else(|| PyValueError::new_err(concat!("division by zero in ", $rf_name)))?;
+                let si = self.inner.inv().ok_or_else(|| {
+                    PyValueError::new_err(concat!("division by zero in ", $rf_name))
+                })?;
                 Ok($wrap_rf($parse_rf(other)?.mul(&si)))
             }
-            fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
-                matches!($parse_rf(other), Ok(f) if f == self.inner)
+            fn __eq__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                // A foreign operand defers to its own `__eq__`, so a declared embedding
+                // compares the same in both orders and unrelated worlds compare unequal.
+                match $parse_rf(other) {
+                    Ok(f) => (f == self.inner).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
             }
             fn __repr__(&self) -> String {
                 format!("{}", self.inner)
@@ -1935,8 +1974,13 @@ impl PyIntegerPoly {
             .ok_or_else(|| PyValueError::new_err("polynomial divisor is not a unit"))?;
         Ok(wrap_integer_poly(parse_integer_poly(other)?.mul(&si)))
     }
-    fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
-        matches!(parse_integer_poly(other), Ok(p) if p == self.inner)
+    fn __eq__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        // A foreign operand defers to its own `__eq__`, so a declared embedding
+        // compares the same in both orders and unrelated worlds compare unequal.
+        match parse_integer_poly(other) {
+            Ok(p) => (p == self.inner).into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
     }
     fn __repr__(&self) -> String {
         format!("{}", self.inner)
@@ -2057,8 +2101,13 @@ macro_rules! zp_pyclass {
                     .ok_or_else(|| PyValueError::new_err("divisor is not a unit in Z/p^k"))?;
                 Ok($wrap($parse(other)?.mul(&si)))
             }
-            fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
-                matches!(other.cast::<$py>(), Ok(x) if x.borrow().inner == self.inner)
+            fn __eq__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                // A foreign operand defers to its own `__eq__`, so a declared embedding
+                // compares the same in both orders and unrelated worlds compare unequal.
+                match other.cast::<$py>() {
+                    Ok(x) => (x.borrow().inner == self.inner).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
             }
             fn __hash__(&self) -> usize {
                 self.inner.value() as usize
@@ -2233,8 +2282,13 @@ macro_rules! qp_pyclass {
                     .ok_or_else(|| PyValueError::new_err("division by 0 in Q_p"))?;
                 Ok($wrap($parse(other)?.mul(&si)))
             }
-            fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
-                matches!(other.cast::<$py>(), Ok(x) if x.borrow().inner == self.inner)
+            fn __eq__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                // A foreign operand defers to its own `__eq__`, so a declared embedding
+                // compares the same in both orders and unrelated worlds compare unequal.
+                match other.cast::<$py>() {
+                    Ok(x) => (x.borrow().inner == self.inner).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
             }
             fn __repr__(&self) -> String {
                 format!("{}", self.inner)
@@ -2375,11 +2429,9 @@ macro_rules! witt_vec_pyclass {
         impl $py {
             #[new]
             fn new(coords: Vec<u128>) -> PyResult<Self> {
-                Ok($wrap(WittVec::<$p, $n, $f>(parse_witt_coords::<
-                    $p,
-                    $n,
-                    $f,
-                >(&coords)?)))
+                Ok($wrap(WittVec::<$p, $n, $f>(
+                    parse_witt_coords::<$p, $n, $f>(&coords)?,
+                )))
             }
             #[staticmethod]
             fn zero() -> Self {
@@ -2395,9 +2447,7 @@ macro_rules! witt_vec_pyclass {
             }
             #[staticmethod]
             fn teichmuller(x: &Bound<'_, PyAny>) -> PyResult<Self> {
-                Ok($wrap(WittVec::<$p, $n, $f>::teichmuller($res_parse(
-                    x,
-                )?)))
+                Ok($wrap(WittVec::<$p, $n, $f>::teichmuller($res_parse(x)?)))
             }
             #[staticmethod]
             fn from_witt_components(xs: Vec<Bound<'_, PyAny>>) -> PyResult<Self> {
@@ -2412,9 +2462,7 @@ macro_rules! witt_vec_pyclass {
                 for x in &xs {
                     parsed.push($res_parse(x)?);
                 }
-                Ok($wrap(WittVec::<$p, $n, $f>::from_witt_components(
-                    &parsed,
-                )))
+                Ok($wrap(WittVec::<$p, $n, $f>::from_witt_components(&parsed)))
             }
             #[staticmethod]
             fn prime() -> u128 {
@@ -2522,8 +2570,13 @@ macro_rules! witt_vec_pyclass {
                     .ok_or_else(|| PyValueError::new_err("divisor is not a Witt unit"))?;
                 Ok($wrap($parse(other)?.mul(&si)))
             }
-            fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
-                matches!(other.cast::<$py>(), Ok(x) if x.borrow().inner == self.inner)
+            fn __eq__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                // A foreign operand defers to its own `__eq__`, so a declared embedding
+                // compares the same in both orders and unrelated worlds compare unequal.
+                match other.cast::<$py>() {
+                    Ok(x) => (x.borrow().inner == self.inner).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
             }
             fn __hash__(&self) -> usize {
                 self.inner.0.iter().fold(0usize, |acc, &x| {
@@ -2540,11 +2593,9 @@ macro_rules! witt_vec_pyclass {
                 return Ok(x.borrow().inner);
             }
             if let Ok(coords) = obj.extract::<Vec<u128>>() {
-                return Ok(WittVec::<$p, $n, $f>(parse_witt_coords::<
-                    $p,
-                    $n,
-                    $f,
-                >(&coords)?));
+                return Ok(WittVec::<$p, $n, $f>(parse_witt_coords::<$p, $n, $f>(
+                    &coords,
+                )?));
             }
             if let Ok(v) = obj.extract::<i128>() {
                 return Ok(WittVec::<$p, $n, $f>::from_int(v));
@@ -2749,8 +2800,13 @@ macro_rules! qq_pyclass {
                     .ok_or_else(|| PyValueError::new_err("division by 0 in Q_q"))?;
                 Ok($wrap($parse(other)?.mul(&si)))
             }
-            fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
-                matches!($parse(other), Ok(x) if x == self.inner)
+            fn __eq__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                // A foreign operand defers to its own `__eq__`, so a declared embedding
+                // compares the same in both orders and unrelated worlds compare unequal.
+                match $parse(other) {
+                    Ok(x) => (x == self.inner).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
             }
             fn __repr__(&self) -> String {
                 format!("{}", self.inner)
@@ -3134,8 +3190,13 @@ macro_rules! laurent_pyclass {
                     .ok_or_else(|| PyValueError::new_err("division by 0 in this Laurent field"))?;
                 Ok($wrap($parse(other)?.mul(&si)))
             }
-            fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
-                matches!($parse(other), Ok(x) if x == self.inner)
+            fn __eq__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                // A foreign operand defers to its own `__eq__`, so a declared embedding
+                // compares the same in both orders and unrelated worlds compare unequal.
+                match $parse(other) {
+                    Ok(x) => (x == self.inner).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
             }
             fn __repr__(&self) -> String {
                 format!("{}", self.inner)
@@ -3399,8 +3460,13 @@ macro_rules! ramified_pyclass {
                     .ok_or_else(|| PyValueError::new_err("division by 0 in this ramified field"))?;
                 Ok($wrap($parse(other)?.mul(&si)))
             }
-            fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
-                matches!($parse(other), Ok(x) if x == self.inner)
+            fn __eq__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                // A foreign operand defers to its own `__eq__`, so a declared embedding
+                // compares the same in both orders and unrelated worlds compare unequal.
+                match $parse(other) {
+                    Ok(x) => (x == self.inner).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
             }
             fn __repr__(&self) -> String {
                 format!("{}", self.inner)
@@ -3639,7 +3705,10 @@ macro_rules! gauss_pyclass {
         impl $py {
             #[new]
             #[pyo3(signature = (num, den=None))]
-            fn new(num: Vec<Bound<'_, PyAny>>, den: Option<Vec<Bound<'_, PyAny>>>) -> PyResult<Self> {
+            fn new(
+                num: Vec<Bound<'_, PyAny>>,
+                den: Option<Vec<Bound<'_, PyAny>>>,
+            ) -> PyResult<Self> {
                 Self::from_coeffs(num, den)
             }
             #[staticmethod]
@@ -3762,8 +3831,13 @@ macro_rules! gauss_pyclass {
                     .ok_or_else(|| PyValueError::new_err("division by 0 in this Gauss field"))?;
                 Ok($wrap($parse(other)?.mul(&si)))
             }
-            fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
-                matches!($parse(other), Ok(x) if x == self.inner)
+            fn __eq__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                // A foreign operand defers to its own `__eq__`, so a declared embedding
+                // compares the same in both orders and unrelated worlds compare unequal.
+                match $parse(other) {
+                    Ok(x) => (x == self.inner).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
             }
             fn __repr__(&self) -> String {
                 format!("{}", self.inner)
@@ -4245,8 +4319,18 @@ impl PyRational {
     fn nth_root(&self, k: u128) -> Option<PyRational> {
         self.inner.nth_root(k).map(|inner| PyRational { inner })
     }
-    fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
-        Ok(op.matches(self.inner.cmp(&parse_rational(other)?)))
+    fn __richcmp__(
+        &self,
+        py: Python<'_>,
+        other: &Bound<'_, PyAny>,
+        op: CompareOp,
+    ) -> PyResult<Py<PyAny>> {
+        // A foreign operand defers to its own comparison: equality with an
+        // unrelated world is `False`, and ordering against it raises `TypeError`.
+        match parse_rational(other) {
+            Ok(other) => op.matches(self.inner.cmp(&other)).into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
     }
     fn __repr__(&self) -> String {
         format!("{}", self.inner)
@@ -4388,8 +4472,18 @@ impl PySurreal {
         }
         Ok(PySurreal { inner: acc })
     }
-    fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
-        Ok(op.matches(self.inner.cmp(&parse_surreal(other)?)))
+    fn __richcmp__(
+        &self,
+        py: Python<'_>,
+        other: &Bound<'_, PyAny>,
+        op: CompareOp,
+    ) -> PyResult<Py<PyAny>> {
+        // A foreign operand defers to its own comparison: equality with an
+        // unrelated world is `False`, and ordering against it raises `TypeError`.
+        match parse_surreal(other) {
+            Ok(other) => op.matches(self.inner.cmp(&other)).into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
     }
     /// Sign of the leading term: `-1`, `0`, or `1`.
     fn sign(&self) -> i8 {
@@ -4747,8 +4841,13 @@ impl PySurcomplex {
             .map(|inner| PySurcomplex { inner })
             .ok_or_else(|| PyValueError::new_err("0 has no inverse"))
     }
-    fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
-        matches!(parse_surcomplex(other), Ok(x) if x == self.inner)
+    fn __eq__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        // A foreign operand defers to its own `__eq__`, so a declared embedding
+        // compares the same in both orders and unrelated worlds compare unequal.
+        match parse_surcomplex(other) {
+            Ok(x) => (x == self.inner).into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
     }
     fn __repr__(&self) -> String {
         self.inner.to_string()
@@ -4885,8 +4984,20 @@ impl PyInteger {
             &self.inner,
         )?))
     }
-    fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
-        Ok(op.matches(std::cmp::Ord::cmp(&self.inner, &parse_integer(other)?)))
+    fn __richcmp__(
+        &self,
+        py: Python<'_>,
+        other: &Bound<'_, PyAny>,
+        op: CompareOp,
+    ) -> PyResult<Py<PyAny>> {
+        // A foreign operand defers to its own comparison: equality with an
+        // unrelated world is `False`, and ordering against it raises `TypeError`.
+        match parse_integer(other) {
+            Ok(other) => op
+                .matches(std::cmp::Ord::cmp(&self.inner, &other))
+                .into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
     }
     fn __repr__(&self) -> String {
         format!("{}", self.inner)
@@ -5042,8 +5153,20 @@ impl PyOmnific {
             .ok_or_else(|| PyValueError::new_err("omnific divisor is not a unit"))?;
         Ok(wrap_omnific(parse_omnific(other)?.mul(&si)))
     }
-    fn __richcmp__(&self, other: &Bound<'_, PyAny>, op: CompareOp) -> PyResult<bool> {
-        Ok(op.matches(std::cmp::Ord::cmp(&self.inner, &parse_omnific(other)?)))
+    fn __richcmp__(
+        &self,
+        py: Python<'_>,
+        other: &Bound<'_, PyAny>,
+        op: CompareOp,
+    ) -> PyResult<Py<PyAny>> {
+        // A foreign operand defers to its own comparison: equality with an
+        // unrelated world is `False`, and ordering against it raises `TypeError`.
+        match parse_omnific(other) {
+            Ok(other) => op
+                .matches(std::cmp::Ord::cmp(&self.inner, &other))
+                .into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
     }
     fn __repr__(&self) -> String {
         format!("{}", self.inner.inner())
@@ -5282,8 +5405,13 @@ impl PyLocalQp {
             inner: lhs.mul(&si),
         })
     }
-    fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
-        matches!(other.cast::<PyLocalQp>(), Ok(x) if x.borrow().inner == self.inner)
+    fn __eq__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        // A foreign operand defers to its own `__eq__`, so a declared embedding
+        // compares the same in both orders and unrelated worlds compare unequal.
+        match other.cast::<PyLocalQp>() {
+            Ok(x) => (x.borrow().inner == self.inner).into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
     }
     fn __repr__(&self) -> String {
         format!("{}", self.inner)
@@ -5374,8 +5502,13 @@ impl PyAdelePlace {
         }
     }
 
-    fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
-        matches!(other.cast::<PyAdelePlace>(), Ok(place) if place.borrow().inner == self.inner)
+    fn __eq__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        // A foreign operand defers to its own `__eq__`, so a declared embedding
+        // compares the same in both orders and unrelated worlds compare unequal.
+        match other.cast::<PyAdelePlace>() {
+            Ok(place) => (place.borrow().inner == self.inner).into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
     }
 }
 
@@ -5530,8 +5663,13 @@ impl PyAdele {
             inner: parse_adele(other)?.mul(&si),
         })
     }
-    fn __eq__(&self, other: &Bound<'_, PyAny>) -> bool {
-        matches!(other.cast::<PyAdele>(), Ok(a) if a.borrow().inner == self.inner)
+    fn __eq__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        // A foreign operand defers to its own `__eq__`, so a declared embedding
+        // compares the same in both orders and unrelated worlds compare unequal.
+        match other.cast::<PyAdele>() {
+            Ok(a) => (a.borrow().inner == self.inner).into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
     }
     fn __repr__(&self) -> String {
         format!("{}", self.inner)

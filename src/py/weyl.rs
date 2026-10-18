@@ -16,6 +16,7 @@ use crate::weyl::{
 };
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
+use pyo3::IntoPyObjectExt;
 use std::sync::Arc;
 
 type F3 = Fp<3>;
@@ -1019,6 +1020,14 @@ macro_rules! weyl_backend {
                             .collect()
                     })
                     .map_err(|error| PyValueError::new_err(error.to_string()))
+            }
+
+            /// Algebras compare by their defining data, as their elements do.
+            fn __eq__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                match other.cast::<$alg>() {
+                    Ok(other) => (*self.inner == *other.borrow().inner).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
             }
 
             fn __repr__(&self) -> String {
