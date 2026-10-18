@@ -46,6 +46,9 @@ certificate boundary.
 | work | completion criterion |
 | --- | --- |
 | arbitrary-width nim multiplication | implement the proved affine transforms and primitive Artin--Schreier tower of `writeups/nim_fast_multiplication.tex`; agree exhaustively with the mex/direct oracle on small fields and differentially with the `u128` backend on every supported width; measure the crossover and keep the current path below it |
+| additive ergonomics | the gaps the 2.0 documentation pass hit, each landing with a doctest: inherent `from_int`/`zero`/`one` (or a prelude) so examples need no trait imports; `Debug` and `PartialEq` for `Game`; a vector constructor and borrowed operators for multivectors; named hyperbolic and anisotropic planes in `forms`; `IntegralForm::dual`, scaling, and lookup of Niemeier classes by label; `Mul` for `WeylElement`, addition on central-fibre elements, and a one-step `p`-residue of a Weyl element |
+| characteristic-`p` Weyl products | normal-order `d^a x^b` with the closed form `sum_k k! C(a,k) C(b,k) x^(b-k) d^(a-k)` truncated at `k < p` in characteristic `p`, so an unbudgeted product costs `O(p)` rather than `O(min(a,b))` terms; agree with the general PBW normalizer and the current recurrence on every tested backend |
+| breaking API consolidation | for the next major release, decided item by item: `CliffordAlgebra::new(metric)` without the redundant dimension, and metric-free functions (`determinant`, `trace`, `char_poly`, `is_blade`, `factor_blade`) without an algebra argument; one outcome-type family in `games`; a three-way result for `Qp::sqrt` in place of `Option<Option<_>>`; Springer entry points that report why they refuse; Weyl budget constructors without positional magic zeros; `ADE` naming for `NiemeierComponentKind`; consistent `Result`-returning constructors where invalid input is caller data |
 
 New Python bindings preserve per-backend type separation and update the
 generated stub in the same commit.

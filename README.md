@@ -94,6 +94,8 @@ cargo add ogdoad
 python -m pip install ogdoad    # Python 3.9 or newer
 ```
 
+The [API documentation](https://docs.rs/ogdoad) opens each pillar with
+runnable examples, including the headline constructions of the papers below.
 From a checkout, the examples tour the library and its research
 instruments:
 
