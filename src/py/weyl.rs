@@ -1029,6 +1029,12 @@ macro_rules! weyl_backend {
                     Err(_) => Ok(py.NotImplemented()),
                 }
             }
+            fn __ne__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                match other.cast::<$alg>() {
+                    Ok(other) => (!(*self.inner == *other.borrow().inner)).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
+            }
 
             fn __repr__(&self) -> String {
                 match self.inner.standard_pairs() {
@@ -1177,6 +1183,9 @@ macro_rules! weyl_backend {
             fn __eq__(&self, other: &Self) -> bool {
                 *self.algebra == *other.algebra && self.inner == other.inner
             }
+            fn __ne__(&self, other: &Self) -> bool {
+                !self.__eq__(other)
+            }
 
             fn __repr__(&self) -> String {
                 self.inner.to_string()
@@ -1323,6 +1332,9 @@ macro_rules! weyl_backend {
 
             fn __eq__(&self, other: &Self) -> bool {
                 self.inner == other.inner
+            }
+            fn __ne__(&self, other: &Self) -> bool {
+                !self.__eq__(other)
             }
 
             fn __repr__(&self) -> String {

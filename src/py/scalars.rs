@@ -205,6 +205,12 @@ impl PyNimber {
             Err(_) => Ok(py.NotImplemented()),
         }
     }
+    fn __ne__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        match other.cast::<PyNimber>() {
+            Ok(n) => (!(n.borrow().inner == self.inner)).into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
+    }
     /// The nimber/game-value fuzzy relation: distinct nimbers are incomparable.
     fn fuzzy(&self, other: &Bound<'_, PyAny>) -> PyResult<bool> {
         Ok(self.inner.fuzzy(&parse_nimber(other)?))
@@ -501,6 +507,12 @@ impl PyNimberPoly {
             Err(_) => Ok(py.NotImplemented()),
         }
     }
+    fn __ne__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        match parse_nimber_poly(other) {
+            Ok(p) => (!(p == self.inner)).into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
+    }
     fn __repr__(&self) -> String {
         format!("{}", self.inner)
     }
@@ -666,6 +678,12 @@ impl PyNimberRationalFunction {
             Err(_) => Ok(py.NotImplemented()),
         }
     }
+    fn __ne__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        match parse_nimber_rational_function(other) {
+            Ok(f) => (!(f == self.inner)).into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
+    }
     fn __repr__(&self) -> String {
         format!("{}", self.inner)
     }
@@ -817,6 +835,12 @@ macro_rules! prime_field_pyclass {
                 // compares the same in both orders and unrelated worlds compare unequal.
                 match other.cast::<$py>() {
                     Ok(x) => (x.borrow().inner == self.inner).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
+            }
+            fn __ne__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                match other.cast::<$py>() {
+                    Ok(x) => (!(x.borrow().inner == self.inner)).into_py_any(py),
                     Err(_) => Ok(py.NotImplemented()),
                 }
             }
@@ -1098,6 +1122,12 @@ macro_rules! extension_field_pyclass {
                     Err(_) => Ok(py.NotImplemented()),
                 }
             }
+            fn __ne__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                match other.cast::<$py>() {
+                    Ok(x) => (!(x.borrow().inner == self.inner)).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
+            }
             fn __repr__(&self) -> String {
                 format!("{}", self.inner)
             }
@@ -1197,6 +1227,12 @@ impl PyReductionPolynomialKind {
         // compares the same in both orders and unrelated worlds compare unequal.
         match parse_reduction_polynomial_kind(other) {
             Ok(kind) => (kind == self.inner).into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
+    }
+    fn __ne__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        match parse_reduction_polynomial_kind(other) {
+            Ok(kind) => (!(kind == self.inner)).into_py_any(py),
             Err(_) => Ok(py.NotImplemented()),
         }
     }
@@ -1439,6 +1475,12 @@ macro_rules! function_field_pyclasses {
                     Err(_) => Ok(py.NotImplemented()),
                 }
             }
+            fn __ne__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                match $parse_poly(other) {
+                    Ok(p) => (!(p == self.inner)).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
+            }
             fn __repr__(&self) -> String {
                 format!("{}", self.inner)
             }
@@ -1614,6 +1656,12 @@ macro_rules! function_field_pyclasses {
                 // compares the same in both orders and unrelated worlds compare unequal.
                 match $parse_rf(other) {
                     Ok(f) => (f == self.inner).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
+            }
+            fn __ne__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                match $parse_rf(other) {
+                    Ok(f) => (!(f == self.inner)).into_py_any(py),
                     Err(_) => Ok(py.NotImplemented()),
                 }
             }
@@ -1982,6 +2030,12 @@ impl PyIntegerPoly {
             Err(_) => Ok(py.NotImplemented()),
         }
     }
+    fn __ne__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        match parse_integer_poly(other) {
+            Ok(p) => (!(p == self.inner)).into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
+    }
     fn __repr__(&self) -> String {
         format!("{}", self.inner)
     }
@@ -2106,6 +2160,12 @@ macro_rules! zp_pyclass {
                 // compares the same in both orders and unrelated worlds compare unequal.
                 match other.cast::<$py>() {
                     Ok(x) => (x.borrow().inner == self.inner).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
+            }
+            fn __ne__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                match other.cast::<$py>() {
+                    Ok(x) => (!(x.borrow().inner == self.inner)).into_py_any(py),
                     Err(_) => Ok(py.NotImplemented()),
                 }
             }
@@ -2287,6 +2347,12 @@ macro_rules! qp_pyclass {
                 // compares the same in both orders and unrelated worlds compare unequal.
                 match other.cast::<$py>() {
                     Ok(x) => (x.borrow().inner == self.inner).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
+            }
+            fn __ne__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                match other.cast::<$py>() {
+                    Ok(x) => (!(x.borrow().inner == self.inner)).into_py_any(py),
                     Err(_) => Ok(py.NotImplemented()),
                 }
             }
@@ -2578,6 +2644,12 @@ macro_rules! witt_vec_pyclass {
                     Err(_) => Ok(py.NotImplemented()),
                 }
             }
+            fn __ne__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                match other.cast::<$py>() {
+                    Ok(x) => (!(x.borrow().inner == self.inner)).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
+            }
             fn __hash__(&self) -> usize {
                 self.inner.0.iter().fold(0usize, |acc, &x| {
                     acc.wrapping_mul(257).wrapping_add(x as usize)
@@ -2805,6 +2877,12 @@ macro_rules! qq_pyclass {
                 // compares the same in both orders and unrelated worlds compare unequal.
                 match $parse(other) {
                     Ok(x) => (x == self.inner).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
+            }
+            fn __ne__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                match $parse(other) {
+                    Ok(x) => (!(x == self.inner)).into_py_any(py),
                     Err(_) => Ok(py.NotImplemented()),
                 }
             }
@@ -3198,6 +3276,12 @@ macro_rules! laurent_pyclass {
                     Err(_) => Ok(py.NotImplemented()),
                 }
             }
+            fn __ne__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                match $parse(other) {
+                    Ok(x) => (!(x == self.inner)).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
+            }
             fn __repr__(&self) -> String {
                 format!("{}", self.inner)
             }
@@ -3465,6 +3549,12 @@ macro_rules! ramified_pyclass {
                 // compares the same in both orders and unrelated worlds compare unequal.
                 match $parse(other) {
                     Ok(x) => (x == self.inner).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
+            }
+            fn __ne__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                match $parse(other) {
+                    Ok(x) => (!(x == self.inner)).into_py_any(py),
                     Err(_) => Ok(py.NotImplemented()),
                 }
             }
@@ -3836,6 +3926,12 @@ macro_rules! gauss_pyclass {
                 // compares the same in both orders and unrelated worlds compare unequal.
                 match $parse(other) {
                     Ok(x) => (x == self.inner).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
+            }
+            fn __ne__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                match $parse(other) {
+                    Ok(x) => (!(x == self.inner)).into_py_any(py),
                     Err(_) => Ok(py.NotImplemented()),
                 }
             }
@@ -4849,6 +4945,12 @@ impl PySurcomplex {
             Err(_) => Ok(py.NotImplemented()),
         }
     }
+    fn __ne__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        match parse_surcomplex(other) {
+            Ok(x) => (!(x == self.inner)).into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
+    }
     fn __repr__(&self) -> String {
         self.inner.to_string()
     }
@@ -5413,6 +5515,12 @@ impl PyLocalQp {
             Err(_) => Ok(py.NotImplemented()),
         }
     }
+    fn __ne__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        match other.cast::<PyLocalQp>() {
+            Ok(x) => (!(x.borrow().inner == self.inner)).into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
+    }
     fn __repr__(&self) -> String {
         format!("{}", self.inner)
     }
@@ -5507,6 +5615,12 @@ impl PyAdelePlace {
         // compares the same in both orders and unrelated worlds compare unequal.
         match other.cast::<PyAdelePlace>() {
             Ok(place) => (place.borrow().inner == self.inner).into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
+    }
+    fn __ne__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        match other.cast::<PyAdelePlace>() {
+            Ok(place) => (!(place.borrow().inner == self.inner)).into_py_any(py),
             Err(_) => Ok(py.NotImplemented()),
         }
     }
@@ -5671,6 +5785,12 @@ impl PyAdele {
             Err(_) => Ok(py.NotImplemented()),
         }
     }
+    fn __ne__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        match other.cast::<PyAdele>() {
+            Ok(a) => (!(a.borrow().inner == self.inner)).into_py_any(py),
+            Err(_) => Ok(py.NotImplemented()),
+        }
+    }
     fn __repr__(&self) -> String {
         format!("{}", self.inner)
     }
@@ -5749,6 +5869,9 @@ macro_rules! tropical_pyclass {
             }
             fn __eq__(&self, other: &$py) -> bool {
                 self.inner == other.inner
+            }
+            fn __ne__(&self, other: &$py) -> bool {
+                !self.__eq__(other)
             }
             fn __repr__(&self) -> String {
                 format!("{}", self.inner)

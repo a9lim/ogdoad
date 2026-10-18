@@ -972,6 +972,26 @@ class CrossWorldContractTests(OgdoadTestCase):
                         offenders.append((name, type(other).__name__, "TypeError"))
         self.assertEqual(offenders, [])
 
+    def test_inequality_defers_to_a_foreign_operand(self):
+        # ``!=`` follows Python's reflection protocol on its own: an operand the
+        # wrapper cannot read decides through its own ``__ne__``.
+        class Opinionated:
+            def __eq__(self, other):
+                return False
+
+            def __ne__(self, other):
+                return False
+
+        for name in sorted(WORLDS):
+            x = WORLDS[name]()
+            with self.subTest(world=name):
+                self.assertFalse(x != Opinionated())
+                self.assertFalse(Opinionated() != x)
+        for algebra in (og.SurrealAlgebra(q=[1]), og.NimberWeylAlgebra(1),
+                        og.RationalDividedPowerAlgebra(1)):
+            with self.subTest(algebra=repr(algebra)):
+                self.assertFalse(algebra != Opinionated())
+
     def test_equality_across_declared_embeddings_is_symmetric(self):
         # Across a declared coefficient embedding ``==`` does not depend on
         # operand order: ``Fp5(1) == Fp5Poly.one()`` agrees with the reverse.

@@ -42,21 +42,25 @@ pub struct Surcomplex<S: Scalar> {
 
 impl<S: Scalar> std::fmt::Display for Surcomplex<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.im.is_zero() {
-            return write!(f, "{}", self.re);
-        }
-        // A multi-term imaginary part is parenthesized, so `ω + 1·i` and
-        // `(ω + 1)·i` stay distinct.
-        let im = self.im.to_string();
-        let im = if im.contains(' ') {
-            format!("({im})")
-        } else {
-            im
+        // A coefficient that itself mentions `i` (a nested extension) is
+        // parenthesized, and so is a multi-term imaginary part, so `ω + 1·i`
+        // and `(ω + 1)·i`, or an inner and an outer `i`, stay distinct.
+        let wrap = |part: String, multi_term: bool| {
+            if part.contains("·i") || (multi_term && part.contains(' ')) {
+                format!("({part})")
+            } else {
+                part
+            }
         };
+        let re = wrap(self.re.to_string(), false);
+        if self.im.is_zero() {
+            return write!(f, "{re}");
+        }
+        let im = wrap(self.im.to_string(), true);
         if self.re.is_zero() {
             write!(f, "{im}·i")
         } else {
-            write!(f, "{} + {im}·i", self.re)
+            write!(f, "{re} + {im}·i")
         }
     }
 }
@@ -195,5 +199,13 @@ mod tests {
         let b = Surcomplex::new(Surreal::zero(), w.add(&one));
         assert_ne!(a.to_string(), b.to_string());
         assert_eq!(b.to_string(), format!("({})·i", w.add(&one)));
+        // An inner `i` as a real part is not the outer `i`.
+        type Inner = Surcomplex<Rational>;
+        let inner_i = Surcomplex::new(Inner::i(), Inner::zero());
+        let outer_i = Surcomplex::new(Inner::zero(), Inner::one());
+        assert_eq!(inner_i.to_string(), "(1·i)");
+        assert_eq!(outer_i.to_string(), "1·i");
+        let mixed = Surcomplex::new(Inner::one(), Inner::i());
+        assert_eq!(mixed.to_string(), "1 + (1·i)·i");
     }
 }

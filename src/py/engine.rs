@@ -1068,6 +1068,12 @@ macro_rules! backend_algebra {
                     Err(_) => Ok(py.NotImplemented()),
                 }
             }
+            fn __ne__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                match other.cast::<$alg>() {
+                    Ok(other) => (!(*self.inner == *other.borrow().inner)).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
+            }
 
             fn __repr__(&self) -> String {
                 format!("{}(dim={})", $alg_name, self.inner.dim())
@@ -1657,6 +1663,12 @@ macro_rules! divided_power_backend {
             fn __eq__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
                 match other.cast::<$alg>() {
                     Ok(other) => (*self.inner == *other.borrow().inner).into_py_any(py),
+                    Err(_) => Ok(py.NotImplemented()),
+                }
+            }
+            fn __ne__(&self, py: Python<'_>, other: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+                match other.cast::<$alg>() {
+                    Ok(other) => (!(*self.inner == *other.borrow().inner)).into_py_any(py),
                     Err(_) => Ok(py.NotImplemented()),
                 }
             }

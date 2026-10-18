@@ -1588,6 +1588,9 @@ impl PyGame {
     fn __eq__(&self, other: &PyGame) -> bool {
         self.inner.eq(&other.inner)
     }
+    fn __ne__(&self, other: &PyGame) -> bool {
+        !self.__eq__(other)
+    }
     fn fuzzy(&self, other: &PyGame) -> bool {
         self.inner.fuzzy(&other.inner)
     }
