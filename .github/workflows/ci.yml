@@ -102,6 +102,8 @@ jobs:
         run: |
           pip install --find-links dist --no-index ogdoad
           python demo.py
+      - name: Run the Python test suite
+        run: python -m unittest discover -s tests/python
       - name: Check the installed typing payload
         run: |
           python - <<'PY'

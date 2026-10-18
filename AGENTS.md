@@ -153,6 +153,7 @@ Additional gates:
   cargo check -p ogdoad --features python
   cargo clippy -p ogdoad --features python --all-targets -- -D warnings
   python scripts/generate_stubs.py --check
+  python -m unittest discover -s tests/python
   ```
 
 - after changing Lean or a load-bearing proof claim:

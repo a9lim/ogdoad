@@ -21,9 +21,12 @@ cargo clippy -p ogdoad --all-targets -- -D warnings
 RUSTDOCFLAGS="-D warnings" cargo doc --no-deps -p ogdoad
 ```
 
-The workspace's `default-members` make bare Cargo commands at the root select
-the same core package. CI runs this gate, feature-enabled Clippy, and the
-built-wheel and stub checks; `grundy/`, Lean, and the papers are opt-in.
+`cargo test` includes the runnable examples in the API documentation. The
+workspace's `default-members` make bare Cargo commands at the root select the
+same core package. CI runs this gate on pushes to `main` and `dev`, the core
+tests again in the release profile the wheels ship with, feature-enabled
+Clippy, and the built-wheel, Python test-suite, and stub checks; `grundy/`,
+Lean, and the papers are opt-in.
 
 ## Sidecar gates
 
@@ -42,11 +45,17 @@ For `src/py/` or a core API it calls:
 cargo check -p ogdoad --features python
 cargo clippy -p ogdoad --features python --all-targets -- -D warnings
 python scripts/generate_stubs.py --check
+python -m unittest discover -s tests/python
 ```
 
 The stub check imports the *installed* extension and compares it byte for
 byte with `ogdoad.pyi`, so it is meaningful only after rebuilding and
-installing the wheel (see `CONTRIBUTING.md`).
+installing the wheel (see `CONTRIBUTING.md`). The `tests/python` suite uses only
+the standard library and tests the installed extension the same way: binding
+laws and contracts per scalar world, the Clifford, forms, games, and Weyl
+surfaces, stub-versus-runtime drift, the README and `demo.py` examples, and
+child-process probes for inputs that must raise rather than crash. Known
+defects are pinned as `expectedFailure` tests that name the defect.
 
 For Lean or a load-bearing proof claim:
 

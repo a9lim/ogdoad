@@ -42,6 +42,11 @@ monomorphizations of the pure-Rust core behind the optional `python` feature.
   panic surfaces as `pyo3_runtime.PanicException`.
 - A scalar `__mul__` must return `NotImplemented` for a multivector so Python
   can dispatch to the multivector's `__rmul__`.
+- Scalar and algebra `__eq__` and comparisons return `NotImplemented` for an
+  operand they cannot read, never `TypeError` or a bare `False`. Python then
+  tries the reflected comparison, so a declared embedding compares the same in
+  both orders and an unrelated world compares unequal. New bindings follow the
+  same pattern.
 - Python `repr`/display delegates to canonical Rust `Display` whenever a core
   report or value exists.
 
@@ -68,6 +73,7 @@ python -m maturin build --profile dev -i python
 python -m pip install --force-reinstall --no-deps target/wheels/ogdoad-*.whl
 python demo.py
 python scripts/generate_stubs.py --check
+python -m unittest discover -s tests/python
 ```
 
 Also run the default workspace tests; they remain the authority for the math
