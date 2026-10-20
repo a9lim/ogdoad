@@ -30,7 +30,6 @@ include = [
     "/README.md",
     "/LICENSE",
     "/AGENTS.md",
-    "/CLAUDE.md",
 ]
 
 # docs.rs builds the default, pure-Rust feature set. The `python` feature pulls
