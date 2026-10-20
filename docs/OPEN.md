@@ -332,7 +332,7 @@ They are proved there but not yet in the paper.
 - Peeters' calculator (a C++ port of CGSuite's term algebra) records 896 rows
   in `(727, 12281]`, all obeying the rule. The exact engines in
   `experiments/excess_search/` agree with every Peeters row they recompute. They
-  add 519 further rows up to `p = 66529`, which also obey the rule
+  add 552 further rows up to `p = 72481`, which also obey the rule
   (`data/results_*.jsonl`). These rows are finite data, not an induction.
 - `experiments/ordinal_excess_probe.py` and
   `experiments/fermat_selected_screen.py` are bounded screens; explicit

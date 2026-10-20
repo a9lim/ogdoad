@@ -26,8 +26,8 @@ Under the model, the rows tested so far (OEIS to 709, Peeters' records to
 | source | rows past 727 | range | all obey the rule |
 | --- | --- | --- | --- |
 | Peeters' calculator (C++ port of CGSuite; `data/peeters_records.json`, commit `9f7d67c` of github.com/DjangoPeeters/transfinite-nim-calculator) | 896 | to 12,281 | yes (not independently verified by its author's account) |
-| this directory's engines (`data/results_ref.jsonl`, `data/results_v2.jsonl`) | 898 | to 66,529 | yes |
-| of which not in Peeters | 519 | to 66,529 | yes |
+| this directory's engines (`data/results_ref.jsonl`, `data/results_v2.jsonl`) | 931 | to 72,481 | yes |
+| of which not in Peeters | 552 | to 72,481 | yes |
 
 - **Cross-validation.** The reference engine agrees with every Peeters row it
   recomputed, and v2 agrees with OEIS, the reference engine and Peeters on its

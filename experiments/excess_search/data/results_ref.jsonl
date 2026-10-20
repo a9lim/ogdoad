@@ -880,3 +880,36 @@
 {"closure_unverified": [], "p": 65993, "h": 113, "Q": [113], "arm": "O", "rule": 1, "E": 9492, "forced_ok": true, "secs": 0.31, "m": 1, "class": "ok"}
 {"closure_unverified": [], "p": 66457, "h": 213, "Q": [71], "arm": "O", "rule": 1, "E": 29820, "forced_ok": true, "secs": 6.06, "m": 1, "class": "ok"}
 {"closure_unverified": [], "p": 66529, "h": 3024, "Q": [7, 16, 27], "arm": "Z", "rule": 0, "E": 3024, "forced_ok": true, "secs": 0.92, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 66601, "h": 33300, "Q": [25, 37], "arm": "Z", "rule": 0, "E": 33300, "forced_ok": true, "secs": 8.07, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 66749, "h": 1804, "Q": [11, 41], "arm": "Z", "rule": 0, "E": 9020, "forced_ok": true, "secs": 0.26, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 67033, "h": 931, "Q": [19, 49], "arm": "Z", "rule": 0, "E": 33516, "forced_ok": true, "secs": 8.19, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 67481, "h": 6748, "Q": [7, 241], "arm": "Z", "rule": 0, "E": 40488, "forced_ok": true, "secs": 8.69, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 67489, "h": 4218, "Q": [19, 37], "arm": "Z", "rule": 0, "E": 25308, "forced_ok": true, "secs": 3.24, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 63361, "h": 6336, "Q": [9, 11, 64], "arm": "Z", "rule": 0, "E": 31680, "forced_ok": true, "secs": 186.46, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 67651, "h": 4510, "Q": [11, 41], "arm": "Z", "rule": 0, "E": 9020, "forced_ok": true, "secs": 0.25, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 68041, "h": 34020, "Q": [5, 7, 243], "arm": "Z", "rule": 0, "E": 34020, "forced_ok": true, "secs": 15.23, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 68209, "h": 4263, "Q": [29, 49], "arm": "Z", "rule": 0, "E": 17052, "forced_ok": true, "secs": 1.36, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 68311, "h": 3795, "Q": [3, 23], "arm": "Z", "rule": 0, "E": 15180, "forced_ok": true, "secs": 0.99, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 68329, "h": 34164, "Q": [13, 73], "arm": "Z", "rule": 0, "E": 34164, "forced_ok": true, "secs": 7.17, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 68443, "h": 4026, "Q": [11, 61], "arm": "Z", "rule": 0, "E": 40260, "forced_ok": true, "secs": 12.38, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 68531, "h": 9790, "Q": [89], "arm": "O", "rule": 1, "E": 19580, "forced_ok": true, "secs": 1.87, "m": 1, "class": "ok"}
+{"closure_unverified": [], "p": 68581, "h": 4572, "Q": [4, 9, 127], "arm": "Z", "rule": 0, "E": 32004, "forced_ok": true, "secs": 5.53, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 68881, "h": 11480, "Q": [7, 8, 41], "arm": "Z", "rule": 0, "E": 34440, "forced_ok": true, "secs": 7.15, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 68993, "h": 3136, "Q": [49, 64], "arm": "Z", "rule": 0, "E": 9408, "forced_ok": true, "secs": 0.35, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 69431, "h": 53, "Q": [53], "arm": "O", "rule": 1, "E": 8268, "forced_ok": true, "secs": 0.21, "m": 1, "class": "ok"}
+{"closure_unverified": [], "p": 69481, "h": 3474, "Q": [9, 193], "arm": "Z", "rule": 0, "E": 55584, "forced_ok": true, "secs": 18.99, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 67601, "h": 6760, "Q": [5, 8, 169], "arm": "Z", "rule": 0, "E": 20280, "forced_ok": true, "secs": 113.08, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 69931, "h": 1890, "Q": [5, 7, 27], "arm": "Z", "rule": 0, "E": 3780, "forced_ok": true, "secs": 0.05, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 69499, "h": 5346, "Q": [11, 243], "arm": "Z", "rule": 0, "E": 53460, "forced_ok": true, "secs": 33.54, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 70309, "h": 3348, "Q": [27, 31], "arm": "Z", "rule": 0, "E": 16740, "forced_ok": true, "secs": 1.83, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 70381, "h": 3060, "Q": [5, 9, 17], "arm": "Z", "rule": 0, "E": 6120, "forced_ok": true, "secs": 0.15, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 70201, "h": 35100, "Q": [13, 25, 27], "arm": "Z", "rule": 0, "E": 35100, "forced_ok": true, "secs": 18.79, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 71119, "h": 81, "Q": [81], "arm": "C", "rule": 1, "E": 162, "forced_ok": true, "secs": 0.01, "m": 1, "class": "ok"}
+{"closure_unverified": [], "p": 71191, "h": 7119, "Q": [9, 113], "arm": "Z", "rule": 0, "E": 28476, "forced_ok": true, "secs": 4.86, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 71443, "h": 7938, "Q": [49, 81], "arm": "Z", "rule": 0, "E": 7938, "forced_ok": true, "secs": 1.18, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 63073, "h": 31536, "Q": [16, 27, 73], "arm": "Z", "rule": 0, "E": 31536, "forced_ok": true, "secs": 395.75, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 70489, "h": 5874, "Q": [3, 89], "arm": "Z", "rule": 0, "E": 58740, "forced_ok": true, "secs": 26.05, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 72251, "h": 578, "Q": [289], "arm": "O", "rule": 1, "E": 2312, "forced_ok": true, "secs": 0.02, "m": 1, "class": "ok"}
+{"closure_unverified": [], "p": 72271, "h": 3285, "Q": [5, 73], "arm": "Z", "rule": 0, "E": 13140, "forced_ok": true, "secs": 0.63, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 72469, "h": 2196, "Q": [9, 61], "arm": "Z", "rule": 0, "E": 10980, "forced_ok": true, "secs": 0.57, "m": 0, "class": "ok"}
+{"closure_unverified": [], "p": 72481, "h": 18120, "Q": [8, 151], "arm": "Z", "rule": 0, "E": 18120, "forced_ok": true, "secs": 1.58, "m": 0, "class": "ok"}
