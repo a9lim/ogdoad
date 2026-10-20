@@ -167,6 +167,14 @@ Each script supports only the claims in its module docstring.
   the ordinary-curve realization of Wiedemann's tower, and the Frobenius
   image on the supersingular points `P_n`, with `ord(P_n) = F_n` for
   `2 <= n <= 6`.
+- `excess_search/`: exact row engines for the `0/1/4` excess search.
+  - The reference engine (one sparse model, checked roots) reproduces every
+    OEIS row with `E <= 60000`.
+  - The crossed-binomial v2 engine is validated against OEIS, the reference
+    engine and Peeters' records.
+  - Also included: their row results past 727, Peeters' records as data, and
+    parked design, review and random-model notes.
+  - Rows are finite data; the notes' theorems are not yet in the paper.
 - `certificates/`: versioned binary payloads for the certificate verifiers,
   documented in its README.
 

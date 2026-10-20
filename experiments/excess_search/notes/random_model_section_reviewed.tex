@@ -1,0 +1,910 @@
+% Reviewed section for writeups/excess.tex.
+% Suggested placement: after Section~\ref{sec:bounded}, before
+% Section~\ref{sec:verification}.  New bibliography keys are listed in the
+% comment block at the end of this file; they must be added to excess.bib.
+%
+% Publication blockers (for the lead; remove this block when resolved):
+%  * The engines and logs behind "411 rows" (Section~\ref{sec:model-numbers})
+%    and the Peeters snapshot are not in the repository.  Land them, or cite
+%    them as external data, before this section is published.
+%  * formal/Ogdoad/ExcessRandomModel.lean is untracked and not imported by
+%    Ogdoad.lean or Papers.Excess, and formal/README.md has no entry for it.
+%    The "Lean-checked" labels below are valid only once it is.
+%  * Recheck the Wieferich-type search bounds (Section~\ref{sec:model-wieferich})
+%    against the current literature.
+%  * Theorem~\ref{thm:model-c} keeps "pending independent check" until a
+%    second read is recorded in the proof record.
+
+\section{A random model for the selected coordinates}\label{sec:model}
+
+This section states a probabilistic model for the selected coordinates of
+Theorem~\ref{thm:arms}, records what the model implies, and separates those
+implications from what is proved about the tower.  Four claim levels are
+used, and each statement names its level.
+\begin{description}
+\item[Model theorem.] A theorem about a probability measure.  It says
+      nothing about $\mathrm{On}_2$.  Where marked \emph{Lean-checked}, the
+      named declarations in \texttt{formal/Ogdoad/ExcessRandomModel.lean}
+      prove it, with any unformalized step named.
+\item[Proved here.] A theorem about the Conway tower, proved in this paper.
+\item[Heuristic.] A model theorem or model estimate read as a prediction
+      about the tower.  It has exactly the authority of the model, which the
+      available data test only weakly (Section~\ref{sec:model-likelihood}).
+\item[Data.] A finite computation, with its source.
+\end{description}
+Divergence of $\sum1/p$, expected failure counts, and search hit
+probabilities are properties of the model.  None of them is evidence that a
+counterexample to Conjecture~\ref{conj:rule} exists, and none of the finite
+data below is evidence that the rule holds beyond the rows computed.
+
+\subsection{Row events and cells}\label{sec:model-cells}
+
+Write $\nu(p)\in\{0,1,4\}$ for the value that Conjecture~\ref{conj:rule}
+predicts, put $h=f(p)$, and let
+\[
+ \beta_p=\kappa_h+\nu(p),\qquad E_p=d(\beta_p),\qquad
+ \rho_p=\beta_p^{(2^{E_p}-1)/p}\in\mu_p .
+\]
+
+\begin{proposition}[row event; proved here]\label{prop:model-row}
+For every odd prime $p$ one has $m_p\geq\nu(p)$, and
+\[
+ m_p\neq\nu(p)\iff\rho_p=1\iff\beta_p\in(\mathbb F_{2^{E_p}}^{\times})^p .
+\]
+Moreover $v_p(2^{E_p}-1)=v_p(2^{f(p)}-1)$, and this valuation exceeds one
+exactly when $p$ is a base-two Wieferich prime.
+\end{proposition}
+
+\begin{proof}
+The inequality is trivial in arm $Z$.  In arms $O$, $C$, and $D$ the
+smaller translates are $p$-th powers by Propositions~\ref{prop:o-projective},
+\ref{prop:c-half}, and~\ref{prop:d-lower}.  The equivalences are then the
+definition of $m_p$ and Proposition~\ref{prop:power}.  Every prime factor of
+$E_p$ divides $h<p$ or some $b_s$ with $s<p$, and every prime factor of such
+a $b_s$ is smaller than $s$.  So $p\nmid E_p/h$, and lifting the exponent
+gives the valuation.  Finally, $v_p(2^h-1)\geq2$ holds iff
+$\operatorname{ord}_{p^2}(2)=h$, iff $p^2\mid2^{p-1}-1$.
+\end{proof}
+
+By Theorem~\ref{thm:arms} and Proposition~\ref{prop:norm}, each $\rho_p$ is
+the image of one coordinate $X_c$ in a finite cyclic group $G_c$, and several
+rows share one coordinate.
+
+\begin{center}
+\small
+\begin{tabular}{llll}
+\hline
+cell $c$ & $G_c$ & $X_c$ & rows $P_c$\\
+\hline
+$Z_h$ ($h$ not a power of two) &
+      $\mathbb F_{2^h}^{\times}/(\mathbb F_{2^h}^{\times})^{\Pi_h}$
+      & class of $T_h$ & $f(p)=h$\\
+$ZF_n$ & norm-one torus $T_n$, order $F_n$ & $u_n$ & $p\mid F_n$\\
+$O_{r,a}$ ($r\geq5$) & $G_{r,a}$, order $L_{r,a}$
+      & $y_{r,a}F_{r,a-1}^{\times}$ & $p\ne r$, $p\mid L_{r,a}$\\
+$C_k$ & $\mathbb F_{2^{3^k}}^{\times}$ & $\gamma_k$ & $f(p)=3^k$\\
+$D_k$ & order-$\Psi_k$ quotient & $M_k$ & $p\mid\Psi_k$\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{proposition}[cells; proved here]\label{prop:model-cells}
+The row sets $P_c$ partition the odd primes.  For each cell, the
+Chinese remainder theorem gives
+$G_c\cong\prod_{p\in P_c}\mathbb Z/p^{v_p}\times(\text{rest})$, and row $p$
+fails exactly when the $p$-component of $X_c$ lies in $p\mathbb Z/p^{v_p}$.
+Every closure prime of a cell is smaller than every row of the cell.
+\end{proposition}
+
+\begin{proof}
+The arm is a function of $f(p)$.  For $O$: if $\mathcal Q(f(p))=\{r^a\}$
+then $f(p)=r^ag$ with $g\mid b_r$, so $p\mid L_{r,a}$.  Conversely, if
+$p\ne r$ divides $L_{r,a}$, then $f(p)\mid r^ab_r$ and $v_r(f(p))=a$.  The
+primes of $b_r$ are smaller than $r$, so every other prime power of $f(p)$
+is absorbed and $\mathcal Q(f(p))=\{r^a\}$.  The remaining arms are read off
+Theorem~\ref{thm:arms}.  Closure primes divide $h$ or some $b_s$ with
+$s\leq h<p$.
+\end{proof}
+
+\subsection{Translate ties}\label{sec:model-ties}
+
+A random model must not randomize two translates whose power status is tied
+by an identity.  The following ties are proved.
+
+\begin{lemma}[cubic and exceptional translate ties; proved here]
+\label{lem:model-ties}
+Let $k\geq1$, $\zeta=\zeta_k$, and let $p$ be a prime with $p\nmid30$.  In
+$\mathbb F_2(\zeta)\mathbb F_{16}$:
+\begin{enumerate}
+\item $\zeta$ is a $p$-th power;
+\item the translates $\zeta+c$ with $c\in\mathbb F_4^{\times}=\{1,2,3\}$
+      are all $p$-th powers or all nonpowers;
+\item the twelve translates $\zeta+c$ with
+      $c\in\mathbb F_{16}\setminus\mathbb F_4=\{4,\dots,15\}$ are all
+      $p$-th powers or all nonpowers.
+\end{enumerate}
+The same holds in the defining field of each translate.
+\end{lemma}
+
+\begin{proof}
+The order $3^{k+1}$ of $\zeta$ is prime to $p$, which gives (1).  For
+$c\ne0$ write $\zeta+c=c(1+t_c)$ with $t_c=\zeta/c$.  The factor $c$ has
+order dividing $15$, so it is a $p$-th power.  If $c\in\mathbb F_4^{\times}$
+then $t_c$ is a primitive $N$-th root of unity with $N=3^{k+1}$.  If
+$c\notin\mathbb F_4$, then $\operatorname{ord}(c)\in\{5,15\}$.  The three-part
+of $\zeta$ is $3^{k+1}$ with $k\geq1$, so it does not cancel, and $t_c$ is a
+primitive $N$-th root with $N=5\cdot3^{k+1}$.
+
+In both cases $(\mathbb Z/N)^{\times}=\{\pm2^j\}$.  For $N=3^{k+1}$, $2$ is
+primitive.  For $N=5\cdot3^{k+1}$, $\operatorname{ord}_N(2)=4\cdot3^k$ is half
+of $|(\mathbb Z/N)^{\times}|$, and $-1\notin\langle2\rangle$, because
+$2^j\equiv-1$ would need $j\equiv2\pmod4$ and $j$ odd.  So any two
+primitive $N$-th roots satisfy $t'=\operatorname{Frob}^j(t)^{\pm1}$.
+Frobenius preserves power status, and $1+t^{-1}=t^{-1}(1+t)$ with $t^{-1}$ a
+$p$-th power because $p\nmid N$.  Since $\mathbb F_2(\zeta+c)\mathbb F_{16}$
+is the whole compositum, its degree over the defining field is a power of
+two, prime to $p$, so extension is injective on $p$-Kummer quotients.
+\end{proof}
+
+Part~(2) is the tie already recorded in Proposition~\ref{prop:c-half}.
+Part~(3) merges the two six-element Frobenius-and-twist classes
+$\{4,5,8,10,12,15\}$ and $\{6,7,9,11,13,14\}$ through inversion.
+
+\begin{corollary}[values at a failure; proved here]\label{cor:model-fail-value}
+In arm $C$, a failing row has $m_p\geq4$, with $m_p=4$ exactly when
+$\zeta_k+4$ is a nonpower, and $m_p\geq16$ otherwise.  In arm $D$, a failing
+row has $m_p\geq16$.  Nothing here decides whether equality holds at $16$.
+\end{corollary}
+
+\begin{lemma}[two-power tie in arm $Z$; proved here]\label{lem:model-z-tie}
+Suppose that $\mathcal Q(h)$ contains a two-power $2^k$ ($k\geq2$) with
+component $c=\kappa_{2^k}$, and that $v_2(d(\kappa_q))<k$ for every odd
+$q\in\mathcal Q(h)$.  Choose $j\equiv2^{k-1}\pmod{2^k}$ divisible by every
+$d(\kappa_q)$, $q$ odd.  Then
+\[
+ \operatorname{Frob}^j(\kappa_h)=\kappa_h+1,\qquad
+ \operatorname{Frob}^j(\kappa_h+2)=\kappa_h+3.
+\]
+Hence on such a row a failure gives $m_p\geq2$, with $m_p=2$ exactly when
+$\kappa_h+2$ is a nonpower.  With no odd component, this covers the
+Conway--Fermat cells $\mathcal Q(h)=\{2^{n+1}\}$.
+\end{lemma}
+
+\begin{proof}
+$\operatorname{Frob}^{2^{k-1}}$ generates
+$\operatorname{Gal}(\mathbb F_{2^{2^k}}/\mathbb F_{2^{2^{k-1}}})$ and sends the
+Artin--Schreier generator $c$ to $c+1$.  The choice of $j$ fixes the odd
+components, and $j$ is even, so it fixes $\mathbb F_4$.
+\end{proof}
+
+\noindent\emph{Data.}  The valuation hypothesis holds on every arm-$Z$ row
+$p\leq10^6$ that has a two-power component.  (It is expected to follow from
+Lenstra's absorption rule for $\mathcal Q(h)$; that is not proved here.)  The
+identities were evaluated in exact towers at $h=12$, $24$, and $28$.  Four of
+the five tensor-proved levels, $h=12,24,36,40$, have
+$\mathcal Q(h)=\{3,4\},\{3,8\},\{4,9\},\{5,8\}$ and are of this kind; $h=15$
+is not.
+
+For an ordinary cell with $r$ a Fermat prime, a twist argument suggests that
+$\kappa+1$ is tied to the translates $\kappa+\xi$, $\xi\in\mu_r$; its side
+conditions are not checked here.  These translates are at least $4$, so such
+a tie would not change the value at a failure.
+
+\subsection{The model}\label{sec:model-def}
+
+\begin{definition}[the cell models]\label{def:model}
+\leavevmode
+\begin{description}
+\item[$M_0$.] The coordinates $X_c$ are independent, and each is uniform on
+      $G_c$.  Equivalently, by Proposition~\ref{prop:model-cells}, the
+      $p$-primary components of all rows are independent and uniform.
+\item[$M$.] $M_0$ conditioned on $\mathcal K=\bigcap_c\mathcal K_c$, where
+      $\mathcal K_c$ is the conjunction of the proved constraints on $X_c$:
+      nontriviality in the row part $G'_c$ (Lemma~\ref{lem:model-cell} for
+      $O$), the proved order lower bounds $B_c$ (ratio packing for $O$ and
+      $C$, the packet degree for $ZF$), and the rows proved by the packing
+      sieve for $D$.  Cells of arm $Z$ outside $ZF$ carry no constraint.
+      Rows settled by theorem or certificate are not random, and every count
+      below drops them.
+\item[$M_{\mathrm{L\acute evy}}$.] Any law under which, for some $c>0$ and some
+      set $R$ of rows with $\sum_{p\in R}1/p=\infty$,
+      $P(\rho_p=1\mid\mathcal F_{<p})\geq c/p$ for $p\in R$.  Here
+      $\mathcal F_{<p}$ is generated by the \emph{row outcomes} at the rows
+      $q<p$, not by the ancestral field elements.  Conditioned on the
+      elements themselves, the tower is deterministic.
+\item[$M^+$.] $M$, extended to translates: for each row, one fresh
+      independent $1/p$ event per tie class of translates above $\nu(p)$.
+      The classes are those of Lemmas~\ref{lem:model-ties}
+      and~\ref{lem:model-z-tie}, together with the Frobenius orbits
+      over $\mathbb F_{2^{E_p}}$.  Translates not tied by a proved identity
+      are treated as independent; this is an assumption of $M^+$.
+\end{description}
+\end{definition}
+
+The content of $M$ is the claim that \emph{no structure beyond the proved
+constraints} controls the rule-value phase.  Naive uniformity of $\kappa_h$
+is false: it would put $m_p=0$ on almost every ordinary row.  The
+conjecture that the rule always holds is exactly the claim that such further
+structure exists.
+
+\begin{center}
+\small
+\begin{tabular}{p{0.52\textwidth}p{0.4\textwidth}}
+\hline
+consequence & needs\\
+\hline
+infinitely many failures a.s. & $M_0$; or $M$ with $P_{M_0}(\mathcal K)>0$;
+                                 or $M_{\mathrm{L\acute evy}}$\\
+$\mathbb E\#\{\text{failures in }S\}=\sum_{p\in S}1/p$ & marginals only
+                                 (exact under $M_0$, approximate under $M$)\\
+$P(\text{no failure in }S)=\prod_{p\in S}(1-1/p)$, first-failure law,
+Poisson approximation, hit probabilities & independence (exact under $M_0$;
+                                 under $M$ up to factors $1-\varepsilon_c$)\\
+$N(X)/\log\log X\to1$ a.s. & $M_0$, hence $M$; under
+                       $M_{\mathrm{L\acute evy}}$ only a lower bound $c$ on the
+                       ratio to $\sum_{p\in R,\,p\leq X}1/p$\\
+central limit theorem for $N(X)$ & $M_0$\\
+value of $m_p$ at a failure; $P(\sup m_p\leq4)$ & $M^+$\\
+$\sup_pm_p<\infty$ a.s. & summable $j$-fold joint-failure marginals for
+                          some $j$; $M^+$ suffices\\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Theorems inside the model}\label{sec:model-theorems}
+
+\begin{lemma}[the conditioning is non-null; model theorem]\label{lem:model-K}
+Let $\varepsilon_c=P_{M_0}(X_c\notin\mathcal K_c)$.  For an order constraint,
+$\varepsilon_c\leq B_c\,\tau(|G'_c|)/|G'_c|$; for constraints forcing rows
+$\ell$ with $|G_c|/\ell<S_c$, $\varepsilon_c\leq S_c\,\omega(|G_c|)/|G_c|$.
+Moreover $\sum_c\varepsilon_c<\infty$.  Hence
+$P_{M_0}(\mathcal K)=\prod_c(1-\varepsilon_c)>0$.
+\end{lemma}
+
+\begin{proof}
+At most $\sum_{d\mid|G'_c|,\,d<B_c}\varphi(d)\leq B_c\tau(|G'_c|)$ elements
+have order below $B_c$, and a forced row $\ell$ fails with probability
+$1/\ell<S_c/|G_c|$.  The row part $|G'_c|$ is exponential in the cell
+degree.  For example, $|G'_{r,a}|\geq(2^{b_r}-1)^{\varphi(r^a)}/r$, since the
+prime-to-$r$ factors of $L_{r,a}$ are all rows and $v_r(L_{r,a})=1$.  The
+proved bounds $B_c$ and $S_c$ are at most exponential in the square root of
+the degree, and $\tau(n),\omega(n)=n^{o(1)}$.  Each $\varepsilon_c<1$, and
+the cells are independent under $M_0$.
+\end{proof}
+
+\begin{theorem}[infinitely many failures, bounded excess; model theorem]
+\label{thm:model-io}
+\leavevmode
+\begin{enumerate}
+\item Under $M_0$, almost surely $\rho_p=1$ for infinitely many $p$, and in
+      particular for some $p>N$, for every $N$.  The expected number of
+      failures with $p$ in a finite set $S$ is $\sum_{p\in S}1/p$, and the
+      probability of none is $\prod_{p\in S}(1-1/p)$.
+      \emph{Lean-checked}, given the identification of the $M_0$ row events
+      with independent events of probability $1/p$ (the CRT step of
+      Proposition~\ref{prop:model-cells}, not formalized).
+\item Under $M$, almost surely infinitely many rows fail, and some row
+      beyond every bound fails.  \emph{Lean-checked} given the same
+      identification and Lemma~\ref{lem:model-K}.
+\item Under $M_{\mathrm{L\acute evy}}$, almost surely infinitely many rows fail.
+\item Under any law with $\sum_pP(m_p>J)<\infty$ for some $J$ and $m_p<\infty$
+      almost surely for each $p$, almost surely $\sup_pm_p<\infty$.  Under
+      $M^+$ this holds with $J=16$, since $P(m_p>16)\leq p^{-2}$.
+\end{enumerate}
+Inside $M^+$, (2) and (4) hold simultaneously: the rule fails infinitely
+often, and the excess is bounded.
+\end{theorem}
+
+\begin{proof}
+(1) Second Borel--Cantelli over the countable index set of odd primes, with
+$\sum1/p=\infty$, and $P(\text{row }p\text{ fails})=1/p$ exactly.  The
+$p$-th powers have index $p$ in a cyclic group of order divisible by $p$,
+whatever the valuation $v_p$ is.  Within a cell, a uniform $X_c$ has
+independent uniform CRT components, so the row events are independent.
+(2) $M\ll M_0$ because $P_{M_0}(\mathcal K)>0$, so almost-sure statements
+transfer.  (3) L\'evy's extension of Borel--Cantelli \cite{durrett2019}
+identifies $\limsup A_p$ almost surely with
+$\{\sum_pP(A_p\mid\mathcal F_{<p})=\infty\}$, and that sum is infinite on the
+whole space.  (4) First Borel--Cantelli, which uses marginals only.  Under
+$M^+$, each arm has at least two independent tie classes at or below~$16$
+whose joint failure is required for $m_p>16$: $\{0\},\{1\}$ (untied $Z$),
+$\{0,1\},\{2,3\}$ (tied $Z$, including $ZF$), the classes of $1$ and $2$ ($O$),
+$\{1,2,3\},\{4,\dots,15\}$ ($C$), and $\{4,\dots,15\}$, the class of $16$
+($D$).  Each $m_p$ is finite almost surely, since infinitely many independent
+classes each fail with probability $1/p$.
+\end{proof}
+
+\noindent\emph{Lean.}  The module \texttt{Ogdoad.ExcessRandomModel} proves
+the following, with axioms \texttt{propext}, \texttt{Classical.choice}, and
+\texttt{Quot.sound} only:
+\begin{itemize}
+\item \texttt{ae\_infinite\_of\_tsum\_eq\_top}: second Borel--Cantelli over
+      a countable index type;
+\item \texttt{tsum\_inv\_oddPrime\_eq\_top}: $\sum_{p\text{ odd}}1/p=\infty$;
+\item \texttt{ae\_infinite\_oddPrime\_of\_div\_le} and
+      \texttt{ae\_infinite\_oddPrime\_of\_eq\_inv}: lower bounds $c/p$, and
+      the exact case $1/p$, for independent events;
+\item \texttt{ae\_exists\_gt\_oddPrime\_of\_eq\_inv}: some failure past every
+      bound;
+\item \texttt{ae\_cond\_infinite\_oddPrime\_of\_eq\_inv}: the conclusion under
+      conditioning on any event; it is vacuous for a null event, and
+      Lemma~\ref{lem:model-K} supplies positivity for part~(2);
+\item \texttt{integral\_card\_filter\_oddPrime\_eq\_sum\_inv}: expected counts;
+\item \texttt{measure\_biInter\_compl\_eq\_prod}: no-hit products;
+\item \texttt{uniformOn\_pthPowers} and \texttt{uniformOn\_units\_pthPowers}:
+      the exact $1/p$;
+\item \texttt{RandomModel.measure}, \texttt{RandomModel.iIndepSet\_fails},
+      \texttt{RandomModel.measure\_fails},
+      \texttt{RandomModel.ae\_infinite\_fails}, and
+      \texttt{RandomModel.ae\_exists\_gt\_fails}: the product of uniform
+      measures on cyclic groups $G_p$ with $p\mid|G_p|$.  With $G_p$ the
+      $p$-primary row component this is the law of the $M_0$ row components;
+      that identification is the unformalized CRT step.
+\end{itemize}
+Parts~(3) and~(4) are not in the module.  Part~(3) would use Mathlib's
+\texttt{MeasureTheory.ae\_mem\_limsup\_atTop\_iff}.  Part~(4) would use
+first Borel--Cantelli, \texttt{MeasureTheory.ae\_eventually\_notMem}.  The
+module also does not formalize Proposition~\ref{prop:model-row},
+Proposition~\ref{prop:model-cells}, or Lemma~\ref{lem:model-K}.  Nothing in
+it connects the measure to $\mathrm{On}_2$.
+
+\subsection{Quantitative predictions}\label{sec:model-numbers}
+
+\emph{Data.}  OEIS A380496 \cite{oeisA380496} gives the $126$ values for
+$3\leq p\leq709$.  Peeters' program \cite{peeters2026}, which also produces
+the OEIS files, records $m_p$ for $1{,}023$ odd primes $p\leq12281$.  The list
+contains every odd prime up to $829$ except $719$, whose value comes from the
+certificate, and omits $444$ of the primes in $(829,12289)$.  Every record
+equals $\nu(p)$.  Its $896$ rows above $727$ ($619$ in $Z$, $275$ in $O$, one
+each in $C$ and $D$) carry $\sum1/p=0.27412$.  These are a third party's
+computed values, not certificates.  The project's exact engines recomputed
+$411$ rows in $(727,8609]$, all equal to $\nu(p)$.  Of these, $395$ replicate
+Peeters' records and $16$ are new; the new rows are all in arm $O$ and carry
+mass $0.00823$.  In total, $912$ observed rows lie above $727$, with mass
+$0.28235$.  After the settled rows $1459$ ($D'_5$) and $2593$ ($C_4$) are
+removed, $910$ rows remain ($619$ in $Z$, $291$ in $O$), with mass
+$0.28128$.  None of these finite data is an induction.
+
+\emph{Heuristic.}  Conditioned on these observations, under $M$ the expected
+number of failures among the \emph{unobserved}, unsettled rows in $(727,X]$
+is as follows.  Up to $10^8$ the values come from the arm census of all odd
+primes.  At $10^9$ the total is an exact prime sum without an arm split.  At
+$10^{20}$ and $10^{100}$ the totals use Mertens' theorem with the
+Rosser--Schoenfeld error \cite{rosserschoenfeld1962}, below $1.5\cdot10^{-3}$.
+\begin{center}
+\small
+\begin{tabular}{rrrrr}
+\hline
+$X$ & expected failures & $P(\text{none})$ & in $Z$ & in $O$\\
+\hline
+$10^4$   & $0.059$ & $0.943$ & $0.023$ & $0.036$\\
+$10^5$   & $0.270$ & $0.763$ & $0.158$ & $0.112$\\
+$10^6$   & $0.452$ & $0.636$ & $0.285$ & $0.167$\\
+$10^7$   & $0.607$ & $0.545$ & $0.399$ & $0.208$\\
+$10^8$   & $0.740$ & $0.477$ & $0.501$ & $0.239$\\
+$10^9$   & $0.858$ & $0.424$ & & \\
+$10^{20}$  & $1.66$ & $0.19$ & & \\
+$10^{100}$ & $3.27$ & $0.038$ & & \\
+\hline
+\end{tabular}
+\end{center}
+Arms $C$, $D$, and $ZF$ contribute $1.2$--$1.4\cdot10^{-4}$ in total in
+every row from $10^5$ on.  No unsettled $C$ or $D$ row lies below $12281$.
+Under $M$, the first failure $F$ among unobserved rows satisfies
+$P(F>X)\approx8.8/\log X$.  Its median is about $4\cdot10^7$, its quartiles
+are about $1.2\cdot10^5$ and $2\cdot10^{15}$, and its $90\%$ quantile is about
+$10^{38}$.  Beyond $10^6$, each further decade of $X$ adds a shrinking
+number of percentage points.  These are planning numbers inside $M$, not
+evidence.
+
+\emph{Arm masses (heuristic).}  The share of arm $O$ in the $1/p$ mass falls
+from $0.42$ in $(10^3,10^4]$ to $0.24$ in $(10^7,10^8]$, consistent with a
+share of order $\sigma_{-1}(b_r)/\log x$.  If that form persists, the arm-$O$
+mass is finite.  Divergence would need $\sigma_{-1}(b_r)$ of order $\log r$,
+hence $\log b_r\geq r^{c}$, far beyond the observed $\log b_r\approx1.7\log r$.
+This finiteness is an extrapolation, not a theorem.
+
+Integrating the fits to infinity gives an arm-$O$ tail beyond $10^8$ of
+$0.21$--$0.32$.  The $c/\log x$ fit is a lower bound and the
+$c\log\log x/\log x$ fit an upper envelope.  The remaining expected number
+of arm-$O$ failures is then $0.44$--$0.56$ (centre $0.53$), and
+$P(\text{no further arm-}O\text{ failure})\approx0.57$--$0.64$.  On this
+extrapolation, arm $Z$ carries the whole $\log\log$ divergence.  The tied-$Z$
+rows of Lemma~\ref{lem:model-z-tie} have unobserved mass $0.053$ up to $10^8$
+and an estimated tail of $0.065$--$0.13$; the lower end is the $c/\log x$ fit,
+which again undershoots.
+
+\emph{Values at a failure (heuristic, $M^+$, Corollary~\ref{cor:model-fail-value}).}
+\begin{center}
+\small
+\begin{tabular}{llll}
+\hline
+arm & $\nu(p)$ & proved bound at a failure & $M^+$ value, probability $1-O(1/p)$\\
+\hline
+$Z$, no two-power component & $0$ & $m_p\geq1$ & $1$\\
+$Z$ tied, including $ZF$ (Lemma~\ref{lem:model-z-tie}) & $0$ & $m_p\geq2$ & $2$\\
+$O$ & $1$ & $m_p\geq2$ & $2$\\
+$C$ & $1$ & $m_p\geq4$ & $4$\\
+$D$ & $4$ & $m_p\geq16$ & $\geq16$\\
+\hline
+\end{tabular}
+\end{center}
+Under $M^+$, $P(m_p>4\text{ for some }p>727)$ is about $9\cdot10^{-5}$:
+$7.7\cdot10^{-5}$ from the seven unsettled $D$ rows below $10^8$
+($1/17497$ alone is $5.7\cdot10^{-5}$), and at most about $1.2\cdot10^{-5}$
+from double failures in unobserved arm-$O$ rows.  The value set $\{0,1,4\}$
+survives with model probability about $0.5$ ($0.48$--$0.57$), set by arm-$O$
+and tied-$Z$ failures.  These figures are conditional on $M^+$ and on a
+handful of specific rows.  Misspecification of $M^+$ is far more likely than
+$10^{-4}$ (Section~\ref{sec:model-misspec}).  Only the qualitative
+$\sup m_p<\infty$ is comparatively robust.
+
+\subsection{Likelihood of the data}\label{sec:model-likelihood}
+
+\emph{Data, with the model probability of no failure under $M_0$.}
+\begin{center}
+\small
+\begin{tabular}{lrrr}
+\hline
+rows & count & $\sum1/p$ & $P(\text{all succeed})$\\
+\hline
+$11\leq p\leq727$, settled rows dropped & $110$ & $0.708$ & $0.488$\\
+$11\leq p\leq727$, only forced rows dropped & $121$ & $0.847$ & $0.423$\\
+observed $727<p\leq12281$, settled dropped & $910$ & $0.281$ & $0.755$\\
+observed $727<p\leq12281$, all & $912$ & $0.282$ & $0.754$\\
+all observed, conservative & $1020$ & $0.989$ & $0.368$\\
+all observed, inclusive & $1033$ & $1.129$ & $0.319$\\
+\hline
+\end{tabular}
+\end{center}
+Against the alternative ``the rule is a theorem'', which has likelihood one,
+the Bayes factor is $2.7$ to $3.1$.  The data therefore barely discriminate.
+
+The factor is also an overstatement.  The rule, the arm split, and the forced
+translates were all found by studying the rows below $709$.  A small
+counterexample would probably have been absorbed into a modified rule.  The
+rows above $727$ are out of sample to the extent that they were not used to
+formulate the rule, and they contribute a factor of only $1/0.755=1.32$.
+The tensor-proved $Z$ levels are a further reason for caution: they are
+structure in the arm that carries the divergence, and neither likelihood
+variant accounts for them.
+
+\subsection{Misspecification}\label{sec:model-misspec}
+
+Every number above is a model-predictive quantity whose credibility is that
+of $M$ or $M^+$.  The tower has already shown structure that a naive model
+misses:
+\begin{itemize}
+\item forced translates below $\nu(p)$;
+\item the ties of Lemmas~\ref{lem:model-ties} and~\ref{lem:model-z-tie},
+      which are invisible to a model that randomizes Frobenius orbits;
+\item tensor proofs that decide whole $Z$ levels;
+\item a class-number channel, proved for arm $C$
+      (Theorem~\ref{thm:model-c}) and observed in a control family
+      (Section~\ref{sec:model-control}).
+\end{itemize}
+A fair summary is a mixture
+$\pi P_M+(1-\pi)P_{\mathrm{struct}}$ in which nothing pins $\pi$ near one,
+and a Bayes factor near three moves the odds on $\pi$ only by about that
+factor.  Two consequences follow:
+\begin{itemize}
+\item $M$-probabilities of order $10^{-4}$ (``arm $C$ never fails'',
+      ``$\sup m_p=4$'') measure the model, not the tower;
+\item the infinitely-often conclusion needs only a conditional lower bound
+      $c/p$ on a set of divergent mass.  For the tower, the corresponding
+      premise fails only if structure forces success on arm-$Z$ rows of all
+      but convergent $1/p$-mass.  The proved success mechanisms so far
+      (degree-forced rows, prime cells, packing ranges, tensor-proved levels,
+      and the one passing row per cell of Lemma~\ref{lem:model-cell}) act on
+      rows whose $1/p$-mass beyond $727$ is negligible.  This is a statement
+      about the mechanisms known, not evidence that no others exist.
+\end{itemize}
+
+\subsection{Wieferich-type comparison}\label{sec:model-wieferich}
+
+A row failure has the same shape as a Wieferich prime.  A specified element
+lies in the index-$p$ subgroup of a cyclic group:
+$2\in((\mathbb Z/p^2)^{\times})^p$ for Wieferich primes, and $X_c\in pG_c$
+here.  The $1/p$ model predicts $\log\log$ growth in both cases.  No
+reduction is known in either direction.  In particular, nothing here shows
+that the failure direction is ``as hard as'' Wieferich infinitude, and a
+single counterexample is a different statement from infinitude.
+
+The analogues do not confirm the $1/p$ calibration.  \emph{Estimate}, using
+the cited search bounds and Mertens' theorem, counting $p\geq5$ ($p\geq7$
+for Wall--Sun--Sun).  Any extension of these searches without new examples
+lowers the agreement further.
+% Lead: recheck every search bound against the current literature.
+\begin{center}
+\small
+\begin{tabular}{lrrrr}
+\hline
+condition & searched to & expected & known & $P(\leq\text{known})$\\
+\hline
+Wieferich \cite{crandalldilcherpomerance1997,doraisklyve2011} &
+  $6.7\cdot10^{15}$ & $3.0$ & $2$ & $0.42$\\
+Wilson \cite{costagerbiczharvey2014} & $2\cdot10^{13}$ & $2.9$ & $3$ & $0.68$\\
+Wall--Sun--Sun \cite{sunsun1992,mcintoshroettger2007} &
+  $2\cdot10^{14}$ & $2.7$ & $0$ & $0.07$\\
+Wolstenholme \cite{mcintosh1995,mcintoshroettger2007} & $10^9$ & $2.5$ & $2$ & $0.55$\\
+\hline
+pooled & & $11.1$ & $7$ & $0.14$\\
+\hline
+\end{tabular}
+\end{center}
+The Wall--Sun--Sun case is cautionary, not reassuring.  Its empty search has
+probability about $0.07$ under the naive model, and the pooled count, $7$
+against $11.1$, leans mildly against the naive calibration.  The comparison
+supports only the statement that problems of this shape are open: no
+technique is known that produces infinitely many instances.  Under abc,
+Silverman's theorem \cite{silverman1988} gives the complementary
+non-Wieferich statement.
+
+\subsection{A control family: Gaussian periods}\label{sec:model-control}
+
+To see how natural selected elements can depart from $1/p$, take a prime
+$\ell\equiv5\pmod8$ with $2$ primitive modulo $\ell$.  Put $n=(\ell-1)/2$
+and $\alpha_\ell=\xi_\ell+\xi_\ell^{-1}\in\mathbb F_{2^n}$, which is
+intrinsic up to Frobenius.  Let $\epsilon$ be the fundamental unit and
+$h_\ell$ the class number of $k=\mathbb Q(\sqrt\ell)$.
+
+\begin{proposition}[cubic channel; proved here]\label{prop:model-gauss}
+$\alpha_\ell$ is a cube in $\mathbb F_{2^n}^{\times}$ if and only if
+$\epsilon\in\mathbb Z[\sqrt\ell]$ or $3\mid h_\ell$.
+\end{proposition}
+
+\begin{proof}
+Let $K=\mathbb Q(\xi_\ell)^+\supset k$, let $H$ be the squares modulo
+$\ell$, and let $\eta=\xi^{-1}(1-\xi^4)/(1-\xi^2)$, which reduces to
+$\alpha_\ell$.  Since $4\in H$ and $2\notin H$,
+$N_{\mathbb Q(\xi)/k}(\eta)=\pm A/B$, where $A=\prod_{a\in H}(1-\xi^a)$ and
+$B$ is the product over non-squares.  Dirichlet's class number formula
+gives $B/A=\pm\epsilon^{\pm2h_\ell}$ \cite{washington1997}.  As
+$\eta\in K$, $N_{K/k}(\eta)=\pm\epsilon^{\mp h_\ell}$.
+
+The prime $2$ is inert in $K$ with residue field $\mathbb F_{2^n}$, and inert
+in $k$ with residue field $\mathbb F_4$.  So
+$N_{\mathbb F_{2^n}/\mathbb F_4}(\alpha_\ell)=(\epsilon\bmod2)^{\mp h_\ell}$.
+By Proposition~\ref{prop:norm}, $\alpha_\ell$ is a cube iff this norm is
+$1$.  Finally, $\epsilon\equiv1\pmod2$ iff $\epsilon\in\mathbb Z+2\mathcal
+O_k=\mathbb Z[\sqrt\ell]$.
+\end{proof}
+
+\emph{Data.}  The criterion agrees with direct exact computation for all
+$418$ such $\ell\leq2\cdot10^4$, where the direct cube frequency is
+$148/418=0.354$.  Over the $3377$ such $\ell\leq2\cdot10^5$, evaluated by
+the criterion with PARI class numbers and units (not certified), the cube
+frequency is $0.399$ against the naive $1/3$, about $8\sigma$.  It rises
+across $(0,2\cdot10^4]$, $(2\cdot10^4,10^5]$, and $(10^5,2\cdot10^5]$ as
+$0.355$, $0.399$, $0.411$.
+
+\emph{Heuristic.}  If $\epsilon\bmod2$ is uniform on $\mathbb F_4^{\times}$
+and $3\mid h_\ell$ has its Cohen--Lenstra frequency $0.160$, the limit is
+$1/3+(2/3)(0.160)\approx0.44$.  The same mechanism appears to act at $p=7$
+through the cyclic cubic field of conductor $\ell$: among the $343$ cases
+$\ell\leq2\cdot10^4$ with $3\mid n$, the seventh-power frequency is $5$ of
+$12$ when $7\mid h$, against $45/331$ otherwise (data; the first sample is
+small).
+
+The lesson is directional, and limited to this mechanism.  A global
+class-group channel adds to the probability of being a $p$-th power, and
+so, at a row, to failure.  In arm $C$ that channel is the component $A_\psi$
+of Theorem~\ref{thm:model-c}, which is expected (heuristically) to vanish at
+row primes.  The primes $3$ and $7$ here are small \emph{inherited} primes,
+not row primes; departures from $1/p$ there measure channels of small
+subfields and neither confirm nor refute the row model.  Other proved
+structure, such as the tensor-proved levels, acts in the opposite direction.
+
+\subsection{Structure proved about the tower}\label{sec:model-structure}
+
+\begin{lemma}[cell success; proved here]\label{lem:model-cell}
+Let $r\geq5$ be prime, let $a\geq1$, and let $L'_{r,a}$ be the prime-to-$r$
+part of $L_{r,a}$.
+\begin{enumerate}
+\item $v_r(L_{r,a})=1$, and the image of $y_{r,a}$ in the prime-to-$r$
+      quotient $G'$ of $G_{r,a}$ is nontrivial.
+\item For $p\mid L'_{r,a}$ one has $v_p(L_{r,a})=v_p(2^{f(p)}-1)$.  Hence
+      $L'_{r,a}$ is squarefree if and only if no prime factor of it is a
+      base-two Wieferich prime.
+\item If $L'_{r,a}$ is squarefree, then some row of $O_{r,a}$ has
+      $m_p=1$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(1) $\mathbb F_2(\alpha_r)$ contains $\mu_r$, so $f(r)\mid b_r$, and lifting
+the exponent gives $v_r=1$.  A trivial image means
+$y^r\in F_{r,a-1}^{\times}$.  Kummer theory over $F_{r,a-1}\supset\mu_r$ then
+gives $y=c\chi^j$ with $c\in F_{r,a-1}$ and $\chi=x_{r,a}$.  But $y=1+\chi$
+has two nonzero coordinates in the basis $1,\chi,\dots,\chi^{r-1}$.
+
+(2) Lifting the exponent, $p\nmid r^ab_r$ (since $p\equiv1\pmod{r^a}$ and the
+primes of $b_r$ are smaller than $r$), and
+Proposition~\ref{prop:model-row}.
+
+(3) If every row failed, then by Proposition~\ref{prop:o-projective} each
+$p$-component of the image would lie in $p\mathbb Z/p=0$, so the image
+would be trivial, contradicting~(1).
+\end{proof}
+
+\begin{corollary}[conditional infinitude of successes; proved here]
+\label{cor:model-successes}
+If infinitely many ordinary cells $O_{r,a}$ have squarefree $L'_{r,a}$, then
+$m_p=\nu(p)$ for infinitely many $p$.  The same conclusion follows if
+infinitely many ordinary cells satisfy $o_{r,a}>r\,W_{r,a}$, where
+$o_{r,a}$ is any proved lower bound for the order of the selected class
+(Proposition~\ref{prop:o-ratio-packing}) and
+$W_{r,a}=\prod_pp^{v_p(L_{r,a})-1}$ over the rows $p$ of the cell.
+\end{corollary}
+
+\begin{proof}
+The cells partition the rows, so distinct cells give distinct passing rows.
+If every row of $O_{r,a}$ fails, each $p$-component of the selected class
+lies in $p\mathbb Z/p^{v_p}$ and has order dividing $p^{v_p-1}$, while the
+$r$-component has order dividing $r$.  The order of the class then divides
+$rW_{r,a}$, contradicting $o_{r,a}>rW_{r,a}$.  When $L'_{r,a}$ is squarefree,
+$W_{r,a}=1$ and this is Lemma~\ref{lem:model-cell}(3).
+\end{proof}
+
+The per-cell statement (3) is unconditional, given the arm-$O$ reduction of
+Theorem~\ref{thm:arms}.  The infinitude is conditional.  Both known
+Wieferich primes lie in $Z$ cells.  So every ordinary cell has a passing row
+unless its $L'$ has a square factor $p^2$ with $p$ above the Wieferich search
+bound.
+
+\emph{Heuristic.}  Under the $1/p$ Wieferich model, the expected number of
+Wieferich primes in ordinary cells is at most the arm-$O$ mass, which is
+heuristically finite (Section~\ref{sec:model-numbers}).  By first
+Borel--Cantelli only finitely many cells would then contain one, so the
+hypothesis of Corollary~\ref{cor:model-successes} is heuristically
+near-certain.  Proving it is a problem of the same kind as Silverman's
+abc-conditional theorem.  The Fermat arm behaves the same way:
+$\delta_n>1$ and $p^2\mid F_n$ forces a Wieferich prime.
+
+\begin{theorem}[arm $C$ without selection; proved here, pending independent check]
+\label{thm:model-c}
+Let $k\geq1$, $h=3^k$, $m=3^{k+1}$, $K=\mathbb Q(\xi_m)^+$, and
+$U=\mathcal O_K^{\times}$.  Then $G=\operatorname{Gal}(K/\mathbb Q)$ is cyclic,
+generated by $\sigma_2$.  The prime $\mathfrak q=2\mathcal O_K$ is inert, and
+$\mathcal O_K/\mathfrak q=\mathbb F_{2^h}$.
+
+Let $p$ be a prime with $f(p)=h$.  Let
+\[
+ \operatorname{red}:U/U^p\to\mathbb F_{2^h}^{\times}/(\mathbb F_{2^h}^{\times})^p
+ \cong\mathbb Z/p
+\]
+be reduction modulo $\mathfrak q$.  Let $\psi:G\to\mathbb F_p^{\times}$ be
+the character with $\psi(\sigma_2)=2$, and let $\hat\psi$ be its Teichm\"uller
+lift.  Put $\eta=\xi_m+\xi_m^{-1}$, let $C^+$ be the real cyclotomic units,
+and set
+\[
+ A_\psi=e_{\hat\psi}(\mathrm{Cl}(K)\otimes\mathbb Z_p),\qquad
+ L=K(\mu_p,U^{1/p}).
+\]
+Then:
+\begin{enumerate}
+\item $\operatorname{red}(\sigma u)=\psi(\sigma)\operatorname{red}(u)$.
+      Hence $\operatorname{red}$ factors through the line
+      $e_\psi(U/U^p)$, which has $\mathbb F_p$-dimension one.
+\item $\eta$ generates $C^+/\{\pm1\}$ as a $\mathbb Z[G]$-module, and
+      $[U:C^+]=h(K)$.
+\item The arm-$C$ row $p$ fails if and only if
+      \[
+       p\mid\#e_{\hat\psi}((U/C^+)\otimes\mathbb Z_p)
+       \quad\text{or}\quad
+       \mathfrak q\text{ splits completely in }L/K .
+      \]
+      The first alternative is equivalent to $A_\psi\neq0$.
+\item Consequently, if $A_\psi=0$, the row holds if and only if $\mathfrak q$
+      does not split completely in $L/K$.  This statement no longer refers to
+      the selected element.  If $p$ divides the $\psi$-part of the unit
+      index, the row fails.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+Because $2$ is primitive modulo $9$, it is primitive modulo every $3^j$,
+which gives cyclicity and inertness.  The half-angle reduction
+(Proposition~\ref{prop:c-half}) identifies failure of the row with
+$\gamma_k\in(\mathbb F_{2^h}^{\times})^p$.  The element $\gamma_k$ is the
+reduction of $\eta$ up to Frobenius, and Frobenius preserves power status.
+
+(1) Modulo $\mathfrak q$, $\sigma_2u\equiv u^2$.  As $p\nmid|G|$ and
+$\mu_h\subset\mathbb F_p$, $\mathbb F_p[G]$ splits into characters.  An
+equivariant map to the $\psi$-isotypic target kills the other components.
+By Dirichlet, $U\otimes\mathbb Q_p$ is the regular representation minus the
+trivial character, and $\psi\neq1$ because $p\nmid2-1$.
+
+(2) $\xi_{ab}=\xi_a\sigma_a(\xi_b)$ for
+$\xi_a=\xi^{(1-a)/2}(1-\xi^a)/(1-\xi)$, and every unit residue is $\pm2^j$.
+Moreover $\sigma_2(\xi_2)=\eta$, and the index is Washington's Theorem~8.2
+\cite{washington1997}.
+
+(3) $e_{\hat\psi}(C^+\otimes\mathbb Z_p)$ is the rank-one sublattice generated
+by $e_{\hat\psi}\eta$.  So $e_\psi[\eta]=0$ in $U/U^p$ iff $p$ divides the
+$\hat\psi$-index.  The equality of this index with $\#A_\psi$ is Gras's
+conjecture, a theorem for $p\nmid[K:\mathbb Q]$
+(\cite{mazurwiles1984}; \cite[Cor.~4.15]{greither1992}).  The prime
+$\mathfrak q$ splits completely in $K(\mu_p)/K$ because $2^h\equiv1\pmod p$.
+Above $\mathfrak q$, unit Kummer extensions are unramified, and splitting is
+equivalent to the residue being a $p$-th power.  So $\mathfrak q$ splits
+completely in $L/K$ iff $\operatorname{red}(U)=0$, iff $\operatorname{red}$
+vanishes on the line.
+
+(4) is immediate from (3).  The forced-failure direction does not use Gras.
+\end{proof}
+
+\noindent\emph{Remarks.}
+\begin{itemize}
+\item $L/K(\mu_p)$ has degree $p^{h-1}$.  A cyclic degree-$p$ formulation
+      uses one unit representing a nonzero class on the line
+      $e_\psi(U/U^p)$.  The splitting is relative to $K$, since rational $2$
+      is already inert in $K$.
+\item An arm-$D$ analogue has been proposed, with $N=5\cdot3^{k+1}$ and
+      $K_D=\mathbb Q(\xi_N)^+$.  There $2$ is inert, since
+      $\operatorname{ord}_N(2)=4h$ and $-1\notin\langle2\rangle$.  The
+      circular unit $v=(1-\xi_N)(1-\xi_N^{-1})$ reduces to
+      $(\zeta_k+4)^2/(4\zeta_k)$.  The proposed criterion: a $D$ row fails
+      iff $e_{\hat\psi_D}\mathrm{Cl}(K_D)_p\neq0$ or $2\mathcal O_{K_D}$
+      splits completely in
+      $K_D(\mu_p,(\mathcal O_{K_D}^{\times})^{1/p})$.  The reduction formula
+      is checked here.  The step that the $\psi_D$-component of the circular
+      units is generated by $v$ after $p$-localization is not, so the
+      criterion is not claimed.
+\item \emph{Rule implies Weber-type.}  If arm $C$ holds at level $k$, then
+      $A_\psi=0$ for every $p$ with $f(p)=3^k$.  This is a fragment of the
+      expected triviality of class numbers along the cyclotomic
+      $\mathbb Z_3$-extension, a statement believed true and not known.  It
+      offers no contradiction to exploit.
+\end{itemize}
+
+\begin{proposition}[relation obstruction; proved here]\label{prop:model-relations}
+Let $S\subset\mathbb F_{2^e}^{\times}$ be finite, let $p\mid2^e-1$, and let
+$c_p:\mathbb F_{2^e}^{\times}\to\mathbb F_p$ be the additive Euler coordinate.
+Consider any family of relations
+$\prod_{x\in S}x^{n_x}\in Y\cdot(\mathbb F_{2^e}^{\times})^p$ with
+$c_p(Y)=0$.  For example, $Y$ may be generated by roots of unity of order
+prime to $p$ and by elements of subfields whose $p$-part vanishes (primary
+vacuity).  Then:
+\begin{enumerate}
+\item the relations never imply $c_p(\beta)\neq0$ for any $\beta\in S$;
+\item they imply $c_p(\beta)=0$ if and only if $\beta^u$, for some
+      $u\not\equiv0\pmod p$, is a product of the relations.  That product is
+      an explicit failure certificate.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+Each relation gives the homogeneous equation $\sum_xn_xc_p(x)=0$ over
+$\mathbb F_p$.  The zero assignment satisfies every such system.  By linear
+duality, $c_p(\beta)=0$ is implied iff the unit vector $e_\beta$ lies in the
+row space.
+\end{proof}
+
+A success proof by relations therefore needs an inhomogeneous anchor, an
+element with known nonzero coordinate.  Examples are $\mu_p$ itself (nonzero
+iff $p$ is not Wieferich) or an element of exactly known order.  A
+nonconstructive failure proof cannot come from relations of this kind.  This
+is the elementwise counterpart of Proposition~\ref{prop:reciprocity-saturation}.
+
+\subsection{The model prediction}\label{sec:model-prediction}
+
+\begin{remark}[random-model prediction; heuristic]\label{rem:model-prediction}
+Read as statements about the tower, the models predict:
+\begin{enumerate}
+\item The $0/1/4$ rule fails for infinitely many odd primes, and the number
+      of failures up to $X$ grows like $\log\log X$.  If the arm-$O$ mass is
+      finite, all but finitely many failures are in arm $Z$, where they have
+      $m_p=1$, or $m_p=2$ on the tied rows of Lemma~\ref{lem:model-z-tie}.
+\item $\sup_pm_p<\infty$.
+\item Arms $C$, $D$, and $ZF$ hold for every level.
+\end{enumerate}
+This is not a conjecture of this paper; Conjecture~\ref{conj:rule} is.
+\end{remark}
+
+\noindent\emph{Status.}
+\begin{itemize}
+\item In~(1), ``infinitely often'' is a model theorem under $M_0$, $M$, and
+      $M_{\mathrm{L\acute evy}}$ (Theorem~\ref{thm:model-io}; Lean-checked
+      for $M_0$ and $M$ as stated there).  The $\log\log X$ growth is a model
+      theorem under $M_0$ and $M$, not formalized.  ``All but finitely many in
+      arm $Z$'' is a model theorem only given finiteness of the arm-$O$
+      $1/p$-mass, which is an extrapolation.  The values at failures hold,
+      under $M^+$, for all but finitely many failures almost surely.
+\item (2) is Theorem~\ref{thm:model-io}(4) under $M^+$, not formalized.
+\item (3) has $M$-probability about $1-1.4\cdot10^{-4}$.  It is a
+      convergent-sum prediction, of the same kind as the analogous model
+      makes for Wiedemann's question (Section~\ref{sec:z-wiedemann}).
+\item Arm $O$ receives no prediction either way: the model gives about $0.6$
+      to ``no further arm-$O$ failure''.
+\end{itemize}
+
+None of this is evidence about the tower.  The data test $M$ only weakly
+(Section~\ref{sec:model-likelihood}).  The proved structure includes
+mechanisms that the naive model missed (Section~\ref{sec:model-misspec}).
+Divergence of $\sum1/p$ is a property of the model.  Inside $M^+$, neither
+``$\nu(p)\leq m_p\leq\nu(p)+1$'' nor ``a failure gives $m_p=\nu(p)+1$''
+follows: by Corollary~\ref{cor:model-fail-value} and
+Lemma~\ref{lem:model-z-tie}, a failure in arm $C$, arm $D$, or a tied $Z$
+cell lands above $\nu(p)+1$.
+
+Conjecture~\ref{conj:rule} remains the paper's open problem.  The model's
+role is to make ``the rule fails'' a live alternative, and to identify what
+would bear on the choice between the two.  An exact certificate
+$m_p\neq\nu(p)$ at some row would refute the rule.  A structure theorem
+forcing the rule-value phase on a set of rows of divergent mass would show
+the model misspecified there, without proving the rule.  A calibration test
+on non-row phases at fresh primes, counted per distinct selected element,
+would check the model's no-hidden-structure premise.  In arm $O$ every fresh
+prime of the top layer is a row, so no such primes exist there.
+
+% ---------------------------------------------------------------------------
+% Suggested addition to Table~\ref{tab:status}:
+%   Model theorem & Statements about the measures of Definition~\ref{def:model}
+%   (Theorem~\ref{thm:model-io}, Lemma~\ref{lem:model-K}); Lean-checked where
+%   named.  They are not claims about $\mathrm{On}_2$. \\
+%   Heuristic & Model predictions and estimates read as statements about the
+%   tower (Section~\ref{sec:model-numbers}, Remark~\ref{rem:model-prediction}). \\
+% and to its "Proved here" row: row-event and cell propositions, translate
+% ties, cell-success lemma and corollary, Theorem~\ref{thm:model-c} (pending
+% independent check), Gaussian-period criterion, relation obstruction.
+%
+% BibTeX entries to add to excess.bib:
+%
+% @article{crandalldilcherpomerance1997,
+%   author={Crandall, Richard and Dilcher, Karl and Pomerance, Carl},
+%   title={A search for {Wieferich} and {Wilson} primes},
+%   journal={Math. Comp.}, volume={66}, year={1997}, pages={433--449}}
+% @article{doraisklyve2011,
+%   author={Dorais, Fran{\c c}ois G. and Klyve, Dominic},
+%   title={A {Wieferich} prime search up to $6.7\times10^{15}$},
+%   journal={J. Integer Seq.}, volume={14}, year={2011},
+%   note={Article 11.9.2}}
+% @article{silverman1988,
+%   author={Silverman, Joseph H.},
+%   title={{Wieferich}'s criterion and the $abc$-conjecture},
+%   journal={J. Number Theory}, volume={30}, year={1988}, pages={226--237}}
+% @article{costagerbiczharvey2014,
+%   author={Costa, Edgar and Gerbicz, Robert and Harvey, David},
+%   title={A search for {Wilson} primes},
+%   journal={Math. Comp.}, volume={83}, year={2014}, pages={3071--3091}}
+% @article{sunsun1992,
+%   author={Sun, Zhi-Hong and Sun, Zhi-Wei},
+%   title={{Fibonacci} numbers and {Fermat}'s last theorem},
+%   journal={Acta Arith.}, volume={60}, year={1992}, pages={371--388}}
+% @article{mcintoshroettger2007,
+%   author={McIntosh, Richard J. and Roettger, Eric L.},
+%   title={A search for {Fibonacci}--{Wieferich} and {Wolstenholme} primes},
+%   journal={Math. Comp.}, volume={76}, year={2007}, pages={2087--2094}}
+% @article{mcintosh1995,
+%   author={McIntosh, Richard J.},
+%   title={On the converse of {Wolstenholme}'s theorem},
+%   journal={Acta Arith.}, volume={71}, year={1995}, pages={381--389}}
+% @book{washington1997,
+%   author={Washington, Lawrence C.},
+%   title={Introduction to Cyclotomic Fields}, edition={2nd},
+%   series={Graduate Texts in Mathematics}, volume={83},
+%   publisher={Springer}, year={1997}}
+% @article{mazurwiles1984,
+%   author={Mazur, Barry and Wiles, Andrew},
+%   title={Class fields of abelian extensions of {$\mathbf Q$}},
+%   journal={Invent. Math.}, volume={76}, year={1984}, pages={179--330}}
+% @article{greither1992,
+%   author={Greither, Cornelius},
+%   title={Class groups of abelian fields, and the main conjecture},
+%   journal={Ann. Inst. Fourier (Grenoble)}, volume={42}, year={1992},
+%   pages={449--499}}
+% @book{durrett2019,
+%   author={Durrett, Rick},
+%   title={Probability: Theory and Examples}, edition={5th},
+%   publisher={Cambridge University Press}, year={2019}}
+% @article{rosserschoenfeld1962,
+%   author={Rosser, J. Barkley and Schoenfeld, Lowell},
+%   title={Approximate formulas for some functions of prime numbers},
+%   journal={Illinois J. Math.}, volume={6}, year={1962}, pages={64--94}}
+% @misc{peeters2026,
+%   author={Peeters, Django},
+%   title={transfinite-nim-calculator},
+%   howpublished={\url{https://github.com/DjangoPeeters/transfinite-nim-calculator}},
+%   note={Excess records through $p=12281$; commit 9f7d67c}, year={2026}}
+% ---------------------------------------------------------------------------

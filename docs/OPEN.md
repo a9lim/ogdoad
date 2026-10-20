@@ -298,11 +298,42 @@ A successful formula must therefore import an independently evaluable local
 class or a genuinely nonhomogeneous ancestry identity; reconstructing the
 residue symbol or its orbit product is not enough.
 
+### Random model
+
+Every odd prime is exactly one row. If each selected coordinate is modelled
+as an independent uniform element of its cyclic group, row `p` fails with
+probability `1/p`. Since the sum of `1/p` diverges, the model predicts that the
+rule fails infinitely often, about `log log X` times below `X`, mostly in arm
+`Z`, while `sup m_p` stays finite. This is a prediction of the model, not
+evidence about the tower. Lean proves the model theorem and nothing about
+`On_2`. The tested rows obey the rule with model probability about `0.3`.
+
+Two exact structural facts sit beside the model:
+
+- **Arms C and D are cyclotomic-unit statements.** `kappa_(3^k)` is a
+  primitive `3^(k+1)`-th root of unity and 2 is inert in
+  `Q(zeta_(3^(k+1)))^+`. So an arm-C row fails exactly when a specified
+  `psi`-part of the class group is nonzero or the prime `2O_K` splits
+  completely in `K(mu_p, E_K^(1/p))`. Arm D has the same statement over
+  `Q(zeta_(5*3^(k+1)))^+`.
+- **Translate ties.** Automorphisms that move `kappa` force translates to
+  share their status. In 2-power arm-`Z` rows `m_p` is never 1 or 3; in arm D
+  a failure forces `m_p >= 16`.
+
+These results, the search engines and the reviewed model section are parked
+in [`../experiments/excess_search/`](../experiments/excess_search/README.md).
+They are proved there but not yet in the paper.
+
 ### Evidence and authority
 
 - OEIS A380496 supplies the 126 values for `3 <= p <= 709` as data; exact
   local certificates give `m_359 = m_719 = m_727 = 1`
   (`experiments/ordinary_*_certificate.py`, `experiments/certificates/`).
+- Peeters' calculator (a C++ port of CGSuite's term algebra) records 896 rows
+  in `(727, 12281]`, all obeying the rule. The exact engines in
+  `experiments/excess_search/` agree with every Peeters row they recompute. They
+  add 519 further rows up to `p = 66529`, which also obey the rule
+  (`data/results_*.jsonl`). These rows are finite data, not an induction.
 - `experiments/ordinal_excess_probe.py` and
   `experiments/fermat_selected_screen.py` are bounded screens; explicit
   countermodels in non-Conway fields refute overstrong lemmas only.

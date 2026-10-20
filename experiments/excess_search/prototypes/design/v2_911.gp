@@ -1,0 +1,10 @@
+default(parisizemax, 4000000000);
+read("v2lib.gp");
+tw=[[1,2,2,0,[]],[2,3,3,0,[2]],[2,7,7,1,[3]],[1,4,2,0,[2]],[2,13,13,0,[3,4]]]; Sg=Set([2,3]); SA=Set([2,3,7]); Sy=Set([2,3,4,13]); sm=[7];
+V1=[1,0,0,1,0,1,0,1,1,0,0,0,0,1,1,0,1,0,1,1,1,0,1,1,1,1,1,1,1,1,0,0,1,0,0,0,1,0,0,1,0,1,1,0,0,1,0,1,0,0,0,0,0,1,1,0,0,1,1,1,0,0,0,1,1,1,1,0,1,1,1,1,0,0,0,1,1,0,0,0,0,0,0,1,0,0,0,0,1,0,1,1];
+cr=crossed(tw,Sg,SA,Sy,sm,13,6,42,12,12,1092,91,[911]);
+print("crossed: n'=",cr[3]," t=",cr[4]," minpoly==V1: ", lift(cr[1])==V1, " euler: ", cr[2]);
+ff=freefactor(tw,Sg,SA,Sy,sm,13,6,42,12,546,91,[911],0);
+print("freefactor: #factors=",#ff," degs=",vector(#ff,i,ff[i][1])," minpoly==V1: ",vector(#ff,i,lift(ff[i][2])==V1), " euler: ", vector(#ff,i,ff[i][3]));
+fb=freefactor(tw,Sg,SA,Sy,sm,13,6,42,12,546,91,[911],1);
+print("unpinned (F_s' embedding twisted by Frobenius^1): minpoly==V1: ",vector(#fb,i,lift(fb[i][2])==V1));

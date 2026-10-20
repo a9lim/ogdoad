@@ -180,6 +180,16 @@ every arm is the Euler criterion `beta^(|F^x|/p) != 1`; `p | ord(beta)` loses
 the primary valuation when `p^2` divides the ambient order. See
 [`../docs/OPEN.md`](../docs/OPEN.md) §2 and `../writeups/excess.tex`.
 
+`ExcessRandomModel.lean` proves theorems about the random model only, not
+about `On_2`. If independent events indexed by odd primes have probabilities
+at least `c/p` (in particular `1/p`, as for a uniform element being a `p`-th
+power, `uniformOn_units_pthPowers`), then almost surely infinitely many of
+them occur (`ae_infinite_oddPrime_of_div_le`, `ae_infinite_fails`). The
+expected count over a finite set is the sum of the probabilities
+(`integral_card_filter_oddPrime_eq_sum_inv`). The modelling hypothesis, that
+the selected Conway elements behave like independent uniform elements, is
+neither assumed nor proved about the tower.
+
 ## Natural misère realization: open
 
 The Misère modules check the results in the closed-results table with ordinary
