@@ -114,8 +114,9 @@ The hit-certification protocol (Levels 0–5) is in §5 of the plan.
     `kappa` to `kappa + 1`, so `m_p` is never 1 or 3. These rows also carry a
     generalized Fermat-torus coordinate.
   - In arms C and D, all twelve translates by nimbers 4..15 share their
-    power status. So an arm-D failure forces `m_p >= 16`, and an arm-C row that
-    fails twice also gives `m_p >= 16`.
+    power status. So an arm-D failure forces `m_p >= 16`, and so does an arm-C
+    failure, because the 4-class is tied to the 1-class
+    (`notes/overnight/B1-forcing.md` §4.2).
   - See `notes/heuristic_numbertheory_critique.md` and the Codex note.
 - **Cell-success lemma.** Every arm-O cell whose rows contain no base-2
   Wieferich prime has a row obeying the rule.
@@ -128,6 +129,16 @@ The hit-certification protocol (Levels 0–5) is in §5 of the plan.
 - **Control family.** Gaussian periods `zeta + zeta^-1` are cubes more often
   than `1/3`, through a class-number channel. Natural selected elements lean
   *toward* being powers.
+
+## Overnight run (theory only, no searches)
+
+`notes/overnight/SUMMARY.md` collects a parallel proof/disproof attempt: excess
+values jump to 16 on failure in arms C, D, O at `r = 5` and Z with
+`Q = {3^b, 4}`; arm-Z families that are exact twins of Theorem C; reciprocity
+identities that return arm C to itself; and an unconditional quadratic lower
+bound for the Conway–Fermat order. Each note has a Codex referee report in
+`notes/overnight/verify/` or `notes/overnight/codex/`. Nothing there proves or
+refutes the rule.
 
 ## Map
 

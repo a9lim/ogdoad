@@ -61,6 +61,11 @@ that forces it. On the evidence below, the failure direction is "Wieferich-type"
      - **an arm C failure gives `m_p = 4`** (model probability `1 - 1/p`),
        not `m_p = 2`. That value is inside `{0,1,4}`;
      - **an arm D failure gives `m_p = 6`**, not 5.
+     - **Correction (`overnight/B1-forcing.md` §3.1–4.2, Codex-confirmed):**
+       both values are wrong. A distribution relation over `mu_5` and the
+       inversion tie put all fifteen nonzero `c < 16` in one status class in
+       arm C, and all twelve `c` in `F_16 \ F_4` in one class in arm D. So
+       failures give `m_p >= 16` in both arms.
    - This **corrects `model.md` §3.4** in arms C and D. It treated translates as
      tied only under `Frob^E`, which fixes `beta`. The right group is the
      stabiliser of `kappa` up to a root of unity of order prime to `p`.
@@ -471,6 +476,10 @@ degree `p` with Galois action `omega psi^(-1)`, an odd character.
   a power of `P | 2`.
   - Its leading term pairs the `p`-adic logarithm (Fermat quotient) of `u` with
     `S = sum_x L(x)(-1)^(Tr x)`, the additive-character-weighted discrete
+    (**Correction:** `S` vanishes identically mod `l`, because every order-`l`
+    Gauss sum over `F_(2^N)` is `-1 mod lambda^2`; see `overnight/B3-armC.md`
+    Lemma 3.1, Codex-confirmed. The leading term must be read from the
+    twisted sum of B3 Thm 3.4.)
     logarithm.
   - `S` is a full-field sum, no easier than the original symbol.
 - **(R1) `p` divides `B`, with the class line nontrivial.** Then `u` can be a local
