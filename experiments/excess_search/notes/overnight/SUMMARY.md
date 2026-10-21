@@ -18,6 +18,7 @@ at the review level stated; nothing is in `writeups/excess.tex` or
 | `codex/C2-fermat.md` + `codex/V-C2-codex.md`, `codex/V-C2-gemini.md` | Fermat chain: new lower bound (Codex), independently verified by Codex and Gemini |
 | `codex/B4-moore.md` | Moore-flag / non-liftable relations (Codex) |
 | `lean/B1Forcing.lean`, `B2ArmZ.lean`, `B3ArmC.lean` | elementary cores, compile with `lake env lean` |
+| `scripts/` | the small check scripts behind the [N] claims (copied from the run's scratchpad; notes cite their old scratch paths, same file names) |
 
 ## Results that survived adversarial review (Codex astra)
 
