@@ -79,12 +79,16 @@ at the review level stated; nothing is in `writeups/excess.tex` or
      `2^{d/2}`. Gemini judges it new for the Conway tower (nearest prior work:
      Burkhart et al. 2009 modular towers; Dose–Mercuri–Pal–Stirpe 2022
      recursive towers; Voloch 2010, whose small-order hypothesis fails here).
-   - *Exact small levels*: `[L_m : F_2(t)] = 2, 4, 16, 128` for
-     `m = 0..3`, i.e. per-level ranks `1, 1, 2, 3`. The growth law decides
-     the strength of the bound: linear growth gives about
-     `log delta_n ~ n 2^{sqrt(2n)}`, and bounded growth would give
-     `exp(d^delta)` (Voloch strength). Open; see `codex/C6-growth-reply.md` if
-     present.
+   - *Growth law and the method's ceiling* (Codex `codex/C6-growth-reply.md`;
+     verified by a fresh Codex session, `codex/V-C6-codex.md`). The per-level
+     Artin–Schreier class ranks are `1, 1, 2, 3, 6, 12` for `j = 0..5`
+     (exact), and `5*2^{j-4} + 1 <= rho_j <= 6*2^{j-4}` for `j >= 4`. The
+     upper bound comes from the level-3 relation; the lower bound comes from a
+     ramification-break comparison at infinity. Hence
+     `[L_m : F_2(t)] = 2^{Theta(r)}`, the bound improves to
+     `log_2 delta_n >= (8/27)(n+1)^2 - (8 log_2 3 / 9)(n+1) log_2(n+1)`
+     (`n >= 4`), and this construction can never exceed `Theta((log d)^2)`:
+     it cannot reach `exp(d^delta)`. A different mechanism is needed for that.
 
 ## What the run says about the problem
 
@@ -94,8 +98,9 @@ at the review level stated; nothing is in `writeups/excess.tex` or
 - Disproof direction: no global identity forces a predicted translate in any
   explicit family; a failure would have to be an accidental class-group or
   splitting event. No nonconstructive mechanism was found.
-- Most promising thread: the normal-closure lattice method of result 5. The
-  growth law of `[L_m : F_2(t)]` is a clean, decidable question, and the same
-  idea may transfer to the other arms' towers. Also Codex's observation that
+- Most promising thread: result 5 shows that lattice/zero-counting methods do
+  bite on the selected Fermat orbit, but this construction is capped at
+  `(log d)^2`. Getting past it needs functions with values in `<u_n>` at much
+  lower pole cost than the normal closure. Also Codex's observation that
   binary linear forms on the arm-C Frobenius orbit carry the full
   multiplicative information (`codex/B4-moore.md` §7.2).
