@@ -53,21 +53,38 @@ at the review level stated; nothing is in `writeups/excess.tex` or
    Lean-checked). Arm C failure ⟺ a `psi`-part of the ray class group mod 2
    of `K_k` is nonzero, including an everywhere-unramified class-group branch
    (Codex correction).
-5. **Fermat chain lower bound** [D; Codex proof, verified independently by a
-   second Codex session and by Gemini]. With `d = 2^{n+1}`,
-   `delta_n >= ceil((d+3)^2/10)` for `n >= 1`; rounding inside the progression
-   `1 mod 2^{n+2}` sharpens it for `n >= 2`. Proof: on `y^2+y = x^3+x^2`
-   with `P = (c_{n-1}, c_n)`, the functions `g = (y+1)/y` and
-   `v = g o iota`, `iota(x,y) = (x+1, y+x+1)` (`iota^2 = [-1]`), satisfy
-   `g(P) = u_n`, `v(P) = u_n^{±Q}`, `Q = 2^{2^{n-1}}`. Their relation lattice
-   has index `delta_n`; a nonzero relation gives `g^a v^b - 1`, of pole degree
-   `|2a-b| + |a+2b|`, vanishing at the `d` conjugates of `P` and to order at
-   least 3 at `O`; Minkowski gives the bound. The previous bound was linear
-   in `d`; this is quadratic. Both referees locate the wall at rank 2:
-   Frobenius, doubling (`[2] = iota pi^2`), translations and the rational
-   support supply no third independent function with values in `<u_n>`, and
-   the Frobenius step that shifts `c_{n-2}` does not lift to the two-step
-   tower curve.
+5. **Fermat chain: quadratic, then superpolynomial lower bounds** [D].
+   Here `d = 2^{n+1}` and `ell = n+1 = log_2 d`.
+   - *Rank 2* (Codex `codex/C2-fermat.md`; verified by a second Codex
+     session and by Gemini, `codex/V-C2-*.md`):
+     `delta_n >= ceil((d+3)^2/10)`. On `y^2+y = x^3+x^2` with
+     `P = (c_{n-1}, c_n)`, `g = (y+1)/y` and `v = g o iota`,
+     `iota(x,y) = (x+1, y+x+1)`, take values `u_n`, `u_n^{±Q}` at `P`; a
+     relation gives `g^a v^b - 1` of pole degree `|2a-b| + |a+2b|` vanishing at
+     the `d` conjugates of `P` and to order 3 at `O`; Minkowski finishes. The
+     paper's bound was linear in `d`.
+   - *Unbounded rank* (Codex `codex/C5-rank3-reply.md`; verified by a fresh
+     Codex session and by Gemini, `codex/V-C5-*.md`). Pass to the normal
+     closure `L_m` of the generic Artin–Schreier tower
+     `x_0^2+x_0 = t`, `x_j^2+x_j = x_{j-1}^3+x_{j-1}^2` over `F_2(t)`. Its
+     fibre at `t = 1` is the Conway tower, so the Frobenius `tau` there is an
+     `N`-cycle (`N = 2^{m+1}`) with `tau^r(x_m) = x_m + 1`, `r = 2^m`. Then
+     `g_m, tau g_m, ..., tau^{r-1} g_m` (`g_m = (x_m+1)/x_m`) are
+     multiplicatively independent because `X^r + 1 = Phi_{2r}` is irreducible
+     over `Q`. At the fibre `t = a_{n-m-1}` they all take values in `<u_n>`, so
+     `delta_n >= d^r / (r! H_m^r)` with `H_m = 3^m [L_m : K_m]`. The sibling
+     identity gives `[L_m : F_2(t)] <= 2^{2^m}`, and with it
+     `log_2 delta_n >= (3/16) ell^2 - ((log_2 3)/2) ell log_2 ell` for
+     `n >= 3`. This is superpolynomial in `d`, but far below full order
+     `2^{d/2}`. Gemini judges it new for the Conway tower (nearest prior work:
+     Burkhart et al. 2009 modular towers; Dose–Mercuri–Pal–Stirpe 2022
+     recursive towers; Voloch 2010, whose small-order hypothesis fails here).
+   - *Exact small levels*: `[L_m : F_2(t)] = 2, 4, 16, 128` for
+     `m = 0..3`, i.e. per-level ranks `1, 1, 2, 3`. The growth law decides
+     the strength of the bound: linear growth gives about
+     `log delta_n ~ n 2^{sqrt(2n)}`, and bounded growth would give
+     `exp(d^delta)` (Voloch strength). Open; see `codex/C6-growth-reply.md` if
+     present.
 
 ## What the run says about the problem
 
@@ -77,7 +94,8 @@ at the review level stated; nothing is in `writeups/excess.tex` or
 - Disproof direction: no global identity forces a predicted translate in any
   explicit family; a failure would have to be an accidental class-group or
   splitting event. No nonconstructive mechanism was found.
-- Most promising thread: the function-field lattice method behind result 5
-  (more functions with values in `<u_n>`), and Codex's observation that
+- Most promising thread: the normal-closure lattice method of result 5. The
+  growth law of `[L_m : F_2(t)]` is a clean, decidable question, and the same
+  idea may transfer to the other arms' towers. Also Codex's observation that
   binary linear forms on the arm-C Frobenius orbit carry the full
   multiplicative information (`codex/B4-moore.md` §7.2).
