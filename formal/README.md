@@ -154,6 +154,13 @@ cycle decomposition on `F_16`, finite-field specialization, and Conway
 identification remain paper-level. The theorem does not establish a failed
 first translate; the large-excess branch is still open.
 
+`ExcessCubicGap` proves the fifth-root translate product and the odd-order
+character transfer used in the cubic gaps. Rows of residue degree `3^k`
+have excess one or at least sixteen; rows of degree `2 * 3^k` have excess
+four or at least sixteen. The Frobenius orbit calculation, defining-field
+specialization, and literal Conway identification remain paper-level.
+These gaps establish no actual failure of either cubic assertion.
+
 The seed tensor expansions and minors are already checked by
 `Excess.z36_expansions`, `z36_expansion_109`, `z36_minor_37`, and
 `z36_minor_109`. Their finite-field tensor interpretation proves the two
@@ -208,7 +215,8 @@ includes:
 Paper-level, not formalized: the Conway component-field induction and the
 minimal-coefficient-field ancestry behind the packing sieves, their ball and
 shell counts and asymptotics, the opposite-section reciprocity and power-basis
-separation, the cubic first-relation and composition theorems, the first-jet
+separation, the unconditional nonreciprocity of literal bottom polynomials,
+the cubic first-relation and composition theorems, the first-jet
 quotient and digit-gap boundary, the relative-norm evaluation and
 norm-fibre no-go in the exceptional arm, its intermediate-field sieve, and all
 elliptic-curve, Artin--Schreier ramification, generalized-Prym, and top-orbit

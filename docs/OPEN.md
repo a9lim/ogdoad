@@ -149,13 +149,14 @@ a common deficient prime for the first translates. At every constructed
 degree, either some row has excess 1 or a base-2 Wieferich prime has that
 residue degree; this alternative does not resolve the remaining questions.
 
-The five-power tower gives a sharper disproof target. For every `a >= 1`,
-any prime with `ord_p(2) = 4 * 5^a` has `m_p = 1` or `m_p >= 16`.
-If the first translate of the literal `kappa_(5^a)` is a `p`-th power,
-a Frobenius orbit argument forces every translate by `F_16` to be one.
-The remaining question is whether that first-translate failure occurs at
-any level and row prime. The gap theorem proves no such failure and gives
-no uniform upper bound.
+The three- and five-power towers give sharper disproof targets. For
+`a,k >= 1`, rows with `ord_p(2) = 4 * 5^a` or `ord_p(2) = 3^k` have
+`m_p = 1` or `m_p >= 16`; rows with `ord_p(2) = 2 * 3^k` have
+`m_p = 4` or `m_p >= 16`. Frobenius orbit relations, together with a
+fifth-root product identity in the cubic case, force all sixteen initial
+translates to be powers if the predicted first successful translate fails.
+Thus any failure of `C` or `D` disproves the range-only assertion.
+The gap theorems prove no such failure and give no uniform upper bound.
 
 Put `B_a = 2^(2^a)` and let `C_a` be the finite nimbers below `B_a`.
 Some `c` in `C_a` makes the nim sum `kappa_f(p) + c` a non-`p`-th power
@@ -257,10 +258,11 @@ for both towers (`experiments/fermat_selected_screen.py --tower`,
 **Arm `O`.** The arm is the residue symbol
 `(epsilon_a / P_a)_p != 1` on the unique inert ray above two, and residue
 corestriction kills the new coordinate. Bottom-ancestor sections settle
-every factor with `L_(r,a)/p <= b_r r^a`; when the literal bottom polynomial
-`P_r` is not self-reciprocal, deficiency forces
-`L_(r,a)/p >= 2 b_r r^a + r`, and a least counterexample at `r != 3` must
-have `P_r != P_r^*`. Kummer-ratio packing over minimal coefficient fields
+every factor with `L_(r,a)/p <= b_r r^a`. The literal bottom polynomial
+`P_r` is not self-reciprocal for every `r != 3`, without assuming any
+excess rule, so deficiency always forces
+`L_(r,a)/p >= 2 b_r r^a + r` on those towers.
+Kummer-ratio packing over minimal coefficient fields
 gives `log_2 o >= (log_2 3)(1 - 1/r) sqrt(r^a) - (log_2 3)/2` for the
 selected order `o`. Below explicit thresholds, the prime-to-`r` defect of a
 least counterexample is `p` or divisible by `p^2`, and the latter forces a

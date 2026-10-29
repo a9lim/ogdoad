@@ -149,6 +149,12 @@ primitive support is distinct from a full primary order test at each prime.
 The five-power excess gap uses kernel-checked transformation and
 eigencharacter identities; its cycle count and literal finite-field
 specialization remain paper-level.
+The cubic gaps additionally use the checked fifth-root product and
+odd-order character transfer. Their Frobenius orbits and literal
+finite-field specialization remain paper-level.
+The nonreciprocity of literal bottom polynomials away from three uses the
+checked Frobenius expansion and coprime-factor degree sum; the coefficient
+separation and ordinal-minimum argument remain paper-level.
 
 ## Maintained experiments
 

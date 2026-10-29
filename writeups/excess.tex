@@ -41,7 +41,9 @@ outside $\{0,1,4\}$ or disprove absolute boundedness.  We retain the exact
 four-arm reduction into a structural norm, a marked cyclotomic value, a
 Gaussian period, and a corrected conductor-five norm.  The first universal
 assertion is false; the ordinary, cubic, and exceptional assertions remain
-open.  The remaining sections give selected-order bounds, exact norm and
+open.  On the three- and five-power towers, failure of the predicted first
+successful translate forces excess at least sixteen.  The remaining
+sections give selected-order bounds, exact norm and
 reciprocity reductions, and the independent Conway--Fermat problem.
 
 The proof record distinguishes the paper theorem from its kernel-checked
@@ -119,8 +121,10 @@ equivalence, and Section~\ref{sec:counterexample} gives the disproof.
 Sections~\ref{sec:z}--\ref{sec:d} develop one lossless selected
 coordinate for each arm.  Section~\ref{sec:nim-reciprocity} proves the
 saturation boundary for reciprocity arguments built from one marked phase.
-Theorem~\ref{thm:five-tower-gap} shows that rows of residue degree
-$4\cdot5^a$ have excess one or at least sixteen.
+Theorems~\ref{thm:five-tower-gap} and \ref{thm:cubic-palette-gap} show that
+rows of residue degree $4\cdot5^a$ or $3^k$ have excess one or at least
+sixteen, while rows of degree $2\cdot3^k$ have excess four or at least
+sixteen.
 Section~\ref{sec:bounded} separates the failed $0/1/4$ rule from absolute
 boundedness, and Section~\ref{sec:verification} records the authority of every
 claim class used in the paper.
@@ -2283,7 +2287,7 @@ singleton rows.  The lower unit group has no $p$-part, so
 Proposition~\ref{prop:power} gives the last equivalence.
 \end{proof}
 
-\subsection{A gap in the five-power tower}
+\subsection{Finite-translate gaps in small prime towers}
 
 \begin{theorem}[a gap after the first translate in the five-power tower]
 \label{thm:five-tower-gap}
@@ -2399,6 +2403,119 @@ Choosing an identification $\mu_p\cong(\mathbb Z/p\mathbb Z,+)$
 connects the multiplicative character above to those additive lemmas.
 The cycle count, finite-field specialization, and literal Conway
 identification remain paper-level proofs.
+
+\begin{theorem}[a finite-palette gap in both cubic arms]
+\label{thm:cubic-palette-gap}
+Let $k\geq1$, put $h=3^k$, and let $p$ be a prime.  Then
+\[
+ \operatorname{ord}_p(2)=h
+ \quad\Longrightarrow\quad m_p=1\ \text{or}\ m_p\geq16,
+\]
+and
+\[
+ \operatorname{ord}_p(2)=2h
+ \quad\Longrightarrow\quad m_p=4\ \text{or}\ m_p\geq16.
+\]
+Thus a failure of either selected assertion $C$ or $D$ disproves the
+range-only assertion $m_p\in\{0,1,4\}$.
+\end{theorem}
+
+\begin{proof}
+Write $z=\zeta_k=\kappa_{3^k}$ and $\omega=z^h\in\mathbb F_4$.
+The literal Conway component at either relevant residue degree is $z$,
+with zero finite tail; $z$ has order $3h$ and degree $2h$.
+Put
+\[
+ L=\mathbb F_{2^{4h}},\qquad C=\mathbb F_{16},\qquad
+ q=2^h,\qquad s=2^{4h/3}.
+\]
+Here $p>5$.  Both $z$ and every element of
+$C^\times$ have order prime to $p$, so are $p$-th powers in $L$.
+Every $z+c$ with $c\in C$ is nonzero, since $2h>4$ and $z\notin C$.
+Use the exact order-$p$ character
+\[
+ \chi:L^\times\longrightarrow\mu_p(L),\qquad
+ \chi(u)=u^{(2^{4h}-1)/p}.
+\]
+Its kernel is the subgroup of $p$-th powers, including when
+$p^2\mid2^{4h}-1$.  Passing between a candidate's defining field and
+$L$ preserves $p$-power status: the extension degree has only the prime
+factors $2$ and $3$, and is therefore prime to $p$.  Thus this character
+computes the power tests in the excess definition.
+
+First, $2^h\equiv-1\pmod{3h}$, so $z^q=z^{-1}$.  For $c\ne0$,
+\[
+ (z+c)^q=\frac{c^q}{z}\bigl(z+c^{-q}\bigr).
+\]
+The prefactor has trivial character, and hence
+\[
+ \chi(z+c^{-q})=\chi(z+c)^q.
+\tag{I}
+\]
+
+Second, the elementary lifting congruence
+\[
+ 4^{3^{k-1}}\equiv1+3^k\pmod{3^{k+1}}
+\]
+gives $s=16^{h/3}\equiv1+2h\pmod{3h}$.  Thus $z^s=\omega^2z$.
+The exponent $4h/3$ is divisible by four, so $s$-th powering fixes $C$.
+Consequently
+\[
+ (z+c)^s=\omega^2(z+\omega c),
+ \qquad
+ \chi(z+\omega c)=\chi(z+c)^s.
+\tag{*}
+\]
+In particular, multiplication of $c$ by $\omega$ preserves power status.
+
+The group $C^\times$ is the direct product $\mu_3\times\mu_5$.
+The map $c\mapsto c^{-q}$ fixes the $\mu_3$ coordinate, since $h$ is odd.
+On $\mu_5$ its exponent is $-2$ or $-3$ modulo five, according as
+$h\equiv1$ or $3\pmod4$; each has order four modulo five.  It therefore
+cycles the four nonidentity elements of $\mu_5$.  Together with
+$c\mapsto\omega c$, this connects all twelve elements of
+$C\setminus\mathbb F_4$.  The inversion relation (I) and (*) show that their twelve
+translates have the same $p$-power status, namely that of $z+4$.
+The three nonzero constants in $\mathbb F_4$ likewise have the common
+status of $z+1$.
+
+Suppose first that $\operatorname{ord}_p(2)=h$, so $q\equiv1\pmod p$.
+Choose a primitive fifth root $r\in C$.  The inversion relation (I) shows that the four character values
+$\chi(z+r^i)$, $1\leq i\leq4$, are equal; denote their common value by
+$b$, and put $a=\chi(z+1)$.  The exact factorization
+\[
+ z^5+1=\prod_{i=0}^4(z+r^i)
+\]
+gives $\chi(z^5+1)=ab^4$.
+Since two generates $(\mathbb Z/(3h)\mathbb Z)^\times$, there is a
+$j$ with $0\leq j<2h$ and $2^j\equiv5\pmod{3h}$.
+Thus $z^5=z^{2^j}$ and
+\[
+ b^4=a^{2^j-1}.
+\]
+If $a=1$, then $b=1$, because raising to the fourth power is invertible
+on $\mu_p$.  The previously proved orbit relations now make every
+$z+c$, $c\in C$, a $p$-th power.  These are exactly the first sixteen
+ordinal candidates, so $m_p\geq16$.  If $a\ne1$, then $m_p=1$.
+In fact the two nonzero-constant orbits always have the same status:
+$2^j\not\equiv1\pmod p$, since otherwise $h\mid j$ and
+$5\equiv1$ or $-1\pmod{3h}$, impossible for $3h\geq9$.
+
+Now suppose that $\operatorname{ord}_p(2)=2h$, so $q\equiv-1\pmod p$.
+Taking $c=1$ in (I) yields
+$\chi(z+1)=\chi(z+1)^{-1}$.  Since $p$ is odd, this value is one.
+The scaling relation makes all four candidates with $c\in\mathbb F_4$
+$p$-th powers.  If $\chi(z+4)\ne1$, then $m_p=4$; if it equals one,
+all twelve remaining candidates in $C$ are also powers, so $m_p\geq16$.
+\end{proof}
+
+The module \texttt{ExcessCubicGap.lean} checks the fifth-root translate
+product and the odd-order character transfer from that product to the
+four common values.  The Frobenius orbit calculation, defining-field
+specialization, and literal Conway identification remain paper-level.
+These identities give no failure of the predicted translate.  Enlarging
+the constant field also introduces more orbits; it does not automatically
+propagate the gap to every finite translate or settle absolute boundedness.
 
 \subsection{Bottom-ancestor polynomials and order bounds}
 
@@ -2585,8 +2702,9 @@ and $b/f$ odd.  The stated alternatives are the contrapositive.
 \end{proof}
 
 The apparent self-reciprocal exception in
-Proposition~\ref{prop:o-reciprocal} cannot be the first failure of the
-$0/1/4$ rule.  The algebraic input is the following affine Kummer lemma.
+Proposition~\ref{prop:o-reciprocal} occurs only at the prime three,
+independently of the excess values.  The algebraic input is the following
+affine Kummer lemma.
 
 \begin{lemma}[affine odd-Kummer nonunitarity]
 \label{lem:o-affine-kummer}
@@ -2613,82 +2731,130 @@ $v=q-1$, the coefficient of $t^{q-1}$ is $ua^A\ne0$.  Each contradicts
 \((*)\), and these cases exhaust the possible nonzero residues.
 \end{proof}
 
-\begin{proposition}[bottom reciprocity cannot be a first failure]
+\begin{proposition}[literal bottoms are nonreciprocal]
 \label{prop:o-bottom-not-first}
-Let $r\ne3$ be an odd prime.  If the $0/1/4$ rule holds at the row $r$
-itself, then the literal bottom polynomial is not self-reciprocal:
+For every odd prime $r\ne3$, the literal bottom polynomial satisfies
 \[
  P_r\ne P_r^*.
 \]
-The excluded prime really is exceptional: $\alpha_3=2$ and
-$P_3(X)=X^2+X+1=P_3^*(X)$.
+Equivalently, $\alpha_r^{2^k+1}\ne1$ for every $k\geq0$; in particular
+it never has norm one to its half-degree subfield when that subfield exists.
+The exception is
+$\alpha_3=2$, with $P_3(X)=X^2+X+1=P_3^*(X)$.
 \end{proposition}
 
 \begin{proof}
-Write $f=\operatorname{ord}_r(2)$ and use the Conway--Lenstra component
-decomposition
+Put $f=\operatorname{ord}_r(2)$ and $b=d(\alpha_r)$.
+If $P_r=P_r^*$, then $\alpha_r^{-1}$ is a Frobenius conjugate of
+$\alpha_r$.  Since $\alpha_r\ne1$, inversion is nontrivial on this
+orbit; consequently $b$ is even and
 \[
- \alpha_r=\kappa_f+m_r,
- \qquad
- \kappa_f=\sum_{q\in\mathcal Q(f)}\kappa_q.
-\]
-If $P_r=P_r^*$ and $b=d(\alpha_r)$, then $b$ is even and
-\[
- \alpha_r^{2^{b/2}+1}=1.                     \tag{\(**\)}
+ \alpha_r^{2^{b/2}+1}=1.
 \]
 
-Suppose first that $\mathcal Q(f)$ contains more than one component.  The
-rule gives $m_r=0$.  Choose the largest odd component $s^c$ and put
-$t=\kappa_{s^c}$.  Let $E$ be generated by $\alpha_s$, all the other-prime
-components, and the finite translate, all at once.  The element $\alpha_s$
-lies strictly below the $s$-component, and every other component prime is
-smaller than $s$ by the choice of the largest odd component.  Thus none of
-these generators contributes any $s$-primary field degree.  The full
-$s^c$-Kummer component therefore remains after passing to $E$, and the
-component theorem gives
+First suppose that $\mathcal Q(f)$ contains an odd component.
+Choose the component $s^c$ whose prime $s$ is largest, and put
+$t=\kappa_{s^c}$ and $b_s=d(\alpha_s)$.
+Keep the ordinal and nim translates distinct: write
 \[
- t^{s^c}=\alpha_s,
- \qquad [E(t):E]=s^c;
+ \kappa_f=[\Lambda+k_r],\qquad
+ \alpha_r=[\Lambda+k_r+m_r],\qquad n=k_r+m_r\in\mathbb N,
 \]
-in particular $1,t,\ldots,t^{s^c-1}$ is a power basis.  The sum $u$ of the
-remaining components is a nonzero element of $E$, by uniqueness of the
-Conway component normal form.  Lemma~\ref{lem:o-affine-kummer}, with
-$Q=2^{b/2}$, contradicts \((**)\).
+where the last addition is ordinary integer addition.  The canonical
+component expression then has the form
+\[
+ \alpha_r=t+u,\qquad
+ u=\sum_{\substack{q\in\mathcal Q(f)\\
+                    q\text{ odd},\ q\ne s^c}}\kappa_q+n.
+\]
+All the additions in this last line are nim additions.  Let $K$ be the
+finite field generated by $\alpha_s$, the other odd components, and the
+finite element $n$.  None of their degrees contains the prime $s$:
+$\alpha_s$ lies below $\kappa_s$, the other component primes are smaller
+than $s$, and finite nimbers have power-of-two degree.  Thus $s\nmid[K:
+\mathbb F_2]$.  Since
+\[
+ t^{s^c}=\alpha_s,\qquad d(t)=b_s s^c,
+\]
+the finite-field intersection formula gives $[K(t):K]=s^c$.
+Hence $X^{s^c}-\alpha_s$ is the minimal polynomial of $t$ over $K$.
 
-If $\mathcal Q(f)=\{s^c\}$ is a singleton odd prime power, the rule gives
-$m_r=1$, except when $f=2\cdot3^j$, when it gives $m_r=4$.  In the first
-case take $t=\kappa_{s^c}$ and $u=1$.  In the exceptional case take
-$t=\kappa_{3^j}$ and $u=4$; adjoining the finite field containing $4$ to
-the coefficient field leaves the odd relative degree $3^j$.  The same
-lemma again contradicts \((**)\).
+We claim that $u\ne0$.  If another odd component remains, uniqueness of
+the component normal form prevents its cancellation by the finite tail.
+If none remains but $k_r>0$, then $n=k_r+m_r\geq k_r>0$; an ordinary
+positive excess cannot cancel the finite component.
+The only remaining case is $\mathcal Q(f)=\{s^c\}$ with $k_r=0$.
+Here $m_r>0$ holds unconditionally.  Indeed $s^c\mid f$ and $s\nmid b_s$.
+Also $r\ne s$, because $s\mid f\mid r-1$.  If
+$r\mid\operatorname{ord}(t)$, then $t^{s^c}=\alpha_s$ would imply
+$r\mid\operatorname{ord}(\alpha_s)$, and hence $f\mid b_s$, a
+contradiction.  Thus $t$ is an $r$-th power in its defining finite field,
+so it cannot be the selected radicand.  Therefore $m_r>0$ and again
+$u\ne0$.
 
-The remaining possibility is a singleton even component.  Then the rule
-gives $m_r=0$, and $f=2^j$.  The selected Artin--Schreier generator
-$c=\kappa_{2^j}$ has degree $2^j$ and its nontrivial conjugate over the
-half field is $c+1$.  Since $r\ne3$, one has $2^j>2$.  Equation \((**)\)
-would give $c(c+1)=1$, so $c$ would satisfy $X^2+X+1$, contradicting its
-degree.  This proves the assertion.  For $r=3$, the displayed polynomial
-is the defining quadratic and is self-reciprocal.
+The affine odd-Kummer nonunitarity lemma
+(Lemma~\ref{lem:o-affine-kummer}) now contradicts
+this norm-one identity.  This treats every nonfinite
+radicand, including multicomponent rows whose excess is positive.
+
+It remains to treat $f=2^j$, so
+$c_0=\kappa_f$ is the finite Conway generator.  Put
+\[
+ q=2^{f/2},\qquad K_0=\mathbb F_q,
+ \qquad L_0=\mathbb F_{q^2}.
+\]
+As an ordinal, $c_0=q$; as a field element, its half-field conjugate is
+$c_0+1$.  The residue-degree condition gives $r\mid q+1$ and
+$r\nmid q-1$.  Choose a non-$r$-th-power $z\in L_0^\times$.
+It does not lie in $K_0$, since every $K_0^\times$ element is an
+$r$-th power.  Write
+\[
+ z=A c_0+B,\qquad A\in K_0^\times,\quad B\in K_0.
+\]
+The scalar $A$ is an $r$-th power, so $c_0+B/A$ is also a nonpower.
+By the defining finite-field criterion, it is an admissible nonpower
+candidate for $\alpha_r$.
+The literal polynomial-basis ordering puts this element in the ordinal
+interval $[c_0,2c_0)$.  Since $\alpha_r$ is the least nonpower and
+$\alpha_r\geq\kappa_f=c_0$, it follows that
+\[
+ \alpha_r=c_0+e\quad(e\in K_0),\qquad m_r<c_0.
+\]
+In particular no finite-tail carry occurs in this comparison.  The
+element $\alpha_r$ lies outside the half field, so its degree is exactly
+$f$, and its half-field conjugate is $\alpha_r+1$.
+The norm-one identity would therefore give
+\[
+ \alpha_r(\alpha_r+1)=1.
+\]
+This forces $d(\alpha_r)=2$.  Thus $f=2$ and $r=3$, contrary to the
+hypothesis.  At that excluded prime the literal radicand is indeed $2$,
+with the stated self-reciprocal quadratic.
 \end{proof}
 
-\begin{corollary}[reciprocal sieve from a valid bottom row]
+\begin{corollary}[unconditional reciprocal sieve]
 \label{cor:o-minimal-reciprocal}
-Let $r\ne3$ be an odd prime at which the proposed $0/1/4$ rule holds,
-let $a\geq1$, and let $p\ne r$ be a prime divisor of $L_{r,a}$.
-Then $P_r\ne P_r^*$.  Consequently, with $d=L_{r,a}/p$, a deficient
-current $p$-coordinate must satisfy
+Let $r\ne3$ be an odd prime, let $a\geq1$, and let $p\ne r$ be a prime
+divisor of $L_{r,a}$.  Put $d=L_{r,a}/p$.  A deficient current
+$p$-primary coordinate must satisfy
 \[
- d\geq2b_r r^a+r;
+ d\geq2b_r r^a+r.
 \]
-thus every such coordinate with $d\leq2b_r r^a$ has full primary order.
+Consequently every such coordinate with $d\leq2b_r r^a$ has full
+primary order.  No hypothesis on the excess at the bottom row $r$ is
+required.
 \end{corollary}
 
 \begin{proof}
-The explicit hypothesis at $r$ gives $P_r\ne P_r^*$ by
-Proposition~\ref{prop:o-bottom-not-first}.  Apply
-Proposition~\ref{prop:o-reciprocal}.  No hypothesis about other rows is
-needed.
+The preceding proposition gives $P_r\ne P_r^*$ unconditionally.
+Apply Proposition~\ref{prop:o-reciprocal}.
 \end{proof}
+
+The module \texttt{Excess.lean} checks the four-term Frobenius expansion
+used in Lemma~\ref{lem:o-affine-kummer} and the reciprocal sieve's
+coprime-factor degree-sum step.  The power-basis coefficient
+separation, finite-field specialization, and literal ordinal-minimum
+argument above remain paper-level proofs.
 
 The full Kummer orbit gives a second sieve which is substantially stronger
 when the tower level is large.
@@ -4880,9 +5046,10 @@ reformulation, not yet its evaluation.
 Lenstra asked whether the finite excesses are absolutely bounded
 \cite{lenstra1977}.  The disproof of Conjecture~\ref{conj:rule} does not
 answer that question, or even show that an excess lies outside $\{0,1,4\}$.
-Theorem~\ref{thm:five-tower-gap} gives a separate sufficient route: any
-failed first translate at residue degree $4\cdot5^a$ has excess at least
-sixteen.  Existence of such a failure remains open.
+Theorems~\ref{thm:five-tower-gap} and \ref{thm:cubic-palette-gap} give
+separate sufficient routes: a failed first translate at residue degree
+$4\cdot5^a$ or $3^k$, or a failed fourth translate at degree $2\cdot3^k$,
+has excess at least sixteen.  Existence of such a failure remains open.
 
 For $a\geq0$, put $B_a=2^{2^a}$ and let $C_a=\mathbb F_{B_a}$, the
 finite nimbers below $B_a$.  For an odd prime $p$, put
@@ -4959,7 +5126,7 @@ Cited input & Conway--Lenstra tower and component formulas, standard finite-fiel
 Capelli theory, and the cited cyclotomic, class-field, function-field, and
 order results.  These are not reproved in Lean. \\
 Proved here & The disproof and infinite synchronized
-zero-arm counterexample family; nonzero-translate primitive support in both coprime factors; the five-power excess gap; the four-arm equivalence; the exact selected coordinates and
+zero-arm counterexample family; nonzero-translate primitive support in both coprime factors; the three- and five-power excess gaps; unconditional nonreciprocity of literal bottom polynomials away from three; the four-arm equivalence; the exact selected coordinates and
 order criteria; the primitive-support, packet-degree, Wiedemann-sibling,
 supersingular, Singer
 and selected norm-one ratio-packing and partition and single-section first-relation bounds,
@@ -4971,6 +5138,7 @@ reciprocity-saturation results stated above. \\
 Ordinary kernel-checked Lean & Algebra without native evaluation: the
 equal-half-norm identity, norm synchronization and power transfer, odd-binomial translation
 separation, bounded cubic and quartic exponent collisions, synchronization and primitive-prime existence, the five-power character-orbit lemmas,
+the fifth-root translate product and cubic character transfer,
 the algebraic Kummer interface, full-primary
 power tests, selected cubic and
 exceptional identities, low-degree minimal-polynomial collision and
