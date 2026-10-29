@@ -19,8 +19,8 @@
 \newtheorem{remark}[theorem]{Remark}
 
 \title{Finite Excess in Ordinal Nim Multiplication:\\
-Four Selected-Order Problems}
-\author{GPT 5.6 Sol \and Claude Fable 5 \and a9lim}
+A Disproof of the $0/1/4$ Rule}
+\author{GPT 5.6 Sol \and Claude Fable 5 \and GPT 6 \and a9lim}
 \date{}
 
 \begin{document}
@@ -28,44 +28,27 @@ Four Selected-Order Problems}
 
 \begin{abstract}
 Lenstra's construction of ordinal nim multiplication assigns a finite excess
-$m_p$ to every odd prime $p$.  The observed values obey a simple $0/1/4$
-rule determined by the component support of
-$f(p)=\operatorname{ord}_p(2)$, but no universal proof is known.
+$m_p$ to every odd prime $p$.  We disprove the proposed $0/1/4$ rule determined
+by the component support of $f(p)=\operatorname{ord}_p(2)$.  Two literal
+Conway towers with the same radicand acquire equal relative quadratic norms
+at synchronized levels.  Their selected sum then belongs to the product of
+proper-subfield unit groups despite generating the full field.  Every
+primitive prime divisor at the resulting degree is a failed zero-excess row.
+No numerical search or assumption about random selected elements is needed.
 
-We give an exact status theorem.  The rule is equivalent to four
-full-primary-order assertions for elements selected by the literal Conway
-tower: a synchronized structural norm, a marked cyclotomic value, a Gaussian
-period in a norm-one torus, and a corrected conductor-five norm.  These are
-lossless reductions, not hypotheses, and all four universal assertions remain
-open.  The paper then isolates the arithmetic content of each coordinate.  It
-constructs the primitive-support quotient and the Conway--Fermat packet
-recursion and a packet-degree defect bound, proves that the Conway--Fermat
-coordinate and Wiedemann's iterated quadratic tower select generator
-candidates of the same Fermat torus that are never conjugate from level three
-on, identifies the ordinary Artin
-symbol, proves least-counterexample one-primary regimes in the Fermat and
-ordinary arms, the cubic Singer recursion, a shared minimal-coefficient-field
-packing bound for the ordinary and cubic arms, and a partition selected-order
-bound,
-and a sharp first-relation threshold with a single reciprocal section and an
-exact power-state composition saturation theorem and transverse first-jet
-boundary,
-classifies the selected top-orbit elliptic $S$-unit lattice,
-proves an ordinary section sieve,
-and gives the exceptional Capelli
-criterion, a primitive-only palindromicity test, a one-third Frobenius
-compression, a Cayley-coordinate norm boundary, an intermediate-field packing
-sieve, and a level-dependent translate bound.  The compression proves the exceptional arm whenever its
-current cyclotomic quotient is prime, and the packing sieve proves a selected
-composite large-factor range, while the remaining composite levels stay open.
-A final reciprocity theorem
-shows that Frobenius, character, and affine-holonomy transforms of one marked
-Kummer phase can only erase or re-encode that phase; they cannot evaluate it
-without an independent ancestry input.
+The disproof concerns the piecewise rule; it does not establish an excess
+outside $\{0,1,4\}$ or disprove absolute boundedness.  We retain the exact
+four-arm reduction into a structural norm, a marked cyclotomic value, a
+Gaussian period, and a corrected conductor-five norm.  The first universal
+assertion is false; the ordinary, cubic, and exceptional assertions remain
+open.  The remaining sections give selected-order bounds, exact norm and
+reciprocity reductions, and the independent Conway--Fermat problem.
 
-The proof record distinguishes paper theorems, ordinary kernel-checked
-algebra, native-decided named finite certificates, source-backed data, and the
-still-open universal rule.
+The proof record distinguishes the paper theorem from its kernel-checked
+Lean components.  Lean checks the algebra, synchronization arithmetic,
+translation rigidity, and existence of primes at every specified degree;
+the literal Conway interpretation and finite-field synthesis remain
+paper-level.
 \end{abstract}
 
 \section{Introduction}
@@ -76,17 +59,20 @@ and its first transfinite layers are assembled by explicit Kummer extensions
 \cite{conway1976,lenstra1977,lenstra1978}.  Lenstra's description associates
 to each odd prime $p$ an element
 \[
-  \alpha_p=\kappa_{f(p)}+m_p,
+  \alpha_p=[\kappa_{f(p)}+m_p],
   \qquad f(p)=\operatorname{ord}_p(2),
 \]
 where $\kappa_{f(p)}$ is determined by the tower and $m_p\in\mathbb N$ is
-the \emph{finite excess}.  The same structure appears in the description of
-the ordinal fields $\mathrm{On}_p$ \cite{dimuro2011}.
+the \emph{finite excess}.  Brackets around an ordinal sum denote ordinary
+ordinal addition; unbracketed addition is nim addition.  The same structure
+appears in the description of the ordinal fields $\mathrm{On}_p$
+\cite{dimuro2011}.
 
 Let $\mathcal Q(h)$ be Lenstra's component set for $\kappa_h$.  The
-available data suggest the following rule.
+proposed rule is the following assertion, disproved in
+Section~\ref{sec:counterexample}.
 
-\begin{conjecture}[the $0/1/4$ rule]\label{conj:rule}
+\begin{conjecture}[the proposed $0/1/4$ rule]\label{conj:rule}
 For every odd prime $p$,
 \[
  m_p=
@@ -100,59 +86,38 @@ For every odd prime $p$,
 
 The term \emph{selected} is essential.  A finite field contains many
 elements having the same degree, trace, norm, or cyclotomic support, whereas
-the Conway construction recursively marks one Frobenius orbit.  The open
-content is the primary multiplicative order of that orbit.  Computations are
-valuable for individual rows and as countermodels to overstrong lemmas, but
-they do not prove Conjecture~\ref{conj:rule}.
+the Conway construction recursively marks one Frobenius orbit.  Its primary
+multiplicative order is the relevant datum.  The disproof below retains this
+selection at every step, including when two towers share an ancestor.
 
 \begin{thmA}
-The $0/1/4$ rule is equivalent to the conjunction of four selected-order
-assertions $Z,O,C,D$ stated in Theorem~\ref{thm:arms}.  Each assertion is an
-exact Euler nonpower test for one Conway-selected coordinate and retains the
-full primary valuation.  The reductions, the coordinate formulas, the
-packet-universal Fermat residual of Proposition~\ref{prop:z-packet-universal},
-the packet-degree bound of Proposition~\ref{prop:z-packet-degree},
-the least-counterexample packet sharpening of
-Corollary~\ref{cor:z-one-packet},
-the Wiedemann-sibling comparison of Proposition~\ref{prop:z-wiedemann},
-the all-iterate ramification boundary of
-Proposition~\ref{prop:z-iterate-ramification}, the generalized-Prym
-saturation boundary of Proposition~\ref{prop:z-prym-boundary}, the selected
-top-orbit $S$-unit reduction of
-Proposition~\ref{prop:z-top-orbit-units},
-selected Singer, ratio-packing, and partition bounds of
-Propositions~\ref{prop:sieve}, \ref{prop:c-ratio-packing},
-and~\ref{prop:c-partition}, the cubic first-relation, power-state composition,
-first-jet, and marked-projective obstructions of
-Propositions~\ref{prop:c-first-relation}, \ref{prop:c-composition},
-\ref{prop:c-first-jet}, and~\ref{prop:c-projective}, and the exceptional
-compression, packing, and translate bounds of
-Propositions~\ref{prop:d-one-third}, \ref{prop:d-cayley}, \ref{prop:d-packing},
-and~\ref{prop:d-bound} are proved here.
-Corollary~\ref{cor:o-large-factor} settles the ordinary large-factor case,
-Proposition~\ref{prop:o-reciprocal} doubles its degree range whenever the
-literal bottom polynomial is not self-reciprocal, and
-Proposition~\ref{prop:o-ratio-packing} enlarges that range exponentially in
-$\sqrt{r^a}$ for fixed $r$, while Corollary~\ref{cor:o-one-primary} isolates a one-primary
-least-counterexample range; the compression settles the exceptional
-prime-complement case, and
-the intermediate-field sieve settles an exponential-in-$\sqrt{3^k}$
-composite large-factor range.
-None of
-$Z,O,C,D$ is proved universally; consequently the $0/1/4$ rule and absolute
-boundedness of the finite excess remain open.
+The universal zero arm $Z$ of Theorem~\ref{thm:arms}, and hence the proposed
+$0/1/4$ rule, is false.  More precisely, put
+\[
+ E_t=36\cdot37^{18t}109^{18t}\qquad(t\geq1).
+\]
+For every $t\geq1$ and every prime $p$ with
+$\operatorname{ord}_p(2)=E_t$ one has
+\[
+ \mathcal Q(E_t)=\{37^{18t},109^{18t}\},\qquad m_p>0.
+\]
+Such primes exist at every $E_t$, giving infinitely many failed zero-arm
+rows.  The entire primitive-support coordinate vanishes:
+$\Delta_{E_t}(\kappa_{E_t})=1$.
 \end{thmA}
 
-This theorem is the organizing spine of the paper.  The point is not to
-replace one conjecture by four opaque ones, but to remove every ambient-field
-ambiguity while preserving the one datum that coarse invariants lose: the
-Frobenius orbit selected recursively by the Conway tower.
+The proof uses equality of two literal radicands and synchronization of their
+norms.  It supplies an ancestry relation that is absent from arguments about
+generic elements with prescribed degree, trace, or norm.  The ordinary,
+cubic, exceptional, and singleton-even order questions remain meaningful
+independently of the failed multicomponent zero arm.
 
 After finite-field preliminaries, Section~\ref{sec:arms} gives the four-arm
-equivalence.  Sections~\ref{sec:z}--\ref{sec:d} develop one lossless selected
+equivalence, and Section~\ref{sec:counterexample} gives the disproof.
+Sections~\ref{sec:z}--\ref{sec:d} develop one lossless selected
 coordinate for each arm.  Section~\ref{sec:nim-reciprocity} proves the
 saturation boundary for reciprocity arguments built from one marked phase.
-Section~\ref{sec:bounded} separates the stronger $0/1/4$ rule from absolute
+Section~\ref{sec:bounded} separates the failed $0/1/4$ rule from absolute
 boundedness, and Section~\ref{sec:verification} records the authority of every
 claim class used in the paper.
 
@@ -166,10 +131,16 @@ The element $\kappa_h$ is the sum of the selected components
 $\kappa_q$, $q\in\mathcal Q(h)$, and $h\mid d(\kappa_h)$.  The excess has
 the equivalent form
 \[
-  m_p=\min\{m\geq0:\kappa_{f(p)}+m
+  m_p=\min\{m\geq0:[\kappa_{f(p)}+m]
       \text{ is not a $p$-th power in its defining finite field}\}.
 \]
-Finite integers are identified with their canonical finite nimbers.  We use
+This ordinal excess need not equal a nim-translation index.  Write
+$\kappa_{f(p)}=[\lambda_p+k_p]$, where $\lambda_p$ is zero or a limit
+ordinal and $k_p$ is finite.  Then the nim translate giving $\alpha_p$ has
+index $k_p\mathbin{\mathrm{xor}}[k_p+m_p]$.  It equals $m_p$ when $k_p=0$,
+as in the singleton odd-component arms.  In every case $m_p=0$ exactly when
+$\kappa_{f(p)}$ itself is a nonpower.  Finite integers are identified with
+their canonical finite nimbers.  We use
 standard facts about finite fields and Capelli composition
 \cite{lidlniederreiter1997}.
 
@@ -297,9 +268,310 @@ These cases are disjoint and exhaustive.
 \end{proof}
 
 \begin{remark}
-Theorem~\ref{thm:arms} is an equivalence, not a proof of any of its four
-universal assertions.  None of $Z,O,C,D$ is presently known in full.
+Theorem~\ref{thm:arms} is an equivalence, not a proof of its four assertions.
+The next section disproves $Z$.  Assertions $O,C,D$ remain open.
 \end{remark}
+
+\section{Synchronized towers disprove the zero arm}\label{sec:counterexample}
+
+The literal tower identities used here are
+\[
+ \kappa_{r^a}^{r^a}=\alpha_r,\qquad
+ d(\kappa_{r^a})=r^a d(\alpha_r),
+\]
+for an odd prime $r$ and $a\geq1$.  In particular,
+$X^{r^a}-\alpha_r$ is the minimal polynomial of $\kappa_{r^a}$ over
+$\mathbb F_2(\alpha_r)$.  These are Conway--Lenstra tower facts; see
+Lenstra's equations (1.6)--(1.8) \cite{lenstra1977} and
+DiMuro's Theorem~3.1 and Lemma~3.9 \cite{dimuro2011}.  The argument never
+replaces these components by roots chosen independently.
+
+\begin{proposition}[the two common-radicand seed rows]
+\label{prop:z-shared-seeds}
+In the literal Conway tower,
+\[
+ f(37)=f(109)=36,\qquad
+ \mathcal Q(36)=\{4,9\},\qquad
+ m_{37}=m_{109}=0.
+\]
+Consequently
+\[
+ \alpha_{37}=\alpha_{109}=\kappa_9+\kappa_4,
+ \qquad d(\alpha_{37})=d(\alpha_{109})=36.
+\]
+\end{proposition}
+
+\begin{proof}
+Put $y=\kappa_9$, $c=y^3=\kappa_3$, and $x=\kappa_4=4$.
+The Conway equations give
+\[
+ y^9=2,\qquad c^3=2,\qquad x^2+x=2=c^3.
+\]
+Here $2$ is the primitive cube root in $\mathbb F_4$. Thus $y$ and $c$
+have multiplicative orders $27$ and $9$, respectively. Since the orders of
+two modulo $27$ and $9$ are $18$ and $6$, their absolute degrees are
+$18$ and $6$. In particular $c$ has minimal polynomial
+\[
+ C(T)=T^6+T^3+1
+\]
+over $\mathbb F_2$. Also $x$ has absolute degree four. The component-set
+recursion therefore gives $\kappa_{36}=y+x$: the nine-component supplies
+degree $18$, which is not divisible by four, so the four-component is added.
+
+Let $K=\mathbb F_{64}$ and put $q=64$. Then $K=\mathbb F_2(c)$,
+$K(x)=\mathbb F_{q^2}$, $K(y)=\mathbb F_{q^3}$, and their intersection is
+$K$. Their compositum is $L=\mathbb F_{q^6}=\mathbb F_{2^{36}}$.
+The products
+\[
+ 1,\ y,\ y^2,\ x,\ xy,\ xy^2
+\]
+form a $K$-basis of $L$. The degree of $z=x+y$ is exactly $36$:
+the prime-power factor $4$ of $d(x)$ is absent from $d(y)=18$, and the
+prime-power factor $9$ of $d(y)$ is absent from $d(x)=4$; the degree-sum
+lemma forces both factors into $d(z)$, while $d(z)$ divides $36$.
+
+Consider the multiplicative subgroup
+\[
+ H=K(x)^\times K(y)^\times\subset L^\times.
+\]
+Its index is
+\[
+ [L^\times:H]
+ =\frac{(q^6-1)(q-1)}{(q^2-1)(q^3-1)}
+ =q^2-q+1=4033=37\cdot109.
+\]
+Every element of $H$ has a rank-one coefficient matrix in the displayed
+product basis: multiplication of $a_0+a_1x$ by
+$b_0+b_1y+b_2y^2$ gives the outer product
+$(a_0,a_1)^{\mathsf T}(b_0,b_1,b_2)$.
+
+Reduction using only
+$c^6+c^3+1=0$, $x^2+x=c^3$, and $y^3=c$ gives the following coefficient
+matrices, with rows indexed by $1,x$ and columns by $1,y,y^2$:
+\[
+ [z^{37}]=
+ \begin{pmatrix}
+ 1+c^2+c^3 & c^3+c^4 & 0\\
+ c^2 & c+c^3+c^4 & c
+ \end{pmatrix},
+\]
+\[
+ [z^{109}]=
+ \begin{pmatrix}
+ 1+c+c^3 & c+c^3+c^4+c^5 & 1+c^2+c^3+c^5\\
+ 1+c+c^2+c^4 & c^2+c^3+c^4 & c^2+c^3+c^4+c^5
+ \end{pmatrix}.
+\]
+The minors in their first two columns reduce, respectively, to
+\[
+ 1+c^3+c^4,\qquad c^2+c^3+c^4+c^5.
+\]
+Both are nonzero, since they are values at $c$ of nonzero binary
+polynomials of degree less than six. Hence neither $z^{37}$ nor
+$z^{109}$ belongs to $H$. The cyclic quotient $L^\times/H$ has order
+$37\cdot109$, so $zH$ has that full order.
+
+For completeness, the fixed elementary congruences
+\[
+ \operatorname{ord}_{37}(2)=\operatorname{ord}_{109}(2)=36
+\]
+show that neither seed prime divides $|K(x)^\times|=2^{12}-1$ or
+$|K(y)^\times|=2^{18}-1$. Their valuations in $|L^\times|$ are therefore
+exactly their valuations in $[L^\times:H]$, namely one. The full order of
+$zH$ proves that $z$ is neither a $37$-th nor a $109$-th power in its
+defining field $L$. The defining excess criterion, together with
+$\kappa_{36}=z$, gives $m_{37}=m_{109}=0$ and the stated equality of the
+two radicands.
+
+The two matrix expansions and minor reductions are the ordinary
+kernel-checked identities \texttt{z36\_expansions},
+\texttt{z36\_expansion\_109}, \texttt{z36\_minor\_37}, and
+\texttt{z36\_minor\_109} in \texttt{Excess.lean}. The fixed seed primality
+and residue-degree statements are checked in \texttt{ExcessSeed.lean}.
+The finite-field compositum, tensor-basis, subgroup-index, and Conway
+component identifications in this proof remain paper-level arguments.
+\end{proof}
+
+\begin{lemma}[odd binomials prevent cancellation of the shared base]
+\label{lem:equal-norm-degree}
+Let $b\geq1$, let $K=\mathbb F_{2^b}$, and let $R,S>1$ be coprime odd integers, and let
+$x,y$ have respective degrees $bR,bS$ over $\mathbb F_2$.  Suppose
+$x^R=y^S=\alpha\in K$ and $X^R-\alpha$ is the minimal polynomial of $x$
+over $K$.  Then $d(x+y)=bRS$.
+\end{lemma}
+
+\begin{proof}
+The two component fields intersect in $K$.  If an absolute Frobenius
+$\sigma$ fixes $x+y$, then
+\[
+ c=\sigma(x)+x=\sigma(y)+y\in K.
+\]
+The polynomial
+\[
+ (X+c)^R+X^R+\sigma(\alpha)+\alpha\in K[X]
+\]
+vanishes at $x$ and has degree less than $R$, so it is zero.  Its coefficient
+of $X^{R-1}$ is $Rc=c$, since $R$ is odd.  Thus $c=0$ and $\sigma$ fixes
+both components.  A Frobenius power fixing the sum therefore has exponent
+divisible by both $bR$ and $bS$, hence by $bRS$.  The reverse divisibility
+follows from the compositum.  In particular $x+y\ne0$.
+\end{proof}
+
+\begin{lemma}[equal half-norms erase primitive support]
+\label{lem:equal-norm-support}
+Let $E>0$ be even, let $Q=2^{E/2}$, and let $x,y,w$ be nonzero elements of
+$\mathbb F_{2^E}$, with $x\ne y$, satisfying
+\[
+ x^{Q+1}=y^{Q+1}=w.
+\]
+If $x$ and $y$ belong to proper subfields, then $x+y$ belongs to the product
+of the multiplicative groups of proper subfields.  In particular every prime
+$p$ with $\operatorname{ord}_p(2)=E$ is absent from
+$\operatorname{ord}(x+y)$.
+\end{lemma}
+
+\begin{proof}
+Set $\rho=x/y$.  Equal norms give $\rho^Q=\rho^{-1}$, so
+$u=\rho+\rho^{-1}$ is a nonzero element of $\mathbb F_{2^{E/2}}$.
+Characteristic two gives
+\[
+ (x+y)^2=xyu.
+\]
+Each factor on the right belongs to a proper-subfield unit group.  Squaring
+is an automorphism of every such group, and the square root in
+$\mathbb F_{2^E}$ is unique.  Hence $x+y$ itself belongs to their product.
+A prime of residue degree $E$ divides no proper-subfield unit-group order,
+proving the last assertion.  Equivalently, the same calculation yields
+\[
+ (x+y)^{Q-1}=\frac{w}{xy}.
+\]
+\end{proof}
+
+\begin{theorem}[literal synchronized counterexample family]
+\label{thm:equal-norm-counterexample}
+For every positive integer $t$, put $a=18t$, $R=37^a$, $S=109^a$, and $E=36RS$.  Then
+\[
+ \mathcal Q(E)=\{R,S\},\qquad d(\kappa_E)=E,\qquad
+ \kappa_E\in
+ H_E:=\prod_{\substack{q\mid E\\q\text{ prime}}}
+              \mathbb F_{2^{E/q}}^\times.
+\]
+For every prime $p$ with $\operatorname{ord}_p(2)=E$ one has $m_p>0$,
+although the proposed rule requires $m_p=0$.
+\end{theorem}
+
+\begin{proof}
+The seed primes satisfy
+\[
+ \operatorname{ord}_{37}(2)=\operatorname{ord}_{109}(2)=36,
+ \qquad \mathcal Q(36)=\{4,9\}.
+\]
+Indeed $2^{18}=-1$ and $2^{12}\ne1$ modulo either prime.  The element
+$\zeta=\kappa_9$ has order $27$ and degree $18$, while $\kappa_4=4$ has
+degree $4$.  Their sum
+\[
+ \alpha=\zeta+4
+\]
+has degree $36$: the prime-power factors $9$ and $4$ cannot cancel under
+addition, because each is absent from the other summand's degree
+(Lenstra's Lemma~2.5 \cite{lenstra1977}, also DiMuro's Lemma~4.2
+\cite{dimuro2011}).  Proposition~\ref{prop:z-shared-seeds} therefore
+gives $\alpha_{37}=\alpha_{109}=\alpha$ and $b_{37}=b_{109}=36$.
+
+Put $M=2^{18}-1=27\cdot7\cdot19\cdot73$.  One has
+\[
+ 37^{18}\equiv109^{18}\equiv1\pmod M,
+ \qquad R\equiv S\equiv1\pmod M.
+\]
+For completeness these congruences have a short proof.  Modulo $27$, the
+two bases are $10$ and $1$, and $10^3=1$.  Modulo $7$ they are $2$ and $4$,
+both cube roots of one.  Modulo $19$, Fermat's theorem gives the eighteenth
+powers.  Modulo $73$ they are $2^{-1}$ and $-2^{-1}$, and $2^9=1$.
+The Chinese remainder theorem and then powering by $t$ give the claims.
+
+Let $x=\kappa_R$ and $y=\kappa_S$.  Their literal Kummer relations and
+degrees are
+\[
+ x^R=y^S=\alpha,\qquad d(x)=36R,\qquad d(y)=36S.
+\]
+Define the common base half-norm
+\[
+ w=\alpha^{2^{18}+1}\in\mathbb F_{2^{18}}^\times.
+\]
+The half-norm
+$v_x=x^{2^{18R}+1}$ belongs to $\mathbb F_{2^{18R}}^\times$ and satisfies
+\[
+ v_x^R=\alpha^{2^{18R}+1}=w,
+\]
+because $R$ is odd.  Since $36\nmid18R$, the prime $37$ does not divide
+$2^{18R}-1$, so the $R$-th power map on this half-field is bijective.
+On the other hand $w^R=w$, by $R\equiv1\pmod M$.  Uniqueness of the
+$R$-th root gives $v_x=w$.  The identical argument gives
+$y^{2^{18S}+1}=w$.
+
+In the compositum $\mathbb F_{2^E}$, set $Q=2^{18RS}$.  Since the other
+tower degree is odd, its half-Frobenius restricts to the half-Frobenius of
+each component field.  Consequently
+\[
+ x^{Q+1}=y^{Q+1}=w.
+\]
+Lemma~\ref{lem:equal-norm-degree} gives $d(x+y)=E$.  The greedy
+component formula (Lenstra's Theorem~2.1 \cite{lenstra1977}, or DiMuro's
+Theorem~4.3 \cite{dimuro2011}) now selects $S$, then
+$R$, and omits $9$ and $4$, which already divide the degree of the selected
+sum.  Thus $\mathcal Q(E)=\{R,S\}$ and $\kappa_E=x+y$.
+
+Apply Lemma~\ref{lem:equal-norm-support}.  More precisely, its three factors
+$x,y,u$ lie in subfields of degrees $E/109$, $E/37$, and $E/2$, respectively,
+so $\kappa_E\in H_E$.  Every prime $p$ of residue degree $E$ is therefore
+absent from the order of $\kappa_E$.  It follows that $\kappa_E$ is a
+$p$-th power in its own defining field $\mathbb F_{2^E}$ and $m_p>0$.
+\end{proof}
+
+\begin{lemma}[prime divisors at the specified degrees]
+\label{lem:equal-norm-primitive}
+For $a\geq1$ and $E=36\cdot37^a109^a$, the integer $\Phi_E(2)$ is greater
+than one, and every prime divisor $p$ of $\Phi_E(2)$ satisfies
+$\operatorname{ord}_p(2)=E$.
+\end{lemma}
+
+\begin{proof}
+For every primitive complex $E$-th root $\xi$, one has $|2-\xi|>1$;
+thus $\Phi_E(2)>1$.  The value is odd.  The cyclotomic divisor criterion
+says that a prime divisor $p$ either has residue degree $E$, or divides
+$E$ and satisfies $E=\operatorname{ord}_p(2)p^j$ for some $j\geq1$.
+In the second case $p$ is $3$, $37$, or $109$.  Their respective orders are
+$2$, $36$, and $36$, and none of $2\cdot3^j$, $36\cdot37^j$, or
+$36\cdot109^j$ equals $E$.  The second case is impossible.
+\end{proof}
+
+\begin{corollary}[disproof of the universal rule]
+\label{cor:rule-false}
+The universal assertion $Z$ and Conjecture~\ref{conj:rule} are false,
+with infinitely many failing zero-arm rows.
+\end{corollary}
+
+\begin{proof}
+Theorem~\ref{thm:equal-norm-counterexample} and
+Lemma~\ref{lem:equal-norm-primitive} supply a failing prime at every $E_t$.
+These primes are distinct for distinct $t$, because their residue degrees
+are distinct.  Each of these rows directly contradicts the proposed zero-excess clause.
+\end{proof}
+
+This is an existence proof for the literal Conway tower.  It requires no
+factorization of $2^{E_t}-1$ or enumeration of rows; the two seed equalities
+have the symbolic proof above.  The conclusion $m_p>0$ does
+not determine the first successful translate and does not imply
+$m_p\notin\{0,1,4\}$ or unbounded excess.
+
+Four Lean modules check these steps:
+\texttt{ExcessEqualNorm}, \texttt{ExcessKummerDegree},
+\texttt{ExcessSeed}, and \texttt{ExcessPrimitive}. They verify the equal-norm
+identity and power transfer, odd Kummer norm synchronization, binomial
+translation obstruction, arithmetic for every level, and existence of the
+required row primes.  The
+finite-field subfield synthesis and literal Conway identification in this
+theorem are paper-level arguments, not one end-to-end Lean theorem.
 
 \section{The zero arm: structural norms and Fermat packets}\label{sec:z}
 
@@ -533,17 +805,16 @@ Replacing $2^{n+1}$ by the sharper lower bound $2^{n+2}$ gives the final
 claim when $n\geq2$.
 \end{proof}
 
-There is a useful least-counterexample sharpening of this bound.  Congruence
-spacing separates a repeated missing coordinate from every genuinely
-compound defect.
+The smallest missing prime of each Fermat packet gives a useful sharpening
+of this bound.  Congruence spacing separates a repeated missing coordinate
+from a defect containing a second prime.
 
-\begin{corollary}[minimal-counterexample Fermat congruence regimes]
+\begin{corollary}[Fermat congruence regimes for the first missing prime]
 \label{cor:z-one-packet}
-Suppose that $p$ is the least odd prime at which the $0/1/4$ rule fails and
-that its putative failure lies in the Conway--Fermat part of arm~$Z$ at
-level $n\geq2$.  Put
+Let $n\geq2$, suppose $\delta_n<F_n$, and let $p$ be the smallest prime
+divisor of $D=F_n/\delta_n$.  Put
 \[
- M=2^{n+2},\qquad D=F_n/\delta_n,
+ M=2^{n+2},
  \qquad
  A_{<p}=\prod_{\substack{q<p\\q\mid F_n}}q^{v_q(F_n)},
  \qquad G=\max\{M,\varphi(A_{<p})\}.
@@ -566,12 +837,11 @@ in the larger range is again $D=p$.
 \end{corollary}
 
 \begin{proof}
-Every prime $q\mid D$ is a missing coordinate at the same residue degree.
-If $q<p$, the row at $q$ would already violate the rule, contrary to
-minimality.  Hence $D$ is $p$-rough and $p\mid D$.
+By the choice of $p$, every prime divisor of $D$ is at least $p$ and
+$p\mid D$.  Thus $D$ is $p$-rough.
 
 The proof of Proposition~\ref{prop:z-packet-degree} shows that every prime
-divisor of $F_n$ is $1$ modulo $M$.  Least-prime minimality also forces the
+divisor of $F_n$ is $1$ modulo $M$.  Minimality within this packet forces the
 full $q$-primary part of $F_n$ into $\delta_n$ for every $q<p$.  Hence
 $A_{<p}\mid\delta_n$, so
 \[
@@ -1973,23 +2243,23 @@ degree.  This proves the assertion.  For $r=3$, the displayed polynomial
 is the defining quadratic and is self-reciprocal.
 \end{proof}
 
-\begin{corollary}[minimal-counterexample reciprocal sieve]
+\begin{corollary}[reciprocal sieve from a valid bottom row]
 \label{cor:o-minimal-reciprocal}
-Suppose that $p$ is the least odd prime at which the $0/1/4$ rule fails and
-that its putative failure lies in arm~$O$ at $(r,a,p)$.  Then
-$P_r\ne P_r^*$.  Consequently, with $d=L_{r,a}/p$, a failure must satisfy
+Let $r\ne3$ be an odd prime at which the proposed $0/1/4$ rule holds,
+let $a\geq1$, and let $p\ne r$ be a prime divisor of $L_{r,a}$.
+Then $P_r\ne P_r^*$.  Consequently, with $d=L_{r,a}/p$, a deficient
+current $p$-coordinate must satisfy
 \[
  d\geq2b_r r^a+r;
 \]
-thus no least counterexample in arm~$O$ can have $d\leq2b_r r^a$.
+thus every such coordinate with $d\leq2b_r r^a$ has full primary order.
 \end{corollary}
 
 \begin{proof}
-The cyclotomic divisor criterion gives
-$\operatorname{ord}_p(2^{b_r})=r^a$, so $r\mid p-1$ and hence $r<p$.
-The rule therefore holds at $r$ by minimality.  Apply
-Proposition~\ref{prop:o-bottom-not-first} and then
-Proposition~\ref{prop:o-reciprocal}.
+The explicit hypothesis at $r$ gives $P_r\ne P_r^*$ by
+Proposition~\ref{prop:o-bottom-not-first}.  Apply
+Proposition~\ref{prop:o-reciprocal}.  No hypothesis about other rows is
+needed.
 \end{proof}
 
 The full Kummer orbit gives a second sieve which is substantially stronger
@@ -2165,13 +2435,13 @@ group, and a mixed collision must be tested over the largest coefficient
 field present.  The statement includes $r=3$; its cubic interpretation is
 given in Proposition~\ref{prop:c-ratio-packing}.
 
-\begin{corollary}[minimal-counterexample congruence-gap regime]
+\begin{corollary}[ordinary congruence-gap regimes]
 \label{cor:o-one-primary}
-Suppose that $p$ is the least odd prime at which the $0/1/4$ rule fails and
-that its putative failure lies in arm~$O$ at $(r,a,p)$, so $r\ne3$.
-Let $N=L_{r,a}$,
-let $o$ be the selected projective order, write $N=o\Delta$, and let
-$\Delta^{(r')}$ be the prime-to-$r$ part of $\Delta$.  Let $B_{r,a}$ be the minimal-coefficient-field maximum in
+Fix an odd prime $r\ne3$ and $a\geq1$.  Let $N=L_{r,a}$ and let $o$ be
+the selected projective order.  Write $N=o\Delta$, and let
+$\Delta^{(r')}$ be the prime-to-$r$ part of $\Delta$.  Suppose
+$\Delta^{(r')}>1$, and let $p$ be its smallest prime divisor.
+Let $B_{r,a}$ be the minimal-coefficient-field maximum in
 Proposition~\ref{prop:o-ratio-packing}, and put
 \[
  M=2r^a,\qquad
@@ -2195,10 +2465,8 @@ If $v_p(N)=1$, the second alternative is impossible.
 \end{corollary}
 
 \begin{proof}
-The deficient $p$-coordinate gives $p\mid\Delta^{(r')}$.  If a prime
-$q<p$, $q\ne r$, divided $\Delta$, then $q\mid L_{r,a}$ would be another
-eligible arm-$O$ row with deficient $q$-valuation, contradicting the
-minimality of $p$.  Thus $\Delta^{(r')}$ is $p$-rough.  For every such
+By definition $p\mid\Delta^{(r')}$, and its minimality among the deficient
+coordinates of this quotient makes $\Delta^{(r')}$ $p$-rough.  For every such
 prime $q\ne r$, the cyclotomic divisor theorem gives
 $\operatorname{ord}_q(2^{b_r})=r^a$.  Since $q$ is odd and $r^a$ is odd,
 this implies $q\equiv1\pmod {2r^a}$.
@@ -2279,8 +2547,8 @@ about the new selected class.
 The word \emph{value} in the theorem is deliberate.  The element
 $1-\xi_{N_a}$ is a cyclotomic number and is an $S$-unit for the primes
 dividing $N_a$; it is a global unit exactly when $N_a$ is not a prime power.
-For example, in the $r=7$ chain one has $N_a=7^{a+1}$ and its absolute norm
-is $7$.  This distinction does not alter reduction modulo the selected prime
+For example, in the $r=3$ chain one has $N_a=3^{a+1}$ and its absolute norm
+is $3$.  This distinction does not alter reduction modulo the selected prime
 over two or the relative norm identity, but any global Kummer formulation
 must retain the conductor primes in $S$ (or in the ray modulus).
 
@@ -4182,16 +4450,18 @@ reformulation, not yet its evaluation.
 \section{Boundedness and the remaining theorem}\label{sec:bounded}
 
 Lenstra asked whether the finite excesses are absolutely bounded
-\cite{lenstra1977}.  Conjecture~\ref{conj:rule} would give the bound four,
-but boundedness is strictly weaker than the maximal-order assertions above.
+\cite{lenstra1977}.  The disproof of Conjecture~\ref{conj:rule} does not
+answer that question, or even show that an excess lies outside $\{0,1,4\}$.
 
-For $a\geq0$, let $C_a=\mathbb F_{2^{2^a}}$.  For an odd prime $p$, put
-$x_p=\kappa_{f(p)}$ and $L_{p,a}=\mathbb F_2(x_p)C_a$.
+For $a\geq0$, put $B_a=2^{2^a}$ and let $C_a=\mathbb F_{B_a}$, the
+finite nimbers below $B_a$.  For an odd prime $p$, put
+$x_p=\kappa_{f(p)}=[\lambda_p+k_p]$ as above and
+$L_{p,a}=\mathbb F_2(x_p)C_a$.
 
 \begin{proposition}[finite-line criterion]\label{prop:bounded}
 For every $p$ and $a$,
 \[
- m_p<2^{2^a}
+ m_p<B_a-(k_p\bmod B_a)
  \quad\Longleftrightarrow\quad
  \text{some }c\in C_a\text{ has }x_p+c\notin L_{p,a}^p.
 \]
@@ -4205,27 +4475,41 @@ Consequently,
 
 \begin{proof}
 For $F_c=\mathbb F_2(x_p+c)$, one has $F_cC_a=L_{p,a}$ and
-$[L_{p,a}:F_c]\mid2^a$, which is prime to $p$.  Extension is therefore
-injective on $p$-Kummer quotients.  The finite nimbers below $2^{2^a}$ are
-exactly $C_a$, proving the first equivalence from the excess definition.  A
-fixed $a$ gives a uniform bound; conversely choose $a$ above any given
-uniform bound.
+$[L_{p,a}:F_c]\mid2^a$, which is prime to $p$.  Extension therefore
+preserves $p$-power status for nonzero candidates, while zero is already a
+$p$-th power.
+
+Nim addition of $c<B_a$ changes only the lowest $2^a$ binary digits of the
+finite tail.  Thus $x_p+C_a$ consists exactly of the ordinals
+$[\lambda_p+n]$ with
+\[
+ B_a\left\lfloor\frac{k_p}{B_a}\right\rfloor
+ \leq n<
+ B_a\left(\left\lfloor\frac{k_p}{B_a}\right\rfloor+1\right).
+\]
+Every point below $x_p$ is a $p$-th power: by the defining minimality of
+$\kappa_h$, its degree is not divisible by $h=f(p)$, so its finite-field
+unit group has order prime to $p$.  The first nonpower in ordinal order is
+$[\lambda_p+k_p+m_p]$.  It belongs to the displayed block exactly when
+$m_p<B_a-(k_p\bmod B_a)$, proving the first equivalence.
+
+One fixed successful line gives $m_p<B_a$ for every $p$.  Conversely, the
+component normal form shows that $k_p$ is either zero or a single even
+component $\kappa_{2^j}=2^{2^{j-1}}$, with $j\geq1$.  It is therefore zero
+or a power of two.  Since $B_a$ is also a power of two, either
+$k_p\bmod B_a=0$ or $k_p\bmod B_a\leq B_a/2$.  Given a uniform bound on
+$m_p$, choose $a$ with $B_a/2>\sup_p m_p$.  The exact threshold then
+guarantees a successful line for every $p$.
 \end{proof}
 
-No fixed finite affine line is known to work for every prime.  The complete
-universal frontier remains the four selected order assertions in
-Theorem~\ref{thm:arms}:
-\begin{enumerate}
-\item full primary order for the synchronized structural norm, including
-      every Conway--Fermat equality $\delta_n=F_n$;
-\item full primary projective order for the marked ordinary cyclotomic value;
-\item primitivity of every selected Gaussian period $\gamma_k$, equivalently
-      generation by every $\eta_k$;
-\item $\Psi_k\mid\operatorname{ord}(M_k)$ at every exceptional level.
-\end{enumerate}
-Each is now one-dimensional and ancestry-sensitive.  Degree, trace, norm,
-conductor, factor parity, or a statement about generic ambient points does
-not decide it.
+No fixed finite affine line is known to work for every prime.  The remaining
+selected-order questions include the singleton-even Conway--Fermat equalities
+$\delta_n=F_n$ and assertions $O,C,D$ of Theorem~\ref{thm:arms}.  Their
+coordinates retain the literal Conway ancestry.  The false universal
+multicomponent assertion $Z$ must instead be replaced by a description of its
+failure set and of the first nonpower translate there.  The family in
+Theorem~\ref{thm:equal-norm-counterexample} determines neither those excess
+values nor the least counterexample prime.
 
 \section{Authority and verification}\label{sec:verification}
 
@@ -4240,10 +4524,11 @@ Lean definition of a target is never used as evidence for a universal claim.
 \hline
 Status & Content \\
 \hline
-Cited input & Conway--Lenstra tower formulas, standard finite-field and
+Cited input & Conway--Lenstra tower and component formulas, standard finite-field and
 Capelli theory, and the cited cyclotomic, class-field, function-field, and
 order results.  These are not reproved in Lean. \\
-Proved here & The four-arm equivalence; the exact selected coordinates and
+Proved here & The disproof and infinite synchronized
+zero-arm counterexample family; the four-arm equivalence; the exact selected coordinates and
 order criteria; the primitive-support, packet-degree, Wiedemann-sibling,
 supersingular, Singer
 and selected norm-one ratio-packing and partition and single-section first-relation bounds,
@@ -4253,7 +4538,9 @@ exceptional palindromicity, one-third compression, intermediate-field packing,
 prime-complement exceptional case, ray-index, boundedness, and
 reciprocity-saturation results stated above. \\
 Ordinary kernel-checked Lean & Algebra without native evaluation: the
-algebraic Kummer interface, full-primary power tests, selected cubic and
+equal-half-norm identity, norm synchronization and power transfer, odd-binomial translation
+separation, synchronization and primitive-prime existence, the algebraic Kummer interface, full-primary
+power tests, selected cubic and
 exceptional identities, low-degree minimal-polynomial collision and
 normalized rational-packing injection and the cubic factor-of-three
 order bridge, cubical
@@ -4268,8 +4555,9 @@ are exact replayable finite calculations, not ordinary kernel reductions. \\
 External evidence & Source-backed rows, Python certificates, and
 explicit countermodels to overstrong intermediate lemmas.  These establish
 only their stated finite instances. \\
-Open & The universal assertions $Z,O,C,D$, Conjecture~\ref{conj:rule}, and
-absolute boundedness of $m_p$. \\
+Open & Assertions $O,C,D$, the singleton-even Conway--Fermat question,
+exact excesses in the counterexample family, the range-only assertion
+$m_p\in\{0,1,4\}$, and absolute boundedness of $m_p$. \\
 \hline
 \end{tabular}
 \caption{Claim authority for the finite-excess paper.}
@@ -4284,9 +4572,11 @@ entry point
 moduli, field elements, and propositions remain local to the certificate they
 identify.  The identifier \texttt{DPrimeTarget}, like the analogous selected
 targets, merely defines an open proposition.  It is neither an axiom nor a
-theorem.  The formalization therefore verifies ingredients of
-Theorem~\ref{thm:arms}, not an end-to-end proof of
-Conjecture~\ref{conj:rule}.
+theorem.  The formalization checks algebraic ingredients of the reductions and
+disproof.  It does not formalize Conway's ordinal field or the complete
+finite-field and component-selection synthesis; the disproof in
+Section~\ref{sec:counterexample} is a paper theorem with kernel-checked
+components, not one end-to-end Lean theorem.
 
 The maintained finite record is as follows.
 \begin{itemize}
@@ -4310,22 +4600,24 @@ from trace, norm, conductor, or factor shape.  It is not a counterexample to
 the $0/1/4$ rule unless it occurs on the literal recursively selected Conway
 ancestry.
 
+\paragraph{Acknowledgment.}
+Claude Opus 5.5 independently reviewed the synchronized-tower disproof and
+checked its Conway inputs against Lenstra's original paper.
+
 \section{Conclusion}
 
-The finite-excess problem is now four exact selected-order problems.  The
-zero arm needs a synchronized primitive-support coordinate, the ordinary arm
-one Artin symbol on the Conway-selected inert ray, and the cubic and
-exceptional arms the faithful finite reductions of two marked units.  Every
-reduction retains the full primary valuation; none replaces the selected
-coordinate by a generic element of the same field.
+The proposed piecewise $0/1/4$ rule is false.  Two actual Conway towers share
+the radicand $\kappa_9+4$; compatible high levels have equal quadratic norms,
+and their selected sum loses every primitive multiplicative-order factor.
+The sum still generates its full field, so the construction respects the
+literal component selector.  This produces infinitely many failed zero-arm
+rows without searching for or factoring any counterexample prime.
 
-This is also the obstruction to the presently available proof routes.
-Trace, norm, conductor, class group, and reciprocity packages can reconstruct
-or transport the marked phase, but the saturation theorem shows that
-homogeneous transforms of that same phase do not evaluate it.  A proof of the
-$0/1/4$ rule must add an ancestry identity with independent arithmetic
-content.  Until that identity closes all four arms, both the rule and
-absolute boundedness remain open.
+The ordinary, cubic, exceptional, and singleton-even questions remain open.
+So do the exact excesses in the new family, the assertion that all excesses
+belong to $\{0,1,4\}$, and Lenstra's absolute boundedness question.  The
+four-arm reduction and the remaining arithmetic bounds describe those
+separate questions; they do not restore the disproved multicomponent rule.
 
 \bibliographystyle{plain}
 \bibliography{excess}

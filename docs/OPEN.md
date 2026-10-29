@@ -4,8 +4,8 @@ Ogdoad has three live research problems:
 
 1. **isolated-dummy FIFO linking**, a universal conjecture about a parity
    game on graphs;
-2. **the `0/1/4` rule for finite excess** in transfinite nim multiplication,
-   a universal arithmetic conjecture;
+2. **finite excess in transfinite nim multiplication**: boundedness, its
+   possible values, and the remaining selected-order questions;
 3. **natural realization of finite misère quotients**, a classification
    program for octal rulesets together with the exact quotient of misère
    Grundy's game.
@@ -97,40 +97,60 @@ occurrence's actual ancestry.
 - The authoritative account is
   [`../writeups/linking_affine.tex`](../writeups/linking_affine.tex).
 
-## 2. The `0/1/4` rule for finite excess
+## 2. Finite excess: boundedness and the remaining selected-order questions
 
 Conway's nim operations make the ordinals a field of characteristic two, and
 its first transfinite layers are Kummer extensions. For an odd prime `p` with
 `f(p) = ord_p(2)`, Lenstra's construction writes the Kummer radicand as
 
 ```text
-alpha_p = kappa_f(p) + m_p
+alpha_p = [kappa_f(p) + m_p]
 ```
 
-with a finite *excess* `m_p` in `N`. Let `Q(h)` be Lenstra's component set
+with a finite *excess* `m_p` in `N`. Brackets denote ordinary ordinal
+addition; unbracketed addition is nim addition. If `k_p` is the finite tail
+of `kappa_f(p)`, the nim-translation index giving `alpha_p` is
+`k_p xor (k_p + m_p)`, with ordinary integer addition inside the parentheses.
+It need not equal the ordinal excess. Let `Q(h)` be Lenstra's component set
 for `kappa_h`.
 
-**Conjecture.**
+**Open questions.** Is `m_p` bounded independently of `p`? Does every
+excess belong to `{0, 1, 4}`? What are the exact excesses on the synchronized
+family below, and which other multicomponent rows have positive excess?
+The ordinary, cubic, exceptional, and singleton-even selected-order
+assertions stated below also remain open.
+
+**The piecewise `0/1/4` rule is false.** The paper proves that for every
+`t >= 1`, with
 
 ```text
-m_p = 0   if Q(f(p)) is not a singleton odd prime power,
-m_p = 4   if f(p) = 2 * 3^k for some k >= 1,
-m_p = 1   otherwise.
+E_t = 36 * 37^(18t) * 109^(18t),
 ```
 
-Lenstra asked the weaker question whether `m_p` is bounded at all; that
-question is also open. With `C_a` the nimbers below `2^(2^a)`,
-`m_p < 2^(2^a)` exactly when some `c` in `C_a` makes `kappa_f(p) + c` a
-non-`p`-th power in the compositum `F_2(kappa_f(p)) C_a`, so boundedness is
-the existence of one finite affine line that works for every prime.
+there exist primes `p` with `ord_p(2) = E_t`, and every such prime has
+`Q(E_t) = {37^(18t), 109^(18t)}` but `m_p > 0`. Thus infinitely many rows
+violate the prediction of zero excess for a nonsingleton support. The proof
+uses the literal common radicand `alpha_37 = alpha_109 = kappa_9 + 4` and
+equal half-norms in the two towers. Their sum generates the full field but
+belongs to the product of proper-subfield unit groups, annihilating its
+entire primitive-support coordinate. The seed equalities have a symbolic
+tensor-basis proof; no counterexample search or random-model assumption is
+used. This does **not** prove an excess outside `{0, 1, 4}` or unboundedness.
+
+Put `B_a = 2^(2^a)` and let `C_a` be the finite nimbers below `B_a`.
+Some `c` in `C_a` makes the nim sum `kappa_f(p) + c` a non-`p`-th power
+in `F_2(kappa_f(p)) C_a` exactly when
+`m_p < B_a - (k_p mod B_a)`. The tail `k_p` is zero or a single power
+of two, so this threshold is at least `B_a/2`. Consequently Lenstra's
+boundedness question is still equivalent to one fixed finite affine line
+working for every prime. The paper proves this exact threshold and the
+uniform equivalence separately.
 
 **Why it matters.** `Ordinal` arithmetic is exact only inside a window built
-from these rows: OEIS A380496 supplies `3 <= p <= 709`, certificates supply
-`m_719 = m_727 = 1`, and checked multiplication refuses at `m_733`. A proof
-would replace the table by a formula. The problem is also a clean instance of
-*selected-point arithmetic*: every reduction ends at a single element chosen
-by the literal Conway tower, and no statement about generic elements of the
-same field decides it.
+from checked excess rows: OEIS A380496 supplies `3 <= p <= 709`, certificates
+supply `m_719 = m_727 = 1`, and checked multiplication refuses at `m_733`.
+The false piecewise rule cannot replace those checks. The actual first
+nonpower translate remains selected by the literal Conway tower.
 
 ### Four-arm reduction
 
@@ -145,11 +165,11 @@ norm of `kappa_h` to `F_(2^h)`. For an odd prime `r` and `a >= 1`,
 `q = 2^(3^k)`, `omega = zeta_k^(3^k)` in `F_4`, and
 `A_k = zeta_k^2 + zeta_k + omega`; finally `Psi_k = Phi_(2*3^k)(2)/3`.
 
-The conjecture is equivalent to the conjunction of:
+The disproved piecewise rule is equivalent to the conjunction of:
 
 | arm | case | assertion |
 | --- | --- | --- |
-| `Z` | `Q(h)` not a singleton odd prime power | `Pi_h` divides `ord(T_h)` |
+| `Z` (false) | `Q(h)` not a singleton odd prime power | `Pi_h` divides `ord(T_h)` |
 | `O` | singleton `r^a`, `r != 3` | every prime `p != r` dividing `L_(r,a)` has full valuation in `ord(y_(r,a) F_(r,a-1)^x)` |
 | `C` | `h = 3^k` | `gamma_k` is primitive in `F_(2^(3^k))^x` |
 | `D` | `h = 2 * 3^k` | `Psi_k` divides `ord(M_k)` |
@@ -161,7 +181,8 @@ valuation when `p^2` divides the ambient order.
 
 ### What is proved
 
-**Arm `Z`.** The support criterion identifies `m_p = 0` with the primary
+**Singleton-even part of `Z`.** The universal multicomponent assertion is
+false as above. The support criterion identifies `m_p = 0` with the primary
 factor of `Z`. On the singleton-even Conway--Fermat chain
 `c_n = 2^(2^n)`, `c_n^2 + c_n = c_0 ... c_(n-1)`, the arm is exactly
 `delta_n = F_n`, where `delta_n` is the order of `c_n` in
@@ -254,14 +275,16 @@ a source-assisted primality boundary.
 
 ### Missing step
 
-Every arm ends at a one-dimensional value selected recursively by the literal
-Conway tower, and a proof must evaluate that marked coordinate uniformly along
-its ancestry. Statements about all points of a field do not distinguish it
-from formal countermodels with the same trace, norm, torsion, or conductor
-data. The proved bounds are exponential in the square root of the field
+The remaining `O/C/D` and singleton-even assertions require evaluating a
+marked coordinate uniformly along its literal Conway ancestry. The failed
+multicomponent assertion instead requires a classification of zero and
+nonzero primitive-support coordinates and of their first nonpower translates.
+Statements about all points of a field do not determine a marked coordinate
+from its trace, norm, torsion, or conductor data. The proved bounds are exponential in the square root of the field
 degree, while the relevant orders are exponential in the degree.
 
-Cross-arm induction is primary-vacuous. If a strict ancestor lies in
+An induction seeking nonzero primary coordinates from strict ancestors is
+primary-vacuous. If a strict ancestor lies in
 `F_(2^d)` with `f(ell)` not dividing `d`, then `ell` does not divide
 `2^d - 1` and its `ell`-Kummer image is trivial. Using the next component's
 degree to identify `m_ell` is circular, because that radicand is defined as
@@ -270,7 +293,7 @@ independently defined top-born `ell`-coordinate.
 
 ### The nim reciprocity route
 
-A route into the same conjecture, not a fifth arm: find an
+For the remaining order and exact-excess questions, find an
 ancestry-recursive formula for the power-residue coordinates
 
 ```text
@@ -304,9 +327,10 @@ Every odd prime is exactly one row. If each selected coordinate is modelled
 as an independent uniform element of its cyclic group, row `p` fails with
 probability `1/p`. Since the sum of `1/p` diverges, the model predicts that the
 rule fails infinitely often, about `log log X` times below `X`, mostly in arm
-`Z`, while `sup m_p` stays finite. This is a prediction of the model, not
-evidence about the tower. Lean proves the model theorem and nothing about
-`On_2`. The tested rows obey the rule with model probability about `0.3`.
+`Z`, while `sup m_p` stays finite. The synchronized family proves infinitely
+many failures independently, but neither this density nor boundedness. Those
+remain predictions of the model, not evidence about the tower. The random-model
+Lean module proves its model theorem and nothing about `On_2`. The tested rows obey the rule with model probability about `0.3`.
 
 Two exact structural facts sit beside the model:
 
@@ -337,8 +361,11 @@ They are proved there but not yet in the paper.
 - `experiments/ordinal_excess_probe.py` and
   `experiments/fermat_selected_screen.py` are bounded screens; explicit
   countermodels in non-Conway fields refute overstrong lemmas only.
-- Lean checks algebraic ingredients and named finite certificates, some
-  through `native_decide`; `SelectedLogUnitTarget`, `ExceptionalColumnTarget`,
+- Lean checks the equal-norm identities, binomial translation separation,
+  synchronization arithmetic, and existence of primes at every specified
+  degree with ordinary kernel proofs. The finite-field and literal Conway
+  synthesis remains paper-level. Other named finite certificates use
+  `native_decide`; `SelectedLogUnitTarget`, `ExceptionalColumnTarget`,
   and `DPrimeTarget` define open propositions without assuming them. See
   [`../formal/README.md`](../formal/README.md).
 - The implementation boundary is `src/scalar/big/ordinal/tower.rs`.

@@ -92,8 +92,9 @@ Lean definition of a proposition into a universal theorem.
 The current open fronts are exactly:
 
 - arbitrary-graph isolated-dummy FIFO linking;
-- the universal `0/1/4` transfinite nim-excess rule, including its selected
-  nim-reciprocity program;
+- boundedness and possible values of transfinite nim excess, including the
+  remaining ordinary, cubic, exceptional, and singleton-even selected-order
+  questions; the piecewise `0/1/4` rule is disproved by synchronized towers;
 - natural-ruleset realization of finite misère quotients, including the exact
   quotient of misère Grundy's game.
 

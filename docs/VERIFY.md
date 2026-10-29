@@ -136,8 +136,10 @@ The standalone `formal/` project contains no `sorry`, `admit`, or custom
 `axiom`. `Excess.lean` and five FIFO route-limit modules prove named finite
 propositions with `native_decide`; those declarations additionally depend on
 Lean's generated native-decision axiom. Lean proves named finite constructions
-and algebraic reductions. It does not prove `FifoLinkingTheorem`, the
-universal excess rule, or any theorem merely by defining its proposition. The
+and algebraic reductions. The excess disproof has kernel-checked equal-norm,
+translation-rigidity, norm-synchronization, and primitive-prime components; its
+finite-field and literal Conway synthesis is a paper theorem. Lean does not
+prove `FifoLinkingTheorem` or any theorem merely by defining its proposition. The
 theorem map is [`../formal/README.md`](../formal/README.md).
 
 ## Maintained experiments

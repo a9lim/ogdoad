@@ -117,7 +117,31 @@ prefixes and continuation cosets cancel the residual real-edge class, in both
 FIFO orders. No current module supplies that selection. See
 [`../docs/OPEN.md`](../docs/OPEN.md) §1 and `../writeups/linking_affine.tex`.
 
-## Finite excess: open
+## Finite excess: disproof and remaining open questions
+
+The piecewise `0/1/4` rule is false: `writeups/excess.tex` proves an infinite
+family of literal Conway rows with two components and positive excess.
+`ExcessEqualNorm` checks the equal-half-norm quotient and factorization,
+full-primary power transfer, and coprime radical uniqueness. Its
+`kummer_half_norm_synchronized` proves the norm-synchronization step from
+Kummer, Frobenius-period, coprimality, and congruence hypotheses.
+`ExcessKummerDegree` checks translation rigidity for an irreducible binomial
+and separation of two components fixed through their sum. `ExcessSeed`
+checks the primes 37 and 109, their binary order 36, synchronization at
+every level `18t`, and half-field coprimality for all levels.
+`ExcessPrimitive.exists_primitive_row_prime` proves that for every `a > 0`
+there is a prime of binary order `36 * 37^a * 109^a`, directly from
+cyclotomic polynomials. These modules use ordinary kernel proofs, without
+`native_decide` or custom axioms.
+
+The seed tensor expansions and minors are already checked by
+`Excess.z36_expansions`, `z36_expansion_109`, `z36_minor_37`, and
+`z36_minor_109`. Their finite-field tensor interpretation proves the two
+seed excesses zero in the paper. The full finite-field specialization and
+literal Conway component recursion remain paper-level: this is not an
+end-to-end Lean formalization of the disproof. Exact excesses in the new
+family, the range-only assertion `m_p in {0,1,4}`, absolute boundedness,
+and the ordinary/cubic/exceptional/singleton-even assertions remain open.
 
 `Excess`, `ExcessOrdinaryPacking`, and `ExcessCubicPacking` prove algebraic
 ingredients of the four-arm `Z/O/C/D` reduction. Kernel-checked content

@@ -192,7 +192,7 @@ The papers under `writeups/` form one research suite:
 | `semiring_stability.tex` | stable quadratic-pair classification over Hessenberg and supertropical semirings, the universal scalar-extension quotient, and the thermograph wall obstruction |
 | `nim_fast_multiplication.tex` | quasi-linear canonical-word nim multiplication via explicit affine transforms to a primitive Artin--Schreier tower |
 | `linking_affine.tex` | exact affine reductions and the remaining causal step for isolated-dummy FIFO linking |
-| `excess.tex` | exact four-arm selected-order reduction, proved arithmetic boundaries, and the open status of the transfinite nim-excess `0/1/4` rule |
+| `excess.tex` | disproof of the piecewise nim-excess `0/1/4` rule, an infinite counterexample family, and remaining boundedness and selected-order questions |
 | `misere_natural_realization.tex` | exact octal traces and periodic code compression, split and subtraction classifications, and exact misère Grundy quotients through heap 18 |
 
 The last three papers carry the live open problems; their statements and
