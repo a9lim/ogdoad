@@ -161,6 +161,17 @@ four or at least sixteen. The Frobenius orbit calculation, defining-field
 specialization, and literal Conway identification remain paper-level.
 These gaps establish no actual failure of either cubic assertion.
 
+`ExcessMixedGap` checks the finite Artin--Schreier power identities, binary
+affine action, four orbit minima, and first-failure transfer for the mixed
+cubic gaps. Its finite orbit proofs use ordinary kernel `decide`.
+Residue degree `4 * 3^k` forces
+excess zero or at least twelve; degree `8 * 3^k` forces excess in
+`{0, 2, 8, 10}` or at least sixteen. The literal Conway identification,
+Frobenius specialization, and ordinal-tail interpretation remain paper-level.
+The paper also proves nonzero primitive support throughout the initial
+finite block for every degree `2^s * 3^k`, `s >= 2`; that quotient-subfield
+argument is not formalized. No individual prime defect is proved.
+
 The seed tensor expansions and minors are already checked by
 `Excess.z36_expansions`, `z36_expansion_109`, `z36_minor_37`, and
 `z36_minor_109`. Their finite-field tensor interpretation proves the two

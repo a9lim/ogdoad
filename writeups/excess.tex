@@ -42,8 +42,10 @@ four-arm reduction into a structural norm, a marked cyclotomic value, a
 Gaussian period, and a corrected conductor-five norm.  The first universal
 assertion is false; the ordinary, cubic, and exceptional assertions remain
 open.  On the three- and five-power towers, failure of the predicted first
-successful translate forces excess at least sixteen.  The remaining
-sections give selected-order bounds, exact norm and
+successful translate forces excess at least sixteen.  The
+mixed rows of degrees $4\cdot3^k$ and $8\cdot3^k$ have the sharper property
+that any positive excess lies outside $\{0,1,4\}$; no such positive value
+is established here.  The remaining sections give selected-order bounds, exact norm and
 reciprocity reductions, and the independent Conway--Fermat problem.
 
 The proof record distinguishes the paper theorem from its kernel-checked
@@ -125,6 +127,9 @@ Theorems~\ref{thm:five-tower-gap} and \ref{thm:cubic-palette-gap} show that
 rows of residue degree $4\cdot5^a$ or $3^k$ have excess one or at least
 sixteen, while rows of degree $2\cdot3^k$ have excess four or at least
 sixteen.
+Theorem~\ref{thm:mixed-cubic-gap} gives two further disproof targets:
+any positive excess at residue degree $4\cdot3^k$ or $8\cdot3^k$ lies
+outside $\{0,1,4\}$.
 Section~\ref{sec:bounded} separates the failed $0/1/4$ rule from absolute
 boundedness, and Section~\ref{sec:verification} records the authority of every
 claim class used in the paper.
@@ -2516,6 +2521,128 @@ specialization, and literal Conway identification remain paper-level.
 These identities give no failure of the predicted translate.  Enlarging
 the constant field also introduces more orbits; it does not automatically
 propagate the gap to every finite translate or settle absolute boundedness.
+
+\begin{theorem}[gaps for mixed cubic rows]
+\label{thm:mixed-cubic-gap}
+Let $k\geq1$, put $h=3^k$, and let $p$ be prime. Then
+\[
+ \operatorname{ord}_p(2)=4h
+ \quad\Longrightarrow\quad m_p=0\ \text{or}\ m_p\geq12,
+\]
+and
+\[
+ \operatorname{ord}_p(2)=8h
+ \quad\Longrightarrow\quad
+ m_p\in\{0,2,8,10\}\ \text{or}\ m_p\geq16.
+\]
+In either family, every positive excess disproves the range-only assertion
+$m_p\in\{0,1,4\}$.
+\end{theorem}
+
+\begin{proof}
+Write $z=\kappa_h$, of degree $2h$, and identify finite integers with
+their nimbers. The component rule gives
+$\kappa_{4h}=z+4$ and $\kappa_{8h}=z+16$: the odd component does not
+supply the required power of two in the degree, and the finite component
+does not supply $h$.
+
+For residue degree $4h$, the inversion and scaling identities (I) and (*)
+in the preceding proof remain valid for the exact order-$p$ character of
+$\mathbb F_{2^{4h}}^\times$. Their orbit argument did not use
+$q\equiv\pm1\pmod p$: all twelve translates $z+d$ with
+$d\in\mathbb F_{16}\setminus\mathbb F_4$ have the same power status.
+These are exactly the first twelve ordinal candidates
+$[\kappa_{4h}+m]$, $0\leq m<12$, whose finite tails run from $4$ to
+$15$. Either the first succeeds or all twelve fail.
+
+For residue degree $8h$, put $\omega=2$, $b=4$, and $c=16$.
+The literal finite Conway relations are
+\[
+ \omega^2+\omega=1,\qquad b^2+b=\omega,\qquad
+ c^2+c=\omega b.
+\]
+They give, by squaring and substitution,
+\[
+ c^4=c+b+1,\qquad c^{16}=c+1,\qquad c^{64}=c+b.
+\]
+For example, $(\omega b)^2=\omega^2b+1$, so
+$c^4+c=(\omega+\omega^2)b+1=b+1$; the other identities follow
+by applying the fourth-power Frobenius again.
+
+Let $\sigma$ be the $2h$-th absolute Frobenius of
+$\mathbb F_{2^{8h}}$. It fixes $z$ and $\omega$, sends $b$ to $b+1$,
+and sends $c$ to $c+d$, where $d=b$ or $b+1$, because
+$2h\equiv2$ or $6\pmod8$. On the first sixteen offsets, its affine
+action is
+\[
+ \sigma(z+c+m)=z+c+T(m),\qquad T(m)=d+\sigma(m).
+\]
+In the binary basis $1,\omega,b,\omega b$ of $\mathbb F_{16}$,
+$\sigma(\omega b)=\omega b+\omega$. Thus the orbit sets of $T$ are,
+for either choice of $d$,
+\[
+ \{0,1,4,5\},\quad \{2,3,6,7\},\quad
+ \{8,9,14,15\},\quad \{10,11,12,13\}.
+\]
+Power status is invariant under Frobenius. For $m<16$, ordinary addition
+to the finite tail $16$ agrees with nim translation by $m$. The first
+successful candidate in an orbit must therefore be its least offset,
+respectively $0,2,8,10$. This proves the second assertion.
+\end{proof}
+
+The module \texttt{ExcessMixedGap.lean} checks the finite
+Artin--Schreier power identities, the binary affine action, its four orbit
+minima, and the first-failure transfer. Its finite orbit proofs use ordinary
+kernel reduction, not native evaluation. The literal component selection, Frobenius specialization, and
+ordinal-tail interpretation remain paper-level.
+
+\begin{proposition}[primitive support throughout a mixed finite block]
+\label{prop:mixed-cubic-support}
+Let $s\geq2$, $k\geq1$, $f=2^s3^k$, and $z=\kappa_{3^k}$.
+Put $C_s=\mathbb F_{2^{2^s}}$ and
+$L=\mathbb F_{2^f}$. For every $d\in C_s\setminus C_{s-1}$,
+the element $a=z+d$ generates $L$ and does not belong to
+\[
+ H=\mathbb F_{2^{f/2}}^\times\mathbb F_{2^{f/3}}^\times,
+\]
+the product of all proper-subfield unit groups. Thus it has nonzero
+primitive support. This gives no full primary-order assertion at an
+individual row prime.
+\end{proposition}
+
+\begin{proof}
+Let $\tau$ be the $f/2$-th absolute Frobenius. It fixes $z$ and
+restricts to the nontrivial automorphism of $C_s/C_{s-1}$, so
+\[
+ \tau(a)=a+\delta,\qquad
+ \delta=\tau(d)+d\in C_{s-1}^\times.
+\]
+In particular $a\notin\mathbb F_{2^{f/2}}$. Also
+$d\in C_s\subset\mathbb F_{2^{f/3}}$, whereas $z$ does not belong to
+that subfield, since its degree has the full $3^k$ factor. Hence $a$
+belongs to neither maximal proper subfield and has degree $f$.
+
+If $a=uv$ with $u\in\mathbb F_{2^{f/2}}^\times$ and
+$v\in\mathbb F_{2^{f/3}}^\times$, then
+\[
+ \frac{\tau(a)}a=\frac{\tau(v)}v
+ \in\mathbb F_{2^{f/3}}.
+\]
+The left side is $1+\delta/a$, with nonzero
+$\delta\in C_{s-1}\subset\mathbb F_{2^{f/3}}$, forcing $a$ into
+that same subfield, a contradiction. This proves $a\notin H$.
+The index of $H$ is $\Phi_f(2)$, and every prime dividing this
+cyclotomic value has residue degree $f$: the only potential nonprimitive
+prime is $3$, whose order two cannot account for the factor $2^s$.
+The nonidentity quotient class therefore supplies the stated support.
+\end{proof}
+
+The proposition covers all ordinal candidates before the next finite-field
+boundary, since their finite tails run from
+$\kappa_{2^s}=2^{2^{s-1}}$ to $2^{2^s}-1$. A positive excess in either
+mixed family of Theorem~\ref{thm:mixed-cubic-gap} would consequently be a
+defect at a particular prime, not total cancellation of primitive support.
+No such defect or uniform upper bound is proved here.
 
 \subsection{Bottom-ancestor polynomials and order bounds}
 
@@ -5126,7 +5253,8 @@ Cited input & Conway--Lenstra tower and component formulas, standard finite-fiel
 Capelli theory, and the cited cyclotomic, class-field, function-field, and
 order results.  These are not reproved in Lean. \\
 Proved here & The disproof and infinite synchronized
-zero-arm counterexample family; nonzero-translate primitive support in both coprime factors; the three- and five-power excess gaps; unconditional nonreciprocity of literal bottom polynomials away from three; the four-arm equivalence; the exact selected coordinates and
+zero-arm counterexample family; nonzero-translate primitive support in both coprime factors; the three- and five-power and mixed cubic excess gaps;
+primitive support throughout mixed finite blocks; unconditional nonreciprocity of literal bottom polynomials away from three; the four-arm equivalence; the exact selected coordinates and
 order criteria; the primitive-support, packet-degree, Wiedemann-sibling,
 supersingular, Singer
 and selected norm-one ratio-packing and partition and single-section first-relation bounds,
@@ -5139,6 +5267,7 @@ Ordinary kernel-checked Lean & Algebra without native evaluation: the
 equal-half-norm identity, norm synchronization and power transfer, odd-binomial translation
 separation, bounded cubic and quartic exponent collisions, synchronization and primitive-prime existence, the five-power character-orbit lemmas,
 the fifth-root translate product and cubic character transfer,
+the mixed cubic Artin--Schreier identities, affine action and orbit minima,
 the algebraic Kummer interface, full-primary
 power tests, selected cubic and
 exceptional identities, low-degree minimal-polynomial collision and
@@ -5222,6 +5351,11 @@ nonvanishing does not determine.
 The ordinary, cubic, exceptional, and singleton-even questions remain open.
 So do the exact excesses in the new family, the assertion that all excesses
 belong to $\{0,1,4\}$, and Lenstra's absolute boundedness question.  The
+mixed rows of residue degree $4\cdot3^k$ or $8\cdot3^k$ give further
+targets: any positive excess there violates the range-only assertion,
+although every candidate in the initial finite block has nonzero primitive
+support. No individual prime defect in those families is established.
+The
 four-arm reduction and the remaining arithmetic bounds describe those
 separate questions; they do not restore the disproved multicomponent rule.
 

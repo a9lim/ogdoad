@@ -158,6 +158,15 @@ translates to be powers if the predicted first successful translate fails.
 Thus any failure of `C` or `D` disproves the range-only assertion.
 The gap theorems prove no such failure and give no uniform upper bound.
 
+There are two further targets where any positive excess would disprove the
+range-only assertion. Rows of degree `4 * 3^k` have excess zero or at least
+twelve. Rows of degree `8 * 3^k` have excess in `{0, 2, 8, 10}` or at least
+sixteen. No positive value in either family is established. More generally,
+for `f = 2^s * 3^k`, `s >= 2`, every candidate in the initial finite block
+has nonzero primitive support: its nonzero quadratic Frobenius displacement
+excludes membership in the product of proper-subfield unit groups. A failed
+zero translate would therefore require a defect at an individual prime.
+
 Put `B_a = 2^(2^a)` and let `C_a` be the finite nimbers below `B_a`.
 Some `c` in `C_a` makes the nim sum `kappa_f(p) + c` a non-`p`-th power
 in `F_2(kappa_f(p)) C_a` exactly when

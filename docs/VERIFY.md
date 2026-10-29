@@ -152,6 +152,13 @@ specialization remain paper-level.
 The cubic gaps additionally use the checked fifth-root product and
 odd-order character transfer. Their Frobenius orbits and literal
 finite-field specialization remain paper-level.
+The mixed cubic gaps use checked finite Artin--Schreier power identities,
+binary affine action, four orbit minima, and first-failure transfer. The
+finite orbit proofs use ordinary kernel `decide`. Their literal component selection, Frobenius
+specialization, and ordinal-tail interpretation remain paper-level, as does
+the subfield-quotient proof of nonzero primitive support throughout the
+initial finite block. These results establish no positive excess in a mixed
+cubic row.
 The nonreciprocity of literal bottom polynomials away from three uses the
 checked Frobenius expansion and coprime-factor degree sum; the coefficient
 separation and ordinal-minimum argument remain paper-level.
