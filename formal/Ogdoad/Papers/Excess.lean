@@ -8,5 +8,6 @@ import Ogdoad.ExcessSeed
 import Ogdoad.ExcessPrimitive
 import Ogdoad.ExcessTranslateSupport
 import Ogdoad.ExcessQuarticSupport
+import Ogdoad.ExcessFiveGap
 
 /-! # Lean surface for `writeups/excess.tex` -/

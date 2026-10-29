@@ -149,6 +149,14 @@ a common deficient prime for the first translates. At every constructed
 degree, either some row has excess 1 or a base-2 Wieferich prime has that
 residue degree; this alternative does not resolve the remaining questions.
 
+The five-power tower gives a sharper disproof target. For every `a >= 1`,
+any prime with `ord_p(2) = 4 * 5^a` has `m_p = 1` or `m_p >= 16`.
+If the first translate of the literal `kappa_(5^a)` is a `p`-th power,
+a Frobenius orbit argument forces every translate by `F_16` to be one.
+The remaining question is whether that first-translate failure occurs at
+any level and row prime. The gap theorem proves no such failure and gives
+no uniform upper bound.
+
 Put `B_a = 2^(2^a)` and let `C_a` be the finite nimbers below `B_a`.
 Some `c` in `C_a` makes the nim sum `kappa_f(p) + c` a non-`p`-th power
 in `F_2(kappa_f(p)) C_a` exactly when

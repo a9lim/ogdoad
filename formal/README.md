@@ -147,6 +147,13 @@ coprime factors of the half-field torus order. It checks the explicit
 integral norm, its zero criterion, and its coefficient bound. The Laurent
 divisor and finite-field evaluation remain paper-level arguments.
 
+`ExcessFiveGap` checks the rational transformation and eigencharacter
+identities used in the five-power gap theorem: when `ord_p(2) = 4 * 5^a`
+with `a >= 1`, the literal excess is one or at least sixteen. The five/ten
+cycle decomposition on `F_16`, finite-field specialization, and Conway
+identification remain paper-level. The theorem does not establish a failed
+first translate; the large-excess branch is still open.
+
 The seed tensor expansions and minors are already checked by
 `Excess.z36_expansions`, `z36_expansion_109`, `z36_minor_37`, and
 `z36_minor_109`. Their finite-field tensor interpretation proves the two

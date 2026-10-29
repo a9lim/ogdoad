@@ -46,7 +46,7 @@ reciprocity reductions, and the independent Conway--Fermat problem.
 
 The proof record distinguishes the paper theorem from its kernel-checked
 Lean components.  Lean checks the algebra, synchronization arithmetic,
-translation rigidity, and existence of primes at every specified degree;
+translation rigidity, character-orbit algebra, and existence of primes at every specified degree;
 the literal Conway interpretation and finite-field synthesis remain
 paper-level.
 \end{abstract}
@@ -119,6 +119,8 @@ equivalence, and Section~\ref{sec:counterexample} gives the disproof.
 Sections~\ref{sec:z}--\ref{sec:d} develop one lossless selected
 coordinate for each arm.  Section~\ref{sec:nim-reciprocity} proves the
 saturation boundary for reciprocity arguments built from one marked phase.
+Theorem~\ref{thm:five-tower-gap} shows that rows of residue degree
+$4\cdot5^a$ have excess one or at least sixteen.
 Section~\ref{sec:bounded} separates the failed $0/1/4$ rule from absolute
 boundedness, and Section~\ref{sec:verification} records the authority of every
 claim class used in the paper.
@@ -2280,6 +2282,125 @@ $L_{r,a}$, and Lenstra's component theorem identifies precisely the
 singleton rows.  The lower unit group has no $p$-part, so
 Proposition~\ref{prop:power} gives the last equivalence.
 \end{proof}
+
+\subsection{A gap in the five-power tower}
+
+\begin{theorem}[a gap after the first translate in the five-power tower]
+\label{thm:five-tower-gap}
+Let $a\geq1$, and let $p$ be a prime with
+$\operatorname{ord}_p(2)=4\cdot5^a$.  Then
+\[
+ m_p=1\qquad\text{or}\qquad m_p\geq16.
+\]
+Consequently any failure of the first-translate nonpower assertion on these
+rows disproves the range-only assertion $m_p\in\{0,1,4\}$.
+\end{theorem}
+
+\begin{proof}
+Put $R=5^a$, $E=4R$, and $x=\kappa_R$.  The finite Conway element
+$4\in\mathbb F_{16}$ has order $15$: its defining relation
+$4^2+4=2$, together with $2^2+2=1$, gives $4^5=2$ and $4^{15}=1$,
+while $4^3\ne1$ by the quadratic basis over $\mathbb F_4$.
+Since $v_5(15)=1$, this is not a fifth power in $\mathbb F_{16}$,
+so the literal seed is $\alpha_5=4$, and
+\[
+ x^R=4,\qquad \operatorname{ord}(x)=3\cdot5^{a+1},\qquad d(x)=E.
+\]
+Here $\operatorname{ord}_{5^{a+1}}(2)=4\cdot5^a$: this follows from
+$\operatorname{ord}_5(2)=4$, $v_5(2^4-1)=1$, and lifting the exponent.
+The component rule therefore gives $\mathcal Q(E)=\{R\}$ and
+$\kappa_E=x$.  In particular its finite tail is zero.
+
+Work in $L=\mathbb F_{2^E}$ and put $C=\mathbb F_{16}\subset L$.
+Since $a\geq1$, the prime $p$ is neither $3$ nor $5$.  Both $x$ and all
+elements of $C^\times$ are $p$-th powers in $L$, because their orders have
+only the prime factors $3,5$.
+
+Set
+\[
+ q=2^{2\cdot5^{a-1}}=4^{5^{a-1}},\qquad \lambda=x^{q+1}.
+\]
+Lifting the exponent gives
+$v_5(q+1)=v_5(4+1)+v_5(5^{a-1})=a$, while $q+1\equiv2\pmod3$.
+It follows that $\lambda$ has exact order $15$, so
+$\lambda\in C^\times$ and $\lambda^5\ne1$.
+Moreover $x^q=\lambda/x$, and $q$-th powering acts on $C$ as fourth
+powering, since $2\cdot5^{a-1}\equiv2\pmod4$.
+
+Define a permutation of $C^\times$ by
+\[
+ T(c)=\frac{\lambda}{c^4}.
+\]
+Using $c^{16}=c$ and $\lambda^{15}=1$ gives
+\[
+ T^2(c)=\lambda^{-3}c,\qquad
+ T^5(c)=\lambda^{-5}c^{-4},\qquad T^{10}(c)=c.
+\]
+Since $\lambda^{-3}$ has order five, every $T$-cycle has length five or
+ten.  The points fixed by $T^5$ are exactly
+\[
+ c^5=\lambda^{-5}.
+\]
+The fifth-power map from the cyclic group $C^\times$ onto
+$\mathbb F_4^\times$ has fibers of size five.  Hence these points form
+one five-cycle, and the remaining ten points form one ten-cycle.
+Because $\lambda^5\ne1$, the point $1$ lies on the ten-cycle.
+
+Let
+\[
+ \chi:L^\times\longrightarrow\mu_p,
+ \qquad \chi(u)=u^{(2^E-1)/p}.
+\]
+Its kernel is precisely the subgroup of $p$-th powers, including when
+$p^2\mid2^E-1$.  Every $x+c$ with $c\in C$ is nonzero, since
+$d(x)=E>4$.  Power status in $L$ agrees with power status in its
+defining field: the extension degree divides $E<p$ and is therefore
+prime to $p$.  For $c\ne0$,
+\[
+ (x+c)^q=\frac{c^4}{x}\bigl(x+T(c)\bigr).
+\]
+The prefactor has trivial character, so
+\[
+ \chi(x+T(c))=\chi(x+c)^q.
+\]
+The order of $q$ modulo $p$ is
+\[
+ \frac{E}{\gcd(E,2\cdot5^{a-1})}=10.
+\]
+Thus $q^5\equiv-1\pmod p$.  Iterating
+the character relation around the five-cycle shows that its
+character values equal their own inverses.  Since $p$ is odd, all those
+values are $1$.
+
+On the ten-cycle every character value is a power of $\chi(x+1)$.
+If this value is nontrivial, then $m_p=1$, since $x$ itself is a
+$p$-th power.  If it is trivial, every $x+c$, $c\in C$, is a
+$p$-th power, including $c=0$.  These are precisely the first sixteen
+ordinal candidates $[\kappa_E+m]$, $0\leq m<16$.  Hence $m_p\geq16$.
+\end{proof}
+
+The theorem isolates the remaining obstruction rather than evaluating it:
+the single amplitude
+\[
+ \chi(x+1)=(\kappa_{5^a}+1)^{(2^{4\cdot5^a}-1)/p}
+\]
+is still unknown at a general specified prime $p$.
+The orbit equations allow any amplitude on the ten-cycle, including $1$;
+the five-cycle is forced to be trivial.  Products over the five-point
+fibers $c^5=n$ give $x^5+n$ in the preceding tower field, so their
+characters are automatically trivial and add no missing constraint.
+Thus neither a defect nor universal nonvanishing follows from this orbit
+argument.  Absolute boundedness remains open as well.
+
+The module \texttt{ExcessFiveGap.lean} checks the transformation square,
+the character-transfer factorization, and the additive eigencharacter
+iteration, five-cycle vanishing, and orbit propagation lemmas.
+Choosing an identification $\mu_p\cong(\mathbb Z/p\mathbb Z,+)$
+connects the multiplicative character above to those additive lemmas.
+The cycle count, finite-field specialization, and literal Conway
+identification remain paper-level proofs.
+
+\subsection{Bottom-ancestor polynomials and order bounds}
 
 The full recursive ancestry can also be retained in one binary polynomial.
 Let $P_r\in\mathbb F_2[T]$ be the minimal polynomial of
@@ -4759,6 +4880,9 @@ reformulation, not yet its evaluation.
 Lenstra asked whether the finite excesses are absolutely bounded
 \cite{lenstra1977}.  The disproof of Conjecture~\ref{conj:rule} does not
 answer that question, or even show that an excess lies outside $\{0,1,4\}$.
+Theorem~\ref{thm:five-tower-gap} gives a separate sufficient route: any
+failed first translate at residue degree $4\cdot5^a$ has excess at least
+sixteen.  Existence of such a failure remains open.
 
 For $a\geq0$, put $B_a=2^{2^a}$ and let $C_a=\mathbb F_{B_a}$, the
 finite nimbers below $B_a$.  For an odd prime $p$, put
@@ -4835,7 +4959,7 @@ Cited input & Conway--Lenstra tower and component formulas, standard finite-fiel
 Capelli theory, and the cited cyclotomic, class-field, function-field, and
 order results.  These are not reproved in Lean. \\
 Proved here & The disproof and infinite synchronized
-zero-arm counterexample family; nonzero-translate primitive support in both coprime factors; the four-arm equivalence; the exact selected coordinates and
+zero-arm counterexample family; nonzero-translate primitive support in both coprime factors; the five-power excess gap; the four-arm equivalence; the exact selected coordinates and
 order criteria; the primitive-support, packet-degree, Wiedemann-sibling,
 supersingular, Singer
 and selected norm-one ratio-packing and partition and single-section first-relation bounds,
@@ -4846,7 +4970,8 @@ prime-complement exceptional case, ray-index, boundedness, and
 reciprocity-saturation results stated above. \\
 Ordinary kernel-checked Lean & Algebra without native evaluation: the
 equal-half-norm identity, norm synchronization and power transfer, odd-binomial translation
-separation, bounded cubic and quartic exponent collisions, synchronization and primitive-prime existence, the algebraic Kummer interface, full-primary
+separation, bounded cubic and quartic exponent collisions, synchronization and primitive-prime existence, the five-power character-orbit lemmas,
+the algebraic Kummer interface, full-primary
 power tests, selected cubic and
 exceptional identities, low-degree minimal-polynomial collision and
 normalized rational-packing injection and the cubic factor-of-three

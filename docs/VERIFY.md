@@ -146,6 +146,9 @@ The nonzero-translate support theorems additionally use kernel-checked cubic
 and quartic exponent collision and coefficient-proportionality lemmas. Their finite-field
 tensor and rational-function arguments remain paper-level, and aggregate
 primitive support is distinct from a full primary order test at each prime.
+The five-power excess gap uses kernel-checked transformation and
+eigencharacter identities; its cycle count and literal finite-field
+specialization remain paper-level.
 
 ## Maintained experiments
 
