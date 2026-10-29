@@ -108,7 +108,9 @@ $\Delta_{E_t}(\kappa_{E_t})=1$.
 
 The proof uses equality of two literal radicands and synchronization of their
 norms.  It supplies an ancestry relation that is absent from arguments about
-generic elements with prescribed degree, trace, or norm.  The ordinary,
+generic elements with prescribed degree, trace, or norm.  Theorem~\ref{thm:equal-norm-translates} shows that every nonzero translate
+by the common base field recovers some primitive support.  This does not
+settle the full primary order at a specified prime.  The ordinary,
 cubic, exceptional, and singleton-even order questions remain meaningful
 independently of the failed multicomponent zero arm.
 
@@ -572,6 +574,311 @@ translation obstruction, arithmetic for every level, and existence of the
 required row primes.  The
 finite-field subfield synthesis and literal Conway identification in this
 theorem are paper-level arguments, not one end-to-end Lean theorem.
+
+\subsection{Nonzero translates and the remaining primary-order question}
+
+\begin{theorem}[nonzero translates recover primitive support]
+\label{thm:equal-norm-translates}
+Retain the synchronized family of
+Theorem~\ref{thm:equal-norm-counterexample}, and put
+$K=\mathbb F_{2^{36}}$.  For every $c\in K^\times$,
+\[
+ \kappa_E+c\notin H_E.
+\]
+Thus the zero translate is the unique point of this base-field affine line
+whose entire primitive-support coordinate vanishes.  Nonzero support does
+not assert full primary order at every prime of residue degree $E$.
+\end{theorem}
+
+\begin{proof}
+Write $x=\kappa_R$, $y=\kappa_S$, and $L=\mathbb F_{2^E}$.  We have
+$x^R=y^S=\alpha\in K^\times$, and the monomials
+$x^iy^j$, $0\leq i<R$, $0\leq j<S$, form a $K$-basis of $L$:
+the component degrees over $K$ are the coprime integers $R,S$.
+For $q\in\{2,3,37,109\}$ set
+\[
+ \tau_q=\operatorname{Frob}^{E/q},\qquad
+ \delta_q(z)=z/\tau_q(z).
+\]
+These multiplicative operators commute.  Every factor of $H_E$ is killed
+by its corresponding $\delta_q$, so membership in $H_E$ implies
+annihilation by their product.  Only this implication is needed here.
+
+The top Kummer actions are
+\[
+ \tau_{37}(x)=\lambda x,\quad \tau_{37}(y)=y,
+ \qquad
+ \tau_{109}(x)=x,\quad \tau_{109}(y)=\mu y,
+\]
+where $\lambda,\mu\in K$ have orders $37,109$, respectively.
+Indeed $[K(x^{37}):K]=R/37$, and $\tau_{37}$ restricts to an
+automorphism of order $37$ on $K(x)$; all $37$-th roots of unity lie in
+$K$.  The other tower is identical.  Equal half-norms give
+$\tau_2(x)=w/x$ and $\tau_2(y)=w/y$ with $w\in K^\times$.
+Put $d=\tau_2(c)\in K^\times$ and introduce the rational function
+\[
+ r(X,Y)=\frac{D(X,Y)}{N(X,Y)},\qquad
+ D=X+Y+c,\qquad N=w(X+Y)+dXY.
+\]
+Then $\delta_2(x+y+c)=xy\,r(x,y)$, and the factor $xy$ disappears
+under $\delta_{37}\delta_{109}$.  Consequently
+\[
+ \delta_{37}\delta_{109}\delta_2(x+y+c)=F(x,y),\qquad
+ F(X,Y)=\frac{r(X,Y)r(\lambda X,\mu Y)}
+                  {r(\lambda X,Y)r(X,\mu Y)}.
+\]
+Writing $D_{ij}=D(\lambda^iX,\mu^jY)$ and similarly for $N$, we have
+\[
+ F=P/Q,\qquad
+ P=D_{00}D_{11}N_{10}N_{01},\qquad
+ Q=N_{00}N_{11}D_{10}D_{01}.
+\]
+Both $P$ and $Q$ have degree at most four in each variable.  All their
+factors evaluate nontrivially at $(x,y)$ by the displayed tensor basis.
+If $x+y+c\in H_E$, then, with $\sigma=\tau_3$,
+\[
+ \sigma(F(x,y))=F(x,y).
+\]
+
+Set $n=2^{E/3}$ and choose $u=n\bmod R$, $v=n\bmod S$.  The literal
+Kummer equations give
+\[
+ \sigma(x)=Ax^u,\qquad \sigma(y)=By^v,\qquad A,B\in K^\times.
+\]
+Moreover
+\[
+ u^2+u+1\equiv0\pmod R,\qquad
+ v^2+v+1\equiv0\pmod S.
+\]
+For the first congruence, the standard order bound
+$\operatorname{ord}_{37^a}(2)\mid36\cdot37^{a-1}$ implies $u^3=1$
+modulo $R$.  But $u\ne1\pmod{37}$, since $36\nmid E/3=12RS$.
+Thus $u-1$ is invertible modulo $R$, and the cubic factors as required.
+The argument for $S$ is the same.  On coefficients, $\sigma$ acts as
+$\operatorname{Frob}^{12}$ on $K$, since $RS\equiv1\pmod3$.
+
+The map $(i,j)\mapsto i+uj\pmod R$ is injective for $0\leq i,j\leq4$.
+In fact a collision gives $h+uk\equiv0\pmod R$ with $|h|,|k|\leq4$,
+and hence
+\[
+ h^2-hk+k^2\equiv(h+uk)(h+u^2k)\equiv0\pmod R.
+\]
+The last integer lies between zero and $48<R$, so it vanishes and
+$h=k=0$.  The same holds for $v,S$.  Therefore the monomials
+\[
+ x^{i+uj}y^{k+v\ell},\qquad 0\leq i,j,k,\ell\leq4,
+\]
+are $K$-linearly independent: reduction modulo $R,S$ only multiplies
+distinct tensor-basis vectors by nonzero powers of $\alpha$.
+
+Write $P=\sum p_{ik}X^iY^k$ and $Q=\sum q_{ik}X^iY^k$.
+Clearing denominators in this equality and retaining
+the coefficient action of $\sigma$ gives
+\[
+ P(x,y)Q^\sigma(Ax^u,By^v)
+   =Q(x,y)P^\sigma(Ax^u,By^v).
+\]
+The preceding independence implies, for all indices,
+\[
+ p_{ik}\sigma(q_{j\ell})A^jB^\ell
+   =q_{ik}\sigma(p_{j\ell})A^jB^\ell.
+\]
+Choosing a nonzero coefficient of $Q$ shows that $P$ and $Q$ are
+proportional.  Thus $F$ must be constant as a rational function.
+
+This is impossible.  The prime polynomial $D_{00}=X+Y+c$ divides $P$
+but none of the four factors of $Q$.  To check the latter claim, substitute
+$Y=X+c$.  The factors $D_{10}$ and $D_{01}$ become
+$(\lambda+1)X$ and $(\mu+1)(X+c)$, both nonzero.  The restrictions of
+$N_{00}$ and $N_{11}$ have nonzero quadratic coefficients $d$ and
+$d\lambda\mu$, respectively.  Thus $D_{00}\nmid Q$, contradicting
+constancy and proving the theorem.
+\end{proof}
+
+\begin{corollary}[a first-translate or Wieferich alternative]
+\label{cor:equal-norm-first-translate}
+At every synchronized degree $E$, either some prime $p$ with
+$\operatorname{ord}_p(2)=E$ has $m_p=1$, or there is a prime of that
+residue degree satisfying $p^2\mid2^{p-1}-1$.
+\end{corollary}
+
+\begin{proof}
+Apply the theorem to $c=1$.  The nonidentity class
+$(\kappa_E+1)H_E$ has order divisible by some prime $p$ of residue
+degree $E$, by Lemma~\ref{lem:equal-norm-primitive} and the index
+$[L^\times:H_E]=\Phi_E(2)$.  The finite tail of $\kappa_E$ is zero,
+so its ordinal first translate is its nim sum with $1$.
+This translate has degree $E$, since every proper-subfield unit lies in
+$H_E$.
+If $m_p\ne1$, the already-proved $m_p>0$ means that this first translate
+is still a $p$-th power.  Its positive $p$-primary order is then strictly
+smaller than that of $L^\times$, forcing $p^2\mid2^E-1$.
+Since $E\mid p-1$, this implies $p^2\mid2^{p-1}-1$.
+\end{proof}
+
+The module \texttt{ExcessTranslateSupport.lean} checks the bounded integer
+collision argument and the final coefficient-proportionality step through
+\begin{center}
+\texttt{small\_cubic\_collision},\\
+\texttt{cubic\_exponent\_grid\_injective},\\
+\texttt{proportional\_of\_separated\_coefficients}.
+\end{center}
+The finite-field
+specialization, tensor-basis comparison, rational-function factorization,
+and literal Conway identification above remain paper-level proofs.
+
+\begin{theorem}[primitive support in both coprime factors]
+\label{thm:equal-norm-two-factors}
+Fix $t\geq1$ and put $a=18t$, $R=37^a$, $S=109^a$, $E=36RS$,
+$K=\mathbb F_{2^{36}}$, and $F=\mathbb F_{2^E}$. Let $x,y\in F$ satisfy the
+synchronized-family identities
+\[
+ x^R=y^S=\alpha\in K^\times,\qquad
+ [K(x):K]=R,\quad [K(y):K]=S,\qquad
+ x^{2^{E/2}+1}=y^{2^{E/2}+1}=w\in K^\times.
+\]
+In particular these hypotheses hold for the literal components
+$x=\kappa_R$, $y=\kappa_S$ with $\alpha=\kappa_9+4$.
+Define
+\[
+ d=E/4=9RS,\quad q=2^d,\quad \theta=2^{(d+1)/2},\quad
+ A_\pm=q+1\pm\theta.
+\]
+Put $\tau_p(u)=u^{2^{E/p}}$ for primes $p\mid E$, and let $\Delta_E=\prod_{p\in\{2,3,37,109\}}(\tau_p-1)$ act
+multiplicatively, so $(\tau_p-1)(u)=\tau_p(u)/u$.
+For every $b\in K^\times$, put $h=b+x+y$. Then $h\ne0$, and for
+$D=\Delta_E(h)$ one has
+\[
+                    D^{A_-}\ne1,\qquad D^{A_+}\ne1.
+\]
+Consequently $h$ has nonzero primitive-degree multiplicative support in
+both coprime factors $A_-$ and $A_+$ of $q^2+1$. This asserts neither full
+primary order at any specified prime nor the value of the excess.
+\end{theorem}
+
+\begin{proof}
+The coprime extension degrees make $\{x^i y^j:0\leq i<R,\ 0\leq j<S\}$
+a $K$-basis of $F$. In particular $h\ne0$, and $x^n\in K$ implies
+$R\mid n$ (reduce $n$ modulo $R$ and use the binomial basis); likewise
+for $y,S$. Thus $R,S\mid q^2+1$. Since $R,S\equiv1\pmod8$,
+$d\equiv9\pmod{72}$; using the binary order $36$ of both seed primes gives
+\[
+ (q,\theta)\equiv(-6,-5)\pmod{37},\qquad
+ (q,\theta)\equiv(76,32)\pmod{109}.
+\]
+Now $A_-A_+=q^2+1$ and $\gcd(A_-,A_+)=1$: their difference is the power
+of two $2\theta$, and both are odd. Hence $R\mid A_-$ and $S\mid A_+$.
+
+Put $X=x^q$, $Y=y^q$, $W=w^q$, $T=w^\theta$, and
+\[
+ \lambda=x^{-A_-}\in K^\times,\qquad
+ \mu=y^{A_+}\in K^\times.
+\]
+Thus $x^\theta=\lambda xX$ and $y^\theta=\mu/(yY)$. Write the six Frobenius images as
+\begin{align*}
+ H_0&=b+x+y,& H_1&=b^q+X+Y,\\
+ H_2&=b^{q^2}+w/x+w/y,& H_3&=b^{q^3}+W/X+W/Y,\\
+ J_0&=b^\theta+\lambda xX+\mu/(yY),&
+ J_2&=b^{q^2\theta}+T/(\lambda xX)+(T/\mu)yY.
+\end{align*}
+For $\sigma=\tau_2$ and $v=\sigma(h)/h$, we obtain
+\[
+ L_-:=v^{A_-}=\frac{H_3H_2J_0}{H_1H_0J_2},\qquad
+ L_+:=v^{A_+}=\frac{H_3H_2J_2}{H_1H_0J_0}.
+\]
+Indeed $H_j=h^{q^j}$, $J_0=h^\theta$, and $J_2=\sigma(h)^\theta$;
+the last identity uses
+$(x^\theta)^{q^2+1}=(y^\theta)^{q^2+1}=T$.
+
+We first treat $x,X,y,Y$ as independent Laurent variables over $K$.
+The automorphism $\tau_{37}$ fixes $K(y)$ and has order $37$ on $K(x)$.
+Since $K(x^{37})/K$ has degree $R/37$, it fixes $x^{37}$. Therefore
+$\tau_{37}(x)=\xi x$ for a nonidentity $37$th root $\xi\in K$.
+Similarly $\tau_{109}(y)=\eta y$ for a nonidentity $109$th root
+$\eta\in K$, and $\tau_{109}$ fixes $K(x)$. Their formal actions are
+\[
+ g_{37}(x,X,y,Y)=(\xi x,\xi^qX,y,Y),\qquad
+ g_{109}(x,X,y,Y)=(x,X,\eta y,\eta^qY).
+\]
+For either $L=L_-$ or $L=L_+$, set
+\[
+             J=\frac{L\,g_{37}g_{109}(L)}{g_{37}(L)g_{109}(L)}.
+\]
+The Laurent prime $P=b+x+y$ has valuation $-1$ in $J$. To see this,
+substitute $y=b+x$. A scaled copy of $h$ becomes
+$b(1+\eta^j)+(\xi^i+\eta^j)x$, which vanishes identically only for
+$i=j=0$. A scaled copy of $\sigma(h)$, after clearing its monomial
+denominator, has nonzero $x^2$ coefficient $b^{q^2}$. The two factors involving
+only $X,Y$ are nonzero, and each remaining factor has a nonzero
+$X$ or $X^{-1}$ coefficient. Thus the sole occurrence of $P$ is the
+unscaled denominator $h$, with multiplicity one.
+
+Set $s=2^{E/3}$. Introduce four further independent variables
+$u,U,z,Z$ representing $x^s,X^s,y^s,Y^s$, and let $J_s$ be obtained by
+raising every coefficient of $J$ to the $s$th power and making that
+variable replacement. Then $G=J_s/J$ has $P$-valuation $1$, hence is
+not identically one. Upon evaluation it is respectively $D^{A_-}$ or
+$D^{A_+}$. This uses the actual four Frobenius differences; no unsynchronized
+choice of conjugates is made.
+
+It remains to justify that evaluation cannot erase this rational
+nonidentity. Each $L$ has three factors on each side, and each factor
+has every individual Laurent exponent in $\{-1,0,1\}$. Hence $J$ has
+at most $12$ factors per side and $G=N/M$ at most $24$. Without cancelling,
+$N-M$ is a nonzero Laurent polynomial whose exponent vectors lie in
+$[-24,24]^8$; differences of support vectors have all coordinates of
+absolute value at most $48$. Its evaluated denominators are nonzero,
+being actual Frobenius images of $h$.
+
+We prove injectivity on this support. The substitutions are
+\[
+ X=x^q,\quad u=x^s,\quad U=x^{qs},\qquad
+ Y=y^q,\quad z=y^s,\quad Z=y^{qs}.
+\]
+We have $q^2\equiv-1$ modulo both $R,S$. Also $s^3\equiv1$, while
+$s\equiv2^{12}\not\equiv1$ modulo both seed primes, because
+$RS\equiv1\pmod3$. Thus $s^2+s+1\equiv0$ modulo $R,S$.
+Suppose
+\[
+ b_0+b_1q+b_2s+b_3qs\equiv0\pmod R,\qquad |b_j|\leq48.
+\]
+Let $i^2=-1$ and let $\omega$ be a primitive complex cube root.
+The algebraic integer
+$\beta=b_0+b_1i+b_2\omega+b_3i\omega$ has four conjugates, given
+by independently replacing $i$ with $\pm i$ and $\omega$ with
+$\omega,\omega^2$. Their product is an integer divisible by $R$:
+substitute $q,s$ modulo $R$ in that product, using their two defining
+relations, and the displayed congruence annihilates one factor.
+If $(b_0,b_1,b_2,b_3)\ne0$, the basis
+$1,i,\omega,i\omega$ of $\mathbb Q(i,\omega)$ shows that $\beta\ne0$, whereas
+\[
+ 0<|N_{\mathbb Q(i,\omega)/\mathbb Q}(\beta)|
+ \leq\Bigl(\sum_j|b_j|\Bigr)^4\leq192^4<37^{18}\leq R,
+\]
+a contradiction. The same argument holds modulo $S$. Distinct Laurent
+support vectors therefore reduce to distinct basis monomials $x^i y^j$,
+so $N-M$ cannot vanish. This proves both asserted inequalities.
+
+Finally, $\Delta_E$ has kernel
+$\prod_{p\mid E}\mathbb F_{2^{E/p}}^\times$ and image of order $\Phi_E(2)$,
+by the cyclic-group order calculation for maximal-subfield differences.
+Every prime divisor $\ell$ of $\Phi_E(2)$ has binary order $E$: the
+cyclotomic exception would require
+$E=\operatorname{ord}_\ell(2)\ell^j$ with $\ell\in\{3,37,109\}$, whose respective
+orders are $2,36,36$, and none is possible here. Thus $D$ has only
+primitive-degree primary support. Its order divides $q^2+1=A_-A_+$.
+If that support lay wholly in either factor, the corresponding power
+of $D$ would be one, contrary to the inequalities. This proves the
+stated interpretation without asserting full primary valuations.
+\end{proof}
+
+The modular support-separation step is checked in Lean by
+\begin{center}
+\texttt{ExcessQuarticSupport.bounded\_quartic\_relation}.
+\end{center}
+Its integral quartic norm, nonvanishing criterion, and bound are proved in
+Lean. The Laurent-divisor argument, finite-field evaluation, and
+primitive-support interpretation remain paper-level proofs.
 
 \section{The zero arm: structural norms and Fermat packets}\label{sec:z}
 
@@ -4528,7 +4835,7 @@ Cited input & Conway--Lenstra tower and component formulas, standard finite-fiel
 Capelli theory, and the cited cyclotomic, class-field, function-field, and
 order results.  These are not reproved in Lean. \\
 Proved here & The disproof and infinite synchronized
-zero-arm counterexample family; the four-arm equivalence; the exact selected coordinates and
+zero-arm counterexample family; nonzero-translate primitive support in both coprime factors; the four-arm equivalence; the exact selected coordinates and
 order criteria; the primitive-support, packet-degree, Wiedemann-sibling,
 supersingular, Singer
 and selected norm-one ratio-packing and partition and single-section first-relation bounds,
@@ -4539,7 +4846,7 @@ prime-complement exceptional case, ray-index, boundedness, and
 reciprocity-saturation results stated above. \\
 Ordinary kernel-checked Lean & Algebra without native evaluation: the
 equal-half-norm identity, norm synchronization and power transfer, odd-binomial translation
-separation, synchronization and primitive-prime existence, the algebraic Kummer interface, full-primary
+separation, bounded cubic and quartic exponent collisions, synchronization and primitive-prime existence, the algebraic Kummer interface, full-primary
 power tests, selected cubic and
 exceptional identities, low-degree minimal-polynomial collision and
 normalized rational-packing injection and the cubic factor-of-three
@@ -4612,6 +4919,12 @@ and their selected sum loses every primitive multiplicative-order factor.
 The sum still generates its full field, so the construction respects the
 literal component selector.  This produces infinitely many failed zero-arm
 rows without searching for or factoring any counterexample prime.
+
+Every nonzero common-base translate recovers primitive support in both
+coprime factors of the half-field torus order.  The total cancellation at
+zero is therefore isolated on this affine line.  The remaining question is
+the full primary order at each individual row prime, which aggregate
+nonvanishing does not determine.
 
 The ordinary, cubic, exceptional, and singleton-even questions remain open.
 So do the exact excesses in the new family, the assertion that all excesses

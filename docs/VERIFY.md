@@ -142,6 +142,11 @@ finite-field and literal Conway synthesis is a paper theorem. Lean does not
 prove `FifoLinkingTheorem` or any theorem merely by defining its proposition. The
 theorem map is [`../formal/README.md`](../formal/README.md).
 
+The nonzero-translate support theorems additionally use kernel-checked cubic
+and quartic exponent collision and coefficient-proportionality lemmas. Their finite-field
+tensor and rational-function arguments remain paper-level, and aggregate
+primitive support is distinct from a full primary order test at each prime.
+
 ## Maintained experiments
 
 Each script supports only the claims in its module docstring.

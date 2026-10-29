@@ -137,6 +137,18 @@ entire primitive-support coordinate. The seed equalities have a symbolic
 tensor-basis proof; no counterexample search or random-model assumption is
 used. This does **not** prove an excess outside `{0, 1, 4}` or unboundedness.
 
+For this family, every nonzero `c` in the common base field `F_(2^36)`
+makes `kappa_E + c` have nontrivial primitive support; only the zero
+translate loses it entirely. This includes the finite translates 1 and 4.
+Support survives in both coprime factors `q+1-sqrt(2q)` and
+`q+1+sqrt(2q)` of `q^2+1`, where `q=2^(E/4)`.
+The proofs use a rational-function divisor and sparse exponent separation,
+including a quartic cyclotomic norm. They do not prove full primary order at each
+row prime. In particular, they neither determine `m_p = 1` nor exclude
+a common deficient prime for the first translates. At every constructed
+degree, either some row has excess 1 or a base-2 Wieferich prime has that
+residue degree; this alternative does not resolve the remaining questions.
+
 Put `B_a = 2^(2^a)` and let `C_a` be the finite nimbers below `B_a`.
 Some `c` in `C_a` makes the nim sum `kappa_f(p) + c` a non-`p`-th power
 in `F_2(kappa_f(p)) C_a` exactly when

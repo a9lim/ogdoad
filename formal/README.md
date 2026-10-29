@@ -134,6 +134,19 @@ there is a prime of binary order `36 * 37^a * 109^a`, directly from
 cyclotomic polynomials. These modules use ordinary kernel proofs, without
 `native_decide` or custom axioms.
 
+`ExcessTranslateSupport` checks bounded integer exponent collisions under a
+primitive cubic-root congruence and the ensuing coefficient-proportionality
+step. In the paper these support a theorem that every nonzero common-base
+translate of the synchronized sum recovers nontrivial primitive support.
+The tensor basis, finite-field specialization, and rational-function divisor
+argument remain paper-level. Nontrivial support does not prove full primary
+order at a particular prime or determine an excess value.
+`ExcessQuarticSupport.bounded_quartic_relation` proves the stronger bounded
+support separation used to retain a nonzero primitive coordinate in both
+coprime factors of the half-field torus order. It checks the explicit
+integral norm, its zero criterion, and its coefficient bound. The Laurent
+divisor and finite-field evaluation remain paper-level arguments.
+
 The seed tensor expansions and minors are already checked by
 `Excess.z36_expansions`, `z36_expansion_109`, `z36_minor_37`, and
 `z36_minor_109`. Their finite-field tensor interpretation proves the two
